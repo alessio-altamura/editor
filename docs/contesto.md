@@ -24,6 +24,7 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
 - Il codice nel documento porta un marker se va eseguito e un marker se va
   mostrato.
 - Due motori di rendering: uno per l'HTML nel browser, uno per il PDF.
+- L'HTML esportato è vivo: ricalcola nel browser.
 
 ## Proposte non decise
 
@@ -85,8 +86,7 @@ quando due rami lavorano in parallelo.
 - Un file di testo che contiene contenuto, presentazione, slide, grafici,
   codice, tabelle CSV e formattazione. Esportabile in HTML per il browser e
   stampabile in PDF. Gli asset sono ammessi (vedi le decisioni). Restano da
-  precisare: se l'HTML è statico o ricalcola nel browser; se documento e
-  slide nello stesso file condividono dati e grafici.
+  precisare se documento e slide nello stesso file condividono dati e grafici.
 
 - Formule in sintassi Python, con la possibilità di richiamare codice esterno
   al documento. Restano da precisare: solo la sintassi o anche il runtime
