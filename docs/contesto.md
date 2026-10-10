@@ -26,6 +26,10 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
 - Due motori di rendering: uno per l'HTML nel browser, uno per il PDF.
 - L'HTML esportato è vivo in due sensi: il lettore cambia input e vede
   ricalcolare, e i dati possono aggiornarsi da fonti esterne.
+- Chi apre un HTML esportato vede sempre i valori fotografati all'export. Se il
+  motore è incluso o raggiungibile, la pagina ricalcola. Il resto (file locali,
+  codice pesante, fonti esterne, salvataggio) passa da un servizio, locale o nel
+  cloud. La versione cloud è installabile da chiunque sul proprio server.
 
 ## Proposte non decise
 
@@ -79,10 +83,8 @@ quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
 
-- Esecuzione sia offline sia nel cloud. Idea: un servizio che parte quando si
-  apre il file, in locale o nel cloud. Restano da precisare: se il servizio è
-  l'editor stesso o un runtime separato; cosa vede chi riceve l'HTML senza
-  servizio; se la versione cloud è installabile da chiunque sul proprio server.
+- Il servizio parte quando si apre il file. Resta da precisare se è l'editor
+  stesso (un'app che apre il file e serve l'interfaccia) o un runtime separato.
 
 - Tutto open source, e si possono riusare pezzi esistenti. Restano da
   precisare: la licenza dell'implementazione (permissiva o copyleft), che
