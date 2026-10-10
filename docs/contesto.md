@@ -83,8 +83,12 @@ quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
 
-- Il servizio parte quando si apre il file. Resta da precisare se è l'editor
-  stesso (un'app che apre il file e serve l'interfaccia) o un runtime separato.
+- Il servizio è un runtime separato dall'app, e parte quando si apre il file.
+  L'app mostra il sorgente, la propria vista di editing e l'anteprima HTML o
+  PDF secondo la modalità. Resta da precisare se la vista di editing grafico è
+  un terzo rendering o si modifica direttamente sull'anteprima HTML; chi
+  possiede il file quando lo modifica anche un altro editor; quale protocollo
+  usano app e runtime.
 
 - Tutto open source, e si possono riusare pezzi esistenti. Restano da
   precisare: la licenza dell'implementazione (permissiva o copyleft), che
