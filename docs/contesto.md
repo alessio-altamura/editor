@@ -18,6 +18,9 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
 - Doppia scrittura: sorgente come codice ed editor grafico; ognuno genera l'altro.
 - Deve essere diffabile con Git. Riferimenti: Notion per il modello a blocchi,
   Obsidian per i file di testo locali; in contrapposizione a Word, LaTeX e Markdown.
+- Un documento è un file sorgente più i suoi asset. Può stare in una cartella in
+  chiaro oppure in uno zip con un'estensione propria; per Alessio le due forme
+  sono equivalenti.
 
 ## Proposte non decise
 
@@ -78,8 +81,8 @@ quando due rami lavorano in parallelo.
 
 - Un file di testo che contiene contenuto, presentazione, slide, grafici,
   codice, tabelle CSV e formattazione. Esportabile in HTML per il browser e
-  stampabile in PDF. Restano da precisare: se "un file" esclude asset
-  referenziati (immagini, dati grandi); se l'HTML è statico o ricalcola nel
+  stampabile in PDF. Gli asset sono ammessi (vedi le decisioni). Restano da
+  precisare: se l'HTML è statico o ricalcola nel
   browser; se il PDF passa dalla stampa del browser o da un export tipografico
   dedicato; se documento e slide nello stesso file condividono dati e grafici;
   se il codice è solo mostrato o anche eseguito.
