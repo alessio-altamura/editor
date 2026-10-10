@@ -67,8 +67,16 @@ slide
 
 Debolezze già note: tipi dei valori impliciti; unità di misura ed espressioni non
 definite; layout a vincoli solo accennato; nessuna regola per assegnare gli ID
-quando due rami lavorano in parallelo. La critica completa è in
-[critica-sintassi.md](critica-sintassi.md).
+quando due rami lavorano in parallelo.
+
+## Orientamenti di Alessio (da precisare)
+
+- Formule in sintassi Python, con la possibilità di richiamare codice esterno
+  al documento. Restano da precisare: solo la sintassi o anche il runtime
+  Python; chi esegue il codice quando il documento lo apre un altro; dove
+  stanno i risultati calcolati; come una tabella appare al codice Python;
+  come il motore scopre le dipendenze; come il documento dichiara l'ambiente
+  e la versione del codice esterno.
 
 ## Punti aperti
 
@@ -79,8 +87,6 @@ quando due rami lavorano in parallelo. La critica completa è in
   Ipotesi da confermare: documentazione tecnica con dati vivi, da tenere in Git.
 - Governance e licenza della specifica.
 
-Opzioni e compromessi per ciascuno sono in [domande-aperte.md](domande-aperte.md).
-
 ## Ordine di lavoro
 
 Prima del motore e dell'editor servono tre cose piccole:
@@ -89,5 +95,4 @@ Prima del motore e dell'editor servono tre cose piccole:
    legano. La prima bozza la scrive Alessio.
 2. Sintassi testuale canonica con formatter.
 3. Corpus di documenti di esempio con l'output atteso, base dei test di
-   conformità. Gli scenari, indipendenti dalla sintassi, sono in
-   [../corpus/](../corpus/).
+   conformità.
