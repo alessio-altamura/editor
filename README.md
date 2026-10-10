@@ -9,3 +9,5 @@ la bozza dei tipi di nodo, che scrive Alessio.
 
 - [docs/contesto.md](docs/contesto.md): decisioni prese, proposte non decise,
   bozza di sintassi, punti aperti.
+- [docs/ricerca/](docs/ricerca/): note di ricerca con fonti verificate, una
+  per domanda aperta.
