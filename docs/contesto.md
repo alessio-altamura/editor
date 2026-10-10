@@ -24,7 +24,8 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
 - Il codice nel documento porta un marker se va eseguito e un marker se va
   mostrato.
 - Due motori di rendering: uno per l'HTML nel browser, uno per il PDF.
-- L'HTML esportato è vivo: ricalcola nel browser.
+- L'HTML esportato è vivo in due sensi: il lettore cambia input e vede
+  ricalcolare, e i dati possono aggiornarsi da fonti esterne.
 
 ## Proposte non decise
 
@@ -78,6 +79,11 @@ quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
 
+- Esecuzione sia offline sia nel cloud. Idea: un servizio che parte quando si
+  apre il file, in locale o nel cloud. Restano da precisare: se il servizio è
+  l'editor stesso o un runtime separato; cosa vede chi riceve l'HTML senza
+  servizio; se la versione cloud è installabile da chiunque sul proprio server.
+
 - Tutto open source, e si possono riusare pezzi esistenti. Restano da
   precisare: la licenza dell'implementazione (permissiva o copyleft), che
   decide quali componenti si possono incorporare; la licenza del testo della
@@ -88,12 +94,9 @@ quando due rami lavorano in parallelo.
   stampabile in PDF. Gli asset sono ammessi (vedi le decisioni). Restano da
   precisare se documento e slide nello stesso file condividono dati e grafici.
 
-- Formule in sintassi Python, con la possibilità di richiamare codice esterno
-  al documento. Restano da precisare: solo la sintassi o anche il runtime
-  Python; chi esegue il codice quando il documento lo apre un altro; dove
-  stanno i risultati calcolati; come una tabella appare al codice Python;
-  come il motore scopre le dipendenze; come il documento dichiara l'ambiente
-  e la versione del codice esterno.
+- Formule: Python era l'ipotesi più semplice, non un vincolo. Da capire quale
+  linguaggio convenga, con la possibilità di richiamare codice esterno al
+  documento.
 
 ## Punti aperti
 
