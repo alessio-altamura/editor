@@ -71,6 +71,11 @@ quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
 
+- Tutto open source, e si possono riusare pezzi esistenti. Restano da
+  precisare: la licenza dell'implementazione (permissiva o copyleft), che
+  decide quali componenti si possono incorporare; la licenza del testo della
+  specifica e la concessione sui brevetti; chi governa le modifiche.
+
 - Un file di testo che contiene contenuto, presentazione, slide, grafici,
   codice, tabelle CSV e formattazione. Esportabile in HTML per il browser e
   stampabile in PDF. Restano da precisare: se "un file" esclude asset
