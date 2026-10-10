@@ -30,6 +30,15 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   motore è incluso o raggiungibile, la pagina ricalcola. Il resto (file locali,
   codice pesante, fonti esterne, salvataggio) passa da un servizio, locale o nel
   cloud. La versione cloud è installabile da chiunque sul proprio server.
+- Il motore è un runtime separato dall'app e parte quando si apre il file.
+  L'app mostra il sorgente, la vista di editing grafico e l'anteprima HTML o
+  PDF secondo la modalità.
+- Il runtime possiede il file: applica le modifiche dell'app passando dal
+  formatter canonico e riconcilia quelle fatte da altri editor o da Git.
+- Il runtime parla LSP per il testo. Le operazioni sul modello e le anteprime
+  useranno un protocollo proprio.
+- L'editing grafico avviene sopra l'anteprima HTML, a condizione che esista
+  anche una vista per pagina.
 
 ## Proposte non decise
 
@@ -82,13 +91,6 @@ definite; layout a vincoli solo accennato; nessuna regola per assegnare gli ID
 quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
-
-- Il servizio è un runtime separato dall'app, e parte quando si apre il file.
-  L'app mostra il sorgente, la propria vista di editing e l'anteprima HTML o
-  PDF secondo la modalità. Resta da precisare se la vista di editing grafico è
-  un terzo rendering o si modifica direttamente sull'anteprima HTML; chi
-  possiede il file quando lo modifica anche un altro editor; quale protocollo
-  usano app e runtime.
 
 - Tutto open source, e si possono riusare pezzi esistenti. Restano da
   precisare: la licenza dell'implementazione (permissiva o copyleft), che
