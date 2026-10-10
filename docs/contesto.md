@@ -21,6 +21,8 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
 - Un documento è un file sorgente più i suoi asset. Può stare in una cartella in
   chiaro oppure in uno zip con un'estensione propria; per Alessio le due forme
   sono equivalenti.
+- Il codice nel documento porta un marker se va eseguito e un marker se va
+  mostrato.
 
 ## Proposte non decise
 
@@ -84,8 +86,7 @@ quando due rami lavorano in parallelo.
   stampabile in PDF. Gli asset sono ammessi (vedi le decisioni). Restano da
   precisare: se l'HTML è statico o ricalcola nel
   browser; se il PDF passa dalla stampa del browser o da un export tipografico
-  dedicato; se documento e slide nello stesso file condividono dati e grafici;
-  se il codice è solo mostrato o anche eseguito.
+  dedicato; se documento e slide nello stesso file condividono dati e grafici.
 
 - Formule in sintassi Python, con la possibilità di richiamare codice esterno
   al documento. Restano da precisare: solo la sintassi o anche il runtime
