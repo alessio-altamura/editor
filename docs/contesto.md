@@ -71,6 +71,14 @@ quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
 
+- Un file di testo che contiene contenuto, presentazione, slide, grafici,
+  codice, tabelle CSV e formattazione. Esportabile in HTML per il browser e
+  stampabile in PDF. Restano da precisare: se "un file" esclude asset
+  referenziati (immagini, dati grandi); se l'HTML è statico o ricalcola nel
+  browser; se il PDF passa dalla stampa del browser o da un export tipografico
+  dedicato; se documento e slide nello stesso file condividono dati e grafici;
+  se il codice è solo mostrato o anche eseguito.
+
 - Formule in sintassi Python, con la possibilità di richiamare codice esterno
   al documento. Restano da precisare: solo la sintassi o anche il runtime
   Python; chi esegue il codice quando il documento lo apre un altro; dove
