@@ -104,7 +104,9 @@ con circa 385 funzioni escluse le LEGACY. L'ultima edizione ISO pubblicata è
 ancora la 26300-2:2015 (ODF 1.2); la 26300-4 è in votazione finale dal 9
 ottobre 2026. LET, LAMBDA, dynamic arrays, XLOOKUP, FILTER e i riferimenti
 strutturati non ci sono. Per queste funzioni nessuno standard aperto definisce
-la semantica: [MS-XLSX] ne elenca solo i nomi, e LibreOffice le marca
+la semantica:
+[MS-XLSX](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-xlsx/2c5dee00-eff2-4b22-92b6-0738acd4475e)
+ne elenca solo i nomi, e LibreOffice le marca
 `COM.MICROSOFT.*` (LAMBDA arriva con la 27.2).
 
 **Numeri.** Excel non segue IEEE 754 in punti documentati da Microsoft, per

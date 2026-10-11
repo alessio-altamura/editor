@@ -59,6 +59,17 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   Taffy, HTML/CSS; Yjs o Automerge per la collaborazione; rowan per l'albero.
 - Linguaggio da decidere (per esempio Rust per il nucleo e TypeScript per una
   seconda implementazione).
+- Nucleo compilato anche in WASM, così lo stesso calcolo gira nell'export,
+  nella pagina HTML e nel servizio, con risultati identici.
+- Un solo punto di calcolo. Il runtime produce un albero risolto: formule e
+  blocchi calcolati, riferimenti e numerazioni risolti. I due motori di
+  rendering lo leggono senza ricalcolare nulla. Il corpus verifica
+  quell'albero, non i pixel.
+- Typst come motore del PDF, con la vista per pagina disegnata da Typst dallo
+  stesso layout del PDF (vedi
+  [ricerca/vista-per-pagina.md](ricerca/vista-per-pagina.md)).
+- Come primo prodotto, il runtime da riga di comando: prende il file e produce
+  l'albero risolto, l'HTML e il PDF, senza app.
 
 ## Bozza di sintassi
 

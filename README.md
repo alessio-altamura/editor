@@ -11,5 +11,5 @@ la bozza dei tipi di nodo, che scrive Alessio.
   future: stato, decisioni, domande aperte, prossimi passi.
 - [docs/contesto.md](docs/contesto.md): decisioni prese, proposte non decise,
   bozza di sintassi, punti aperti.
-- [docs/ricerca/](docs/ricerca/): note di ricerca con fonti verificate, una
-  per domanda aperta.
+- [docs/ricerca/](docs/ricerca/): note di ricerca con fonti primarie, una per
+  tema.

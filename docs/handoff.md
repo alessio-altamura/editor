@@ -1,141 +1,194 @@
 # Passaggio di consegne
 
 Stato del progetto al 2026-10-11, per chi riprende il lavoro in una sessione
-futura. Si legge in dieci minuti. I dettagli stanno nei file citati.
+futura. Si legge in dieci minuti. I dettagli stanno nei file citati; dove
+questo file e [contesto.md](contesto.md) divergono, vale contesto.md.
 
 ## Il progetto in breve
 
 Alessio progetta un nuovo standard aperto per scrivere documenti, fogli di
 calcolo e presentazioni con un solo strumento. Non è un clone di Word o di
-OnlyOffice: la compatibilità con DOCX, XLSX e PPTX non è un requisito. Il
-sorgente è testo diffabile in Git; un editor grafico scrive lo stesso sorgente;
-un'AI deve poterlo leggere e modificare. Si parte dal motore, non
+ONLYOFFICE: la compatibilità con DOCX, XLSX e PPTX non è un requisito. Il
+sorgente è testo diffabile in Git, un editor grafico scrive lo stesso sorgente
+e un'AI deve poterlo leggere e modificare. Si parte dal motore, non
 dall'interfaccia. Nel repository non c'è ancora codice: solo documenti.
 
 ## Come lavorare con Alessio
 
-- È un ingegnere e vuole un confronto da pari. Scrive brevi messaggi in
-  italiano, spesso decisioni secche ("entrambi", "ok", "html vivo").
-- La prima bozza dei tipi di nodo la scrive lui. Va rivista e criticata, non
-  sostituita con una versione finita. Lo stesso vale per le sue bozze future.
-- Prosa asciutta, poca formattazione. Proporre una raccomandazione quando c'è,
-  e lasciare a lui la scelta. Porre poche domande, quelle che cambiano cosa si
-  fa dopo.
-- Ogni sua decisione va scritta subito in [contesto.md](contesto.md),
-  tenendo separate le decisioni dalle proposte non decise e dagli orientamenti
-  ancora da precisare. Poi commit e push.
-- Un suo "ok" a più domande va registrato con prudenza: scrivere a quali
-  domande lo si è applicato e chiedergli di correggere se serve.
-- Ricerca solo quando serve a una scelta che ha davanti. All'inizio di questa
-  sessione era partito un workflow grosso (nove aree di ricerca, critica della
-  bozza di sintassi, scenari del corpus). Alessio ha chiesto "sicuri che
-  servano?" e aveva ragione: è stato fermato prima che producesse qualcosa.
-  Le ricerche successive, mirate a una domanda alla volta, sono servite.
+- **Tono.** È un ingegnere e vuole un confronto da pari. Scrive brevi messaggi
+  in italiano, spesso decisioni secche ("entrambi", "ok", "html vivo").
+- **Le sue bozze.** La prima bozza dei tipi di nodo la scrive lui. Va rivista e
+  criticata, non sostituita con una versione finita. Lo stesso vale per le sue
+  bozze future.
+- **Risposte.** Prosa asciutta, poca formattazione. Quando c'è una
+  raccomandazione va detta, lasciando a lui la scelta. Poche domande: solo
+  quelle che cambiano cosa si fa dopo.
+- **Registrare le decisioni.** Ogni sua decisione va scritta subito in
+  [contesto.md](contesto.md), tenendo separate decisioni, orientamenti da
+  precisare e proposte non decise. Poi commit e push.
+- **I suoi "ok".** Un "ok" che risponde a più domande va registrato con
+  prudenza: scrivere a quali domande lo si è applicato e chiedergli di
+  correggere se serve.
+- **Ricerca mirata.** Si fa ricerca solo quando serve a una scelta che ha
+  davanti. All'inizio di questa sessione era partito un workflow grosso: nove
+  aree di ricerca, critica della bozza di sintassi, scenari del corpus. Alessio
+  ha chiesto "sicuri che servano?" e aveva ragione: è stato fermato prima che
+  producesse qualcosa. Le ricerche successive, mirate a una domanda alla volta,
+  sono servite.
 
 ## Decisioni prese
 
-L'elenco completo, con le sfumature, è in [contesto.md](contesto.md).
+L'elenco esatto è in [contesto.md](contesto.md), sezione "Decisioni di
+Alessio". In breve:
 
-- **Formato.** Standard nuovo, tutto open source, componenti esistenti
-  riusabili. Un documento è un file sorgente di testo più i suoi asset: o una
-  cartella in chiaro o uno zip con estensione propria, equivalenti. Contiene
-  testo, slide, grafici, codice, tabelle CSV e formattazione. Il codice porta
-  un marker se va eseguito e un marker se va mostrato.
-- **Output.** Export in HTML e in PDF, con due motori di rendering, uno per
-  ciascuno. L'HTML esportato è vivo in due sensi: il lettore cambia input e
-  vede ricalcolare, e i dati si aggiornano da fonti esterne. Chi apre l'HTML
-  vede sempre i valori fotografati all'export. Ricalcola nella pagina se il
-  motore è presente; il resto passa da un servizio, locale o nel cloud. La
-  versione cloud la può installare chiunque sul proprio server.
-- **Architettura.** Il motore è un runtime separato dall'app e parte quando si
+- **Il formato.** È uno standard nuovo, con un solo strumento per testo,
+  calcolo e slide. È AI-friendly, diffabile in Git e a doppia scrittura:
+  sorgente ed editor grafico generano l'uno l'altro.
+- **Il documento.** È un file sorgente più i suoi asset, in una cartella in
+  chiaro oppure in uno zip con estensione propria: le due forme sono
+  equivalenti.
+- **Il codice.** Nel documento porta un marker se va eseguito e un marker se
+  va mostrato.
+- **I motori.** Sono due, uno per l'HTML nel browser e uno per il PDF.
+- **L'HTML vivo.** L'HTML esportato è vivo in due sensi: il lettore cambia
+  input e vede ricalcolare, e i dati possono aggiornarsi da fonti esterne.
+- **Cosa vede chi apre l'HTML.** Vede sempre i valori fotografati all'export.
+  Se il motore è incluso o raggiungibile, la pagina ricalcola. Il resto passa
+  da un servizio, locale o nel cloud: file locali, codice pesante, fonti
+  esterne, salvataggio. La versione cloud è installabile da chiunque sul
+  proprio server.
+- **Il runtime.** Il motore è un runtime separato dall'app e parte quando si
   apre il file. Il runtime possiede il file: applica le modifiche dell'app
-  passando da un formatter canonico e riconcilia quelle fatte da altri editor o
-  da Git. Parla LSP per il testo; le operazioni sul modello useranno un
-  protocollo proprio.
-- **Editor.** L'app mostra il sorgente, la vista di editing grafico e
-  l'anteprima HTML o PDF. L'editing grafico avviene sopra l'anteprima HTML, a
-  condizione che esista anche una vista per pagina.
+  passando dal formatter canonico e riconcilia quelle fatte da altri editor o
+  da Git. Parla LSP per il testo; le operazioni sul modello e le anteprime
+  useranno un protocollo proprio.
+- **L'app.** Mostra il sorgente, la vista di editing grafico e l'anteprima
+  HTML o PDF secondo la modalità. L'editing grafico avviene sopra l'anteprima
+  HTML, a condizione che esista anche una vista per pagina. Non è stato
+  chiarito cosa succede se la vista per pagina non fosse realizzabile.
 
-## Orientamenti e proposte non decise
+## Orientamenti di Alessio, da precisare
 
-- **Formule.** Python era l'ipotesi più semplice, non un vincolo: Alessio
-  vuole capire cosa convenga. Vuole poter richiamare codice esterno al
-  documento.
-- **Proposte da sessioni precedenti, mai decise.**
-  - modello a nodi tipizzati con ID stabili, e flusso, griglia e canvas come
-    viste dello stesso grafo;
-  - motore di calcolo reattivo come nucleo;
-  - layout a vincoli invece di coordinate assolute;
-  - ID solo dove un nodo è referenziato;
-  - diff semantico più avanti;
-  - nucleo in Rust compilato anche in WASM.
+- Tutto open source, con riuso di componenti esistenti. Restano da decidere le
+  licenze e la governance (domanda 3).
+- Un file di testo con contenuto, presentazione, slide, grafici, codice,
+  tabelle CSV e formattazione, esportabile in HTML e PDF. Resta da decidere se
+  documento e slide condividono dati e grafici (domanda 7).
+- Formule: Python era l'ipotesi più semplice, non un vincolo. Vuole capire
+  cosa convenga e poter richiamare codice esterno al documento.
+
+## Proposte non decise
+
+Sono tutte in [contesto.md](contesto.md), sezione "Proposte non decise". Le
+principali:
+
+- modello a nodi tipizzati con ID stabili, con flusso, griglia e canvas come
+  viste dello stesso grafo;
+- motore di calcolo reattivo come nucleo;
+- sorgente come fonte di verità, con formatter canonico e albero di sintassi
+  che preserva i commenti;
+- layout a vincoli invece di coordinate assolute;
+- ID solo dove un nodo è referenziato, oppure in un file sidecar;
+- diff semantico più avanti, che però richiede ID stabili fin dall'inizio;
+- riuso di Typst, Taffy, Yjs o Automerge, rowan;
+- linguaggio del nucleo da decidere, per esempio Rust con una seconda
+  implementazione in TypeScript, compilato anche in WASM;
+- un albero risolto come unico punto di calcolo per i due motori e per il
+  corpus;
+- Typst come motore del PDF, che disegna anche la vista per pagina;
+- come primo prodotto, il runtime da riga di comando.
 
 ## Ricerca fatta
 
-Tre note in [ricerca/](ricerca/), con fonti primarie e fatti ricontrollati da
-un secondo agente. Gli output grezzi della ricerca non sono nel repository: il
+Ci sono tre note in [ricerca/](ricerca/), con fonti primarie. I fatti portanti
+sono stati ricontrollati da un secondo agente, salvo le parti che ogni nota
+indica. Gli output grezzi della ricerca non sono nel repository, perché il
 container della sessione è effimero.
 
 - [ricerca/formule-python.md](ricerca/formule-python.md): cosa comporta Python
   come linguaggio delle formule.
   - Python non ha una semantica formale.
-  - Microsoft ha rinunciato al grafo reattivo per Python in Excel.
-  - Una sandbox Pyodide è stata aggirata in Grist (CVE-2026-24002).
-  - Il codice esterno rompe il diff se non è fissato per hash.
+  - Microsoft, con Python in Excel, ha rinunciato a ricavare le dipendenze dal
+    codice Python e ricalcola tutte le celle Python in sequenza.
+  - Pyodide su Node non faceva da barriera (Grist, CVE-2026-24002), e Cyera ha
+    aggirato sette prodotti che si affidavano a denylist dentro Pyodide.
+  - Il codice esterno rende il diff inaffidabile, se non è fissato per hash o
+    se i risultati non sono salvati e verificati.
 - [ricerca/linguaggio-formule.md](ricerca/linguaggio-formule.md): confronto
   con JavaScript, formule stile Excel (OpenFormula), CEL e SQL con DuckDB.
-  - Ogni candidato va bene a un livello solo.
-  - Emerge un modello a due livelli: espressioni pure per le formule e codice
-    completo in sandbox con risultati salvati. In alternativa a tre strati, con
-    SQL per tabelle e viste.
+  - Preso così com'è, ogni candidato va bene a un livello solo. JS può coprirli
+    entrambi solo con un sottoinsieme ristretto per le formule.
+  - La nota mette alla pari tre opzioni: due livelli (espressioni pure più
+    codice completo in sandbox), tre strati (con SQL per tabelle e viste), JS
+    ovunque.
+  - Qualunque scelta richiede comunque requisiti comuni: sintassi canonica
+    indipendente dal locale, riferimenti per nome, orologio, seme e fuso come
+    input espliciti, libreria numerica definita, budget di valutazione.
   - Il determinismo fra export e browser viene dallo stesso binario WASM o da
     una libm software, non dal linguaggio.
-  - Quando la nota è stata scritta, le parti su CEL e SQL non erano ancora
-    verificate.
+  - Le parti su CEL e SQL non sono verificate: la verifica è ancora da fare.
 - [ricerca/vista-per-pagina.md](ricerca/vista-per-pagina.md): come avere una
   vista per pagina coerente con il PDF.
-  - Nessun prodotto ci riesce con due motori.
+  - Nessun prodotto noto ci riesce con due motori. CKEditor ci prova, senza
+    garanzie.
   - La via che regge è far disegnare la vista per pagina a Typst (typst.ts,
-    tinymist, Apache-2.0), dallo stesso layout del PDF.
-  - Scrivere direttamente su quelle pagine è stato dimostrato, ma è costoso; un
-    editor per blocco sopra la pagina è il compromesso già provato.
+    tinymist, Apache-2.0) dallo stesso layout del PDF. I salti coincidono solo
+    con la stessa versione di Typst, gli stessi font e gli stessi input, e
+    typst.ts e tinymist usano fork di Typst.
+  - Scrivere direttamente sulle pagine è stato dimostrato da un prototipo, ma
+    è insufficiente come modo principale di scrivere: mancano copia e incolla
+    nativi, screen reader, ricerca e undo. Lo stesso prototipo ha poi ripiegato
+    su una lente per paragrafo, dichiaratamente diversa dalla pagina; l'esito
+    non è documentato.
+  - Un blocco reso dal motore HTML in mezzo alle pagine Typst era fallito per
+    la giuntura visibile.
 
 ## Domande aperte rivolte ad Alessio
 
-Sono state poste in sessione e non hanno ancora una risposta.
+Sono state poste in sessione e non hanno ancora risposta. A queste si
+aggiungono i "Punti aperti" di [contesto.md](contesto.md): ID e merge, CRDT
+contro Git, dati grandi in file colonnari, primo caso d'uso, governance.
 
-1. **Vista per pagina.** Tre opzioni:
-   - pagine di Typst e scrittura nella vista HTML a flusso;
+1. **Vista per pagina.** La nota elenca cinque opzioni; le tre proposte ad
+   Alessio sono:
+   - pagine di Typst e scrittura nella vista HTML a flusso, che soddisfa la
+     sua condizione solo a metà, perché sulle pagine non si scrive;
    - pagine di Typst con una lente per blocco che si apre al clic;
    - righe calcolate da Typst e posizionate nel DOM, con una superficie di
      editing propria.
 
-   Raccomandazione data: partire dalla seconda e tenere la terza come
-   obiettivo, se la latenza regge.
+   Le due escluse (solo i salti da Typst, vista approssimata) non garantiscono
+   le stesse righe del PDF. Raccomandazione data: partire dalla seconda e
+   tenere la terza come obiettivo, se la latenza regge.
 2. **Linguaggio delle formule.** Due livelli, tre strati o JS ovunque, alla
    luce di [ricerca/linguaggio-formule.md](ricerca/linguaggio-formule.md).
 3. **Licenza del codice.** Permissiva (MIT, Apache-2.0) o copyleft. Ne
-   dipendono i componenti incorporabili: Pandoc è GPL, Vivliostyle AGPL,
-   Pyodide MPL. Restano da definire anche la licenza del testo della
-   specifica, la concessione sui brevetti e chi governa le modifiche.
-4. **Pacchetto.**
-   - I risultati calcolati e gli export stanno nel pacchetto, e sotto Git si
+   dipendono i componenti incorporabili: Pandoc è GPL, Vivliostyle AGPL-3.0,
+   Pyodide MPL-2.0, HyperFormula GPL-3.0 o commerciale. Restano da definire
+   anche la licenza del testo della specifica, la concessione sui brevetti e
+   chi governa le modifiche.
+4. **Pacchetto.** Restano aperte tre domande:
+   - i risultati calcolati e gli export stanno nel pacchetto, e sotto Git si
      committano?
    - Gli URL esterni sono ammessi come asset?
    - Il file principale ha un nome fisso o lo dichiara un manifest?
 
-   Proposte fatte, non confermate: zip deterministico, primo file `mimetype`
-   non compresso come in EPUB e ODF, solo percorsi relativi interni.
-5. **Codice eseguito.**
-   - Un blocco eseguito e una formula sono la stessa cosa per il motore,
-     condividendo i nomi?
-   - Ordine di esecuzione dall'alto in basso o per dipendenze?
-   - Solo Python o anche SQL?
+   Proposte fatte, non confermate: zip deterministico; primo file `mimetype`
+   non compresso, come in EPUB e ODF; percorsi degli asset solo relativi e
+   interni al pacchetto. Le fonti dati vive sono un'altra cosa e restano
+   ammesse.
+5. **Codice eseguito.** Restano aperte tre domande:
+   - un blocco eseguito e una formula sono la stessa cosa per il motore, e
+     condividono i nomi?
+   - L'ordine di esecuzione va dall'alto in basso o per dipendenze?
+   - Quali linguaggi servono per il codice eseguito (Python, JS, SQL), in
+     coerenza con la domanda 2?
 
-   Proposta fatta: senza marker un blocco si mostra e non si esegue.
-6. **Due motori.**
-   - Cosa è garantito uguale fra HTML e PDF? Proposta: contenuto, ordine,
-     numeri, numerazioni e grafici sì, a capo e salti no.
+   Proposta fatta: l'esecuzione richiede sempre il marker esplicito. Resta da
+   chiarire il comportamento di un blocco senza marker di visualizzazione.
+6. **Due motori.** Restano aperte tre domande:
+   - cosa è garantito uguale fra HTML e PDF? Proposta: contenuto, ordine,
+     numeri, numerazioni e grafici sì, a capo e salti pagina no.
    - Le indicazioni specifiche di un output sono suggerimenti che l'altro
      ignora, mai contenuto presente in uno solo?
    - Le slide le impagina un solo motore per entrambi gli output, oppure si
@@ -146,30 +199,37 @@ Sono state poste in sessione e non hanno ancora una risposta.
 
 ## Prossimi passi
 
-1. Alessio scrive la prima bozza dei tipi di nodo. La revisione deve
-   verificare se la bozza risponde alle decisioni prese: albero risolto unico
-   per due motori, risultati fotografati, marker del codice, riferimenti fra
-   documento e slide, ID per il diff e per le operazioni dell'editor e
-   dell'AI.
-2. Sintassi testuale canonica con formatter. Una bozza di sintassi esiste in
-   [contesto.md](contesto.md), ma è solo un bersaglio da criticare.
-3. Corpus di documenti con output atteso. Con due motori, l'output atteso è
-   l'albero risolto, non i pixel.
-4. Misure da fare prima di fissare l'architettura:
+1. **La bozza dei tipi di nodo.** La scrive Alessio. La revisione deve
+   verificare che la bozza rispetti le decisioni prese: valori fotografati,
+   marker del codice, runtime che possiede il file. Deve anche vedere come
+   tratta le questioni ancora aperte o solo proposte: albero risolto,
+   riferimenti fra documento e slide, ID per il diff e per le operazioni
+   dell'editor e dell'AI. Le debolezze già note della bozza di sintassi sono in
+   [contesto.md](contesto.md).
+2. **La sintassi.** Serve una sintassi testuale canonica con formatter. La
+   bozza in [contesto.md](contesto.md) è solo un bersaglio da criticare.
+3. **Il corpus.** Documenti con output atteso. Se si adotta l'albero risolto,
+   l'output atteso è quell'albero, non i pixel.
+4. **Le misure.** Servono prima di scegliere fra le opzioni della vista per
+   pagina e del linguaggio delle formule:
    - latenza di Typst 0.15 per tasto sui documenti reali, con e senza salti
-     pagina espliciti;
+     pagina espliciti, insieme al tempo di disegno nel browser, che nel
+     prototipo era il vero collo di bottiglia;
    - avvio nel browser di Pyodide, QuickJS wasm e DuckDB-WASM sullo stesso
      hardware;
-   - quanto coincidono le righe fra Typst e Chromium con gli stessi font.
-5. Un primo prodotto concreto possibile, solo proposto: il runtime da riga di
-   comando. Prende il file e produce l'albero risolto, l'HTML e il PDF, senza
-   app.
+   - quanto coincidono le righe fra Typst e Chromium con gli stessi font;
+   - accessibilità di una vista per pagina su canvas o SVG;
+   - un prototipo del profilo di formule scelto, con il corpus eseguito sia
+     nativo sia in wasm;
+   - le lacune elencate in fondo a ogni nota di ricerca.
+5. **La verifica rimasta.** Vanno ricontrollate le parti su CEL e SQL in
+   [ricerca/linguaggio-formule.md](ricerca/linguaggio-formule.md).
 
 ## Riferimenti pratici
 
 - Branch di lavoro: `claude/nuovo-standard-docs-ijv7f4`.
-- File: [../README.md](../README.md), [contesto.md](contesto.md),
-  [ricerca/](ricerca/), questo file.
+- File: [../README.md](../README.md), [../CLAUDE.md](../CLAUDE.md),
+  [contesto.md](contesto.md), [ricerca/](ricerca/), questo file.
 - Riferimenti citati da Alessio: Notion per il modello a blocchi, Obsidian per
-  i file di testo locali. Prodotti di partenza della discussione: WordCraft
-  (clone di Word in Rust, pre-alpha) ed Euro-Office (fork di ONLYOFFICE).
+  i file di testo locali. La discussione era partita da WordCraft (clone di
+  Word in Rust, pre-alpha) ed Euro-Office (fork di ONLYOFFICE).
