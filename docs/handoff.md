@@ -67,6 +67,18 @@ Alessio". In breve:
   HTML, a condizione che esista anche una vista per pagina. Non è stato
   chiarito cosa succede se la vista per pagina non fosse realizzabile.
 
+- **Il testo è la base.** Il testo in chiaro è la base di tutto: ogni vista
+  grafica (connettori, griglia, pagine, slide) è generata dal sorgente, e ogni
+  modifica grafica diventa una modifica del testo.
+- **I livelli.** Si procede in modo incrementale, un file di testo per livello:
+  contenuto, impaginazione, dati, formule, connettori, grafici, slide.
+  L'editor mostra ogni livello dove serve.
+- **I connettori.** Hanno un file proprio. Il layout è automatico; le
+  posizioni sistemate a mano vanno in un file di layout a parte.
+- **Le tabelle.** Ogni tabella ha un nome obbligatorio. Le celle non hanno
+  coordinate. Le colonne hanno un tipo. Le tabelle possono essere
+  multidimensionali. Tipi, chiavi e dimensioni stanno in uno schema a parte.
+
 ## Orientamenti di Alessio, da precisare
 
 - Tutto open source, con riuso di componenti esistenti. Restano da decidere le
@@ -191,6 +203,28 @@ chiave; riuso possibile di CSVW o Frictionless Table Schema per lo schema.
 Alessio ha scelto lo schema a parte e ha chiesto di pensare le tabelle "come
 liste moderne, non come array". Interpretazione proposta, da confermare:
 liste di record con proprietà tipizzate, relazioni fra liste e più viste.
+
+## Da riprendere subito
+
+La sessione si è chiusa per il limite di crediti mentre si discuteva di tabelle.
+Erano in sospeso queste domande:
+- **Liste moderne.** Va confermata l'interpretazione di "liste moderne, non
+  array": elementi con identità e proprietà tipizzate, relazioni fra liste, più
+  viste dello stesso elenco.
+- **Proprietà multiple.** Per le proprietà che contengono più valori, la
+  proposta era CSV piatto con normalizzazione, e codifica in cella solo per le
+  etichette semplici.
+- **Chiave di riga.** La proposta era chiave facoltativa ma consigliata; in una
+  tabella multidimensionale la chiave è la combinazione delle dimensioni.
+- **Formule e connettori.** Il confine fra i due file: per scala (formule
+  dentro la tabella, connettori fra tabelle) oppure un solo file di calcolo.
+- **Ordine dei livelli.** Proposto: contenuto e impaginazione, dati, grafici,
+  formule, connettori, slide.
+
+Due ricerche, su Excel e sui connettori grafici, sono state interrotte prima
+della verifica dei fatti. I risultati grezzi sono in
+[ricerca/grezzo/](ricerca/grezzo/): vanno ricontrollati e trasformati in note
+pulite prima di usarli.
 
 ## Domande aperte rivolte ad Alessio
 
