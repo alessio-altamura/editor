@@ -144,6 +144,17 @@ container della sessione è effimero.
   - Un blocco reso dal motore HTML in mezzo alle pagine Typst era fallito per
     la giuntura visibile.
 
+## Ultima discussione
+
+A fine sessione Alessio ha detto che la direzione gli sembra troppo complicata
+e ha proposto di procedere per livelli, un file di testo per ciascuno:
+contenuto, impaginazione, dati, formule, grafici, slide. La risposta data: la
+direzione regge, la complessità viene dal volere tutto nella prima versione, e
+la sua idea è un buon modo di tagliare. Precedenti: HTML con CSS, LaTeX con
+BibTeX e CSL, Hugo con `content/`, `layouts/` e `data/`. Si comincia da
+contenuto più impaginazione, che danno subito HTML e PDF. L'idea è registrata
+come orientamento in [contesto.md](contesto.md); si attende la sua risposta.
+
 ## Domande aperte rivolte ad Alessio
 
 Sono state poste in sessione e non hanno ancora risposta. A queste si

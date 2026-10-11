@@ -103,6 +103,12 @@ quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
 
+- Idea in discussione: procedere per livelli, un file di testo per ciascuno
+  (contenuto, impaginazione, dati, formule, grafici, slide), aggiungendone uno
+  alla volta. Nasce dal timore che la direzione presa sia troppo complicata.
+  Restano da precisare: come si referenziano i file fra loro; quale file indica
+  da dove partire; con quale livello cominciare.
+
 - Tutto open source, e si possono riusare pezzi esistenti. Restano da
   precisare: la licenza dell'implementazione (permissiva o copyleft), che
   decide quali componenti si possono incorporare; la licenza del testo della
