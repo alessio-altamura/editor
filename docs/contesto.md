@@ -39,6 +39,10 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   useranno un protocollo proprio.
 - L'editing grafico avviene sopra l'anteprima HTML, a condizione che esista
   anche una vista per pagina.
+- Il testo in chiaro è sempre la base di tutto. Ogni rappresentazione grafica
+  (connettori, griglia, pagine, slide) è una vista generata dal sorgente
+  testuale, e ogni modifica fatta nell'editor grafico diventa una modifica del
+  testo.
 
 ## Proposte non decise
 
@@ -46,9 +50,9 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   (Word, Excel, PowerPoint) come tre viste dello stesso grafo.
 - Motore di calcolo reattivo come nucleo: un grafico in una slide è una vista di
   una tabella, non una copia.
-- Il sorgente è la fonte di verità. L'editor grafico emette solo operazioni
-  esprimibili nel sorgente, stampate da un formatter canonico, con un albero di
-  sintassi concreto che preserva i commenti.
+- L'editor grafico emette solo operazioni esprimibili nel sorgente, stampate da
+  un formatter canonico, con un albero di sintassi concreto che preserva i
+  commenti. (Che il sorgente sia la fonte di verità ora è deciso.)
 - Layout a vincoli invece di coordinate assolute, per non sporcare i diff.
   Posizione assoluta solo come via di fuga.
 - ID solo dove un nodo è referenziato (come gli ancoraggi `^id` di Obsidian),
@@ -105,9 +109,11 @@ quando due rami lavorano in parallelo.
 
 - Non rifare Excel: soddisfare le esigenze di chi lo usa in modo più moderno,
   più semplice e più potente. Idee: eliminare il concetto di cella, usare
-  connettori grafici al posto delle formule. Restano da precisare: se i
-  connettori sono il sorgente o una vista generata dal sorgente testuale; cosa
-  sostituisce la cella per i calcoli al volo e per l'inserimento dei dati.
+  connettori grafici al posto delle formule. I connettori sono una vista del
+  sorgente testuale (vedi le decisioni). Restano da precisare: se le posizioni
+  dei nodi sono sempre calcolate o si possono sistemare a mano, e in quel caso
+  dove si salvano; cosa sostituisce la cella per i calcoli al volo e per
+  l'inserimento dei dati.
 
 - Idea in discussione: procedere per livelli, un file di testo per ciascuno
   (contenuto, impaginazione, dati, formule, grafici, slide), aggiungendone uno

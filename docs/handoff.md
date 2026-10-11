@@ -167,6 +167,10 @@ connettori grafici al posto delle formule: l'obiettivo non è rifare Excel ma
 soddisfare le esigenze di chi lo usa. Avviata una seconda ricerca mirata sulla
 programmazione visuale a nodi e sugli usi reali di Excel.
 
+Alla domanda se i connettori siano il sorgente o una vista, Alessio ha
+risposto: "il testo in chiaro è sempre la base di tutto". È registrato come
+decisione in [contesto.md](contesto.md).
+
 ## Domande aperte rivolte ad Alessio
 
 Sono state poste in sessione e non hanno ancora risposta. A queste si
