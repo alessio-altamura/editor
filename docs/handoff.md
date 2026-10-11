@@ -155,6 +155,13 @@ BibTeX e CSL, Hugo con `content/`, `layouts/` e `data/`. Si comincia da
 contenuto più impaginazione, che danno subito HTML e PDF. L'idea è registrata
 come orientamento in [contesto.md](contesto.md); si attende la sua risposta.
 
+Alessio ha poi precisato che la divisione in file sta sotto il cofano: l'editor
+presenta ogni livello dove serve, per esempio le formule accanto ai dati. Ha
+chiesto anche se Excel sia davvero il massimo, quali vantaggi abbia e come
+migliorarne l'esperienza. È stata avviata una ricerca mirata su questo: punti
+di forza e difetti documentati di Excel, e chi ha tentato di migliorarlo (in
+particolare Lotus Improv, che separava già dati, formule e viste).
+
 ## Domande aperte rivolte ad Alessio
 
 Sono state poste in sessione e non hanno ancora risposta. A queste si

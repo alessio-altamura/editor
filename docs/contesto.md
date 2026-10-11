@@ -106,8 +106,10 @@ quando due rami lavorano in parallelo.
 - Idea in discussione: procedere per livelli, un file di testo per ciascuno
   (contenuto, impaginazione, dati, formule, grafici, slide), aggiungendone uno
   alla volta. Nasce dal timore che la direzione presa sia troppo complicata.
-  Restano da precisare: come si referenziano i file fra loro; quale file indica
-  da dove partire; con quale livello cominciare.
+  La divisione in file riguarda solo come si salva: l'editor mostra ogni
+  livello dove serve, per esempio le formule accanto alla tabella. Restano da
+  precisare: come si referenziano i file fra loro; quale file indica da dove
+  partire; con quale livello cominciare.
 
 - Tutto open source, e si possono riusare pezzi esistenti. Restano da
   precisare: la licenza dell'implementazione (permissiva o copyleft), che
