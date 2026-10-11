@@ -103,6 +103,12 @@ quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
 
+- Non rifare Excel: soddisfare le esigenze di chi lo usa in modo più moderno,
+  più semplice e più potente. Idee: eliminare il concetto di cella, usare
+  connettori grafici al posto delle formule. Restano da precisare: se i
+  connettori sono il sorgente o una vista generata dal sorgente testuale; cosa
+  sostituisce la cella per i calcoli al volo e per l'inserimento dei dati.
+
 - Idea in discussione: procedere per livelli, un file di testo per ciascuno
   (contenuto, impaginazione, dati, formule, grafici, slide), aggiungendone uno
   alla volta. Nasce dal timore che la direzione presa sia troppo complicata.

@@ -162,6 +162,11 @@ migliorarne l'esperienza. È stata avviata una ricerca mirata su questo: punti
 di forza e difetti documentati di Excel, e chi ha tentato di migliorarlo (in
 particolare Lotus Improv, che separava già dati, formule e viste).
 
+Infine Alessio ha proposto di eliminare il concetto di cella e di usare
+connettori grafici al posto delle formule: l'obiettivo non è rifare Excel ma
+soddisfare le esigenze di chi lo usa. Avviata una seconda ricerca mirata sulla
+programmazione visuale a nodi e sugli usi reali di Excel.
+
 ## Domande aperte rivolte ad Alessio
 
 Sono state poste in sessione e non hanno ancora risposta. A queste si
