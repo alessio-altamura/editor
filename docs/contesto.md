@@ -56,6 +56,8 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
 - Le celle non hanno coordinate: nessun indirizzo per posizione, né globale né
   dentro la tabella. Si ragiona per tabella, colonna e righe scelte per
   contenuto.
+- Le intestazioni delle colonne portano anche il tipo. Le tabelle possono essere
+  multidimensionali, non solo a due dimensioni.
 
 ## Proposte non decise
 
@@ -119,6 +121,13 @@ definite; layout a vincoli solo accennato; nessuna regola per assegnare gli ID
 quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
+
+- Tipi e dimensioni: restano da precisare dove si dichiarano i tipi (nella
+  riga di intestazione del CSV o in uno schema a parte, come CSVW o
+  Frictionless Table Schema); come si salva una tabella multidimensionale
+  (proposta: in forma lunga, una riga per combinazione, con le dimensioni
+  dichiarate nello schema e le viste a griglia come pivot); se le dimensioni
+  sono oggetti con nome condivisi fra tabelle.
 
 - Tabelle come fonti di dati: la tabella intera viaggia sui connettori come un
   cavo; una tabella può contenere riferimenti a formule in un file a parte, e

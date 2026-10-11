@@ -184,6 +184,10 @@ schema della tabella); proposto di indicizzare le righe per chiave e non per
 posizione, e di mettere i riferimenti alle formule a livello di colonna.
 Alessio ha precisato: "non esistono le coordinate della cella". È registrato
 come decisione; resta aperto se la chiave di riga sia obbligatoria.
+Poi: le intestazioni portano il tipo, e le tabelle possono essere
+multidimensionali. Proposto di salvarle in forma lunga (tidy) con le
+dimensioni dichiarate, di mostrarle come pivot, e di usare le dimensioni come
+chiave; riuso possibile di CSVW o Frictionless Table Schema per lo schema.
 
 ## Domande aperte rivolte ad Alessio
 
