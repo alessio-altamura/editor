@@ -182,6 +182,8 @@ connettori come un cavo, e può contenere riferimenti a formule in altri file.
 Risposta data: d'accordo sui nomi e sul cavo tipizzato (il tipo del cavo è lo
 schema della tabella); proposto di indicizzare le righe per chiave e non per
 posizione, e di mettere i riferimenti alle formule a livello di colonna.
+Alessio ha precisato: "non esistono le coordinate della cella". È registrato
+come decisione; resta aperto se la chiave di riga sia obbligatoria.
 
 ## Domande aperte rivolte ad Alessio
 

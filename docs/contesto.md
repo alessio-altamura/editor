@@ -53,6 +53,9 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   layout, solo per i nodi spostati.
 - Ogni tabella ha un nome, obbligatorio: senza nome non si può usare. La
   griglia resta come interfaccia per inserire e guardare i dati.
+- Le celle non hanno coordinate: nessun indirizzo per posizione, né globale né
+  dentro la tabella. Si ragiona per tabella, colonna e righe scelte per
+  contenuto.
 
 ## Proposte non decise
 
@@ -117,12 +120,11 @@ quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
 
-- Tabelle come fonti di dati: un valore si raggiunge con il nome della tabella
-  più un indice di riga e colonna; la tabella intera viaggia sui connettori
-  come un cavo; una tabella può contenere riferimenti a formule in un file a
-  parte, e così via. Restano da precisare: righe per posizione o per chiave;
-  riferimenti a livello di colonna o di singola cella; come si segnalano i
-  cicli fra file.
+- Tabelle come fonti di dati: la tabella intera viaggia sui connettori come un
+  cavo; una tabella può contenere riferimenti a formule in un file a parte, e
+  così via. Restano da precisare: se ogni tabella deve dichiarare una chiave
+  per raggiungere una singola riga; riferimenti a livello di colonna o di
+  singola cella; come si segnalano i cicli fra file.
 
 - Non rifare Excel: soddisfare le esigenze di chi lo usa in modo più moderno,
   più semplice e più potente. Idee: eliminare il concetto di cella, usare
