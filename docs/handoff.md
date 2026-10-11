@@ -125,8 +125,9 @@ container della sessione è effimero.
     indipendente dal locale, riferimenti per nome, orologio, seme e fuso come
     input espliciti, libreria numerica definita, budget di valutazione.
   - Il determinismo fra export e browser viene dallo stesso binario WASM o da
-    una libm software, non dal linguaggio.
-  - Le parti su CEL e SQL non sono verificate: la verifica è ancora da fare.
+    una libm software, non dal linguaggio. Nemmeno CEL e DuckDB danno gli
+    stessi risultati fra motori o fra nativo e wasm su conversione dei numeri
+    in testo, ordine delle mappe e funzioni trascendenti.
 - [ricerca/vista-per-pagina.md](ricerca/vista-per-pagina.md): come avere una
   vista per pagina coerente con il PDF.
   - Nessun prodotto noto ci riesce con due motori. CKEditor ci prova, senza
@@ -222,8 +223,6 @@ contro Git, dati grandi in file colonnari, primo caso d'uso, governance.
    - un prototipo del profilo di formule scelto, con il corpus eseguito sia
      nativo sia in wasm;
    - le lacune elencate in fondo a ogni nota di ricerca.
-5. **La verifica rimasta.** Vanno ricontrollate le parti su CEL e SQL in
-   [ricerca/linguaggio-formule.md](ricerca/linguaggio-formule.md).
 
 ## Riferimenti pratici
 
