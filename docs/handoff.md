@@ -176,6 +176,13 @@ di layout a parte; i connettori hanno un file proprio; si procede in modo
 incrementale, un livello alla volta. Aperto: il confine fra formule e
 connettori, e l'ordine dei livelli.
 
+Ultima proposta di Alessio: il nome della tabella è obbligatorio, un valore si
+raggiunge con nome più indice di riga e colonna, la tabella viaggia sui
+connettori come un cavo, e può contenere riferimenti a formule in altri file.
+Risposta data: d'accordo sui nomi e sul cavo tipizzato (il tipo del cavo è lo
+schema della tabella); proposto di indicizzare le righe per chiave e non per
+posizione, e di mettere i riferimenti alle formule a livello di colonna.
+
 ## Domande aperte rivolte ad Alessio
 
 Sono state poste in sessione e non hanno ancora risposta. A queste si

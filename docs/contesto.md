@@ -51,6 +51,8 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
 - I connettori grafici sono un file a parte. La loro disposizione è calcolata
   in automatico; le posizioni sistemate a mano si salvano in un altro file di
   layout, solo per i nodi spostati.
+- Ogni tabella ha un nome, obbligatorio: senza nome non si può usare. La
+  griglia resta come interfaccia per inserire e guardare i dati.
 
 ## Proposte non decise
 
@@ -114,6 +116,13 @@ definite; layout a vincoli solo accennato; nessuna regola per assegnare gli ID
 quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
+
+- Tabelle come fonti di dati: un valore si raggiunge con il nome della tabella
+  più un indice di riga e colonna; la tabella intera viaggia sui connettori
+  come un cavo; una tabella può contenere riferimenti a formule in un file a
+  parte, e così via. Restano da precisare: righe per posizione o per chiave;
+  riferimenti a livello di colonna o di singola cella; come si segnalano i
+  cicli fra file.
 
 - Non rifare Excel: soddisfare le esigenze di chi lo usa in modo più moderno,
   più semplice e più potente. Idee: eliminare il concetto di cella, usare
