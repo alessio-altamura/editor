@@ -43,6 +43,14 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   (connettori, griglia, pagine, slide) è una vista generata dal sorgente
   testuale, e ogni modifica fatta nell'editor grafico diventa una modifica del
   testo.
+- Si procede in modo incrementale, per livelli: un file di testo per ciascun
+  livello (contenuto, impaginazione, dati, formule, connettori, grafici,
+  slide), aggiungendone uno alla volta. La divisione in file riguarda solo come
+  si salva: l'editor mostra ogni livello dove serve, per esempio le formule
+  accanto alla tabella.
+- I connettori grafici sono un file a parte. La loro disposizione è calcolata
+  in automatico; le posizioni sistemate a mano si salvano in un altro file di
+  layout, solo per i nodi spostati.
 
 ## Proposte non decise
 
@@ -110,28 +118,23 @@ quando due rami lavorano in parallelo.
 - Non rifare Excel: soddisfare le esigenze di chi lo usa in modo più moderno,
   più semplice e più potente. Idee: eliminare il concetto di cella, usare
   connettori grafici al posto delle formule. I connettori sono una vista del
-  sorgente testuale (vedi le decisioni). Restano da precisare: se le posizioni
-  dei nodi sono sempre calcolate o si possono sistemare a mano, e in quel caso
-  dove si salvano; cosa sostituisce la cella per i calcoli al volo e per
-  l'inserimento dei dati.
+  sorgente testuale e hanno un file proprio (vedi le decisioni). Restano da
+  precisare: il confine fra il file delle formule e quello dei connettori;
+  cosa sostituisce la cella per i calcoli al volo e per l'inserimento dei dati.
 
-- Idea in discussione: procedere per livelli, un file di testo per ciascuno
-  (contenuto, impaginazione, dati, formule, grafici, slide), aggiungendone uno
-  alla volta. Nasce dal timore che la direzione presa sia troppo complicata.
-  La divisione in file riguarda solo come si salva: l'editor mostra ogni
-  livello dove serve, per esempio le formule accanto alla tabella. Restano da
-  precisare: come si referenziano i file fra loro; quale file indica da dove
-  partire; con quale livello cominciare.
+- Livelli: restano da precisare come si referenziano i file fra loro, quale
+  file indica da dove partire e con quale livello cominciare.
 
 - Tutto open source, e si possono riusare pezzi esistenti. Restano da
   precisare: la licenza dell'implementazione (permissiva o copyleft), che
   decide quali componenti si possono incorporare; la licenza del testo della
   specifica e la concessione sui brevetti; chi governa le modifiche.
 
-- Un file di testo che contiene contenuto, presentazione, slide, grafici,
-  codice, tabelle CSV e formattazione. Esportabile in HTML per il browser e
-  stampabile in PDF. Gli asset sono ammessi (vedi le decisioni). Restano da
-  precisare se documento e slide nello stesso file condividono dati e grafici.
+- Un documento contiene contenuto, presentazione, slide, grafici, codice,
+  tabelle CSV e formattazione, esportabile in HTML e stampabile in PDF. Con la
+  decisione dei livelli questi elementi stanno in file diversi, più gli asset.
+  Resta da confermare che documento e slide condividano dati e grafici per
+  riferimento, cosa che i file separati rendono naturale.
 
 - Formule: Python era l'ipotesi più semplice, non un vincolo. Da capire quale
   linguaggio convenga, con la possibilità di richiamare codice esterno al

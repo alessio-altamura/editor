@@ -171,6 +171,11 @@ Alla domanda se i connettori siano il sorgente o una vista, Alessio ha
 risposto: "il testo in chiaro è sempre la base di tutto". È registrato come
 decisione in [contesto.md](contesto.md).
 
+Poi ha deciso: layout automatico dei connettori, posizioni manuali in un file
+di layout a parte; i connettori hanno un file proprio; si procede in modo
+incrementale, un livello alla volta. Aperto: il confine fra formule e
+connettori, e l'ordine dei livelli.
+
 ## Domande aperte rivolte ad Alessio
 
 Sono state poste in sessione e non hanno ancora risposta. A queste si
