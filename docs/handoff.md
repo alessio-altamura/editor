@@ -188,6 +188,9 @@ Poi: le intestazioni portano il tipo, e le tabelle possono essere
 multidimensionali. Proposto di salvarle in forma lunga (tidy) con le
 dimensioni dichiarate, di mostrarle come pivot, e di usare le dimensioni come
 chiave; riuso possibile di CSVW o Frictionless Table Schema per lo schema.
+Alessio ha scelto lo schema a parte e ha chiesto di pensare le tabelle "come
+liste moderne, non come array". Interpretazione proposta, da confermare:
+liste di record con proprietà tipizzate, relazioni fra liste e più viste.
 
 ## Domande aperte rivolte ad Alessio
 

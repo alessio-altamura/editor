@@ -58,6 +58,8 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   contenuto.
 - Le intestazioni delle colonne portano anche il tipo. Le tabelle possono essere
   multidimensionali, non solo a due dimensioni.
+- Tipi, chiavi e dimensioni si dichiarano in uno schema a parte, non nella riga
+  di intestazione del CSV.
 
 ## Proposte non decise
 
@@ -122,9 +124,15 @@ quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
 
-- Tipi e dimensioni: restano da precisare dove si dichiarano i tipi (nella
-  riga di intestazione del CSV o in uno schema a parte, come CSVW o
-  Frictionless Table Schema); come si salva una tabella multidimensionale
+- Le tabelle vanno pensate come liste moderne, non come array: elementi con
+  proprietà tipizzate e identità propria, senza posizione come indirizzo.
+  Interpretazione da confermare con Alessio: liste di record alla Notion o
+  Airtable, con relazioni fra liste e più viste dello stesso elenco (tabella,
+  board, calendario, grafico).
+
+- Tipi e dimensioni: restano da precisare il formato dello schema (si può
+  partire da CSVW o da Frictionless Table Schema); come si salva una tabella
+  multidimensionale
   (proposta: in forma lunga, una riga per combinazione, con le dimensioni
   dichiarate nello schema e le viste a griglia come pivot); se le dimensioni
   sono oggetti con nome condivisi fra tabelle.
