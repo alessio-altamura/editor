@@ -1,9 +1,13 @@
-# Sintassi dei file di testo: CommonMark o Djot
+# Sintassi dei file di testo: quattro strade
 
 Ricerca del 2026-10-20 per la scelta APERTA nella
 [specifica](../specifica.md), §0.6. Domanda: per i file di testo (`concept`,
 `text`, `composition`), CommonMark con un'intestazione per gli attributi,
-oppure Djot? La nota non sceglie: dà i fatti e i costi.
+oppure Djot? Alessio non conosce le due candidate e ha chiesto di valutarne
+altre due: Markdown con una sintassi nostra, come fa Obsidian, e un formato
+del tutto nostro (contesto.md, orientamento «Sintassi dei file di testo»). Le
+quattro strade sono confrontate nella sezione «Le quattro strade». La nota non
+sceglie: dà i fatti e i costi.
 
 I fatti vengono da fonti primarie: specifiche, repository ufficiali, registry
 npm, documentazione dei prodotti. Alcuni sono prove eseguite con i pacchetti
@@ -193,6 +197,203 @@ Rust, Go, Haskell); in JavaScript o TypeScript c'è solo djot.js
     resta `\n` dentro il testo.
   - prettier: conserva commenti HTML, front matter, `{.c #i}` in un titolo e
     `![[id]]`; cambia `*uno*` in `_uno_`; una seconda passata non cambia nulla.
+
+## Le quattro strade
+
+Lo stesso piccolo documento in quattro sintassi (ogni file comincia con una
+riga `=== nome`, che non fa parte del file): un `concept`, un `text` con
+un'enfasi, un collegamento in linea a un altro nodo e una `class` sul
+capoverso, e un `article` con un titolo e due `embed`. Le forme delle strade 3
+e 4 sono abbozzi scritti per il confronto, non proposte.
+
+**1. CommonMark con un'intestazione YAML.** CommonMark non ha attributi sui
+blocchi, né `embed`, né collegamenti per `id`. Qui il collegamento usa il
+percorso del file, la `class` la sintassi di markdown-it-attrs (un'estensione)
+e l'`embed` la sintassi delle immagini, che CommonMark legge come
+un'immagine.
+
+```
+=== calo-q3.concept.md
+---
+id: calo-q3
+kind: concept
+tags: [vendite, q3]
+---
+Nel terzo trimestre le vendite calano per i ritardi nelle consegne.
+
+=== calo-q3-sintesi.text.md
+---
+id: calo-q3-sintesi
+kind: text
+---
+Le vendite sono calate del 12%, soprattutto per i *ritardi* di agosto
+(vedi [il calo](calo-q3.concept.md)). {.evidenza}
+
+=== report-q3.article.md
+---
+id: report-q3
+kind: article
+---
+# Il terzo trimestre
+
+![](calo-q3-sintesi.text.md)
+
+![](lavagna.image.md)
+```
+
+**2. Djot.** Gli attributi sono nativi, ma il file non ha un'intestazione.
+Nella prova con djot.js 0.3.2 un blocco di attributi va sul blocco che segue
+anche se c'è una riga vuota in mezzo: nel `text` gli attributi del file e la
+`class` finiscono sullo stesso capoverso, e nell'`article` sulla sezione del
+titolo. Gli attributi del file chiedono quindi una regola nostra, per esempio
+quella proposta da matklad nella issue #35. Anche Djot non ha `embed`: qui la
+sintassi delle immagini.
+
+```
+=== calo-q3.concept.dj
+{#calo-q3 kind=concept tags="vendite q3"}
+
+Nel terzo trimestre le vendite calano per i ritardi nelle consegne.
+
+=== calo-q3-sintesi.text.dj
+{#calo-q3-sintesi kind=text}
+
+{.evidenza}
+Le vendite sono calate del 12%, soprattutto per i _ritardi_ di agosto
+(vedi [il calo](#calo-q3)).
+
+=== report-q3.article.dj
+{#report-q3 kind=article}
+
+# Il terzo trimestre
+
+![](calo-q3-sintesi)
+
+![](lavagna)
+```
+
+**3. Markdown con una sintassi nostra, come Obsidian.** Obsidian dichiara di
+supportare «CommonMark, GitHub Flavored Markdown, and LaTeX», e aggiunge
+wikilink, `embed`, identificatori di blocco e altro
+([Obsidian Flavored Markdown](https://github.com/obsidianmd/obsidian-help/blob/master/en/Editing%20and%20formatting/Obsidian%20Flavored%20Markdown.md)).
+Non ha `class` sui blocchi: qui ne serve una aggiunta nostra.
+
+```
+=== calo-q3.concept.md
+---
+id: calo-q3
+kind: concept
+tags: [vendite, q3]
+---
+Nel terzo trimestre le vendite calano per i ritardi nelle consegne.
+
+=== calo-q3-sintesi.text.md
+---
+id: calo-q3-sintesi
+kind: text
+---
+Le vendite sono calate del 12%, soprattutto per i *ritardi* di agosto
+(vedi [[calo-q3|il calo]]). {.evidenza}
+
+=== report-q3.article.md
+---
+id: report-q3
+kind: article
+---
+# Il terzo trimestre
+
+![[calo-q3-sintesi]]
+
+![[lavagna]]
+```
+
+**4. Un formato nostro**, dalla «bozza di sintassi» di contesto.md aggiornata a
+un file per oggetto: una parola chiave per riga, rientri per l'annidamento,
+`#id` per dichiarare e `@id` per riferire.
+
+```
+=== calo-q3.concept
+concept #calo-q3
+  tags  vendite, q3
+  text  "Nel terzo trimestre le vendite calano per i ritardi nelle consegne."
+
+=== calo-q3-sintesi.text
+text #calo-q3-sintesi
+  p .evidenza  "Le vendite sono calate del 12%, soprattutto per i {_ritardi_}
+               di agosto (vedi {@calo-q3 il calo})."
+
+=== report-q3.article
+article #report-q3
+  h      "Il terzo trimestre"
+  embed  @calo-q3-sintesi
+  embed  @lavagna
+```
+
+### Fatti sulla strada Obsidian
+
+- **Le estensioni.** La pagina ufficiale elenca `[[Link]]`, `![[Link]]`,
+  `![[Link#^id]]`, `^id`, le note `[^id]`, i commenti `%%Text%%`,
+  `~~Text~~`, `==Text==`, le liste di cose da fare, i callout `> [!note]` e le
+  tabelle, e avverte: «Some of these, such as internal links, comments, and
+  highlights, are specific to Obsidian. Other Markdown apps may show them as
+  plain text» (stessa pagina). Le proprietà sono YAML, e un collegamento in
+  una proprietà va fra virgolette, `link: "[[Episode IV]]"`
+  ([Properties](https://github.com/obsidianmd/obsidian-help/blob/master/en/Editing%20and%20formatting/Properties.md)).
+- **Identificatori di blocco.** Un `^id` si mette in fondo alla riga di un
+  capoverso, o su una riga a sé dopo elenchi, citazioni, callout e tabelle;
+  «Block identifiers can only consist of Latin letters, numbers, and dashes»;
+  «Links containing block references won't work outside of Obsidian»
+  ([Internal links](https://github.com/obsidianmd/obsidian-help/blob/master/en/Linking%20notes%20and%20files/Internal%20links.md)).
+- **Nessuna specifica formale.** La documentazione descrive le estensioni in
+  prosa, con esempi; una specifica formale non è stata trovata.
+- **L'app non è open source.** La licenza dice «We own and reserve rights to
+  our content, including text, images, and code in the app»
+  ([license](https://obsidian.md/license)); fra i progetti open source che
+  Obsidian elenca (JSON Canvas e altri, MIT) l'app non c'è. L'API per i plugin,
+  `obsidian.d.ts`, è MIT
+  ([obsidian-api](https://github.com/obsidianmd/obsidian-api)).
+- **GitHub.** La spec GFM ha cinque estensioni (tabelle, liste di cose da
+  fare, barrato, autolink, HTML vietato), e nessuna è un wikilink
+  ([gfm](https://github.github.com/gfm/)). La sintassi `[[...]]` GitHub la
+  documenta solo per i wiki
+  ([docs](https://docs.github.com/en/communities/documenting-your-project-with-wikis/editing-wiki-content)).
+- **Parser in JavaScript** (registry npm, ottobre 2026): `remark-wiki-link`
+  2.0.1 (MIT) legge solo i wikilink; `@silicajs/remark-obsidian` 0.1.0 (MIT,
+  maggio 2026) produce nodi per wikilink, `embed`, callout, evidenziazione,
+  commenti, `^id` e tag (prova con remark-parse 11); `remark-obsidian` 1.15.0
+  è GPL-3.0; `obsidian-export` (Rust, BSD-2-Clause-Patent) esporta in
+  CommonMark e dice di supportare «most but not all of Obsidian's Markdown
+  flavor» ([crates.io](https://crates.io/crates/obsidian-export)).
+
+### Diffusione
+
+Download npm della settimana dal 2026-10-12 al 2026-10-18
+(`api.npmjs.org/downloads/point/last-week/<nome>`): `marked` 51,2 milioni,
+`micromark` 38,6 milioni, `remark-parse` 33,9 milioni, `markdown-it` 16,6
+milioni, `commonmark` 562 mila, `remark-wiki-link` 14.798, `@djot/djot`
+1.270. I download contano le installazioni, anche come dipendenze indirette,
+non quanto si scrive in un formato. Per la familiarità di un modello AI con
+una sintassi non è stata trovata una fonte verificabile: ciò che la tabella
+dice su questo è un'inferenza.
+
+### Confronto
+
+Le celle sono riassunti dei fatti sopra; quelle segnate *(inf.)* sono
+inferenze.
+
+| Criterio | 1. CommonMark + YAML | 2. Djot | 3. Markdown alla Obsidian | 4. Formato nostro |
+|---|---|---|---|---|
+| Leggibilità a mano | buona, prosa quasi senza segni *(inf.)* | buona, ma attributi più fitti *(inf.)* | buona; `[[...]]` noto a chi usa Obsidian *(inf.)* | da verificare; più parole chiave e virgolette intorno alla prosa *(inf.)* |
+| Resa su GitHub e negli editor | `.md` reso da GitHub, intestazione come tabella; `class` e `id` tolti; VS Code e JetBrains basati su CommonMark | `.dj` non riconosciuto da GitHub; estensioni di terzi per gli editor | `.md` reso, ma wikilink, `![[...]]` e `^id` restano testo, per avviso di Obsidian stesso | nessuna resa; serve un'estensione per ogni editor *(inf.)* |
+| Attributi su file, blocchi, testo | file con YAML; blocchi e testo solo con estensioni | blocchi e testo nativi; il file chiede una regola | file con YAML; blocchi solo con `^id` (non classi); classi da aggiungere | tutti, come li definiamo noi |
+| Parser e formatter in TypeScript | maturi (micromark, markdown-it, remark); prettier conserva commenti e intestazione | djot.js, nessuna release dal 2024-12; `renderDjot` perde i commenti | i parser CommonMark più plugin piccoli e recenti; nessuna specifica da seguire | nessuno |
+| Costo di scrivere parser e formatter | le regole nostre come plugin *(inf.)* | adattare o mantenere djot.js *(inf.)* | plugin per wikilink, `embed`, `^id` e classi, con casi limite definiti solo dall'app chiusa *(inf.)* | tutto, ma con una grammatica piccola e nostra *(inf.)* |
+| Stabilità e dipendenza da terzi | spec 0.31.2 ferma dal 2024; librerie con un solo manutentore npm | spec dichiarata instabile; un solo autore | dipende da un'app chiusa che può cambiare la sintassi *(inf.)* | nessuna dipendenza; tutta la manutenzione è nostra |
+| Familiarità per un'AI | nessuna fonte; *(inf.)* la più alta, per la diffusione di Markdown | nessuna fonte; *(inf.)* bassa, con 1.270 download a settimana | nessuna fonte; *(inf.)* alta per la base, minore per le estensioni | nessuna fonte; *(inf.)* nulla all'inizio, da compensare con lo schema descritto dalla `cli` |
+| Rapporto con «in contrapposizione a Word, LaTeX e Markdown» | è Markdown | deriva da CommonMark («derives most of its features from commonmark», [README](https://github.com/jgm/djot)) | è Markdown con estensioni | non è Markdown |
+
+L'ultima riga riporta la decisione di contesto.md senza interpretarla: cosa
+voglia dire per la scelta lo dice Alessio.
 
 ## Correzioni del secondo controllo
 
