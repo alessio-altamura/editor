@@ -48,6 +48,9 @@ ancora codice.
 **Formato e livelli**
 - Un documento è un insieme di file di testo più gli asset, in una cartella in
   chiaro o in uno zip con estensione propria.
+- Principio (2026-10-20): l'aspetto incrementale è lo spirito di ogni cosa;
+  gli stessi mattoni possono dare documenti o presentazioni completamente
+  diversi.
 - Si procede in modo incrementale, un livello (`part`) alla volta, in
   quest'ordine:
   1. contenuto e impaginazione;

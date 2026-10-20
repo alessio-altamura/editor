@@ -479,3 +479,5 @@ punta la composizione) hanno avuto risposta: vedi i §1 e §3.
 17. Un template potrebbe fare anche da aggregatore; oppure un nuovo oggetto
     aggregatore che usa lo stesso template potrebbe essere più nello spirito.
 18. Potrebbe essere come la section per le pagine, un aggregatore di dati.
+19. Lo spirito di ogni cosa deve essere l'aspetto incrementale: gli stessi
+    mattoni possono dare documenti o presentazioni completamente diversi.

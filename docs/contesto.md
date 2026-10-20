@@ -73,6 +73,9 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   (connettori, griglia, pagine, slide) è una vista generata dal sorgente
   testuale, e ogni modifica fatta nell'editor grafico diventa una modifica del
   testo.
+- Principio: l'aspetto incrementale è lo spirito di ogni cosa. Gli stessi
+  mattoni possono dare documenti o presentazioni completamente diversi
+  (2026-10-20).
 - Si procede in modo incrementale, per livelli: un file di testo per ciascun
   livello (contenuto, impaginazione, dati, formule, connettori, grafici, e le
   composizioni), aggiungendone uno alla volta. Le slide non sono un livello a
