@@ -35,8 +35,10 @@ un concetto (deciso il 2026-10-20).
 
 *(proposta)* La struttura di lettura (capitoli, titoli, ordine) sta nelle
 composizioni, non nei concetti né negli oggetti. Concetti e oggetti formano un
-insieme piatto, e ogni composizione ci costruisce sopra il suo albero. È il
-modello di DITA, con argomenti piatti e mappe gerarchiche.
+insieme piatto, e ogni composizione ci costruisce sopra il suo albero.
+Somiglia alle mappe di DITA, che danno gerarchia e ordine agli argomenti; in
+DITA però ogni argomento ha il suo titolo, mentre qui i titoli starebbero
+nelle composizioni (correzione della revisione del 2026-10-20).
 
 Tutti i file stanno insieme, mescolati, e l'app li filtra per livello e per
 tipo: i livelli non sono cartelle. Sul `canvas` si buttano giù concetti e
@@ -78,9 +80,11 @@ riunione-q3.deck.md         composition: usa lavagna-vendite
 ```
 
 L'estensione del testo dipende dalla sintassi, che non è ancora decisa: `.md`
-è un segnaposto. Una nota della revisione del 2026-10-20: un `.jpg` o un `.csv`
-non hanno posto per l'`id` e gli altri attributi che il §4 dà a ogni file.
-Serve un file di testo che li descriva, o un'altra regola; la bozza di
+è un segnaposto. Una nota della revisione del 2026-10-20: un `.csv` non ha
+posto per l'`id` e gli altri attributi che il §4 dà a ogni file. Un'immagine
+sì, ma nei metadati binari (i chunk di testo del PNG, i commenti del JPEG):
+il file va riscritto, il diff non li mostra e alcuni programmi li tolgono.
+Serve quindi un file di testo che li descriva, o un'altra regola; la bozza di
 specifica lo tratta nel suo punto aperto sui `kind` del primo livello.
 
 ## 3. I collegamenti
