@@ -148,7 +148,7 @@ un oggetto avrebbe anche versioni diverse di sé, a seconda del contesto.
   - la descrizione è un attributo, `summary`, più un elenco di concetti;
   - la mappa è una vista generata, la `concept map`;
   - una `variant` è una versione con nome di un oggetto (per esempio "breve",
-    "tecnica", "inglese);
+    "tecnica", "inglese");
   - una `composition` sceglie quale `variant` usare quando fa `embed` di un
     oggetto, così il report usa la versione lunga e il `deck` quella breve
     dello stesso oggetto.
