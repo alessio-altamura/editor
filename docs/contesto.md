@@ -86,6 +86,17 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   duplicare è un'azione esplicita. I layout usano gli oggetti archiviati per
   riferimento, e lo stesso oggetto può stare in più layout. Anche le bozze sono
   salvate nei file: nulla esiste solo nell'interfaccia.
+- Il foglio di bozze è un canvas: gli oggetti si mettono dove capita, anche in
+  disordine. Gli oggetti stanno nei file dei loro livelli; il file del foglio
+  salva solo posizioni e riferimenti, partendo dal formato aperto JSON Canvas
+  (MIT, Obsidian).
+- La lista a fianco ha sezioni per tipo (testi, liste, grafici, immagini), una
+  sezione "da sistemare" per gli oggetti non ancora classificati, e i layout,
+  ordinati da chi scrive, che danno l'ordine di lettura. Ogni sezione
+  corrisponde a un livello, cioè a un file.
+- Classificazione, collegamenti e promozioni automatiche, anche proposte
+  dall'AI, sono solo suggerimenti che chi scrive conferma. Nessuna dipendenza
+  nasce in silenzio.
 - Lo spazio libero per appunti e calcoli al volo sta dentro il contenuto: righe
   di calcolo nel testo con il risultato in linea (come Soulver o le Math Notes
   di Apple). Da ciò che si è scritto nello spazio libero si può poi creare una
@@ -157,24 +168,6 @@ quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
 
-- Lo spazio libero come canvas: si inseriscono caselle di testo, tabelle e
-  grafici dove capita, anche in disordine, e poi il sistema crea gli oggetti, li
-  classifica e li collega. Riprende la proposta iniziale di flusso, griglia e
-  canvas come viste dello stesso modello. Proposte da confermare: gli oggetti
-  stanno nei file dei loro livelli e il canvas salva solo posizioni e
-  riferimenti, in un file di layout (si può partire da JSON Canvas, formato
-  aperto MIT di Obsidian); documento e slide sono composizioni ordinate che
-  pescano dal canvas, perché il canvas non ha un ordine di lettura;
-  classificazione e collegamenti automatici sono suggerimenti che chi scrive
-  conferma, mai dipendenze create in silenzio.
-  Precisazione di Alessio: un unico foglio bianco da cui creare gli oggetti, e
-  una lista a fianco che li organizza. Proposta: la lista ha sezioni per tipo
-  (testi, liste, grafici, immagini), una sezione "da sistemare" per gli
-  oggetti non ancora classificati, e i layout (Documento, Presentazione e
-  altri), ordinati da chi scrive, che danno l'ordine di lettura. Ogni sezione
-  corrisponde a un livello, cioè a un file. Precedente: il binder e la
-  corkboard di Scrivener.
-
 - Lo spazio libero come punto d'ingresso dello strumento: si parte da una
   pagina vuota e si scrive, poi ogni pezzo si promuove all'elemento che serve
   (paragrafo, capitolo, immagine, lista, grafico, e più avanti slide). Un
@@ -182,8 +175,7 @@ quando due rami lavorano in parallelo.
   un solo gesto la lista (dati e schema) e il grafico che la usa. Restano
   da precisare: capitoli impliciti dai titoli o annidamento esplicito; come il
   testo segna il tipo dopo la promozione; quali promozioni sono possibili da
-  quale tipo; il gesto inverso. Proposta: l'editor o l'AI possono suggerire una
-  promozione, mai farla da soli.
+  quale tipo; il gesto inverso. Sono domande per la bozza dei tipi di nodo.
 
 - Dati in CSV oppure TSV, con il dialetto dichiarato nello schema.
 - Formule e connettori in file separati, divisi per tipo, fin dall'inizio.

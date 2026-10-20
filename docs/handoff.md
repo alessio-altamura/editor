@@ -118,6 +118,11 @@ ancora codice.
 - Lo spazio libero ammette righe di calcolo con il risultato in linea. Da lì si
   può creare una lista vera.
 - Anche le bozze sono salvate nei file.
+- Il file del foglio salva solo posizioni e riferimenti, partendo da JSON
+  Canvas. La lista a fianco ha sezioni per tipo, una sezione "da sistemare" e i
+  layout ordinati.
+- Classificazione, collegamenti e promozioni automatiche sono solo
+  suggerimenti da confermare.
 
 **Implementazione**
 - TypeScript per la prima versione: runtime, LSP, riga di comando, editor.
