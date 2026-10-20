@@ -137,8 +137,11 @@ Rust, Go, Haskell); in JavaScript o TypeScript c'è solo djot.js
   [jgm/djot#35](https://github.com/jgm/djot/issues/35), «Metadata», è aperta
   dal 2022-07-31. MacFarlane vi chiede: «Should there be a built-in format for
   metadata, or should that be considered distinct from the markup syntax?».
-  La discussione è ancora attiva nel 2026 e contiene più proposte, fra cui il
-  passaggio dei metadati in un blocco grezzo; nessuna è adottata.
+  Le proposte principali: un blocco `+++` (uvtc, 2022-08-05), un blocco di
+  attributi in testa seguito da una riga vuota (matklad, 2022-11-03), il
+  blocco grezzo (pranabekka, 2026-04-01). Il 2026-04-02 MacFarlane risponde
+  che con il blocco grezzo «there are goals this would not allow one to
+  achieve». Nessuna proposta è adottata.
 
 ## GitHub e gli editor
 
@@ -212,8 +215,8 @@ stato possibile, è detto. Tutto è già applicato sopra:
 - la dipendenza da una persona vale anche per CommonMark in JavaScript;
 - nel forum di CommonMark chi sposta la discussione non è un moderatore;
 - la issue jgm/djot#35 contiene più proposte, e non c'è una strada
-  suggerita; il dettaglio delle proposte viene dalla revisione e non è stato
-  ricontrollato qui, perché la pagina non era raggiungibile;
+  suggerita; autori e date delle proposte li ha verificati sulla pagina la
+  seconda revisione, perché da qui la pagina non era raggiungibile;
 - commonmark.js dà le posizioni solo ai blocchi; nella spec «attribute»
   compare anche per i blocchi di codice; MyST accetta tutti e due i recinti;
   per Djot si può usare `text/x-djot`; c'è la forma di commento `[//]: #`;
@@ -246,8 +249,9 @@ Questa sezione è un'inferenza dai fatti sopra, non un fatto verificato.
     come nell'esempio 1 della specifica, o in un'intestazione propria.
   - Su GitHub e negli editor senza estensione il file appare come testo
     semplice.
-  - In cambio gli attributi sono uno solo e uniforme, su file, blocchi e
-    testo in linea.
+  - In cambio gli attributi hanno una sola forma, uguale su blocchi e testo
+    in linea; per il file serve comunque una regola in più (§0.6 della
+    specifica).
 - **In tutti e due i casi** il `formatter` canonico deve normalizzare, che è
   il suo compito, e conoscere le regole proprie del formato. Con CommonMark
   si parte da prettier, che conserva i commenti; con Djot da `renderDjot`,
