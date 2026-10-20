@@ -125,6 +125,8 @@ ancora codice.
   suggerimenti da confermare.
 
 **Implementazione**
+- Nasce con una riga di comando, così un'AI può configurarlo e usarlo. Le
+  proposte su come deve essere fatta sono in [contesto.md](contesto.md).
 - TypeScript per la prima versione: runtime, LSP, riga di comando, editor.
 - Rust compilato in WASM solo dove le misure lo chiederanno.
 

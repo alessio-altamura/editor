@@ -33,6 +33,15 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
 - Il vocabolario dell'impaginazione è un sottoinsieme di CSS definito dalla
   specifica: solo proprietà con un significato fissato e traducibili anche per
   un futuro motore Typst.
+- Lo strumento nasce con una riga di comando, in modo che un'AI possa
+  configurarlo e usarlo con semplicità. Proposte da confermare: ogni
+  operazione dell'editor esiste anche da riga di comando (la CLI è un client
+  del runtime come l'app); output leggibile da macchina (JSON) con schema
+  stabile, codici di uscita ed errori con codice e suggerimento di
+  correzione; comandi non interattivi, con un'opzione per vedere il diff prima
+  di applicare; configurazione in file di testo nella cartella, senza stato
+  nascosto; la CLI descrive sé stessa e gli schemi dei file; un server MCP che
+  espone le stesse operazioni agli agenti AI.
 - Linguaggio di implementazione: TypeScript per la prima versione (runtime,
   LSP, riga di comando ed editor). Rust compilato in WASM solo dove le misure lo
   chiederanno, per esempio per il motore di calcolo o il parser.
@@ -133,8 +142,9 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   chiave; chi scrive conferma o corregge; il runtime crea il file dei dati e lo
   schema, e al posto del blocco libero lascia nel contenuto un riferimento alla
   lista, così il diff mostra lo spostamento.
-- Come primo prodotto, il runtime da riga di comando: prende il file e produce
-  l'albero risolto, l'HTML e il PDF, senza app.
+- Come primo prodotto, il runtime con la sua riga di comando: prende la
+  cartella del documento e produce l'albero risolto, l'HTML e il PDF, senza
+  app.
 
 ## Bozza di sintassi
 
