@@ -77,6 +77,8 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   board, calendario, grafico).
 - Ordine dei livelli: contenuto e impaginazione, poi dati, grafici, formule,
   connettori, slide.
+- All'apertura c'è il foglio bianco. I layout (documento, presentazione e
+  altri) sono viste create a parte, che usano gli oggetti del foglio.
 - Lo spazio libero per appunti e calcoli al volo sta dentro il contenuto: righe
   di calcolo nel testo con il risultato in linea (come Soulver o le Math Notes
   di Apple). Da ciò che si è scritto nello spazio libero si può poi creare una
@@ -161,10 +163,13 @@ quando due rami lavorano in parallelo.
   Precisazione di Alessio: un unico foglio bianco da cui creare gli oggetti, e
   una lista a fianco che li organizza. Proposta: la lista ha sezioni per tipo
   (testi, liste, grafici, immagini), una sezione "da sistemare" per gli
-  oggetti non ancora classificati, e le sezioni Documento e Presentazione,
-  ordinate da chi scrive, che danno l'ordine di lettura. Ogni sezione
+  oggetti non ancora classificati, e i layout (Documento, Presentazione e
+  altri), ordinati da chi scrive, che danno l'ordine di lettura. Ogni sezione
   corrisponde a un livello, cioè a un file. Precedente: il binder e la
   corkboard di Scrivener.
+  Interpretazione da confermare: un oggetto messo in un layout resta anche sul
+  foglio, perché il layout lo usa per riferimento; lo stesso oggetto può stare
+  in più layout.
 
 - Lo spazio libero come punto d'ingresso dello strumento: si parte da una
   pagina vuota e si scrive, poi ogni pezzo si promuove all'elemento che serve

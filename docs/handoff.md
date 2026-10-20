@@ -171,6 +171,10 @@ Ha precisato: un unico foglio bianco da cui creare gli oggetti e una lista a
 fianco che li organizza. Proposto che la lista abbia sezioni per tipo, una
 sezione "da sistemare" e le sezioni ordinate Documento e Presentazione, che
 danno l'ordine di lettura.
+Decisione: all'apertura c'è il foglio bianco, con i layout (documento,
+presentazione e altri) come viste create a parte. Da confermare se un oggetto
+messo in un layout resta anche sul foglio (interpretazione data: sì, per
+riferimento).
 
 ## Domande aperte
 
