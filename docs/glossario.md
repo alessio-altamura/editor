@@ -78,6 +78,7 @@ diverso da qui: è un bersaglio da criticare e non va corretta.
 |---|---|---|
 | layout | impaginazione; documento o presentazione come vista; posizioni sul canvas; schema di una slide; disposizione automatica; layout a vincoli | `stylesheet`, `composition`, `placement`, `slide template`, `auto arrange`, `constraints` |
 | lista | tabella come lista moderna; elenco puntato; pannello a fianco del canvas | `collection`, `bullet list`, `navigator` |
+| aggregatore | oggetto che ripete lo stesso `template` su più dati, affiancati o con un selettore; calcolo di somme e medie per gruppo | nome inglese da scegliere per il primo; aggregator e aggregate restano al secondo |
 | connettore | collegamento grafico; integrazione con un servizio esterno | `wire`, `integration` |
 | foglio | foglio di bozze (in inglese "sheet" fa pensare al foglio di calcolo) | `canvas` |
 | tabella | griglia come vista; tabella come dato; tabellina scritta nel testo | `grid`, `collection`, `text table` |

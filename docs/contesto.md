@@ -299,8 +299,13 @@ quando due rami lavorano in parallelo.
   [bozza-nodi.md](bozza-nodi.md).
   Più dati nello stesso grafico: affiancati, selezionabili o altro, lo decide
   il template; per esempio le vendite nel mese scorrendo i mesi, o le vendite
-  di diversi tipi di prodotto nell'anno (Alessio, 2026-10-20). Da precisare la
-  forma stampata di un grafico selezionabile.
+  di diversi tipi di prodotto nell'anno (Alessio, 2026-10-20). Poi: un nuovo
+  oggetto aggregatore che usa lo stesso template potrebbe essere più nello
+  spirito che un template che fa da aggregatore (Alessio, 2026-10-20). Da
+  precisare: cosa resta al template (proposta: la serie) e cosa va
+  all'aggregatore (affiancati, selettore), la forma stampata di un selettore,
+  il nome. Alessio lo paragona alla sezione per le pagine: un aggregatore di
+  dati (2026-10-20).
 
 - Formule: Python era l'ipotesi più semplice, non un vincolo. Da capire quale
   linguaggio convenga, con la possibilità di richiamare codice esterno al

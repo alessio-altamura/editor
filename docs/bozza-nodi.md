@@ -186,6 +186,64 @@ una tabella, che si applica a dati diversi in un oggetto.
     valori fotografati già decisi, oppure stampare tutti i valori affiancati.
     Proposta: lo dichiara il template, con l'export fotografato come
     predefinito.
+
+  Alessio (2026-10-20), seguito: un template potrebbe fare anche da
+  aggregatore; oppure un nuovo oggetto aggregatore che usa lo stesso template
+  potrebbe essere più nello spirito.
+
+  *(note e proposte di Claude)*
+  - **L'oggetto aggregatore è più nello spirito, sono d'accordo.** Ogni pezzo
+    fa una cosa sola:
+    - il template dice come si vede un insieme di dati;
+    - l'oggetto `chart` lo applica a una tabella;
+    - l'aggregatore ripete lo stesso template su più dati e dice come
+      mostrarli: affiancati o con un selettore.
+
+    Vega-Lite fa così: facet è un operatore di composizione a parte, che
+    contiene la specifica della vista da ripetere («A specification of the
+    view that gets faceted»,
+    [facet](https://vega.github.io/vega-lite/docs/facet.html),
+    [composizione](https://vega.github.io/vega-lite/docs/composition.html)).
+  - **La serie resta nel template.** Più linee nello stesso grafico, per
+    esempio una per tipo di prodotto, sono un grafico solo: è un ruolo del
+    template, non un'aggregazione. All'aggregatore vanno gli affiancati e il
+    selettore.
+  - **Cosa scrive l'aggregatore:** il template, i dati e come mostrarli. I
+    dati possono essere:
+    - una tabella e la dimensione che la divide, per esempio le vendite divise
+      per mese;
+    - più tabelle con la stessa forma, per esempio le vendite del 2025 e del
+      2026. Questo un template da solo non lo saprebbe fare.
+
+    Il `runtime` controlla ogni pezzo contro i ruoli tipizzati del template,
+    come per l'oggetto `chart`. Il valore iniziale del selettore e la forma
+    stampata passano all'aggregatore.
+  - **Non è una composizione.** Una composizione ordina oggetti diversi per la
+    lettura. L'aggregatore ripete lo stesso template su dati diversi, ed è un
+    oggetto: un concetto lo può collegare e una composizione lo può usare.
+    Grafici diversi uno accanto all'altro, come in un cruscotto, restano
+    compito della composizione.
+  - **Il nome.** Nel linguaggio dei dati "aggregare" vuol dire anche calcolare
+    somme e medie per gruppo, come le funzioni di aggregazione di SQL, e
+    funzioni così ci saranno anche nelle formule. Un nome inglese come
+    aggregator verrebbe letto in quel senso, anche da un'AI. Il nome resta da
+    scegliere.
+
+  Alessio (2026-10-20), seguito: potrebbe essere come la section per le
+  pagine, un aggregatore di dati.
+
+  *(note di Claude)*
+  - **L'analogia regge.** In Word una sezione raccoglie delle pagine e applica
+    loro le sue impostazioni (orientamento, margini, intestazioni).
+    L'aggregatore raccoglie dei dati e applica loro il suo template e il suo
+    modo di mostrarli.
+  - **La differenza che conta.** Una sezione contiene cose diverse, in ordine
+    di lettura. L'aggregatore contiene dati della stessa forma, tutti visti con
+    lo stesso template, ed è per questo che il `runtime` può controllarli.
+  - **Dove sta.** Nella proposta del §1 le sezioni, cioè capitoli e titoli,
+    stanno nelle composizioni. L'aggregatore invece resta un oggetto, perché un
+    concetto lo deve poter collegare. L'analogia vale quindi per quello che fa,
+    non per dove sta.
 - **I template si possono distribuire,** come le altre `extension`: un
   catalogo di grafici pronti, coerente con l'orientamento sul marketplace.
 
@@ -352,14 +410,16 @@ punta la composizione) hanno avuto risposta: vedi i §1 e §3.
 6. **Il grafico come template:** il template dice come si vede una tabella, con
    ruoli tipizzati e senza dati; l'oggetto `chart` lo applica a una
    `collection`, con il campo per ogni ruolo. Ti torna? Sui dati in più hai
-   risposto: affiancati, selezionabili o altro, lo decide il template (§3).
-   Restano i tre ruoli proposti per una dimensione in più: serie, affiancati,
-   selettore.
-8. **Il grafico con selettore nel PDF:** si stampa il valore mostrato
-   all'export, oppure tutti i valori affiancati? Propongo che lo dichiari il
-   template, con l'export fotografato come predefinito.
+   risposto, e poi hai proposto un oggetto aggregatore (§3). Proposta: la
+   serie resta un ruolo del template, gli affiancati e il selettore vanno
+   all'aggregatore.
 7. **Tutte le viste come template:** griglia, board e calendario funzionano
    allo stesso modo del grafico?
+8. **L'aggregatore con selettore nel PDF:** si stampa il valore mostrato
+   all'export, oppure tutti i valori affiancati? Propongo che lo dichiari
+   l'aggregatore, con l'export fotografato come predefinito.
+9. **Il nome dell'aggregatore,** evitando aggregator, che nei dati vuol dire
+   somme e medie per gruppo.
 
 ## 7. Le idee di Alessio, in ordine (2026-10-20)
 
@@ -416,3 +476,6 @@ punta la composizione) hanno avuto risposta: vedi i §1 e §3.
 16. Affiancato o selezionabile o non so: dipende dal template. Per esempio le
     vendite nel mese, in cui si scorrono i mesi, o le vendite di diversi tipi
     di prodotto nell'anno.
+17. Un template potrebbe fare anche da aggregatore; oppure un nuovo oggetto
+    aggregatore che usa lo stesso template potrebbe essere più nello spirito.
+18. Potrebbe essere come la section per le pagine, un aggregatore di dati.
