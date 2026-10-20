@@ -78,7 +78,10 @@ riunione-q3.deck.md         composition: usa lavagna-vendite
 ```
 
 L'estensione del testo dipende dalla sintassi, che non è ancora decisa: `.md`
-è un segnaposto.
+è un segnaposto. Una nota della revisione del 2026-10-20: un `.jpg` o un `.csv`
+non hanno posto per l'`id` e gli altri attributi che il §4 dà a ogni file.
+Serve un file di testo che li descriva, o un'altra regola; la bozza di
+specifica lo tratta nel suo punto aperto sui `kind` del primo livello.
 
 ## 3. I collegamenti
 
