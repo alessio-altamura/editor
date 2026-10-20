@@ -297,6 +297,10 @@ quando due rami lavorano in parallelo.
   dati, l'oggetto `chart` lo applica a una `collection` con il campo per ogni
   ruolo; lo stesso meccanismo può valere per tutte le viste. Dettagli in
   [bozza-nodi.md](bozza-nodi.md).
+  Più dati nello stesso grafico: affiancati, selezionabili o altro, lo decide
+  il template; per esempio le vendite nel mese scorrendo i mesi, o le vendite
+  di diversi tipi di prodotto nell'anno (Alessio, 2026-10-20). Da precisare la
+  forma stampata di un grafico selezionabile.
 
 - Formule: Python era l'ipotesi più semplice, non un vincolo. Da capire quale
   linguaggio convenga, con la possibilità di richiamare codice esterno al

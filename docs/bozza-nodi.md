@@ -147,11 +147,45 @@ una tabella, che si applica a dati diversi in un oggetto.
   calendario sono modi di vedere una tabella: template con i loro ruoli (per la
   board il campo per cui raggruppare, per il calendario il campo data). Sarebbe
   un solo meccanismo per tutte le viste.
-- **Più dati nello stesso oggetto.** Lo stesso template si può applicare anche
-  più volte in un oggetto, affiancato: un grafico per ogni regione, o uno per
-  ogni campo. Vega-Lite lo fa con facet e repeat
-  ([repeat](https://vega.github.io/vega-lite/docs/repeat.html)), ggplot2 con
-  i facet ([facet_wrap](https://ggplot2.tidyverse.org/reference/facet_wrap.html)).
+- **Più dati nello stesso oggetto.** Alessio (2026-10-20): affiancati,
+  selezionabili o altro, dipende dal template. Per esempio le vendite nel mese,
+  in cui si scorrono i mesi, o le vendite di diversi tipi di prodotto
+  nell'anno.
+
+  *(note e proposte di Claude)*
+  - **È il template a decidere cosa fare di una dimensione in più.** Oltre agli
+    assi, un template può avere tre ruoli per una dimensione della tabella:
+    - **serie:** i valori stanno nello stesso grafico, per esempio una linea
+      per ogni tipo di prodotto lungo l'anno;
+    - **affiancati:** un grafico per ogni valore, uno accanto all'altro, per
+      esempio un grafico per regione;
+    - **selettore:** si vede un valore alla volta e chi legge lo cambia, per
+      esempio scorrendo i mesi.
+
+    Le tabelle multidimensionali sono già decise, con le dimensioni dichiarate
+    nello schema. Il `runtime` sa quindi quali campi sono dimensioni e può
+    controllare che vadano in questi ruoli.
+  - **Precedenti.**
+    - Vega-Lite affianca con facet e repeat
+      ([repeat](https://vega.github.io/vega-lite/docs/repeat.html)), e lega un
+      parametro a un elemento di input, come uno slider o un menu, per
+      sceglierne il valore
+      ([bind](https://vega.github.io/vega-lite/docs/bind.html)).
+    - ggplot2 affianca con i facet
+      ([facet_wrap](https://ggplot2.tidyverse.org/reference/facet_wrap.html)).
+    - Tableau ha il Pages shelf. Divide una vista in pagine, una per ogni
+      valore di una dimensione, e chi la guarda le scorre con un menu, con i
+      pulsanti avanti e indietro, con uno slider o in riproduzione automatica
+      ([help](https://help.tableau.com/current/pro/desktop/en-us/buildmanual_shelves.htm)).
+  - **Il selettore è HTML vivo, già deciso.** Nella pagina HTML chi legge
+    cambia il valore e il grafico si ridisegna. L'oggetto `chart` può indicare
+    il valore mostrato all'inizio. Quello che sceglie chi legge non si scrive
+    nel sorgente.
+  - **Resta da decidere la forma stampata.** Il PDF non si scorre. Due
+    possibilità: stampare il valore mostrato al momento dell'export, come i
+    valori fotografati già decisi, oppure stampare tutti i valori affiancati.
+    Proposta: lo dichiara il template, con l'export fotografato come
+    predefinito.
 - **I template si possono distribuire,** come le altre `extension`: un
   catalogo di grafici pronti, coerente con l'orientamento sul marketplace.
 
@@ -317,9 +351,13 @@ punta la composizione) hanno avuto risposta: vedi i §1 e §3.
    ricerca), e la cache si perde quando si rigenera.
 6. **Il grafico come template:** il template dice come si vede una tabella, con
    ruoli tipizzati e senza dati; l'oggetto `chart` lo applica a una
-   `collection`, con il campo per ogni ruolo. Ti torna? E con "dati diversi in
-   un oggetto" intendevi anche lo stesso template ripetuto per più tabelle o
-   più parti di una tabella, affiancato?
+   `collection`, con il campo per ogni ruolo. Ti torna? Sui dati in più hai
+   risposto: affiancati, selezionabili o altro, lo decide il template (§3).
+   Restano i tre ruoli proposti per una dimensione in più: serie, affiancati,
+   selettore.
+8. **Il grafico con selettore nel PDF:** si stampa il valore mostrato
+   all'export, oppure tutti i valori affiancati? Propongo che lo dichiari il
+   template, con l'export fotografato come predefinito.
 7. **Tutte le viste come template:** griglia, board e calendario funzionano
    allo stesso modo del grafico?
 
@@ -375,3 +413,6 @@ punta la composizione) hanno avuto risposta: vedi i §1 e §3.
     semantica. Non so quanto sia semplice.
 15. Il grafico potrebbe essere un template? Un modo di vedere una tabella, che
     si applica a dati diversi in un oggetto.
+16. Affiancato o selezionabile o non so: dipende dal template. Per esempio le
+    vendite nel mese, in cui si scorrono i mesi, o le vendite di diversi tipi
+    di prodotto nell'anno.
