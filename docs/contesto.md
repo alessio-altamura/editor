@@ -157,6 +157,19 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   di calcolo nel testo con il risultato in linea (come Soulver o le Math Notes
   di Apple). Da ciò che si è scritto nello spazio libero si può poi creare una
   lista vera.
+- Sulla bozza di specifica, [specifica.md](specifica.md) (2026-10-20):
+  - dove si scrive il `kind` (§0.1): nell'estensione e dentro il file per i
+    file di testo; un file descrittore per immagini e CSV; un elenco fisso di
+    estensioni nel `core`, così un file non cambia natura secondo la classe di
+    chi lo legge;
+  - identità (§0.3): l'`id` resta opzionale e il `runtime` lo scrive nel file
+    quando un'operazione collega l'oggetto (1ii); gli `id` ritirati stanno in
+    un file del documento (1d); la `target quote` arriva più avanti (2b);
+  - righe di calcolo (§0.4): il risultato c'è già nella classe 1, con
+    un'aritmetica minima. Requisito di Alessio per dopo: deve essere possibile
+    usare una funzione dichiarata in un altro file, con argomenti numerici,
+    elementi della stessa lista o anche range. Da precisare cosa vuol dire
+    range, visto che le celle non hanno coordinate.
 
 ## Proposte non decise
 
@@ -329,6 +342,17 @@ quando due rami lavorano in parallelo.
   all'aggregatore (affiancati, selettore), la forma stampata di un selettore,
   il nome. Alessio lo paragona alla sezione per le pagine: un aggregatore di
   dati (2026-10-20).
+
+- Sintassi dei file di testo (specifica §0.6): Alessio non conosce CommonMark e
+  Djot, e chiede di valutarli insieme a due altre strade: un formato nostro,
+  oppure Markdown con una sintassi nostra, come fa Obsidian (2026-10-20).
+
+- Capitoli e titoli (specifica §0.7): forse il capitolo dovrebbe essere un
+  aggregatore di testi, come un indice dettagliato (Alessio, 2026-10-20).
+
+- Restano aperti, con Alessio indeciso: un `text` con uno o più capoversi
+  (specifica §0.2; la sua domanda: sarebbe un'eccezione, e come si gestiscono
+  i metadati di più capoversi?), e chi applica il CSS (§0.5).
 
 - Formule: Python era l'ipotesi più semplice, non un vincolo. Da capire quale
   linguaggio convenga, con la possibilità di richiamare codice esterno al

@@ -488,3 +488,10 @@ punta la composizione) hanno avuto risposta: vedi i §1 e §3.
 18. Potrebbe essere come la section per le pagine, un aggregatore di dati.
 19. Lo spirito di ogni cosa deve essere l'aspetto incrementale: gli stessi
     mattoni possono dare documenti o presentazioni completamente diversi.
+20. Sulla bozza di specifica: 1 ok. 2 sono indeciso: sarebbe un'eccezione, e
+    come faresti con più metadati? 3 ok. 4 ok, anche se deve essere possibile
+    usare una funzione dichiarata in un altro file, con argomenti sia numerici
+    sia elementi della stessa lista, o anche range. 5 aiuto per decidere. 6 non
+    li conosco: valutiamoli tutti e due, o un formato nostro, o anche Markdown
+    con una sintassi nostra, tipo Obsidian. 7 forse dovrebbe essere un
+    aggregatore di testi, come un indice dettagliato?
