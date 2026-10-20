@@ -23,8 +23,19 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   sono equivalenti.
 - Il codice nel documento porta un marker se va eseguito e un marker se va
   mostrato.
-- Due motori di rendering: uno per l'HTML nel browser, uno per il PDF. In
-  revisione: vedi gli orientamenti.
+- Motori per fasi, al posto dei due motori decisi in un primo momento. Si parte
+  con un solo motore: l'HTML come nucleo e il PDF come sua esportazione, stampata
+  da un motore browser di versione fissata. Più avanti potrà arrivare un secondo
+  motore (Typst) per una modalità di scrittura orientata alla stampa. Obiettivo
+  finale: vista interattiva HTML con esportazione in PDF; vista di scrittura PDF
+  con esportazione in HTML statico. Condizione: modello e impaginazione neutri
+  rispetto al motore.
+- Il vocabolario dell'impaginazione è un sottoinsieme di CSS definito dalla
+  specifica: solo proprietà con un significato fissato e traducibili anche per
+  un futuro motore Typst.
+- Linguaggio di implementazione: TypeScript per la prima versione (runtime,
+  LSP, riga di comando ed editor). Rust compilato in WASM solo dove le misure lo
+  chiederanno, per esempio per il motore di calcolo o il parser.
 - L'HTML esportato è vivo in due sensi: il lettore cambia input e vede
   ricalcolare, e i dati possono aggiornarsi da fonti esterne.
 - Chi apre un HTML esportato vede sempre i valori fotografati all'export. Se il
@@ -84,16 +95,14 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   il che richiede ID stabili fin dall'inizio.
 - Riusare motori esistenti invece di scrivere l'impaginazione da zero: Typst,
   Taffy, HTML/CSS; Yjs o Automerge per la collaborazione; rowan per l'albero.
-- Linguaggio da decidere (per esempio Rust per il nucleo e TypeScript per una
-  seconda implementazione).
-- Nucleo compilato anche in WASM, così lo stesso calcolo gira nell'export,
-  nella pagina HTML e nel servizio, con risultati identici.
+- Funzioni matematiche fornite dal motore con una libreria fissata, così il
+  calcolo dà gli stessi risultati nell'export, nella pagina HTML e nel servizio.
 - Un solo punto di calcolo. Il runtime produce un albero risolto: formule e
   blocchi calcolati, riferimenti e numerazioni risolti. I due motori di
   rendering lo leggono senza ricalcolare nulla. Il corpus verifica
   quell'albero, non i pixel.
-- Typst come motore del PDF, con la vista per pagina disegnata da Typst dallo
-  stesso layout del PDF (vedi
+- Quando arriverà il motore Typst, la sua vista per pagina sarà disegnata da
+  Typst dallo stesso layout del PDF (vedi
   [ricerca/vista-per-pagina.md](ricerca/vista-per-pagina.md)).
 - Come primo prodotto, il runtime da riga di comando: prende il file e produce
   l'albero risolto, l'HTML e il PDF, senza app.
@@ -130,17 +139,10 @@ quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
 
-- Motori per fasi. Prima un solo motore: l'HTML come nucleo e il PDF come sua
-  esportazione; risolve la vista per pagina e dimezza il lavoro di rendering,
-  ma costa in tipografia e lega il PDF a un motore browser fissato. In futuro
-  un secondo motore (Typst) per una modalità di scrittura orientata alla
-  stampa. Obiettivo finale: vista interattiva HTML con esportazione in PDF;
-  vista di scrittura PDF con esportazione in HTML statico. Condizione perché il
-  secondo motore si possa aggiungere: modello e impaginazione neutri rispetto
-  al motore. Resta da decidere se il vocabolario dell'impaginazione è CSS, un
-  sottoinsieme di CSS definito dalla specifica o un vocabolario proprio.
-- Linguaggio di implementazione da scegliere. Alessio nota che oggi molti
-  scrivono in Rust; con l'HTML come nucleo è forte anche TypeScript.
+- Spazio libero per appunti e calcoli al volo. Proposta: dentro il contenuto,
+  come righe di calcolo nel testo con risultato in linea (come Soulver o le
+  Math Notes di Apple), con un gesto per promuovere una tabellina a lista vera.
+  Da confermare.
 - Dati in CSV oppure TSV, con il dialetto dichiarato nello schema.
 - Formule e connettori in file separati, divisi per tipo, fin dall'inizio.
 - Identità degli elementi di una lista: chiave naturale se dichiarata,
@@ -163,12 +165,14 @@ quando due rami lavorano in parallelo.
 - Non rifare Excel: soddisfare le esigenze di chi lo usa in modo più moderno,
   più semplice e più potente. Idee: eliminare il concetto di cella, usare
   connettori grafici al posto delle formule. I connettori sono una vista del
-  sorgente testuale e hanno un file proprio (vedi le decisioni). Restano da
-  precisare: il confine fra il file delle formule e quello dei connettori;
-  cosa sostituisce la cella per i calcoli al volo e per l'inserimento dei dati.
+  sorgente testuale e hanno un file proprio (vedi le decisioni). Resta da
+  precisare il confine fra il file delle formule e quello dei connettori; la
+  ricerca indica la scala: espressioni dentro il blocco, connettori fra tabelle
+  e passi (vedi
+  [ricerca/connettori-e-usi-excel.md](ricerca/connettori-e-usi-excel.md)).
 
-- Livelli: restano da precisare come si referenziano i file fra loro, quale
-  file indica da dove partire e con quale livello cominciare.
+- Livelli: restano da precisare come si referenziano i file fra loro e quale
+  file indica da dove partire.
 
 - Tutto open source, e si possono riusare pezzi esistenti. Restano da
   precisare: la licenza dell'implementazione (permissiva o copyleft), che
