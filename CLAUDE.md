@@ -6,8 +6,11 @@ decisioni, domande aperte e prossimi passi.
 - Si lavora in italiano, con prosa asciutta e poca formattazione. I nomi del
   prodotto (oggetti, tipi, file, comandi, codice) sono in inglese.
 - Prima di usare un nome nuovo, controlla e aggiorna
-  [docs/glossario.md](docs/glossario.md): un nome per concetto, un concetto per
-  nome.
+  [docs/glossario.md](docs/glossario.md) con le regole del suo §1: un nome per
+  concetto, un concetto per nome. Dopo ogni modifica,
+  `python3 -I tools/verifica_glossario.py docs/glossario.md` deve dire «esito:
+  OK».
+- Messaggi di commit in inglese.
 - La bozza dei tipi di nodo la scrive Alessio: va rivista e criticata, non
   sostituita. Vale anche per le sue bozze successive.
 - Ogni decisione di Alessio va in [docs/contesto.md](docs/contesto.md), tenendo

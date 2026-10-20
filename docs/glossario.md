@@ -1,26 +1,78 @@
 # Glossario
 
-Un nome per ogni concetto, un concetto per ogni nome. I nomi del prodotto
-(oggetti, tipi, file, comandi, variabili, codice) sono in inglese; le
-definizioni restano in italiano finché il repository è privato.
+Il documento unico dei nomi del prodotto: ogni concetto ha qui il suo nome
+inglese, la sua definizione e, quando ci sarà il codice, i suoi nomi nel
+codice. Un nome nuovo si scrive qui, con le regole del §1, **prima** di usarlo
+in un documento, in un comando o nel codice. Le definizioni restano in italiano
+finché il repository è privato; se diventa pubblico se ne esporta una versione
+inglese.
 
-Regole:
-- prima di usare un nome nuovo in un documento, nel codice o in un comando, lo
-  si aggiunge qui;
-- un nome già usato non si riusa per un concetto diverso;
-- se un nome cambia, si cambia qui e in tutti i file nello stesso commit;
-- **Stato** dice se il nome è deciso da Alessio o solo proposto. Quasi tutti i
-  concetti sono decisi, quasi nessun nome lo è;
-- **Da non usare** elenca i sinonimi che creerebbero ambiguità;
-- nel codice TypeScript `document`, `navigator`, `Object` ed `export` sono già
+L'impostazione riprende il glossario di ID-Zero (`id-zero-internal`,
+`docs/glossario.md`, regole DEC-431, DEC-432, DEC-435, DEC-438 e DEC-439),
+adattata a un prodotto senza notazione matematica: niente simboli né
+vocabolario dei pedici. Le regole del §1 sono proposte da confermare con
+Alessio.
+
+Controllo: `python3 -I tools/verifica_glossario.py docs/glossario.md`. Deve
+dire «esito: OK».
+
+## 1. Regole
+
+### 1.1 I nomi
+
+- **N1.** Il nome inglese di un concetto è quello del §4. Nel codice
+  l'identificatore ha le stesse parole, nello stile del contesto: TypeScript
+  `camelCase` per funzioni, variabili e membri, `PascalCase` per tipi, classi ed
+  eventi, `UPPER_SNAKE` per le costanti; comandi della `cli`, nomi di file e
+  chiavi di configurazione in `kebab-case`; chiavi JSON in `camelCase`.
+- **N2.** Un membro (campo, metodo, opzione) lascia fuori le parole che il nome
+  del suo contenitore dice già, e solo quelle: il nome di una `collection` è
+  `Collection.name`, non `Collection.collectionName`.
+- **N3.** Una funzione, un evento, un tipo o un comando che calcola, annuncia o
+  porta un concetto ne contiene il nome intero (`resolveTree`,
+  `RecordArchived`), e cambia nome con lui.
+- **N1a.** Le parole che dicono il genere (*event*, *list*, *map*) non entrano
+  nell'identificatore quando il linguaggio lo dice già.
+- **N2a.** N2 non toglie una parola se il nome che resta direbbe un altro
+  concetto o resterebbe vuoto.
+- **Niente sigle**, con queste eccezioni: (1) i termini degli standard esterni
+  (HTML, CSS, PDF, CSV, TSV, JSON, LSP, MCP, CLI, WASM, URL, API, ID); (2) i
+  nomi dei prodotti e dei formati citati (Typst, JSON Canvas); (3) le
+  abbreviazioni d'uso comune nel codice che il §4 fissa come nome (`id`).
+- **N4.** Un concetto ha un nome solo, e un nome indica un concetto solo. Un
+  sinonimo che creerebbe ambiguità va nella colonna *Da non usare*; un nome può
+  stare fra i *Da non usare* di un'altra riga quando è il nome attivo di un
+  concetto diverso, e lì vuol dire "non usarlo per questo".
+- **N5.** Nel testo italiano dei documenti i concetti del prodotto si
+  chiamano col nome inglese fra backtick; azioni, ruoli e concetti generali
+  restano in italiano. Vale per i documenti nuovi; quelli già scritti si
+  allineano quando si toccano.
+- Nel codice TypeScript `document`, `navigator`, `Object` ed `export` sono già
   globali o parole riservate: i nomi del prodotto vanno sotto un namespace.
+
+### 1.2 Lo stato
+
+- **deciso**: nome e concetto decisi da Alessio.
+- **concetto deciso, nome proposto**: il concetto è deciso, il nome no.
+- **proposto**: né il concetto né il nome sono decisi.
+- **aperto**: il concetto stesso è una domanda aperta.
+
+### 1.3 Come si aggiunge un nome
+
+1. Si controlla che il concetto non abbia già un nome nel §4, anche fra i *Da
+   non usare*.
+2. Si sceglie il nome con le regole del §1.1 e lo si confronta con il §3: se
+   collide con un uso diffuso, si sceglie un'alternativa.
+3. Si scrive la riga nel §4, con definizione, stato e sinonimi da non usare;
+   ogni nome fra backtick nella definizione deve esistere nel §4.
+4. Si esegue il controllo; solo con l'esito OK il nome si usa.
 
 I nomi dei tipi di contenuto (paragrafo, titolo, capitolo, sezione, immagine)
 si fissano sulla bozza dei tipi di nodo di Alessio, non prima. La bozza di
 sintassi in [contesto.md](contesto.md) usa `view`, `calc` e `layout` in modo
 diverso da qui: è un bersaglio da criticare e non va corretta.
 
-## Parole italiane con più significati
+## 2. Parole italiane con più significati
 
 | Parola | Significati | Nomi proposti |
 |---|---|---|
@@ -57,7 +109,7 @@ diverso da qui: è un bersaglio da criticare e non va corretta.
 | ordine | ordine dei record; di lettura; di esecuzione | `record order`, `reading order`, `execution order` |
 | input | controllo del lettore; ingressi di un calcolo; orologio, seme e fuso | `input`, `inputs`, `environment` |
 
-## Nomi inglesi che collidono con usi diffusi
+## 3. Nomi inglesi che collidono con usi diffusi
 
 Per ciascuno c'è un nome alternativo, già usato nelle tabelle sotto come
 proposta principale.
@@ -84,7 +136,12 @@ Da qualificare sempre: `canvas` (contro l'elemento HTML canvas), `grid` (contro
 VIEW di SQL), `measure` e `dimension` (contro i loro usi in Power BI e nel
 design).
 
-## Documento e file
+## 4. I concetti del prodotto
+
+Una riga per concetto, per area. Quando ci sarà il codice si aggiungono le
+colonne *codice* e *spec*, come in ID-Zero.
+
+### 4.1 Documento e file
 
 | Nome | Italiano | Definizione | Stato | Da non usare |
 |---|---|---|---|---|
@@ -98,8 +155,10 @@ design).
 | `manifest` | manifest | File che dice da dove partire; esistenza da decidere | aperto | index |
 | `canvas file` | file del canvas | Quali oggetti stanno sul `canvas` e dove; base JSON Canvas | concetto deciso, nome proposto | layout |
 | `drafts` | bozze | Oggetti non ancora archiviati, salvati nei file | concetto deciso, nome proposto | temp, scratch |
+| `file extension` | estensione del file | Suffisso del nome di file del `bundle`, da scegliere | aperto | extension |
+| `header row` | riga di intestazione | Prima riga di un CSV o TSV con i nomi dei `field` | proposto | header |
 
-## Canvas, oggetti e organizzazione
+### 4.2 Canvas, oggetti e organizzazione
 
 | Nome | Italiano | Definizione | Stato | Da non usare |
 |---|---|---|---|---|
@@ -122,8 +181,9 @@ design).
 | `math line` | riga di calcolo | Riga con un calcolo e l'`inline result` | concetto deciso, nome proposto | calc line, formula |
 | `inline result` | risultato in linea | Valore mostrato accanto a una `math line` | proposto | output |
 | `text table` | tabellina | Tabella scritta nel testo, non ancora `collection` | proposto | table |
+| `text` | testo | `kind` di `object` fatto di prosa | proposto | paragraph (da fissare con la bozza) |
 
-## Composizioni e stile
+### 4.3 Composizioni e stile
 
 | Nome | Italiano | Definizione | Stato | Da non usare |
 |---|---|---|---|---|
@@ -144,8 +204,10 @@ design).
 | `footnote` | nota | Nota a piè di pagina | proposto | note |
 | `numbering` | numerazione | Numeri di figure, tabelle e capitoli calcolati dal `runtime` | proposto | counter |
 | `cross-ref` | riferimento numerato | Riferimento a un `node` numerato | proposto | link |
+| `size` | dimensione | Larghezza e altezza di una `page` o di una `slide` | proposto | dimension |
+| `constraints` | layout a vincoli | Regole di allineamento e distribuzione al posto delle coordinate assolute; proposta non decisa | proposto | layout |
 
-## Dati e calcolo
+### 4.4 Dati e calcolo
 
 | Nome | Italiano | Definizione | Stato | Da non usare |
 |---|---|---|---|---|
@@ -177,8 +239,13 @@ design).
 | `dependency graph` | grafo delle dipendenze | Chi usa cosa fra `formula`, `collection` e codice, ricavato senza eseguire | proposto | graph |
 | `check` | controllo | `node` che afferma una condizione, eseguito dal `runtime` | proposto | test, assert |
 | `data source` | connettore dati | Fonte di dati esterna (database, API, file remoto), con `permission` dichiarati | proposto | source, connector, feed |
+| `board` | board | `view` di una `collection` a colonne di schede | concetto deciso, nome proposto | kanban |
+| `calendar` | calendario | `view` di una `collection` sulle date | concetto deciso, nome proposto | agenda |
+| `reference` | riferimento | Nome di un concetto usato dentro un'`expression` | proposto | link, pointer |
+| `inputs` | ingressi | Ciò da cui dipende un calcolo: valori, codice, `environment` | proposto | input (riservato al lettore) |
+| `cache key` | chiave di cache | Hash degli `inputs` che identifica dei `results` salvati | proposto | key |
 
-## Codice, runtime e output
+### 4.5 Codice, runtime e output
 
 | Nome | Italiano | Definizione | Stato | Da non usare |
 |---|---|---|---|---|
@@ -209,8 +276,12 @@ design).
 | `environment` | ambiente | Orologio, seme e fuso passati come `inputs` espliciti | proposto | context |
 | `service` | servizio | Processo locale o in cloud che dà all'HTML file locali, codice pesante, fonti esterne e salvataggio | concetto deciso, nome proposto | server, backend |
 | `reader`, `author` | lettore, chi scrive | Chi apre il documento esportato; chi lo scrive | proposto | user |
+| `execution order` | ordine di esecuzione | Ordine in cui il `runtime` esegue i `code block`; da decidere | aperto | order |
+| `output` | output | HTML o PDF prodotto da un `export` | proposto | result, render |
+| `format` | formattare | Verbo del `formatter`: riscrivere il `source` nella forma canonica | proposto | print, prettify |
+| `freeze` | fotografare | Verbo di `frozen values`: salvare i valori all'`export` | concetto deciso, nome proposto | snapshot |
 
-## App, CLI e protocolli
+### 4.6 App, CLI e protocolli
 
 | Nome | Italiano | Definizione | Stato | Da non usare |
 |---|---|---|---|---|
@@ -227,7 +298,7 @@ design).
 | `mcp server` | server MCP | Espone le `operation` agli agenti AI | proposto | plugin, bot |
 | `format schema` | schema dei formati | Schema JSON dei file e dell'output della `cli` | proposto | schema |
 
-## Specifica, estensioni, conformità
+### 4.7 Specifica, estensioni, conformità
 
 | Nome | Italiano | Definizione | Stato | Da non usare |
 |---|---|---|---|---|

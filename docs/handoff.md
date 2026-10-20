@@ -126,8 +126,11 @@ ancora codice.
 
 **Implementazione**
 - Nomi del prodotto in inglese, fissati nel glossario
-  [glossario.md](glossario.md). Documenti di lavoro in italiano finché il
-  repository è privato.
+  [glossario.md](glossario.md), impostato sul modello di quello di ID-Zero:
+  regole dei nomi nel §1, parole con più significati, nomi che collidono con
+  usi diffusi, concetti del prodotto. Lo controlla
+  `tools/verifica_glossario.py`. Documenti di lavoro in italiano finché il
+  repository è privato; messaggi di commit in inglese.
 - Nasce con una riga di comando, così un'AI può configurarlo e usarlo. Le
   proposte su come deve essere fatta sono in [contesto.md](contesto.md).
 - TypeScript per la prima versione: runtime, LSP, riga di comando, editor.
