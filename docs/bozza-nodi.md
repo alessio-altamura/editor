@@ -18,19 +18,20 @@ Ci sono tre cose, ciascuna nei suoi file.
 **Il concetto.** È l'unità di significato: un'idea in una o due frasi, con i
 suoi metadati e i collegamenti ai suoi sviluppi. È il primo raccoglitore di
 idee: lo si può scrivere prima e poi svilupparlo, oppure ricavarlo dopo da
-qualcosa di già scritto. Nome proposto: `concept`. Per Alessio questa unità è
-"l'oggetto con dentro il concetto"; sul nome vedi la domanda 1.
+qualcosa di già scritto. Nome: `concept` (deciso il 2026-10-20).
 
 **Gli sviluppi.** Ogni sviluppo è un file a sé, del tipo adatto al contenuto:
 un testo, una tabella, un grafico, un'immagine (orientamento di Alessio:
-"forse preferisco file linkati"). Nome: `object`, con il suo `kind`. Lo stesso
+"forse preferisco file linkati"). Nome: `object`, con il suo `kind` (deciso il
+2026-10-20). Lo stesso
 concetto si sviluppa in più oggetti, anche di tipi diversi, e lo stesso
 oggetto può servire a più concetti. Gli oggetti si collegano anche fra loro: un
 grafico alla tabella da cui nasce, un'immagine alla tabella che rappresenta.
 
 **I contesti.** Sono le composizioni: `article`, `deck`, `webpage`. Il concetto
 non sa in quali contesti è usato: è il contesto che punta lo sviluppo che gli
-serve.
+serve. La composizione punta l'oggetto, che può avere o no un collegamento a
+un concetto (deciso il 2026-10-20).
 
 *(proposta)* La struttura di lettura (capitoli, titoli, ordine) sta nelle
 composizioni, non nei concetti né negli oggetti. Concetti e oggetti formano un
@@ -77,22 +78,28 @@ riunione-q3.deck.md         composition: usa lavagna-vendite
 L'estensione del testo dipende dalla sintassi, che non è ancora decisa: `.md`
 è un segnaposto.
 
-## 3. Chi scrive i collegamenti *(proposta)*
+## 3. I collegamenti
 
-Il collegamento lo scrive il file che dipende dall'altro, e l'altro non cambia.
-I collegamenti inversi li calcola il `runtime`.
-- Il concetto scrive quali oggetti lo sviluppano; l'oggetto non sa quali
-  concetti rappresenta.
-- Il grafico scrive da quale tabella prende i dati; l'immagine scrive quale
-  tabella rappresenta.
-- La composizione scrive cosa usa.
+I collegamenti fra concetti e oggetti sono bilaterali: si possono scrivere da
+una parte, dall'altra o da entrambe, indifferentemente (deciso il 2026-10-20;
+la proposta di Claude era farli scrivere solo al file che dipende).
 
-Così collegare un terzo concetto alla tabella non tocca il file della tabella:
-non c'è diff sulla tabella e non c'è conflitto fra chi lavora sui concetti e
-chi lavora sui dati. È anche la stessa direzione già decisa per i contesti: è
-il contesto che punta, non l'oggetto che sa. Il `navigator` mostra comunque
-tutte e due le direzioni: da un concetto i suoi oggetti, da una tabella i
-concetti che la usano.
+*(proposte)* Cosa ne segue:
+- **Il collegamento esiste se almeno uno dei due file lo dichiara.** Il
+  `runtime` calcola l'unione e il `navigator` mostra tutte e due le
+  direzioni: da un concetto i suoi oggetti, da una tabella i concetti che la
+  usano.
+- **Per toglierlo va tolto da tutte e due le parti.** Lo fa un comando del
+  `runtime`; a mano, se resta da una parte, il collegamento resta.
+- **Scriverlo nella tabella condivisa ha un prezzo,** e lo sceglie chi scrive:
+  il file della tabella cambia, e chi lavora sui dati può andare in conflitto
+  con chi lavora sui concetti. Il formatter non sposta i collegamenti da una
+  parte all'altra.
+- **Associazioni e dipendenze.** Il bilaterale vale per le associazioni:
+  concetto e oggetto, l'immagine che rappresenta una tabella. Le dipendenze
+  restano nel file che dipende, perché senza non si può risolvere: il grafico
+  scrive da quale tabella prende i dati, la composizione scrive cosa usa
+  (questo era già deciso: il contesto punta, l'oggetto non lo sa).
 
 ## 4. Proposte che ne seguono *(proposte)*
 
@@ -130,10 +137,8 @@ concetti che la usano.
   `text` collegati allo stesso concetto, e ogni composizione punta per id
   quella che le serve. Spariscono il nome della variante, la variante
   predefinita e il ripiego su di essa.
-- **La composizione punta gli oggetti,** con `embed` per id. Se un oggetto
-  serve a più concetti, come la tabella, la composizione non dice quale
-  concetto sta presentando lì. Se servisse, accanto all'oggetto si può
-  indicare anche il concetto. Vedi la domanda 3.
+- **La composizione punta gli oggetti con `embed` per id.** Quale concetto sta
+  presentando lo si ricava dai collegamenti dell'oggetto, se ne ha.
 - **Un oggetto senza concetto va bene.** L'app può proporre di ricavarlo con
   `distill`.
 - **Vista piatta.** Un comando della `cli` stampa una composizione intera come
@@ -167,26 +172,19 @@ concetti che la usano.
 
 ## 6. Domande per Alessio
 
-1. **I nomi delle due cose.** Propongo `concept` per l'unità che ha l'idea, i
-   metadati e i collegamenti, e `object` per ogni sviluppo con il suo tipo
-   (capoverso, tabella, grafico, immagine). Tu chiami "oggetto" la prima, ma
-   nell'esempio dici "un concetto rappresentato da una tabella" e "più
-   concetti associati alla stessa tabella". In più, sul `canvas` gli oggetti
-   sono già le tabelle, i grafici e i testi. Con questi nomi il glossario
-   resta com'è. L'alternativa è `object` per l'unità e un nome nuovo per gli
-   sviluppi, per esempio representation.
-2. **Chi scrive il collegamento:** il file che dipende (il concetto, il
-   grafico, la composizione), con i collegamenti inversi calcolati dal
-   `runtime`?
-3. **Cosa punta la composizione:** direttamente l'oggetto, oppure il concetto
-   più l'oggetto, così sa quale concetto sta presentando?
-4. **Concetti che collegano altri concetti?** Per esempio un'idea generale con
+Le prime tre domande del 2026-10-20 (i nomi, chi scrive i collegamenti, cosa
+punta la composizione) hanno avuto risposta: vedi i §1 e §3.
+
+1. **Concetti che collegano altri concetti?** Per esempio un'idea generale con
    le sue idee di dettaglio. Sarebbe la base della `concept map` e
    dell'abbozzo di composizione.
-5. **Il `kind` nell'estensione del nome di file, e i `kind` del primo
+2. **Il `kind` nell'estensione del nome di file, e i `kind` del primo
    livello.** Per ora sarebbero il concetto, il testo, l'immagine e la
    composizione `article`; `collection` e `chart` arrivano con i livelli dei
    dati e dei grafici.
+3. **Associazioni e dipendenze:** il bilaterale vale per le associazioni,
+   mentre le dipendenze (il grafico dalla tabella, la composizione
+   dall'oggetto) restano nel file che dipende?
 
 ## 7. Le idee di Alessio, in ordine (2026-10-20)
 
@@ -230,3 +228,11 @@ concetti che la usano.
     rappresentato da una tabella e dal grafico associato; magari anche più
     concetti associati alla stessa tabella, o a un'immagine che rappresenta la
     tabella.
+13. Sì ai nomi `concept` e `object`. E se i collegamenti li facessimo
+    bilaterali? Posso esserci da un lato, dall'altro o da entrambi,
+    indifferentemente. Con i bilaterali, sulla composizione, sarebbe
+    indifferente se manca il collegamento bilaterale; o meglio: dovrebbe
+    puntare l'oggetto, che può avere o no un collegamento al concetto.
+14. Il problema del collegamento meccanico, e non semantico, è che si può
+    rompere: sarebbe da aggiungere un collegamento generato in automatico per
+    semantica. Non so quanto sia semplice.

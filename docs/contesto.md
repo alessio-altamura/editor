@@ -82,8 +82,12 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
 - L'unità di significato ha i metadati, il concetto e i suoi sviluppi, anche
   di `kind` diversi. Il contesto non è collegato nell'unità: è il contesto,
   cioè la `composition`, che punta lo sviluppo che gli serve (2026-10-20). I
-  nomi sono proposte (`concept` per l'unità, `object` per gli sviluppi); la
+  nomi sono `concept` per l'unità e `object` per gli sviluppi (2026-10-20); la
   sintesi del modello è in [bozza-nodi.md](bozza-nodi.md).
+- I collegamenti fra `concept` e `object` sono bilaterali: si scrivono da una
+  parte, dall'altra o da entrambe, indifferentemente (2026-10-20).
+- La `composition` punta l'`object`, che può avere o no un collegamento a un
+  `concept` (2026-10-20).
 - Ogni oggetto è un file, anche il capoverso (2026-10-20). Orientamento: tutti
   gli oggetti stanno insieme, mescolati, e l'app li filtra per livello; i
   livelli non sono cartelle. Precisa la
@@ -273,9 +277,12 @@ quando due rami lavorano in parallelo.
   preferisco file linkati"). Il suo esempio: un concetto scritto come
   capoverso e rappresentato da una tabella e dal grafico associato; più
   concetti associati alla stessa tabella, o a un'immagine che la rappresenta.
-  I collegamenti sono quindi molti a molti, e anche fra sviluppi. Restano da
-  precisare chi scrive i collegamenti e cosa punta la composizione: proposte e
-  domande in [bozza-nodi.md](bozza-nodi.md).
+  I collegamenti sono quindi molti a molti, e anche fra sviluppi.
+
+- I collegamenti per id, cioè meccanici, si possono rompere: Alessio propone di
+  aggiungere un collegamento generato in automatico per semantica, e chiede
+  quanto sia semplice (2026-10-20). Analisi e proposte in
+  [bozza-nodi.md](bozza-nodi.md).
 
 - Formule: Python era l'ipotesi più semplice, non un vincolo. Da capire quale
   linguaggio convenga, con la possibilità di richiamare codice esterno al

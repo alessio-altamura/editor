@@ -89,7 +89,7 @@ diverso da qui: è un bersaglio da criticare e non va corretta.
 | paragrafo, sezione | in italiano la sezione numerata (§3.2), in inglese il capoverso; usati anche per l'unità di significato | il capoverso è un `object` di `kind` `text`; l'unità di significato è il `concept`; capitoli e titoli stanno nella `composition` |
 | contesto | i tag di contesto; il contesto che usa una versione di un oggetto, cioè la `composition`; il file contesto.md | `tags`, `composition` |
 | parte | un file del documento, contro un pezzo del documento | `part` per il file, `object` per il pezzo |
-| oggetto | per Alessio anche l'unità con il concetto, i metadati e gli sviluppi, contro il pezzo con un tipo sul canvas | `concept` per l'unità, `object` per il pezzo (proposta) |
+| oggetto | per Alessio anche l'unità con il concetto, i metadati e gli sviluppi, contro il pezzo con un tipo sul canvas | `concept` per l'unità, `object` per il pezzo |
 | bozza | gli oggetti non archiviati del canvas; il primo sviluppo di un concetto | `drafts` per gli oggetti del canvas; il primo sviluppo è un `object` come gli altri |
 | presentazione, slide | la presentazione, contro la singola slide | `deck` per la presentazione, che è una `composition`; `slide` per la pagina; le slide non sono un `part` a sé |
 | elemento | elemento di una collection, contro oggetto o tipo di contenuto | `record` solo per la collection |
@@ -168,7 +168,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | Nome | Italiano | Definizione | Stato | Da non usare |
 |---|---|---|---|---|
 | `canvas` | foglio bianco, foglio di bozze | Superficie libera da cui si creano gli oggetti; all'apertura si vede questa | concetto deciso, nome proposto | sheet, board, page |
-| `object` | oggetto | Pezzo con un `kind`, un file: testo, `collection`, `chart`, immagine, e tipi da estensioni; si crea sul `canvas` o con `develop`, e può sviluppare uno o più `concept` | concetto deciso, nome proposto | element, block, node, variant |
+| `object` | oggetto | Pezzo con un `kind`, un file: testo, `collection`, `chart`, immagine, e tipi da estensioni; si crea sul `canvas` o con `develop`, e può sviluppare uno o più `concept` | deciso | element, block, node, variant |
 | `kind` | tipo di oggetto | Il tipo di un `object` o di un `node` | proposto | type (riservato ai dati) |
 | `navigator` | lista a fianco | Pannello che organizza gli oggetti in `shelf`, con `unfiled` e le `composition` | concetto deciso, nome proposto | list, sidebar, library |
 | `shelf` | sezione del navigator | Gruppo di oggetti di un `kind` nel `navigator` | proposto | section, folder |
@@ -190,7 +190,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `attributes` | metadati comuni | Attributi di ogni file: `id`, `tags`, `lang`, `origin`; sugli `object` anche `kind`, obbligatorio, e `class`; gli altri dipendono dal `kind`; precedente: gli attributi (Attr) di Pandoc | concetto deciso, nome proposto | metadata, properties |
 | `tags` | tag di contesto | Uno o più tag che dicono a cosa si riferisce un `node`, per organizzare e filtrare nel `navigator` | concetto deciso, nome proposto | labels, categories, class |
 | `lang` | lingua | Lingua del contenuto di un `node`, per sillabazione, controllo ortografico e screen reader | proposto | language, locale |
-| `concept` | concetto | Unità di significato, un file: un'idea in una o due frasi, i suoi `attributes` e i collegamenti agli `object` che la sviluppano; si scrive prima e se ne fa `develop`, o si ricava dopo con `distill`; può proporlo un LLM come `hint` | concetto deciso, nome proposto | summary, description, abstract, idea, section |
+| `concept` | concetto | Unità di significato, un file: un'idea in una o due frasi, i suoi `attributes` e i collegamenti agli `object` che la sviluppano; si scrive prima e se ne fa `develop`, o si ricava dopo con `distill`; può proporlo un LLM come `hint`; i collegamenti con gli `object` si scrivono da una parte, dall'altra o da entrambe | deciso | summary, description, abstract, idea, section |
 | `develop` | sviluppare | Operazione: da un `concept` a uno o più `object` nuovi, anche di `kind` diversi, collegati al `concept` | proposto | expand, generate |
 | `distill` | ricavare il concetto | Operazione: da un `object` a un `concept` nuovo che lo collega | proposto | summarize, extract |
 | `origin` | origine | Attributo che dice se un `concept` o un `object` è scritto da una persona o generato e confermato | proposto | source, author |
