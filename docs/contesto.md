@@ -130,10 +130,15 @@ quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
 
-- Un solo motore: l'HTML come nucleo e il PDF come sua esportazione, al posto
-  dei due motori. Risolve la vista per pagina (stesso motore per schermo e
-  stampa) e dimezza il lavoro di rendering; costa in tipografia e lega il PDF
-  a un motore browser fissato. Da confermare.
+- Motori per fasi. Prima un solo motore: l'HTML come nucleo e il PDF come sua
+  esportazione; risolve la vista per pagina e dimezza il lavoro di rendering,
+  ma costa in tipografia e lega il PDF a un motore browser fissato. In futuro
+  un secondo motore (Typst) per una modalità di scrittura orientata alla
+  stampa. Obiettivo finale: vista interattiva HTML con esportazione in PDF;
+  vista di scrittura PDF con esportazione in HTML statico. Condizione perché il
+  secondo motore si possa aggiungere: modello e impaginazione neutri rispetto
+  al motore. Resta da decidere se il vocabolario dell'impaginazione è CSS, un
+  sottoinsieme di CSS definito dalla specifica o un vocabolario proprio.
 - Linguaggio di implementazione da scegliere. Alessio nota che oggi molti
   scrivono in Rust; con l'HTML come nucleo è forte anche TypeScript.
 - Dati in CSV oppure TSV, con il dialetto dichiarato nello schema.

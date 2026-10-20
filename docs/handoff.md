@@ -235,6 +235,14 @@ motori: HTML come nucleo e PDF come esportazione. Infine ha chiesto quale
 linguaggio di implementazione usare. Le verifiche delle due ricerche
 interrotte sono state rilanciate.
 
+Poi ha chiesto se, partendo con un solo motore, si possa aggiungere il secondo
+in futuro, con l'obiettivo: vista interattiva HTML con export PDF, vista di
+scrittura PDF con export HTML statico. Risposta data: sì, se il modello resta
+neutro rispetto al motore (precedente: Pandoc ha aggiunto lo scrittore Typst
+anni dopo; controesempio: Typst fatica ad aggiungere l'HTML perché il suo
+modello nasce dall'impaginazione). Domanda aperta: vocabolario
+dell'impaginazione in CSS, sottoinsieme di CSS o proprio.
+
 ## Domande aperte rivolte ad Alessio
 
 Sono state poste in sessione e non hanno ancora risposta. A queste si
