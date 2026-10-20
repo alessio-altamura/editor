@@ -20,6 +20,13 @@ Prima di tutto i metadati comuni, opzionali:
 
 Poi: gli attributi opzionali dipendono dal tipo.
 
+Decisioni del 2026-10-20, sulle proposte di Claude:
+- ogni nodo ha un `kind`; gli attributi globali sono `id` e `tags` su ogni
+  `kind`, `class` e `lang` su ogni nodo che si vede; `lang` si eredita dal
+  contenitore; gli altri attributi stanno nella scheda di ciascun `kind`;
+- `tags` e `class` sono due attributi separati: i primi organizzano, le
+  seconde danno l'aspetto.
+
 ### Note di Claude
 
 - **Precedente.** È quasi esattamente l'`Attr` di Pandoc e gli attributi di
@@ -81,6 +88,13 @@ Poi: gli attributi opzionali dipendono dal tipo.
 Il paragrafo potrebbe essere già un contenitore, con dentro i capoversi, le
 tabelle, le immagini e così via.
 
+Decisioni del 2026-10-20, sulle proposte di Claude:
+- il contenitore si chiama `section`, il capoverso `paragraph`;
+- le sezioni si possono annidare;
+- nel testo una sezione si apre con il suo titolo e si chiude al titolo
+  successivo dello stesso livello o di livello superiore; il modello resta ad
+  albero.
+
 ### Note di Claude
 
 - **Il nome.** In italiano "paragrafo" è anche la sezione numerata (il §3.2),
@@ -104,13 +118,11 @@ tabelle, le immagini e così via.
 
 ## Domande aperte per Alessio
 
-1. **Attributi globali:** `id` e `tags` su tutto, `class` e `lang` su ciò che
-   si vede, e il resto nella scheda di ciascun tipo?
-2. **Tag e class:** due attributi separati, o uno solo?
-3. **id:** unico nel documento, solo minuscole, cifre e trattino, mai
-   riusato?
-4. **`lang`:** ereditato dal contenitore, come in HTML?
-5. **Sezioni annidate:** sì o no?
-6. **Sezioni aperte dal titolo:** nel testo si aprono con il titolo e si
-   chiudono al successivo, come in Pandoc?
-7. **La sezione come oggetto `text`:** è l'unità del `canvas`?
+1. **id:** unico nel documento, solo minuscole, cifre e trattino, mai
+   riusato dopo una cancellazione?
+2. **Sezioni senza titolo:** ammesse, per esempio per raggruppare capoversi
+   con una `class` comune?
+3. **La sezione come oggetto `text`:** è l'unità che si sposta sul `canvas`,
+   si archivia e si mette in una `composition`?
+4. **L'inventario dei `kind`:** quali tipi di blocco e in linea servono al
+   primo livello.
