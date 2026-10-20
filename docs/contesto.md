@@ -169,7 +169,8 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     un'aritmetica minima. Requisito di Alessio per dopo: deve essere possibile
     usare una funzione dichiarata in un altro file, con argomenti numerici,
     elementi della stessa lista o anche range. Il range è un intervallo di
-    valori di un campo, per esempio da marzo a giugno (2026-10-20);
+    valori di un campo, per esempio da marzo a giugno, oppure tutta la colonna
+    (2026-10-20);
   - un `text` è un blocco solo: un capoverso, un elenco, una citazione (§0.2,
     2026-10-20). Proposta che ne segue: lo spazio libero è un `kind` a sé,
     perché è un posto di lavoro e non un'unità di significato;
