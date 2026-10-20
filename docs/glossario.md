@@ -86,6 +86,7 @@ diverso da qui: è un bersaglio da criticare e non va corretta.
 | sorgente | il testo dei file, contro la fonte di dati esterna | `source`, `integration` |
 | nodo | unità del modello, contro le cose collegate dai wire | `node` solo per il modello |
 | documento | la cartella intera, contro la composizione a flusso | `document`, `article` |
+| paragrafo | in italiano la sezione numerata (§3.2), in inglese il capoverso | `section` per il contenitore, `paragraph` per il capoverso |
 | presentazione, slide | la presentazione, contro la singola slide | `deck` per la presentazione, che è una `composition`; `slide` per la pagina; le slide non sono un `part` a sé |
 | elemento | elemento di una collection, contro oggetto o tipo di contenuto | `record` solo per la collection |
 | blocco | blocco di codice; blocco alla Notion; blocco libero; passo | `code block`, `object`, `scratch`, `step` |
@@ -182,6 +183,11 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `inline result` | risultato in linea | Valore mostrato accanto a una `math line` | proposto | output |
 | `text table` | tabellina | Tabella scritta nel testo, non ancora `collection` | proposto | table |
 | `text` | testo | `kind` di `object` fatto di prosa | proposto | paragraph (da fissare con la bozza) |
+| `attributes` | metadati comuni | Attributi facoltativi di ogni `node`: `id`, `tags`, `class` e altri da decidere; precedente: gli attributi (Attr) di Pandoc | concetto deciso, nome proposto | metadata, properties |
+| `tags` | tag di contesto | Uno o più tag che dicono a cosa si riferisce un `node`, per organizzare e filtrare nel `navigator` | concetto deciso, nome proposto | labels, categories, class |
+| `lang` | lingua | Lingua del contenuto di un `node`, per sillabazione, controllo ortografico e screen reader | proposto | language, locale |
+| `section` | paragrafo (contenitore) | Contenitore di `paragraph`, tabelle, immagini e altri nodi; da precisare se annidabile e se coincide con l'oggetto `text` | concetto deciso, nome proposto | paragraph, block, chapter |
+| `paragraph` | capoverso | Blocco di prosa dentro una `section` | proposto | section, block |
 
 ### 4.3 Composizioni e stile
 
