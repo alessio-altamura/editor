@@ -5,7 +5,8 @@ un solo modello, sorgente testuale diffabile con Git, editor grafico che genera
 lo stesso sorgente, pensato anche per essere letto e modificato da un'AI.
 
 Il lavoro è all'inizio: niente codice, niente sintassi decisa. Il primo passo è
-la bozza dei tipi di nodo, che scrive Alessio.
+la bozza dei tipi di nodo del primo livello (contenuto e impaginazione), che
+scrive Alessio.
 
 - [docs/handoff.md](docs/handoff.md): passaggio di consegne per le sessioni
   future: stato, decisioni, domande aperte, prossimi passi.
