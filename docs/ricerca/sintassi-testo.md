@@ -333,29 +333,33 @@ article #report-q3
 
 - **Le estensioni.** La pagina ufficiale elenca `[[Link]]`, `![[Link]]`,
   `![[Link#^id]]`, `^id`, le note `[^id]`, i commenti `%%Text%%`,
-  `~~Text~~`, `==Text==`, le liste di cose da fare, i callout `> [!note]` e le
-  tabelle, e avverte: «Some of these, such as internal links, comments, and
+  `~~Text~~`, `==Text==`, i blocchi di codice, le liste di cose da fare, i
+  callout `> [!note]` e le tabelle, e avverte: «Some of these, such as internal links, comments, and
   highlights, are specific to Obsidian. Other Markdown apps may show them as
   plain text» (stessa pagina). Le proprietà sono YAML, e un collegamento in
   una proprietà va fra virgolette, `link: "[[Episode IV]]"`
   ([Properties](https://github.com/obsidianmd/obsidian-help/blob/master/en/Editing%20and%20formatting/Properties.md)).
 - **Identificatori di blocco.** Un `^id` si mette in fondo alla riga di un
-  capoverso, o su una riga a sé dopo elenchi, citazioni, callout e tabelle;
+  capoverso, o su una riga a sé, con una riga vuota prima e dopo, per elenchi,
+  citazioni, callout e tabelle;
   «Block identifiers can only consist of Latin letters, numbers, and dashes»;
   «Links containing block references won't work outside of Obsidian»
   ([Internal links](https://github.com/obsidianmd/obsidian-help/blob/master/en/Linking%20notes%20and%20files/Internal%20links.md)).
 - **Nessuna specifica formale.** La documentazione descrive le estensioni in
   prosa, con esempi; una specifica formale non è stata trovata.
-- **L'app non è open source.** La licenza dice «We own and reserve rights to
-  our content, including text, images, and code in the app»
-  ([license](https://obsidian.md/license)); fra i progetti open source che
-  Obsidian elenca (JSON Canvas e altri, MIT) l'app non c'è. L'API per i plugin,
+- **L'app.** La licenza dice «We own and reserve rights to our content,
+  including text, images, and code in the app»
+  ([license](https://obsidian.md/license)); la pagina per gli sviluppatori
+  elenca come progetti open source MIT JSON Canvas, Importer, Web Clipper e
+  altri, ma non l'app
+  ([Developers](https://github.com/obsidianmd/obsidian-help/blob/master/en/Contributing%20to%20Obsidian/Developers.md)).
+  Che l'app non sia open source è un'inferenza da queste due fonti. L'API per i plugin,
   `obsidian.d.ts`, è MIT
   ([obsidian-api](https://github.com/obsidianmd/obsidian-api)).
 - **GitHub.** La spec GFM ha cinque estensioni (tabelle, liste di cose da
   fare, barrato, autolink, HTML vietato), e nessuna è un wikilink
-  ([gfm](https://github.github.com/gfm/)). La sintassi `[[...]]` GitHub la
-  documenta solo per i wiki
+  ([gfm](https://github.github.com/gfm/)). Nella documentazione di GitHub
+  `[[...]]` compare nella pagina dei wiki, come sintassi MediaWiki per i link
   ([docs](https://docs.github.com/en/communities/documenting-your-project-with-wikis/editing-wiki-content)).
 - **Parser in JavaScript** (registry npm, ottobre 2026): `remark-wiki-link`
   2.0.1 (MIT) legge solo i wikilink; `@silicajs/remark-obsidian` 0.1.0 (MIT,
@@ -378,13 +382,13 @@ dice su questo è un'inferenza.
 
 ### Confronto
 
-Le celle sono riassunti dei fatti sopra; quelle segnate *(inf.)* sono
-inferenze.
+Le celle riassumono i fatti delle sezioni precedenti della nota, con le loro
+fonti; quelle segnate *(inf.)* sono inferenze.
 
 | Criterio | 1. CommonMark + YAML | 2. Djot | 3. Markdown alla Obsidian | 4. Formato nostro |
 |---|---|---|---|---|
 | Leggibilità a mano | buona, prosa quasi senza segni *(inf.)* | buona, ma attributi più fitti *(inf.)* | buona; `[[...]]` noto a chi usa Obsidian *(inf.)* | da verificare; più parole chiave e virgolette intorno alla prosa *(inf.)* |
-| Resa su GitHub e negli editor | `.md` reso da GitHub, intestazione come tabella; `class` e `id` tolti; VS Code e JetBrains basati su CommonMark | `.dj` non riconosciuto da GitHub; estensioni di terzi per gli editor | `.md` reso, ma wikilink, `![[...]]` e `^id` restano testo, per avviso di Obsidian stesso | nessuna resa; serve un'estensione per ogni editor *(inf.)* |
+| Resa su GitHub e negli editor | `.md` reso da GitHub, intestazione come tabella; `class` e `id` tolti; VS Code e JetBrains basati su CommonMark | `.dj` non riconosciuto da GitHub; estensioni di terzi per gli editor | `.md` reso; per Obsidian stesso i link interni «may show» come testo in altri programmi e i riferimenti a blocchi non funzionano fuori da Obsidian | nessuna resa; serve un'estensione per ogni editor *(inf.)* |
 | Attributi su file, blocchi, testo | file con YAML; blocchi e testo solo con estensioni | blocchi e testo nativi; il file chiede una regola | file con YAML; blocchi solo con `^id` (non classi); classi da aggiungere | tutti, come li definiamo noi |
 | Parser e formatter in TypeScript | maturi (micromark, markdown-it, remark); prettier conserva commenti e intestazione | djot.js, nessuna release dal 2024-12; `renderDjot` perde i commenti | i parser CommonMark più plugin piccoli e recenti; nessuna specifica da seguire | nessuno |
 | Costo di scrivere parser e formatter | le regole nostre come plugin *(inf.)* | adattare o mantenere djot.js *(inf.)* | plugin per wikilink, `embed`, `^id` e classi, con casi limite definiti solo dall'app chiusa *(inf.)* | tutto, ma con una grammatica piccola e nostra *(inf.)* |
@@ -396,6 +400,14 @@ L'ultima riga riporta la decisione di contesto.md senza interpretarla: cosa
 voglia dire per la scelta lo dice Alessio.
 
 ## Correzioni del secondo controllo
+
+Il confronto delle quattro strade è stato ricontrollato da un altro agente:
+nessun fatto da correggere, alcune precisazioni applicate (i blocchi di codice
+fra le estensioni di Obsidian, la riga vuota intorno a `^id`, la fonte
+sull'elenco dei progetti open source, la sintassi MediaWiki dei wiki di GitHub,
+l'avviso di Obsidian riportato senza rafforzarlo). La proposta di matklad
+nella issue #35 non è stata raggiungibile da questa sessione: la data viene
+dalla revisione precedente.
 
 Il secondo agente ha confermato i diciassette fatti che gli erano stati dati,
 con due correzioni e alcune precisazioni. La revisione dell'orchestratore ha
