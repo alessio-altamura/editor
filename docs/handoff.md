@@ -249,8 +249,11 @@ più rischioso, registro aperto.
 ## Prossimi passi
 
 1. **La bozza dei tipi di nodo** del primo livello è iniziata in
-   [bozza-nodi.md](bozza-nodi.md): è di Alessio, scritta insieme. Ha gli
-   attributi comuni e la `section` come contenitore, con sei domande aperte. La revisione deve controllare tre cose:
+   [bozza-nodi.md](bozza-nodi.md): è di Alessio, scritta insieme. Il
+   2026-10-20 è diventata una sintesi del modello: il `concept` come unità di
+   significato, gli `object` come sviluppi in file collegati (molti a molti),
+   le `composition` che puntano ciò che serve, tutti i file insieme filtrati
+   dall'app. Ha cinque domande aperte. La revisione deve controllare tre cose:
    - che il modello sia neutro rispetto al motore;
    - che l'impaginazione stia nel sottoinsieme di CSS;
    - che ci siano agganci per l'impaginazione (nomi o classi), forme statiche

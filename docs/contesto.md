@@ -79,10 +79,11 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   sé: una presentazione è una `composition` di tipo `deck`. La divisione in file riguarda solo come
   si salva: l'editor mostra ogni livello dove serve, per esempio le formule
   accanto alla tabella.
-- L'unità di significato (per Alessio la `section`) ha negli attributi
-  predefiniti il `concept`, che si sviluppa in più `variant`, anche di `kind`
-  diversi. Il contesto non è collegato nell'oggetto: è il contesto, cioè la
-  `composition`, che punta la `variant` che gli serve (2026-10-20).
+- L'unità di significato ha i metadati, il concetto e i suoi sviluppi, anche
+  di `kind` diversi. Il contesto non è collegato nell'unità: è il contesto,
+  cioè la `composition`, che punta lo sviluppo che gli serve (2026-10-20). I
+  nomi sono proposte (`concept` per l'unità, `object` per gli sviluppi); la
+  sintesi del modello è in [bozza-nodi.md](bozza-nodi.md).
 - Ogni oggetto è un file, anche il capoverso (2026-10-20). Orientamento: tutti
   gli oggetti stanno insieme, mescolati, e l'app li filtra per livello; i
   livelli non sono cartelle. Precisa la
@@ -266,6 +267,15 @@ quando due rami lavorano in parallelo.
   decisione dei livelli questi elementi stanno in file diversi, più gli asset.
   Resta da confermare che documento e slide condividano dati e grafici per
   riferimento, cosa che i file separati rendono naturale.
+
+- Gli sviluppi di un concetto sono file collegati, non tutti in un unico file,
+  così ognuno ha il tipo adatto al contenuto (Alessio, 2026-10-20: "forse
+  preferisco file linkati"). Il suo esempio: un concetto scritto come
+  capoverso e rappresentato da una tabella e dal grafico associato; più
+  concetti associati alla stessa tabella, o a un'immagine che la rappresenta.
+  I collegamenti sono quindi molti a molti, e anche fra sviluppi. Restano da
+  precisare chi scrive i collegamenti e cosa punta la composizione: proposte e
+  domande in [bozza-nodi.md](bozza-nodi.md).
 
 - Formule: Python era l'ipotesi più semplice, non un vincolo. Da capire quale
   linguaggio convenga, con la possibilità di richiamare codice esterno al

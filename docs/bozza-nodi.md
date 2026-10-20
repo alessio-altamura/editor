@@ -1,383 +1,232 @@
 # Bozza dei tipi di nodo, primo livello
 
-La bozza è di Alessio. Le sezioni "Alessio" riportano le sue decisioni con
-le sue parole o quasi. Le sezioni "Note di Claude" contengono domande e
-proposte, che restano tali finché lui non le accetta. I nomi seguono il
-[glossario](glossario.md).
+La bozza è di Alessio. Il 2026-10-20 ha chiesto di raccogliere le sue idee in
+qualcosa di sensato, e questa versione le ordina in un modello. Le sue idee,
+con le sue parole o quasi e nell'ordine in cui sono arrivate, sono al §7. Nel
+resto ciò che è suo non porta segni, e le proposte di Claude sono segnate
+*(proposta)*. La versione precedente, con le note di Claude una per una, è
+nella storia di Git (commit 779ca49). I nomi seguono il
+[glossario](glossario.md) e, salvo dove è detto, sono ancora proposte.
 
 Il primo livello copre il contenuto (testo, titoli, immagini, righe di
 calcolo), lo spazio libero, la composizione `article` e lo `stylesheet`.
 
-## 1. Attributi comuni a tutti i nodi
+## 1. Il modello
 
-### Alessio (2026-10-20)
+Ci sono tre cose, ciascuna nei suoi file.
 
-Prima di tutto i metadati comuni, opzionali:
-- un **id**, non per forza numerico o incrementale, anche mnemonico;
-- uno o più **tag di contesto**;
-- il **tipo**;
-- e forse altro.
+**Il concetto.** È l'unità di significato: un'idea in una o due frasi, con i
+suoi metadati e i collegamenti ai suoi sviluppi. È il primo raccoglitore di
+idee: lo si può scrivere prima e poi svilupparlo, oppure ricavarlo dopo da
+qualcosa di già scritto. Nome proposto: `concept`. Per Alessio questa unità è
+"l'oggetto con dentro il concetto"; sul nome vedi la domanda 1.
 
-Poi: gli attributi opzionali dipendono dal tipo.
+**Gli sviluppi.** Ogni sviluppo è un file a sé, del tipo adatto al contenuto:
+un testo, una tabella, un grafico, un'immagine (orientamento di Alessio:
+"forse preferisco file linkati"). Nome: `object`, con il suo `kind`. Lo stesso
+concetto si sviluppa in più oggetti, anche di tipi diversi, e lo stesso
+oggetto può servire a più concetti. Gli oggetti si collegano anche fra loro: un
+grafico alla tabella da cui nasce, un'immagine alla tabella che rappresenta.
 
-Decisioni del 2026-10-20, sulle proposte di Claude:
-- ogni nodo ha un `kind`; gli attributi globali sono `id` e `tags` su ogni
-  `kind`, `class` e `lang` su ogni nodo che si vede; `lang` si eredita dal
-  contenitore; gli altri attributi stanno nella scheda di ciascun `kind`;
-- `tags` e `class` sono due attributi separati: i primi organizzano, le
-  seconde danno l'aspetto.
+**I contesti.** Sono le composizioni: `article`, `deck`, `webpage`. Il concetto
+non sa in quali contesti è usato: è il contesto che punta lo sviluppo che gli
+serve.
 
-### Note di Claude
+*(proposta)* La struttura di lettura (capitoli, titoli, ordine) sta nelle
+composizioni, non nei concetti né negli oggetti. Concetti e oggetti formano un
+insieme piatto, e ogni composizione ci costruisce sopra il suo albero. È il
+modello di DITA, con argomenti piatti e mappe gerarchiche.
 
-- **Precedente.** È quasi esattamente l'`Attr` di Pandoc e gli attributi di
-  Djot: un identificatore, un elenco di classi e coppie chiave-valore, scritti
-  come `{#id .classe chiave=valore}`. Si può partire da lì.
-- **Il tipo non è opzionale.** Ogni nodo ha un `kind`: è ciò che il nodo è, e
-  nel testo lo dice il marcatore. Facoltativi sono gli altri attributi.
-- **id.** Mnemonico va benissimo, ed è meglio per il diff e per l'AI
-  (`vendite-q3` invece di `n4f2`). Restano da fissare tre cose:
-  - unico in tutto il documento;
-  - quali caratteri sono ammessi (proposta: minuscole, cifre e trattino, come
-    i nomi del glossario);
-  - se un id cancellato si può riusare (proposta: no, per non far puntare un
-    vecchio riferimento a una cosa nuova).
+Tutti i file stanno insieme, mescolati, e l'app li filtra per livello e per
+tipo: i livelli non sono cartelle. Sul `canvas` si buttano giù concetti e
+oggetti anche in disordine, e poi si classificano e si collegano.
 
-  Se due rami di Git creano lo stesso id, il `runtime` lo segnala come
-  conflitto. Dove l'id serve ma chi scrive non lo dà (un nodo richiamato da
-  altrove, un `record`), il `runtime` ne genera uno corto.
-- **Tag di contesto e agganci di stile.** Due usi da tenere distinti:
-  - i tag dicono a cosa si riferisce un nodo ("cliente-x", "q3", "bozza") e
-    servono a organizzare e filtrare nel `navigator`;
-  - le `class` dicono come appare, e le usa lo `stylesheet`.
+Si arriva a un documento per tre strade:
+- **dall'idea:** scrivi il concetto e ne fai `develop` in uno o più oggetti;
+- **dal testo:** scrivi un oggetto e ne ricavi il concetto con `distill`;
+- **dalla mappa:** dai concetti di tutti gli oggetti si ricava una
+  `concept map`, e da lì un documento abbozzato, da armonizzare.
 
-  Se sono la stessa cosa, cambiare un tag per riordinare il lavoro cambia
-  l'aspetto del documento. Proposta: due attributi separati, `tags` e
-  `class`.
-- **Altro che può servire:**
-  - `lang`, la lingua del contenuto. Serve alla sillabazione, al controllo
-    ortografico e agli screen reader, e diventa l'attributo `lang` nell'HTML.
-  - Un'etichetta leggibile, diversa dall'id, per mostrare il nodo nel
-    `navigator`. Spesso basta il titolo o la didascalia.
-- **Cosa non metterei negli attributi:**
-  - **Date e autore.** Li ha già Git, e scriverli nel sorgente sporca il diff
-    a ogni modifica.
-  - **Un attributo "nascosto".** I casi di fughe di dati da righe e schede
-    nascoste lo sconsigliano. Ciò che non deve uscire non sta in una
-    `composition`.
+Un LLM può proporre concetti, sviluppi e abbozzi, ma sempre come `hint` che chi
+scrive conferma o corregge.
 
-### Note di Claude sugli attributi che dipendono dal tipo
+## 2. L'esempio di Alessio, in file
 
-- **Due strati, come in HTML.** HTML ha attributi globali, validi su ogni
-  elemento (`id`, `class`, `lang`), e attributi propri di ciascun elemento
-  (`alt` e `src` per un'immagine). Qui sarebbe lo stesso:
-  - pochi attributi validi per ogni `kind`;
-  - gli altri elencati nella scheda di ciascun `kind`, ognuno con il suo tipo
-    e il suo valore predefinito.
-- **Quali sono globali.** Proposta: `id` e `tags` su ogni `kind`; `class` e
-  `lang` su ogni nodo che si vede. `lang` si eredita dal contenitore, come in
-  HTML, così basta scriverlo una volta per il documento.
-- **Attributi sconosciuti.** Per i `kind` del nucleo, un attributo non
-  previsto è un errore: protegge dai refusi, per esempio `tagz`. Per i `kind`
-  delle `extension` si conserva anche se non lo si capisce, come vale per la
-  `directive`.
+Un concetto scritto come capoverso e rappresentato da una tabella e dal grafico
+della tabella; un secondo concetto associato alla stessa tabella e a
+un'immagine che la rappresenta. Con il `kind` nell'estensione del nome di file
+*(proposta, §4)*:
 
-## 2. Il paragrafo come contenitore
+```
+calo-q3.concept.md          concetto: nel terzo trimestre le vendite calano
+                            per i ritardi nelle consegne; collega
+                            calo-q3-sintesi, vendite-2026, vendite-mensili
+calo-q3-sintesi.md          text: il capoverso che lo sviluppa
+vendite-2026.csv            collection: la tabella
+vendite-2026.schema.json    lo schema della tabella
+vendite-mensili.chart.json  chart: prende i dati da vendite-2026
+lavagna-vendite.jpg         image: una foto della lavagna, rappresenta
+                            vendite-2026
+margini-q3.concept.md       secondo concetto: collega vendite-2026 e
+                            lavagna-vendite
+report-q3.article.md        composition: usa calo-q3-sintesi e
+                            vendite-mensili
+riunione-q3.deck.md         composition: usa lavagna-vendite
+```
 
-### Alessio (2026-10-20)
+L'estensione del testo dipende dalla sintassi, che non è ancora decisa: `.md`
+è un segnaposto.
 
-Il paragrafo potrebbe essere già un contenitore, con dentro i capoversi, le
-tabelle, le immagini e così via.
+## 3. Chi scrive i collegamenti *(proposta)*
 
-Decisioni del 2026-10-20, sulle proposte di Claude:
-- il contenitore si chiama `section`, il capoverso `paragraph` (correzione del
-  2026-10-20: questi nomi erano una proposta di Claude, registrata per errore
-  come decisione; vedi il §5);
-- le sezioni si possono annidare;
-- nel testo una sezione si apre con il suo titolo e si chiude al titolo
-  successivo dello stesso livello o di livello superiore; il modello resta ad
-  albero.
+Il collegamento lo scrive il file che dipende dall'altro, e l'altro non cambia.
+I collegamenti inversi li calcola il `runtime`.
+- Il concetto scrive quali oggetti lo sviluppano; l'oggetto non sa quali
+  concetti rappresenta.
+- Il grafico scrive da quale tabella prende i dati; l'immagine scrive quale
+  tabella rappresenta.
+- La composizione scrive cosa usa.
 
-### Note di Claude
+Così collegare un terzo concetto alla tabella non tocca il file della tabella:
+non c'è diff sulla tabella e non c'è conflitto fra chi lavora sui concetti e
+chi lavora sui dati. È anche la stessa direzione già decisa per i contesti: è
+il contesto che punta, non l'oggetto che sa. Il `navigator` mostra comunque
+tutte e due le direzioni: da un concetto i suoi oggetti, da una tabella i
+concetti che la usano.
 
-- **Il nome.** In italiano "paragrafo" è anche la sezione numerata (il §3.2),
-  ed è il senso di Alessio. In inglese "paragraph" è il capoverso. Per non
-  confonderli:
-  - il contenitore è una `section`;
-  - il capoverso è un `paragraph`.
-- **Le sezioni dentro le sezioni.** Un capitolo con sottosezioni sì o no?
-- **Contenitore esplicito o implicito.** Una sezione può essere un
-  contenitore esplicito nel modello, ma nel testo può aprirsi semplicemente
-  con il suo titolo e chiudersi al titolo successivo dello stesso livello.
-  Pandoc fa così. Il modello resta ad albero, e promuovere un capoverso a
-  titolo cambia una sola riga nel diff invece di spostare tutto il testo
-  dentro un nuovo contenitore.
-- **Sezioni senza titolo.** Una sezione può non avere un titolo, per esempio
-  un gruppo di capoversi con una `class` comune?
-- **La sezione come oggetto.** Un oggetto `text` sul `canvas` potrebbe essere
-  proprio una sezione, e una `composition` di tipo `article` un elenco
-  ordinato di sezioni. Così l'unità che si sposta, si archivia e si compone è
-  la stessa.
+## 4. Proposte che ne seguono *(proposte)*
 
-## 3. Descrizione semantica e varianti
+- **Attributi.** Ogni file ha `id`, `tags`, `lang` e `origin`. Gli oggetti
+  hanno anche il `kind`, obbligatorio, e la `class`. Gli altri attributi
+  dipendono dal `kind`. Le decisioni già prese restano:
+  - l'id è unico, fatto di minuscole, cifre e trattino, e non si riusa mai;
+  - `tags` e `class` sono attributi separati.
 
-### Alessio (2026-10-20)
+  Una sola cambia forma: `lang` si ereditava dal contenitore, ma con i file
+  piatti si eredita dal documento.
+- **Il `kind` nell'estensione del nome di file.** Per esempio `.concept.md`,
+  `.csv` con il suo `.schema.json`, `.chart.json` e `.article.md`. Con tutti i
+  file in una cartella è il modo di filtrarli anche senza l'app
+  (`ls *.concept.md`). In più gli altri programmi aprono ciò che riconoscono,
+  per esempio un CSV in qualunque foglio di calcolo. Il `kind` resta scritto
+  anche dentro il file, che è la fonte di verità, e il `runtime` controlla che
+  i due coincidano.
+- **Collegamenti da rivedere.** Ogni collegamento ricorda l'hash dei due file
+  al momento della conferma. Se uno dei due cambia, il collegamento si segnala
+  da rivedere:
+  - se cambia il concetto, i suoi sviluppi potrebbero non esprimerlo più;
+  - se cambia la tabella, il grafico si ricalcola da solo, ma il capoverso che
+    ne parla e la foto della lavagna potrebbero essere superati.
 
-Sì alle tre domande: id unico nel documento, fatto di minuscole, cifre e
-trattino, mai riusato dopo una cancellazione; sezioni senza titolo ammesse; la
-sezione è l'oggetto `text`, cioè l'unità che si sposta sul `canvas`, si
-archivia e si mette in una `composition`.
+  Nessuno sviluppo si riscrive da solo: un LLM può proporre la correzione come
+  `hint`.
+- **Un'immagine generata non è un oggetto.** Se l'immagine è la tabella
+  disegnata dal `runtime`, è una vista generata, come il grafico, e non si
+  salva come file. È un oggetto solo un'immagine fatta fuori, come una foto o
+  un disegno, con il suo collegamento alla tabella.
+- **Niente varianti con nome.** Prima le varianti stavano dentro l'oggetto, si
+  sceglievano per nome e una di loro era la predefinita. Con i file collegati
+  non servono più: due versioni di una frase per due contesti sono due oggetti
+  `text` collegati allo stesso concetto, e ogni composizione punta per id
+  quella che le serve. Spariscono il nome della variante, la variante
+  predefinita e il ripiego su di essa.
+- **La composizione punta gli oggetti,** con `embed` per id. Se un oggetto
+  serve a più concetti, come la tabella, la composizione non dice quale
+  concetto sta presentando lì. Se servisse, accanto all'oggetto si può
+  indicare anche il concetto. Vedi la domanda 3.
+- **Un oggetto senza concetto va bene.** L'app può proporre di ricavarlo con
+  `distill`.
+- **Vista piatta.** Un comando della `cli` stampa una composizione intera come
+  un testo unico, nell'ordine di lettura e in sola lettura. Serve a chi legge e
+  all'AI.
+- **Nomi di file leggibili.** Se chi scrive non dà un id, il `runtime` lo
+  ricava dalle prime parole.
+- **Rimaste dalle note precedenti:**
+  - niente date e autore negli attributi, perché li ha già Git;
+  - niente attributo "nascosto": ciò che non deve uscire non sta in una
+    composizione;
+  - un attributo sconosciuto è un errore per i `kind` del nucleo, e si
+    conserva per quelli delle `extension`;
+  - l'LLM si attiva esplicitamente, il fornitore è configurabile ed è
+    possibile usare un modello locale.
 
-Poi un'idea nuova. Scrivendo un capoverso sarebbe bello avere in automatico
-qualcosa di concettuale, di semantico, che descriva l'oggetto. Per ora è un
-metadato predefinito; più avanti potrebbe assegnarlo un LLM via API. Da queste
-descrizioni si ricava una mappa semantica e concettuale dell'intero insieme di
-oggetti, da cui mettere insieme un documento abbozzato, da armonizzare poi. Così
-un oggetto avrebbe anche versioni diverse di sé, a seconda del contesto.
+## 5. Cosa cambia rispetto a prima
 
-### Note di Claude
+- **I file.** Era deciso "un file per livello"; ora c'è un file per ogni
+  concetto e per ogni oggetto, e i livelli diventano filtri dell'app
+  (orientamento di Alessio).
+- **La gerarchia.** Prima era decisa per il contenuto: sezioni annidate e
+  aperte dal titolo, sezioni senza titolo ammesse, la sezione come oggetto
+  `text`. Ora sta nelle composizioni (proposta). La sezione come contenitore
+  non c'è più.
+- **Il concetto.** Era un attributo dell'oggetto; ora è un file a sé che
+  collega i suoi sviluppi. La struttura è di Alessio, i nomi sono proposte.
+- **I nomi section e paragraph** sono ritirati. Erano proposte di Claude,
+  e Alessio ha detto di non badare alla parola section.
+- **Le varianti** dentro l'oggetto lasciano il posto a oggetti collegati.
 
-- **Un nome da sistemare.** Nel glossario `part` è un file del documento.
-  Qui il senso è "un pezzo del documento", cioè un `object`, per esempio una
-  `section`: le versioni diverse sono dell'oggetto, non del file.
-- **Precedenti.**
-  - Per la mappa: Obsidian, Tana e Heptabase ricavano grafi di concetti dalle
-    note.
-  - Per le versioni diverse dello stesso pezzo: la documentazione tecnica le
-    usa da anni con il testo condizionale e il riuso dei contenuti, per
-    esempio DITA e FrameMaker. Un pezzo ha varianti per pubblico, lunghezza o
-    lingua, e ogni pubblicazione sceglie la sua.
-- **Come si incastra con il modello.** Molto bene:
-  - la descrizione è un attributo, `summary`, più un elenco di concetti;
-  - la mappa è una vista generata, la `concept map`;
-  - una `variant` è una versione con nome di un oggetto (per esempio "breve",
-    "tecnica", "inglese");
-  - una `composition` sceglie quale `variant` usare quando fa `embed` di un
-    oggetto, così il report usa la versione lunga e il `deck` quella breve
-    dello stesso oggetto.
-- **Il testo resta la base, quindi tre cautele.**
-  - **Dove si salva.** Le descrizioni generate cambiano ogni volta che si
-    rigenerano. Se stanno nel file del contenuto, sporcano il diff. Proposta:
-    un `part` a sé per le descrizioni, con, per ogni voce, l'hash del
-    contenuto descritto e il modello che l'ha generata. Si rigenera solo
-    quando il contenuto cambia; prima di allora la descrizione si segnala come
-    scaduta.
-  - **Sono suggerimenti.** Vale la regola già decisa: descrizione,
-    classificazione e abbozzo del documento generati dall'LLM sono `hint` che
-    chi scrive conferma o corregge. Un abbozzo è una `composition` proposta,
-    non scritta al posto suo.
-  - **Le varianti invecchiano.** Se cambia un fatto nella versione lunga,
-    quella breve diventa sbagliata. Proposta: ogni `variant` ricorda l'hash
-    dell'oggetto da cui deriva, e quando l'oggetto cambia si segnala come
-    scaduta. I numeri restano coerenti da soli se sono `reference` ai dati e
-    non testo scritto a mano.
-- **Privacy.** Mandare i documenti a un LLM esterno è un'uscita di dati.
-  Proposta: va attivato esplicitamente; il fornitore è configurabile; è
-  possibile usare un modello locale. È un'`integration` come le altre, con i
-  suoi `permission`.
-- **Dove sta nel percorso incrementale.** Proposta:
-  - primo livello: l'attributo `summary`, scritto a mano o vuoto;
-  - più avanti: la generazione automatica e la `concept map`;
-  - poi: le `variant` e l'abbozzo di documento.
+## 6. Domande per Alessio
 
-### Alessio (2026-10-20), seguito
+1. **I nomi delle due cose.** Propongo `concept` per l'unità che ha l'idea, i
+   metadati e i collegamenti, e `object` per ogni sviluppo con il suo tipo
+   (capoverso, tabella, grafico, immagine). Tu chiami "oggetto" la prima, ma
+   nell'esempio dici "un concetto rappresentato da una tabella" e "più
+   concetti associati alla stessa tabella". In più, sul `canvas` gli oggetti
+   sono già le tabelle, i grafici e i testi. Con questi nomi il glossario
+   resta com'è. L'alternativa è `object` per l'unità e un nome nuovo per gli
+   sviluppi, per esempio representation.
+2. **Chi scrive il collegamento:** il file che dipende (il concetto, il
+   grafico, la composizione), con i collegamenti inversi calcolati dal
+   `runtime`?
+3. **Cosa punta la composizione:** direttamente l'oggetto, oppure il concetto
+   più l'oggetto, così sa quale concetto sta presentando?
+4. **Concetti che collegano altri concetti?** Per esempio un'idea generale con
+   le sue idee di dettaglio. Sarebbe la base della `concept map` e
+   dell'abbozzo di composizione.
+5. **Il `kind` nell'estensione del nome di file, e i `kind` del primo
+   livello.** Per ora sarebbero il concetto, il testo, l'immagine e la
+   composizione `article`; `collection` e `chart` arrivano con i livelli dei
+   dati e dei grafici.
 
-Oppure si potrebbe partire anche dal concetto, che poi si sviluppa nel
-contesto.
+## 7. Le idee di Alessio, in ordine (2026-10-20)
 
-### Note di Claude sul partire dal concetto
-
-- **Due direzioni, lo stesso modello.**
-  - Dal testo al concetto: scrivi il capoverso e il concetto si ricava.
-  - Dal concetto al testo: scrivi l'idea in una o due frasi, e da lì si
-    sviluppa il testo per ciascun contesto, cioè le `variant`.
-
-  È il modo di lavorare degli outliner (Workflowy, OmniOutliner) e dei CMS a
-  contenuti strutturati, che scrivono il contenuto una volta e lo rendono per
-  canali diversi.
-- **Un nome solo per tutte e due.** `summary` va bene solo per la prima
-  direzione: un riassunto viene dopo il testo. Proposta: `concept`, il nucleo
-  semantico di un oggetto, che si può scrivere prima o ricavare dopo. Con
-  `concept map` il nome resta coerente.
-- **Due operazioni.** `develop`, dal `concept` a una `variant` di testo per un
-  contesto; `distill`, dal testo al `concept`. Possono farle chi scrive o un
-  LLM come `hint`.
-- **Sapere chi ha scritto cosa.** Proposta: un attributo `origin` su
-  `concept` e `variant`, che dice se è scritto da una persona o generato e
-  confermato. Serve alla fiducia nel documento, e prima di pubblicare dice
-  quali parti ha scritto un'AI.
-- **Niente testo che cambia da solo.** Una `variant` sviluppata da un LLM si
-  salva come testo e non si rigenera a ogni apertura. Si rigenera solo con un
-  comando esplicito, e se il `concept` cambia si segnala come scaduta.
-- **Con lo spazio libero.** Sul `canvas` si possono buttare giù solo concetti,
-  come un elenco di idee, e svilupparli dopo.
-
-### Alessio (2026-10-20), seguito
-
-Il concetto come un primo raccoglitore di idee, che poi diventano un tipo o più
-tipi.
-
-### Note di Claude sul concetto come raccoglitore
-
-- **Il `concept` diventa un oggetto a sé.** Non è più solo un attributo di un
-  oggetto: è il primo oggetto, quello da cui si parte. Il percorso diventa:
-  1. scrivi le idee come `concept` sul `canvas`;
-  2. da ciascun `concept` fai `develop` di uno o più oggetti, anche di tipi
-     diversi, per esempio un `paragraph`, un `chart` e una `slide`;
-  3. ogni oggetto può avere le sue `variant` per i diversi contesti;
-  4. le `composition` mettono insieme gli oggetti.
-- **Il legame resta.** Ogni oggetto sviluppato ricorda da quale `concept`
-  viene. Il `navigator` può mostrare un'idea con tutto ciò che ne è nato, e la
-  `concept map` diventa la mappa delle idee e dei loro sviluppi. Se un'idea
-  cambia, gli oggetti che ne derivano si segnalano come da rivedere.
-- **Il percorso inverso resta.** Si può sempre scrivere direttamente un
-  oggetto e ricavarne il `concept` dopo (`distill`).
-- **È coerente con lo spazio libero.** Il `canvas` come raccoglitore di idee
-  è proprio il punto d'ingresso deciso: prima le idee, poi i tipi.
-
-## 4. Un file per oggetto
-
-### Alessio (2026-10-20)
-
-Ogni oggetto è un file, anche il capoverso.
-
-### Note di Claude
-
-- **Cosa cambia rispetto a prima.** Era deciso "un file per livello". Con un
-  file per oggetto il livello diventa naturalmente una cartella, con dentro un
-  file per ogni oggetto: per esempio `content/`, `data/`, `charts/`,
-  `compositions/`. È una mia lettura, da confermare.
-- **Precedenti.**
-  - Obsidian e Logseq usano una nota per file.
-  - Scrivener salva ogni elemento del binder come file separato dentro il suo
-    pacchetto.
-  - DITA, il precedente più vicino, ha un argomento per file, e le "mappe"
-    ordinano gli argomenti: sono le nostre `composition`.
-
-  Nessuno però scende fino al singolo capoverso: di solito l'unità è la nota,
-  la scena o l'argomento.
-- **Cosa si guadagna.** Tutto ciò che hai deciso diventa uniforme e semplice:
-  - l'id è il nome del file, mnemonico;
-  - `concept` e `variant` diventano file accanto all'oggetto;
-  - archiviare, richiamare e mettere in una `composition` lavorano sempre su
-    un file;
-  - spostare un capoverso cambia solo l'ordine nella `composition`, e Git lo
-    vede come un file che non cambia, non come righe tolte e aggiunte;
-  - due persone che lavorano su capoversi diversi non vanno mai in conflitto;
-  - un'AI modifica un oggetto aprendo un solo file piccolo, con un indirizzo
-    preciso.
-- **Cosa si paga.**
-  - **Molti file.** Un documento di cento pagine ha circa mille capoversi,
-    quindi mille file. Per Git e per il disco non è un problema; per chi
-    guarda la cartella sì.
-  - **Il documento non si legge più come un testo unico** aprendo un file, e
-    leggerlo così era uno dei motivi del testo come base.
-  - **Spezzare o unire capoversi tocca più file:** se ne crea o se ne
-    cancella uno, e l'ordine cambia.
-- **Tre accorgimenti proposti.**
-  1. **Cartelle che rispecchiano la struttura.** Una `section` è una cartella
-     con dentro i suoi capoversi e le sue sottosezioni. L'ordine lo dice un
-     elenco nel file della sezione, mai un numero nel nome del file, perché le
-     coordinate sono escluse.
-  2. **Nomi di file leggibili.** Se chi scrive non dà un id, il `runtime` lo
-     ricava dalle prime parole (`le-linee-hanno-prodotto.md`), così l'elenco
-     della cartella si legge quasi come un indice.
-  3. **Una vista piatta sempre disponibile.** Un comando della `cli` stampa il
-     documento intero come un testo unico, nell'ordine di lettura, in sola
-     lettura. Serve a chi legge e all'AI quando deve vedere tutto il flusso.
-
-## 5. La section come unità di significato
-
-### Alessio (2026-10-20)
-
-Il capoverso lo chiamerei `section`. Ha i metadati predefiniti, con il
-concetto. Questo concetto lo posso sviluppare come bozza, come frase del
-contesto 1, frase del contesto 2, grafico del contesto 3. Il contesto non è
-collegato nell'oggetto: è il contesto che punta il tipo desiderato.
-
-### Note di Claude
-
-- **Come lo leggo.** La `section` è l'unità di significato, un file. Contiene:
-  - i suoi `attributes`, con il `concept`;
-  - i suoi sviluppi: una bozza e le `variant`, anche di `kind` diversi (una
-    frase, un'altra frase, un grafico).
-
-  L'oggetto non sa in quali contesti è usato. È la `composition`, cioè il
-  contesto, che punta allo sviluppo che le serve. Il `concept` quindi è un
-  attributo della `section`, e il raccoglitore di idee è la `section` stessa.
-- **Una conseguenza importante.** Se la `section` è l'unità di significato,
-  la struttura di lettura (capitoli, sottocapitoli, titoli, ordine) non sta
-  più nel contenuto: sta nelle `composition`. Il contenuto diventa un insieme
-  piatto di unità, ciascuna un file, e ogni `composition` costruisce il suo
-  albero puntandole. È esattamente DITA, con argomenti piatti e mappe
-  gerarchiche. La decisione "sezioni annidate, aperte dal titolo" del §2 si
-  sposta quindi nelle `composition`.
-- **Il nome.** In HTML, Word, Typst e quasi ovunque, "section" è una parte di
-  un documento con un titolo, che contiene altro. Qui invece è un'unità che
-  può essere una sola frase o un grafico. Chi legge il formato, AI compresa,
-  si aspetterà un contenitore. Alternativa: `topic`, il nome che DITA dà
-  proprio a questa unità (un file, con un nucleo di significato, usato dalle
-  mappe). La scelta è tua: se tieni `section`, il glossario segna la
-  collisione.
-- **La bozza.** "Bozza" per noi indica già gli oggetti non archiviati del
-  `canvas` (`drafts`). Per il primo sviluppo del concetto propongo un nome
-  diverso: la `variant` predefinita, cioè quella che si usa quando un
-  contesto non ne chiede una precisa.
-- **Come punta il contesto.** Proposta: una `composition` fa `embed` di una
-  `section` e indica la `variant` con il suo nome, per esempio "breve" o
-  "grafico-q3". Se non indica nulla, si usa quella predefinita. Se la
-  `variant` chiesta non esiste, è un errore del `runtime`, non un ripiego
-  silenzioso.
-
-### Alessio (2026-10-20), sui livelli
-
-No, i livelli sono cartelle, ma forse nemmeno: lascerei tutto mischiato, e lo
-filtra la nostra app.
-
-### Note di Claude
-
-- **Tutto insieme, filtrato dall'app.** È la soluzione più semplice: non c'è
-  una struttura su disco da tenere allineata, e un oggetto non deve mai
-  "cambiare cartella". Il livello diventa un filtro dell'`app` e della `cli`,
-  come gli `shelf` del `navigator`, non un posto sul disco.
-- **Il prezzo è uno solo: la cartella diventa lunga.** Con mille file, un
-  `ls` o la pagina del repository non si leggono più. GitHub, se ricordo bene,
-  nell'interfaccia web tronca le cartelle oltre i mille file; non l'ho
-  verificato.
-- **Proposta: il `kind` nell'estensione del file.** Per esempio
-  `risultati-q3.section.md`, `vendite.csv` con `vendite.schema.json`,
-  `vendite-mensili.chart.json`. Così:
-  - anche senza l'`app` si filtra con un comando, per esempio
-    `ls *.chart.json`;
-  - gli altri programmi riconoscono il formato e lo aprono, per esempio un CSV
-    in qualunque foglio di calcolo;
-  - l'editor di testo colora la sintassi giusta.
-
-  Il `kind` resta comunque scritto anche dentro il file, che è la fonte di
-  verità; l'estensione lo ripete solo per comodità, e il `runtime` controlla
-  che i due coincidano.
-
-## Domande aperte per Alessio
-
-1. **Il nome `concept`** al posto di `summary`, visto che si può partire da
-   tutte e due le parti?
-2. **`origin`:** un attributo che dice se un `concept` o una `variant` è
-   scritto da una persona o generato?
-3. **Un `part` a sé per i `concept`,** fuori dal file del contenuto?
-4. **Varianti:** versioni con nome di un oggetto, scelte dalla `composition`,
-   segnalate come scadute quando l'oggetto cambia?
-5. **LLM:** attivazione esplicita, fornitore configurabile, possibilità di un
-   modello locale?
-6. **Ordine:** `concept` a mano nel primo livello, generazione e mappa dopo,
-   varianti e abbozzi dopo ancora?
-7. **Il `concept` come oggetto:** resta anche dopo lo sviluppo? Un oggetto
-   può derivare da più `concept`?
-8. **Tutto in una cartella:** gli oggetti stanno insieme e l'`app` filtra per
-   livello (orientamento di Alessio); il `kind` anche nell'estensione del file?
-9. **Gli accorgimenti rimasti:** nomi di file leggibili, ricavati dalle prime
-   parole, e vista piatta dalla `cli`?
-10. **Il nome dell'unità:** `section` o `topic`?
-11. **La struttura di lettura nelle `composition`:** capitoli, titoli e ordine
-    stanno lì, e il contenuto è un insieme piatto di unità?
-12. **La `variant` predefinita** al posto di "bozza"?
-13. **L'inventario dei `kind`:** quali tipi di blocco e in linea servono al
-   primo livello.
+1. Prima di tutto i metadati comuni, opzionali: un id, non per forza numerico o
+   incrementale, anche mnemonico; uno o più tag di contesto; il tipo; e forse
+   altro. Il paragrafo potrebbe essere già un contenitore, con dentro i
+   capoversi, le tabelle, le immagini e così via.
+2. Gli attributi opzionali dipendono dal tipo.
+3. Sì alle proposte di Claude:
+   - ogni nodo ha un `kind`;
+   - `id` e `tags` su ogni `kind`, `class` e `lang` sui nodi che si vedono, e
+     `lang` si eredita;
+   - `tags` e `class` sono separati;
+   - le sezioni si annidano e si aprono con il titolo.
+4. Sì anche a queste:
+   - l'id è unico, fatto di minuscole, cifre e trattino, e mai riusato;
+   - le sezioni senza titolo sono ammesse;
+   - la sezione è l'unità che si sposta, si archivia e si compone.
+5. Scrivendo un capoverso sarebbe bello avere in automatico qualcosa di
+   concettuale, di semantico, che descriva l'oggetto. Per ora è un metadato
+   predefinito; più avanti potrebbe assegnarlo un LLM. Dalle descrizioni si
+   ricava una mappa semantica di tutti gli oggetti, e da lì un documento
+   abbozzato, da armonizzare. Un oggetto avrebbe anche versioni diverse di sé,
+   a seconda del contesto.
+6. Oppure si potrebbe partire dal concetto, che poi si sviluppa nel contesto.
+7. Il concetto come primo raccoglitore di idee, che poi diventano un tipo o più
+   tipi.
+8. Ogni oggetto è un file, anche il capoverso.
+9. Il capoverso ha i metadati predefiniti, con il concetto. Il concetto lo
+   posso sviluppare come bozza, come frase del contesto 1, frase del contesto
+   2, grafico del contesto 3. Il contesto non è collegato nell'oggetto: è il
+   contesto che punta il tipo desiderato.
+10. I livelli sono cartelle, ma forse nemmeno: lascerei tutto mescolato, e lo
+    filtra la nostra app.
+11. Sto sparando idee: aiutami a raccoglierle in qualcosa di sensato. Non
+    badare alla parola section: l'ho usata mentre pensavo ad altro.
+12. Quindi un oggetto con dentro il concetto, i metadati e lo sviluppo, anche
+    con tipi diversi. Lo sviluppo potrebbe stare in file collegati o tutto in
+    un unico file. Forse preferisco file collegati, per cambiare il tipo a
+    seconda del contenuto. Immagina un concetto scritto come capoverso e
+    rappresentato da una tabella e dal grafico associato; magari anche più
+    concetti associati alla stessa tabella, o a un'immagine che rappresenta la
+    tabella.
