@@ -101,6 +101,73 @@ la proposta di Claude era farli scrivere solo al file che dipende).
   scrive da quale tabella prende i dati, la composizione scrive cosa usa
   (questo era già deciso: il contesto punta, l'oggetto non lo sa).
 
+### Collegamenti che si rompono
+
+Alessio (2026-10-20): il collegamento meccanico, e non semantico, si può
+rompere; sarebbe da aggiungere un collegamento generato in automatico per
+semantica.
+
+*(proposte di Claude, dalla ricerca in
+[ricerca/collegamenti-semantici.md](ricerca/collegamenti-semantici.md))*
+
+Generare collegamenti per significato è semplice: un modello locale da circa
+100 MB, pochi millisecondi per capoverso, in Node e nel browser. Però non può
+prendere il posto del collegamento per id, per tre motivi:
+- non dà gli stessi numeri su macchine diverse;
+- non distingue «le vendite calano» da «le vendite crescono»;
+- anche il sistema meglio documentato, Add a link di Wikipedia, sbaglia circa
+  un collegamento proposto su sei.
+
+Proposta: tre strati, dal più semplice.
+
+1. **Meccanico, nel sorgente.** Copre le rotture più comuni senza semantica.
+   - L'id è scritto dentro il file, quindi rinominare il file non rompe niente.
+   - Cambiare un id, o rinominare dall'app, passa dal `runtime`, che riscrive i
+     collegamenti.
+   - Una copia perde l'id e ne riceve uno nuovo.
+   - Quando un oggetto si divide, l'id resta a una delle due parti e i suoi
+     collegamenti si segnalano da rivedere.
+   - Quando un oggetto viene fuso in un altro o sostituito, resta una traccia
+     «sostituito da», e i collegamenti al vecchio id si risolvono sul nuovo,
+     come in Zotero. L'id vecchio non si riusa, come già deciso.
+   - Dopo ogni merge e ogni modifica esterna, il `runtime` controlla tutti i
+     collegamenti. Uno che non si risolve è un errore visibile, mai un salto
+     silenzioso. Git questo controllo non lo fa: se un ramo cancella un oggetto
+     e un altro lo collega, non c'è conflitto.
+2. **L'impronta, nel sorgente.** Ogni collegamento confermato ricorda, oltre
+   all'id, poche parole del bersaglio e il suo hash. Per un concetto basta la
+   sua frase; per un oggetto, per esempio, i termini più caratteristici. Se il
+   collegamento è scritto da tutte e due le parti, ciascuna ricorda l'impronta
+   dell'altra. L'impronta è deterministica, quindi può stare nel testo, e serve
+   a due cose:
+   - se l'id non si risolve, il `runtime` cerca il bersaglio per impronta e
+     propone i candidati;
+   - se l'hash non coincide più, il collegamento si segnala da rivedere (vedi
+     il §4).
+
+   Lo fanno i robust hyperlinks di Phelps e Wilensky, il W3C per le
+   annotazioni, Hypothesis e Swimm.
+3. **Il semantico, calcolato e mai salvato nel sorgente.** È un indice locale,
+   una cache che si butta e si rigenera, con i vettori di concetti e oggetti.
+   Fa tre cose, sempre come `hint`:
+   - propone i candidati per un collegamento rotto: è il caso facile, una
+     scelta fra pochi;
+   - propone collegamenti nuovi fra concetti e oggetti: è il caso difficile,
+     quindi pochi suggerimenti, soglia alta, e un suggerimento rifiutato non
+     torna;
+   - quando un oggetto cambia, confronta la modifica con i concetti collegati e
+     segnala quelli che forse non esprime più. Gli embedding non vedono
+     negazioni e numeri, quindi questo lo fanno bene solo un LLM, attivato
+     esplicitamente, o l'autore.
+
+   Un suggerimento confermato diventa un collegamento normale, per id e con la
+   sua impronta.
+
+**L'ordine.** Gli strati 1 e 2 vanno nel primo livello, perché sono semplici e
+deterministici. Lo strato 3 arriva con gli `hint` dell'LLM e la `concept map`:
+prima lessicale (BM25 con stemmer italiano, senza scaricare modelli), poi con
+un modello di embedding fissato.
+
 ## 4. Proposte che ne seguono *(proposte)*
 
 - **Attributi.** Ogni file ha `id`, `tags`, `lang` e `origin`. Gli oggetti
@@ -118,9 +185,9 @@ la proposta di Claude era farli scrivere solo al file che dipende).
   per esempio un CSV in qualunque foglio di calcolo. Il `kind` resta scritto
   anche dentro il file, che è la fonte di verità, e il `runtime` controlla che
   i due coincidano.
-- **Collegamenti da rivedere.** Ogni collegamento ricorda l'hash dei due file
-  al momento della conferma. Se uno dei due cambia, il collegamento si segnala
-  da rivedere:
+- **Collegamenti da rivedere.** Ogni collegamento ricorda l'impronta e l'hash
+  del bersaglio al momento della conferma (§3). Se il bersaglio cambia, il
+  collegamento si segnala da rivedere:
   - se cambia il concetto, i suoi sviluppi potrebbero non esprimerlo più;
   - se cambia la tabella, il grafico si ricalcola da solo, ma il capoverso che
     ne parla e la foto della lavagna potrebbero essere superati.
@@ -185,6 +252,12 @@ punta la composizione) hanno avuto risposta: vedi i §1 e §3.
 3. **Associazioni e dipendenze:** il bilaterale vale per le associazioni,
    mentre le dipendenze (il grafico dalla tabella, la composizione
    dall'oggetto) restano nel file che dipende?
+4. **I tre strati contro i collegamenti che si rompono:** meccanico e impronta
+   nel sorgente, semantico solo calcolato e proposto?
+5. **I rifiuti dei suggerimenti:** in un file del documento, condiviso con chi
+   ci lavora, o solo nella cache locale? Propongo il file del documento: i
+   promemoria ripetuti vengono accettati sempre meno (Ancker et al., nella
+   ricerca), e la cache si perde quando si rigenera.
 
 ## 7. Le idee di Alessio, in ordine (2026-10-20)
 

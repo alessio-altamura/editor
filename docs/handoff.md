@@ -10,9 +10,12 @@ Alessio progetta un nuovo standard aperto per documenti, fogli di calcolo e
 presentazioni con un solo strumento. Non è un clone di Word o di ONLYOFFICE: la
 compatibilità con DOCX, XLSX e PPTX non è un requisito.
 
-Un documento è una cartella (o uno zip) di file di testo, uno per livello:
-contenuto, impaginazione, dati, formule, connettori, grafici, slide, più gli
-asset. Il testo è la base; l'editor grafico, la griglia, i connettori e le
+Un documento è una cartella (o uno zip) di file di testo più gli asset: un
+file per ogni concetto (`concept`) e per ogni oggetto (`object`: testo,
+tabella, grafico, immagine), più le composizioni (`article`, `deck`,
+`webpage`) che li usano. I livelli (contenuto, dati, grafici, formule,
+connettori) si aggiungono uno alla volta; orientamento: sono filtri dell'app,
+non cartelle. Il testo è la base; l'editor grafico, la griglia, i connettori e le
 pagine sono viste generate dal testo. Il motore è l'HTML; il PDF è la sua
 stampa. Si parte dal motore, non dall'interfaccia. Nel repository non c'è
 ancora codice.
@@ -45,8 +48,8 @@ ancora codice.
 **Formato e livelli**
 - Un documento è un insieme di file di testo più gli asset, in una cartella in
   chiaro o in uno zip con estensione propria.
-- Si procede in modo incrementale: un file per livello (`part`), uno alla
-  volta, in quest'ordine:
+- Si procede in modo incrementale, un livello (`part`) alla volta, in
+  quest'ordine:
   1. contenuto e impaginazione;
   2. dati;
   3. grafici;
@@ -61,6 +64,16 @@ ancora codice.
 - Si riusano componenti open source. Il progetto è generale, non legato a un
   solo caso d'uso, e pensato per essere pubblicato: probabilmente open source,
   non ancora deciso.
+
+**Il modello (2026-10-20, dettagli in [bozza-nodi.md](bozza-nodi.md))**
+- Ogni oggetto è un file, anche il capoverso.
+- L'unità di significato è il `concept`: un'idea con i suoi metadati e i
+  collegamenti ai suoi sviluppi. Gli sviluppi sono `object`, ciascuno del suo
+  `kind`. Orientamento: gli sviluppi stanno in file collegati, molti a molti.
+- I collegamenti fra `concept` e `object` sono bilaterali: si scrivono da una
+  parte, dall'altra o da entrambe.
+- La `composition` punta l'`object`, che può avere o no un collegamento a un
+  `concept`. Il contesto punta, l'oggetto non sa dove è usato.
 
 **Tabelle**
 - Le tabelle sono liste moderne (`collection`): elementi con identità e proprietà tipizzate,
@@ -187,35 +200,32 @@ ricontrollati da un secondo agente, salvo le parti che ogni nota indica.
   - I suoi difetti hanno cause di progetto che le nostre decisioni affrontano.
   - Lotus Improv separava già dati, formule e viste, e ha perso perché era
     debole nel fare tabelle.
+- **[ricerca/collegamenti-semantici.md](ricerca/collegamenti-semantici.md).**
+  - Generare collegamenti per significato in locale è semplice: un modello da
+    circa 100 MB, pochi millisecondi per capoverso.
+  - Non sostituisce l'id: non è deterministico, non vede negazioni e numeri,
+    e sbaglia spesso nel proporre collegamenti nuovi.
+  - Quasi tutte le rotture si coprono con meccanismi deterministici più
+    un'impronta del bersaglio; la semantica serve a proporre candidati.
+  - Gli script delle misure locali sono in
+    [ricerca/misure/embedding/](ricerca/misure/embedding/).
 
 ## Ultima discussione
 
-Alessio propone lo spazio libero come punto d'ingresso: si scrive su una pagina
-vuota e si promuove ogni pezzo a paragrafo, capitolo, immagine, lista o grafico. È
-registrato come orientamento in [contesto.md](contesto.md), con le domande
-aperte che tocca nella bozza dei tipi di nodo.
+Il 2026-10-20 Alessio ha lanciato molte idee sul modello del primo livello, e
+ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
+[bozza-nodi.md](bozza-nodi.md), con le sue idee in ordine al §7.
 
-Poi ha proposto di pensare lo spazio libero come un canvas: oggetti messi anche
-in disordine, che il sistema crea, classifica e collega. Registrato come
-orientamento, con la proposta di salvare sul canvas solo posizioni e
-riferimenti (JSON Canvas come base) e di tenere documento e slide come
-composizioni ordinate.
-Ha precisato: un unico foglio bianco da cui creare gli oggetti e una lista a
-fianco che li organizza. Proposto che la lista abbia sezioni per tipo, una
-sezione "da sistemare" e le sezioni ordinate Documento e Presentazione, che
-danno l'ordine di lettura.
-Decisione: all'apertura c'è il foglio bianco, con i layout (documento,
-presentazione e altri) come viste create a parte. Il foglio è un foglio di
-bozze: un oggetto archiviato esce dal foglio e va nella lista; lo si richiama
-trascinandolo sul foglio o cliccandolo per vederlo da solo. Da confermare: che
-l'oggetto richiamato sia lo stesso e non una copia, e che possa stare in più
-layout per riferimento.
-
-Infine Alessio ha proposto estensioni e connettori su un marketplace per
-ampliare tipi di oggetti e template di layout. Registrato come orientamento con
-le proposte: forma generica nella sintassi per i tipi non noti, forma statica
-obbligatoria, versioni fissate con hash, gradi di estensione dal più sicuro al
-più rischioso, registro aperto.
+- Ha scelto i nomi `concept` e `object`. Gli sviluppi di un concetto sono file
+  collegati, così ognuno ha il suo tipo: un concetto scritto come capoverso e
+  rappresentato da una tabella e dal suo grafico, e più concetti sulla stessa
+  tabella.
+- Ha deciso i collegamenti bilaterali e la composizione che punta l'oggetto.
+- Poi ha notato che i collegamenti per id si possono rompere, e ha proposto un
+  collegamento generato per semantica. La ricerca dice che è semplice da
+  generare ma non può sostituire l'id. La proposta, in tre strati (meccanico,
+  impronta, semantico calcolato), è nel §3 della bozza e aspetta la sua
+  risposta.
 
 ## Domande aperte
 

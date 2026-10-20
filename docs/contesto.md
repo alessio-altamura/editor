@@ -169,6 +169,13 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
 - Come primo prodotto, il runtime con la sua riga di comando: prende la
   cartella del documento e produce l'albero risolto, l'HTML e il PDF, senza
   app.
+- Collegamenti robusti in tre strati. Meccanico, nel sorgente: id nel file,
+  rinomina dal runtime, id tolto alle copie, traccia «sostituito da», controllo
+  dopo ogni merge. Impronta, nel sorgente: poche parole e l'hash del bersaglio
+  per ritrovarlo e per vedere che è cambiato. Semantico, solo calcolato in una
+  cache locale: propone candidati e collegamenti nuovi come `hint`, mai salvati
+  da soli. Dettagli in [bozza-nodi.md](bozza-nodi.md), fatti in
+  [ricerca/collegamenti-semantici.md](ricerca/collegamenti-semantici.md).
 
 ## Bozza di sintassi
 
