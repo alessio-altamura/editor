@@ -79,6 +79,9 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   sé: una presentazione è una `composition` di tipo `deck`. La divisione in file riguarda solo come
   si salva: l'editor mostra ogni livello dove serve, per esempio le formule
   accanto alla tabella.
+- Ogni oggetto è un file, anche il capoverso (2026-10-20). Precisa la
+  decisione precedente di un file per livello: come si organizzano i livelli
+  con un file per oggetto è nella bozza, [bozza-nodi.md](bozza-nodi.md).
 - I connettori grafici sono un file a parte. La loro disposizione è calcolata
   in automatico; le posizioni sistemate a mano si salvano in un altro file di
   layout, solo per i nodi spostati.

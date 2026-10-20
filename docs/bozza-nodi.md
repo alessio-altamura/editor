@@ -232,6 +232,57 @@ tipi.
 - **È coerente con lo spazio libero.** Il `canvas` come raccoglitore di idee
   è proprio il punto d'ingresso deciso: prima le idee, poi i tipi.
 
+## 4. Un file per oggetto
+
+### Alessio (2026-10-20)
+
+Ogni oggetto è un file, anche il capoverso.
+
+### Note di Claude
+
+- **Cosa cambia rispetto a prima.** Era deciso "un file per livello". Con un
+  file per oggetto il livello diventa naturalmente una cartella, con dentro un
+  file per ogni oggetto: per esempio `content/`, `data/`, `charts/`,
+  `compositions/`. È una mia lettura, da confermare.
+- **Precedenti.**
+  - Obsidian e Logseq usano una nota per file.
+  - Scrivener salva ogni elemento del binder come file separato dentro il suo
+    pacchetto.
+  - DITA, il precedente più vicino, ha un argomento per file, e le "mappe"
+    ordinano gli argomenti: sono le nostre `composition`.
+
+  Nessuno però scende fino al singolo capoverso: di solito l'unità è la nota,
+  la scena o l'argomento.
+- **Cosa si guadagna.** Tutto ciò che hai deciso diventa uniforme e semplice:
+  - l'id è il nome del file, mnemonico;
+  - `concept` e `variant` diventano file accanto all'oggetto;
+  - archiviare, richiamare e mettere in una `composition` lavorano sempre su
+    un file;
+  - spostare un capoverso cambia solo l'ordine nella `composition`, e Git lo
+    vede come un file che non cambia, non come righe tolte e aggiunte;
+  - due persone che lavorano su capoversi diversi non vanno mai in conflitto;
+  - un'AI modifica un oggetto aprendo un solo file piccolo, con un indirizzo
+    preciso.
+- **Cosa si paga.**
+  - **Molti file.** Un documento di cento pagine ha circa mille capoversi,
+    quindi mille file. Per Git e per il disco non è un problema; per chi
+    guarda la cartella sì.
+  - **Il documento non si legge più come un testo unico** aprendo un file, e
+    leggerlo così era uno dei motivi del testo come base.
+  - **Spezzare o unire capoversi tocca più file:** se ne crea o se ne
+    cancella uno, e l'ordine cambia.
+- **Tre accorgimenti proposti.**
+  1. **Cartelle che rispecchiano la struttura.** Una `section` è una cartella
+     con dentro i suoi capoversi e le sue sottosezioni. L'ordine lo dice un
+     elenco nel file della sezione, mai un numero nel nome del file, perché le
+     coordinate sono escluse.
+  2. **Nomi di file leggibili.** Se chi scrive non dà un id, il `runtime` lo
+     ricava dalle prime parole (`le-linee-hanno-prodotto.md`), così l'elenco
+     della cartella si legge quasi come un indice.
+  3. **Una vista piatta sempre disponibile.** Un comando della `cli` stampa il
+     documento intero come un testo unico, nell'ordine di lettura, in sola
+     lettura. Serve a chi legge e all'AI quando deve vedere tutto il flusso.
+
 ## Domande aperte per Alessio
 
 1. **Il nome `concept`** al posto di `summary`, visto che si può partire da
@@ -247,5 +298,9 @@ tipi.
    varianti e abbozzi dopo ancora?
 7. **Il `concept` come oggetto:** resta anche dopo lo sviluppo? Un oggetto
    può derivare da più `concept`?
-8. **L'inventario dei `kind`:** quali tipi di blocco e in linea servono al
+8. **Livelli come cartelle:** con un file per oggetto, ogni `part` diventa una
+   cartella con un file per oggetto?
+9. **I tre accorgimenti:** cartelle che rispecchiano le sezioni, nomi di file
+   leggibili, vista piatta dalla `cli`?
+10. **L'inventario dei `kind`:** quali tipi di blocco e in linea servono al
    primo livello.

@@ -150,7 +150,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 |---|---|---|---|---|
 | `document` | documento | Insieme di file di testo più gli asset, in una cartella o in un `bundle` | concetto deciso, nome proposto | project, workbook |
 | `bundle` | pacchetto | Il documento compresso in un unico zip con `file extension` propria, da scegliere | proposto | package, archive |
-| `part` | livello | Un tipo di file del documento: contenuto, stile, dati, formule, wire, grafici, composizioni, canvas | deciso | layer, level, tier |
+| `part` | livello | Un livello del documento: contenuto, stile, dati, formule, wire, grafici, composizioni, canvas; con un file per `object` diventa probabilmente una cartella (da confermare) | deciso | layer, level, tier |
 | `source` | sorgente | Il testo dei file del documento, fonte di verità da cui si generano le viste | concetto deciso, nome proposto | code, integration |
 | `asset` | asset | File non testuale: immagini, font, dati grandi | proposto | attachment, resource |
 | `schema` | schema | File che dichiara tipi, chiavi, dimensioni e `dialect` di una `collection` | concetto deciso, nome proposto | header, metadata |
