@@ -1,13 +1,19 @@
 # Sintassi dei file di testo: quattro strade
 
 Ricerca del 2026-10-20 per la scelta APERTA nella
-[specifica](../specifica.md), §0.6. Domanda: per i file di testo (`concept`,
-`text`, `composition`), CommonMark con un'intestazione per gli attributi,
-oppure Djot? Alessio non conosce le due candidate e ha chiesto di valutarne
-altre due: Markdown con una sintassi nostra, come fa Obsidian, e un formato
-del tutto nostro (contesto.md, orientamento «Sintassi dei file di testo»). Le
-quattro strade sono confrontate nella sezione «Le quattro strade». La nota non
-sceglie: dà i fatti e i costi.
+[specifica](../specifica.md), §0.6. Domanda: quale sintassi per i file di
+testo (`concept`, `text`, `composition`)? Le strade sono quattro: CommonMark
+con un'intestazione per gli attributi; Djot; Markdown con una sintassi nostra,
+come fa Obsidian; un formato del tutto nostro. Le ultime due le ha chieste
+Alessio, che non conosce le prime due (contesto.md, orientamento «Sintassi dei
+file di testo»). Le prime sezioni riguardano CommonMark e Djot; la sezione
+«Le quattro strade» le mette a confronto tutte. La nota non sceglie: dà i
+fatti e i costi.
+
+Contesto.md, fra le decisioni: «Deve essere diffabile con Git. Riferimenti:
+Notion per il modello a blocchi, Obsidian per i file di testo locali; in
+contrapposizione a Word, LaTeX e Markdown.» La nota la cita senza
+interpretarla.
 
 I fatti vengono da fonti primarie: specifiche, repository ufficiali, registry
 npm, documentazione dei prodotti. Alcuni sono prove eseguite con i pacchetti
@@ -52,9 +58,7 @@ sono nell'ultima sezione.
   ([spec](https://spec.commonmark.org/),
   [spec.txt](https://github.com/commonmark/commonmark-spec)). Il repository
   riceve ancora commit, l'ultimo il 2026-10-10, ma senza nuove versioni (prova:
-  git log). Fra le decisioni di contesto.md, Markdown compare fra i
-  riferimenti da cui il progetto si distingue: «in contrapposizione a Word,
-  LaTeX e Markdown».
+  git log).
 - **GFM.** La spec di GitHub è la 0.29-gfm del 2019-04-06, costruita sopra
   CommonMark ([gfm](https://github.github.com/gfm/)).
 - **Djot.** La pagina ufficiale dice «Djot isn't completely stable yet, minor
@@ -201,16 +205,22 @@ Rust, Go, Haskell); in JavaScript o TypeScript c'è solo djot.js
 ## Le quattro strade
 
 Lo stesso piccolo documento in quattro sintassi (ogni file comincia con una
-riga `=== nome`, che non fa parte del file): un `concept`, un `text` con
-un'enfasi, un collegamento in linea a un altro nodo e una `class` sul
-capoverso, e un `article` con un titolo e due `embed`. Le forme delle strade 3
-e 4 sono abbozzi scritti per il confronto, non proposte.
+riga `=== nome`, che non fa parte del file): un `concept`; un `text` con
+un'enfasi, un collegamento in linea a un altro nodo e una `class`; un
+`article` con un titolo e due `embed`. Le scelte comuni a tutte e quattro:
+- la `class` sta negli attributi del file e vale per il blocco intero,
+  perché un `text` è un blocco solo (specifica §0.2, deciso);
+- collegamenti ed `embed` puntano per `id`. Il costo: l'`id` non si rompe con
+  `turn into` né con una rinomina, ma su GitHub non è cliccabile. Per
+  percorso (`calo-q3.concept.md`) il collegamento è cliccabile su GitHub, ma
+  si rompe con `turn into`, che cambia l'estensione.
 
-**1. CommonMark con un'intestazione YAML.** CommonMark non ha attributi sui
-blocchi, né `embed`, né collegamenti per `id`. Qui il collegamento usa il
-percorso del file, la `class` la sintassi di markdown-it-attrs (un'estensione)
-e l'`embed` la sintassi delle immagini, che CommonMark legge come
-un'immagine.
+Le forme delle strade 3 e 4 sono abbozzi scritti per il confronto, non
+proposte.
+
+**1. CommonMark con un'intestazione YAML.** CommonMark non ha collegamenti per
+`id` né `embed`: qui il collegamento è un'ancora `#id` e l'`embed` usa la
+sintassi delle immagini, che CommonMark legge come un'immagine.
 
 ```
 === calo-q3.concept.md
@@ -225,9 +235,10 @@ Nel terzo trimestre le vendite calano per i ritardi nelle consegne.
 ---
 id: calo-q3-sintesi
 kind: text
+class: [evidenza]
 ---
 Le vendite sono calate del 12%, soprattutto per i *ritardi* di agosto
-(vedi [il calo](calo-q3.concept.md)). {.evidenza}
+(vedi [il calo](#calo-q3)).
 
 === report-q3.article.md
 ---
@@ -236,18 +247,16 @@ kind: article
 ---
 # Il terzo trimestre
 
-![](calo-q3-sintesi.text.md)
+![](calo-q3-sintesi)
 
-![](lavagna.image.md)
+![](lavagna)
 ```
 
-**2. Djot.** Gli attributi sono nativi, ma il file non ha un'intestazione.
-Nella prova con djot.js 0.3.2 un blocco di attributi va sul blocco che segue
-anche se c'è una riga vuota in mezzo: nel `text` gli attributi del file e la
-`class` finiscono sullo stesso capoverso, e nell'`article` sulla sezione del
-titolo. Gli attributi del file chiedono quindi una regola nostra, per esempio
-quella proposta da matklad nella issue #35. Anche Djot non ha `embed`: qui la
-sintassi delle immagini.
+**2. Djot.** Gli attributi sono nativi, e gli attributi del file stanno in
+un blocco in testa. Djot non ha collegamenti per `id` fra file diversi: per
+djot.js 0.3.2 `[il calo](#calo-q3)` diventa `href="#calo-q3"`, un'ancora
+nella stessa pagina (prova). Anche qui l'`embed` usa la sintassi delle
+immagini.
 
 ```
 === calo-q3.concept.dj
@@ -256,9 +265,8 @@ sintassi delle immagini.
 Nel terzo trimestre le vendite calano per i ritardi nelle consegne.
 
 === calo-q3-sintesi.text.dj
-{#calo-q3-sintesi kind=text}
+{#calo-q3-sintesi kind=text .evidenza}
 
-{.evidenza}
 Le vendite sono calate del 12%, soprattutto per i _ritardi_ di agosto
 (vedi [il calo](#calo-q3)).
 
@@ -272,11 +280,23 @@ Le vendite sono calate del 12%, soprattutto per i _ritardi_ di agosto
 ![](lavagna)
 ```
 
-**3. Markdown con una sintassi nostra, come Obsidian.** Obsidian dichiara di
-supportare «CommonMark, GitHub Flavored Markdown, and LaTeX», e aggiunge
-wikilink, `embed`, identificatori di blocco e altro
-([Obsidian Flavored Markdown](https://github.com/obsidianmd/obsidian-help/blob/master/en/Editing%20and%20formatting/Obsidian%20Flavored%20Markdown.md)).
-Non ha `class` sui blocchi: qui ne serve una aggiunta nostra.
+Nella prova con djot.js 0.3.2 il blocco di attributi va sul blocco che segue
+anche con una riga vuota in mezzo: nel `text` gli attributi finiscono sul
+capoverso, ed è il risultato voluto, perché un `text` è un blocco solo;
+nell'`article` finiscono sulla sezione del titolo. Per il `concept` e
+l'`article` serve quindi una regola per gli attributi del file. Quella della
+specifica (§0.6) è la proposta di matklad nella issue #35, il 2022-11-03: gli
+attributi valgono per il documento «if the doc starts with attributes and they
+are followed by a blank line». MacFarlane risponde con un limite e non la
+adotta. `renderDjot` toglie la riga vuota fra gli attributi e il primo blocco
+(prova), quindi il `formatter` deve conservarla.
+
+**3. Markdown con una sintassi nostra, come Obsidian.** Intestazione YAML,
+`[[id]]` e `![[id]]` alla maniera di Obsidian, ma con regole scritte da noi.
+Obsidian ha già una `class` a livello di file, la proprietà predefinita
+`cssclasses`
+([Properties](https://github.com/obsidianmd/obsidian-help/blob/master/en/Editing%20and%20formatting/Properties.md));
+qui si usa `class`, come nel resto della specifica.
 
 ```
 === calo-q3.concept.md
@@ -291,9 +311,10 @@ Nel terzo trimestre le vendite calano per i ritardi nelle consegne.
 ---
 id: calo-q3-sintesi
 kind: text
+class: [evidenza]
 ---
 Le vendite sono calate del 12%, soprattutto per i *ritardi* di agosto
-(vedi [[calo-q3|il calo]]). {.evidenza}
+(vedi [[calo-q3|il calo]]).
 
 === report-q3.article.md
 ---
@@ -307,6 +328,13 @@ kind: article
 ![[lavagna]]
 ```
 
+La cartella non funzionerebbe dentro Obsidian così com'è: Obsidian risolve
+`[[...]]` per nome della nota, cioè del file, o per i suoi alias, non per un
+`id` scritto nel file
+([Internal links](https://github.com/obsidianmd/obsidian-help/blob/master/en/Linking%20notes%20and%20files/Internal%20links.md),
+[Aliases](https://github.com/obsidianmd/obsidian-help/blob/master/en/Linking%20notes%20and%20files/Aliases.md)).
+Qui `[[calo-q3]]` funzionerebbe solo se il file si chiamasse `calo-q3.md`.
+
 **4. Un formato nostro**, dalla «bozza di sintassi» di contesto.md aggiornata a
 un file per oggetto: una parola chiave per riga, rientri per l'annidamento,
 `#id` per dichiarare e `@id` per riferire.
@@ -315,12 +343,13 @@ un file per oggetto: una parola chiave per riga, rientri per l'annidamento,
 === calo-q3.concept
 concept #calo-q3
   tags  vendite, q3
-  text  "Nel terzo trimestre le vendite calano per i ritardi nelle consegne."
+  idea  "Nel terzo trimestre le vendite calano per i ritardi nelle consegne."
 
 === calo-q3-sintesi.text
 text #calo-q3-sintesi
-  p .evidenza  "Le vendite sono calate del 12%, soprattutto per i {_ritardi_}
-               di agosto (vedi {@calo-q3 il calo})."
+  class  evidenza
+  p      "Le vendite sono calate del 12%, soprattutto per i {_ritardi_}
+         di agosto (vedi {@calo-q3 il calo})."
 
 === report-q3.article
 article #report-q3
@@ -331,43 +360,41 @@ article #report-q3
 
 ### Fatti sulla strada Obsidian
 
-- **Le estensioni.** La pagina ufficiale elenca `[[Link]]`, `![[Link]]`,
-  `![[Link#^id]]`, `^id`, le note `[^id]`, i commenti `%%Text%%`,
-  `~~Text~~`, `==Text==`, i blocchi di codice, le liste di cose da fare, i
-  callout `> [!note]` e le tabelle, e avverte: «Some of these, such as internal links, comments, and
-  highlights, are specific to Obsidian. Other Markdown apps may show them as
-  plain text» (stessa pagina). Le proprietà sono YAML, e un collegamento in
-  una proprietà va fra virgolette, `link: "[[Episode IV]]"`
-  ([Properties](https://github.com/obsidianmd/obsidian-help/blob/master/en/Editing%20and%20formatting/Properties.md)).
+- **Le estensioni di Obsidian.** La pagina ufficiale dichiara di supportare
+  «CommonMark, GitHub Flavored Markdown, and LaTeX», ed elenca `[[Link]]`,
+  `![[Link]]`, `![[Link#^id]]`, `^id`, le note `[^id]`, i commenti
+  `%%Text%%`, `~~Text~~`, `==Text==`, i blocchi di codice, le liste di cose
+  da fare, i callout `> [!note]` e le tabelle. Avverte: «Some of these, such
+  as internal links, comments, and highlights, are specific to Obsidian.
+  Other Markdown apps may show them as plain text»
+  ([Obsidian Flavored Markdown](https://github.com/obsidianmd/obsidian-help/blob/master/en/Editing%20and%20formatting/Obsidian%20Flavored%20Markdown.md)).
+  Le proprietà sono YAML, e un collegamento in una proprietà va fra
+  virgolette, `link: "[[Episode IV]]"` (Properties).
 - **Identificatori di blocco.** Un `^id` si mette in fondo alla riga di un
   capoverso, o su una riga a sé, con una riga vuota prima e dopo, per elenchi,
-  citazioni, callout e tabelle;
-  «Block identifiers can only consist of Latin letters, numbers, and dashes»;
-  «Links containing block references won't work outside of Obsidian»
-  ([Internal links](https://github.com/obsidianmd/obsidian-help/blob/master/en/Linking%20notes%20and%20files/Internal%20links.md)).
-- **Nessuna specifica formale.** La documentazione descrive le estensioni in
-  prosa, con esempi; una specifica formale non è stata trovata.
-- **L'app.** La licenza dice «We own and reserve rights to our content,
-  including text, images, and code in the app»
-  ([license](https://obsidian.md/license)); la pagina per gli sviluppatori
-  elenca come progetti open source MIT JSON Canvas, Importer, Web Clipper e
-  altri, ma non l'app
-  ([Developers](https://github.com/obsidianmd/obsidian-help/blob/master/en/Contributing%20to%20Obsidian/Developers.md)).
-  Che l'app non sia open source è un'inferenza da queste due fonti. L'API per i plugin,
-  `obsidian.d.ts`, è MIT
-  ([obsidian-api](https://github.com/obsidianmd/obsidian-api)).
+  citazioni, callout e tabelle; «Block identifiers can only consist of Latin
+  letters, numbers, and dashes» (Internal links).
 - **GitHub.** La spec GFM ha cinque estensioni (tabelle, liste di cose da
   fare, barrato, autolink, HTML vietato), e nessuna è un wikilink
   ([gfm](https://github.github.com/gfm/)). Nella documentazione di GitHub
   `[[...]]` compare nella pagina dei wiki, come sintassi MediaWiki per i link
   ([docs](https://docs.github.com/en/communities/documenting-your-project-with-wikis/editing-wiki-content)).
 - **Parser in JavaScript** (registry npm, ottobre 2026): `remark-wiki-link`
-  2.0.1 (MIT) legge solo i wikilink; `@silicajs/remark-obsidian` 0.1.0 (MIT,
-  maggio 2026) produce nodi per wikilink, `embed`, callout, evidenziazione,
-  commenti, `^id` e tag (prova con remark-parse 11); `remark-obsidian` 1.15.0
-  è GPL-3.0; `obsidian-export` (Rust, BSD-2-Clause-Patent) esporta in
-  CommonMark e dice di supportare «most but not all of Obsidian's Markdown
-  flavor» ([crates.io](https://crates.io/crates/obsidian-export)).
+  2.0.1 (MIT, pubblicato la prima volta nel 2017) legge solo i wikilink;
+  `remark-obsidian` 1.15.0 (GPL-3.0, dal 2022); `@silicajs/remark-obsidian`
+  0.1.0 (MIT, maggio 2026) produce nodi per wikilink, `embed`, callout,
+  evidenziazione, commenti, `^id` e tag (prova con remark-parse 11).
+- **Formatter.** prettier 3.9.10 conserva il `text` e l'`article` della
+  strada 3, compresi `[[...]]`, `![[...]]` e un commento `%% … %%`, cambia
+  `*ritardi*` in `_ritardi_`, e una seconda passata non cambia nulla (prova).
+- **L'app.** La licenza dice «We own and reserve rights to our content,
+  including text, images, and code in the app»
+  ([license](https://obsidian.md/license)); la pagina per gli sviluppatori
+  elenca come progetti open source MIT JSON Canvas, Importer, Web Clipper e
+  altri, ma non l'app
+  ([Developers](https://github.com/obsidianmd/obsidian-help/blob/master/en/Contributing%20to%20Obsidian/Developers.md)).
+  Che l'app non sia open source è un'inferenza. Con una sintassi nostra la
+  strada 3 non dipende dall'app.
 
 ### Diffusione
 
@@ -375,29 +402,35 @@ Download npm della settimana dal 2026-10-12 al 2026-10-18
 (`api.npmjs.org/downloads/point/last-week/<nome>`): `marked` 51,2 milioni,
 `micromark` 38,6 milioni, `remark-parse` 33,9 milioni, `markdown-it` 16,6
 milioni, `commonmark` 562 mila, `remark-wiki-link` 14.798, `@djot/djot`
-1.270. I download contano le installazioni, anche come dipendenze indirette,
-non quanto si scrive in un formato. Per la familiarità di un modello AI con
-una sintassi non è stata trovata una fonte verificabile: ciò che la tabella
-dice su questo è un'inferenza.
+1.270. Per la strada 4 non c'è un pacchetto. I download contano le
+installazioni, anche come dipendenze indirette, non quanto si scrive in un
+formato, e la tabella non li usa come misura della familiarità. Per la
+familiarità di un modello AI con una sintassi non è stata trovata una fonte
+verificabile.
 
 ### Confronto
 
 Le celle riassumono i fatti delle sezioni precedenti della nota, con le loro
 fonti; quelle segnate *(inf.)* sono inferenze.
 
-| Criterio | 1. CommonMark + YAML | 2. Djot | 3. Markdown alla Obsidian | 4. Formato nostro |
+| Criterio | 1. CommonMark + YAML | 2. Djot | 3. Markdown con sintassi nostra | 4. Formato nostro |
 |---|---|---|---|---|
-| Leggibilità a mano | buona, prosa quasi senza segni *(inf.)* | buona, ma attributi più fitti *(inf.)* | buona; `[[...]]` noto a chi usa Obsidian *(inf.)* | da verificare; più parole chiave e virgolette intorno alla prosa *(inf.)* |
-| Resa su GitHub e negli editor | `.md` reso da GitHub, intestazione come tabella; `class` e `id` tolti; VS Code e JetBrains basati su CommonMark | `.dj` non riconosciuto da GitHub; estensioni di terzi per gli editor | `.md` reso; per Obsidian stesso i link interni «may show» come testo in altri programmi e i riferimenti a blocchi non funzionano fuori da Obsidian | nessuna resa; serve un'estensione per ogni editor *(inf.)* |
-| Attributi su file, blocchi, testo | file con YAML; blocchi e testo solo con estensioni | blocchi e testo nativi; il file chiede una regola | file con YAML; blocchi solo con `^id` (non classi); classi da aggiungere | tutti, come li definiamo noi |
-| Parser e formatter in TypeScript | maturi (micromark, markdown-it, remark); prettier conserva commenti e intestazione | djot.js, nessuna release dal 2024-12; `renderDjot` perde i commenti | i parser CommonMark più plugin piccoli e recenti; nessuna specifica da seguire | nessuno |
-| Costo di scrivere parser e formatter | le regole nostre come plugin *(inf.)* | adattare o mantenere djot.js *(inf.)* | plugin per wikilink, `embed`, `^id` e classi, con casi limite definiti solo dall'app chiusa *(inf.)* | tutto, ma con una grammatica piccola e nostra *(inf.)* |
-| Stabilità e dipendenza da terzi | spec 0.31.2 ferma dal 2024; librerie con un solo manutentore npm | spec dichiarata instabile; un solo autore | dipende da un'app chiusa che può cambiare la sintassi *(inf.)* | nessuna dipendenza; tutta la manutenzione è nostra |
-| Familiarità per un'AI | nessuna fonte; *(inf.)* la più alta, per la diffusione di Markdown | nessuna fonte; *(inf.)* bassa, con 1.270 download a settimana | nessuna fonte; *(inf.)* alta per la base, minore per le estensioni | nessuna fonte; *(inf.)* nulla all'inizio, da compensare con lo schema descritto dalla `cli` |
-| Rapporto con «in contrapposizione a Word, LaTeX e Markdown» | è Markdown | deriva da CommonMark («derives most of its features from commonmark», [README](https://github.com/jgm/djot)) | è Markdown con estensioni | non è Markdown |
+| Leggibilità a mano *(inf., per tutte)* | prosa con pochi segni; intestazione YAML | prosa con pochi segni; attributi in graffe | come la 1, con `[[...]]` al posto di link e immagini | parole chiave per riga, prosa fra virgolette |
+| Resa su GitHub | intestazione come tabella; nell'esempio l'ancora `#calo-q3` non porta a niente e l'`embed` è un'immagine rotta | `.dj` non riconosciuto: testo semplice | intestazione come tabella; `[[...]]` e `![[...]]` restano testo *(inf., la spec GFM non li prevede)* | testo semplice *(inf.)* |
+| Resa negli editor | VS Code e JetBrains basati su CommonMark | estensioni di terzi, non verificate | come la 1; Obsidian apre i file ma non risolve gli `id` | serve un'estensione per ogni editor *(inf.)* |
+| Attributi su file, blocchi, testo | file con YAML, e con un blocco per `text` basta; testo in linea solo con estensioni | nativi su blocchi e testo; il file chiede la regola di matklad | come la 1 | tutti, come li definiamo noi |
+| Ambiguità | YAML: `0123`, `no`, `yes`, `on` non si leggono come stringhe (specifica §0.3) | i valori sono stringhe: le liste chiedono una convenzione | YAML, come la 1 | da evitare nella grammatica *(inf.)* |
+| Commenti | commenti HTML, e `[//]: #` | `{% ... %}`, persi da djot.js | commenti HTML; `%% … %%` se li adottiamo | da definire |
+| Parser e formatter in TypeScript | maturi (micromark, markdown-it, remark); prettier conserva commenti e intestazione, idempotente | djot.js, nessuna release dal 2024-12; `renderDjot` perde i commenti e la riga vuota della regola | i parser della 1 più plugin per wikilink (dal 2017) o nostri; prettier conserva la strada 3, idempotente | nessuno |
+| Costo di scrivere parser e formatter *(inf.)* | regole nostre come plugin | adattare o mantenere djot.js | plugin per `[[...]]` e `![[...]]`, con regole scritte da noi | tutto, con una grammatica piccola e nostra |
+| Stabilità e dipendenza da terzi | spec 0.31.2 del 2024; librerie con un solo manutentore npm | spec dichiarata instabile; un solo autore | come la 1, più i plugin che si scelgono | nessuna dipendenza; tutta la manutenzione è nostra |
+| Familiarità per un'AI | nessuna fonte | nessuna fonte | nessuna fonte | nessuna fonte |
 
-L'ultima riga riporta la decisione di contesto.md senza interpretarla: cosa
-voglia dire per la scelta lo dice Alessio.
+Djot, dal suo README: «It derives most of its features from commonmark, but
+it fixes a few things that make commonmark's syntax complex and difficult to
+parse efficiently» ([jgm/djot](https://github.com/jgm/djot)). Il rapporto di
+ciascuna strada con la decisione di contesto.md citata in testa lo valuta
+Alessio.
 
 ## Correzioni del secondo controllo
 
@@ -405,9 +438,11 @@ Il confronto delle quattro strade è stato ricontrollato da un altro agente:
 nessun fatto da correggere, alcune precisazioni applicate (i blocchi di codice
 fra le estensioni di Obsidian, la riga vuota intorno a `^id`, la fonte
 sull'elenco dei progetti open source, la sintassi MediaWiki dei wiki di GitHub,
-l'avviso di Obsidian riportato senza rafforzarlo). La proposta di matklad
-nella issue #35 non è stata raggiungibile da questa sessione: la data viene
-dalla revisione precedente.
+l'avviso di Obsidian riportato senza rafforzarlo). Una revisione successiva
+ha reso il confronto più equo: la strada 3 è una sintassi nostra e non quella
+di Obsidian, la `class` sta nell'intestazione come vuole il §0.2, i
+collegamenti sono per `id` in tutte, gli stessi criteri valgono per tutte, e
+la proposta di matklad è confermata sulla pagina della issue.
 
 Il secondo agente ha confermato i diciassette fatti che gli erano stati dati,
 con due correzioni e alcune precisazioni. La revisione dell'orchestratore ha
@@ -439,36 +474,23 @@ stato possibile, è detto. Tutto è già applicato sopra:
 
 Questa sezione è un'inferenza dai fatti sopra, non un fatto verificato.
 
-- **Costi di CommonMark con intestazione.**
-  - Gli attributi vengono da tre fonti diverse: YAML per il file, un'estensione
-    per i blocchi e il testo in linea, un'altra per l'`embed`. Ognuna va
-    fissata nella specifica, e chi la legge altrove (GitHub, VS Code) ne vede
-    solo una parte: le direttive e gli attributi restano testo letterale, e
-    `class` sparisce.
-  - YAML porta con sé le sue ambiguità (tipi impliciti, più modi di scrivere
-    la stessa lista), che il `formatter` deve ridurre a una forma.
-  - In cambio i file si leggono bene ovunque, l'intestazione appare come
-    tabella su GitHub, le librerie sono mature, e prettier offre già una base
-    per il `formatter`.
-  - Contesto.md nomina Markdown fra i riferimenti da cui il progetto si
-    distingue; come pesi nella scelta lo dice Alessio.
-- **Costi di Djot.**
-  - La sintassi non è stabile e l'unica implementazione TypeScript non ha
-    release da quasi due anni. Probabilmente andrebbe fissata una versione, o
-    mantenuto un fork.
-  - Le liste negli attributi chiedono una convenzione, e il `formatter` va
-    costruito su `renderDjot`, che perde i commenti.
-  - Manca l'intestazione: gli attributi del file andrebbero sul primo blocco,
-    come nell'esempio 1 della specifica, o in un'intestazione propria.
-  - Su GitHub e negli editor senza estensione il file appare come testo
-    semplice.
-  - In cambio gli attributi hanno una sola forma, uguale su blocchi e testo
-    in linea; per il file serve comunque una regola in più (§0.6 della
-    specifica).
-- **In tutti e due i casi** il `formatter` canonico deve normalizzare, che è
-  il suo compito, e conoscere le regole proprie del formato. Con CommonMark
-  si parte da prettier, che conserva i commenti; con Djot da `renderDjot`,
-  che va esteso per conservarli.
-- Si può anche separare la scelta: un'intestazione per gli attributi del file,
-  con l'una o l'altra sintassi per il corpo. Per Djot è una delle proposte
-  della discussione sui metadati.
+- **CommonMark con un'intestazione.** Librerie mature e prettier come base del
+  `formatter`; l'intestazione appare su GitHub. Costi: collegamenti per `id`
+  ed `embed` vanno inventati sopra CommonMark, e su GitHub si vedono rotti;
+  YAML ha le sue ambiguità, che il `formatter` e una regola sulle stringhe
+  devono togliere.
+- **Djot.** Attributi nativi e una sintassi pensata per essere facile da
+  leggere per un parser. Costi: la sintassi non è stabile, l'unica
+  implementazione TypeScript non ha release da quasi due anni, gli attributi
+  del file chiedono la regola di matklad, `renderDjot` perde commenti e riga
+  vuota, e GitHub mostra il testo semplice.
+- **Markdown con una sintassi nostra.** Gli stessi strumenti della prima
+  strada, con `[[...]]` e `![[...]]` che sono già noti a chi usa Obsidian; le
+  regole le scriviamo noi. Costi: plugin da scrivere o da scegliere, e la
+  cartella non funziona in Obsidian finché Obsidian collega per nome del
+  file.
+- **Un formato nostro.** Nessuna dipendenza e una grammatica fatta per il
+  modello. Costi: parser, `formatter`, commenti e supporto negli editor sono
+  tutti da fare, e nessuno strumento esistente mostra il file.
+- **In tutti i casi** il `formatter` canonico deve normalizzare, che è il suo
+  compito, e conoscere le regole proprie del formato.
