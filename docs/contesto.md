@@ -150,7 +150,9 @@ quando due rami lavorano in parallelo.
 
 - Lo spazio libero come punto d'ingresso dello strumento: si parte da una
   pagina vuota e si scrive, poi ogni pezzo si promuove all'elemento che serve
-  (paragrafo, capitolo, immagine, lista, e più avanti grafico o slide). Restano
+  (paragrafo, capitolo, immagine, lista, grafico, e più avanti slide). Un
+  grafico è una vista di una lista: promuovere una tabellina a grafico crea con
+  un solo gesto la lista (dati e schema) e il grafico che la usa. Restano
   da precisare: capitoli impliciti dai titoli o annidamento esplicito; come il
   testo segna il tipo dopo la promozione; quali promozioni sono possibili da
   quale tipo; il gesto inverso. Proposta: l'editor o l'AI possono suggerire una
