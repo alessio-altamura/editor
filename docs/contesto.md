@@ -19,8 +19,8 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
 - Deve essere diffabile con Git. Riferimenti: Notion per il modello a blocchi,
   Obsidian per i file di testo locali; in contrapposizione a Word, LaTeX e Markdown.
 - Un documento è un insieme di file sorgente più i suoi asset (all'inizio era
-  "un file sorgente"; con la decisione dei livelli i file sono uno per
-  livello). Può stare in una cartella in chiaro oppure in uno zip con
+  "un file sorgente"; poi un file per livello; dal 2026-10-20 un file per
+  oggetto, vedi sotto). Può stare in una cartella in chiaro oppure in uno zip con
   un'estensione propria; per Alessio le due forme sono equivalenti.
 - Il codice nel documento porta un marker se va eseguito e un marker se va
   mostrato.
@@ -49,7 +49,8 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   italiano finché il repository è privato; se diventa pubblico si traduce
   tutto in inglese.
 - Le regole dei nomi del §1 di [glossario.md](glossario.md) sono decise, e così
-  i nomi `collection` (le liste moderne), `part` (i file del documento) e
+  i nomi `collection` (le liste moderne), `part` (i livelli; in origine i file
+  del documento, prima della decisione di un file per oggetto) e
   `composition` (documento, presentazione e altre viste composte).
 - Linguaggio di implementazione: TypeScript per la prima versione (runtime,
   LSP, riga di comando ed editor). Rust compilato in WASM solo dove le misure lo
@@ -76,9 +77,10 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
 - Principio: l'aspetto incrementale è lo spirito di ogni cosa. Gli stessi
   mattoni possono dare documenti o presentazioni completamente diversi
   (2026-10-20).
-- Si procede in modo incrementale, per livelli: un file di testo per ciascun
-  livello (contenuto, impaginazione, dati, formule, connettori, grafici, e le
-  composizioni), aggiungendone uno alla volta. Le slide non sono un livello a
+- Si procede in modo incrementale, per livelli (contenuto, impaginazione,
+  dati, formule, connettori, grafici, e le composizioni), aggiungendone uno
+  alla volta. In origine ogni livello era un file; dal 2026-10-20 ogni oggetto
+  è un file (vedi sotto). Le slide non sono un livello a
   sé: una presentazione è una `composition` di tipo `deck`. La divisione in file riguarda solo come
   si salva: l'editor mostra ogni livello dove serve, per esempio le formule
   accanto alla tabella.
@@ -96,6 +98,22 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   livelli non sono cartelle. Precisa la
   decisione precedente di un file per livello: come si organizzano i livelli
   con un file per oggetto è nella bozza, [bozza-nodi.md](bozza-nodi.md).
+- Attributi e id (2026-10-20, approvati da Alessio sulle proposte di Claude;
+  bozza-nodi.md §7, idee 1-4):
+  - i metadati comuni sono opzionali, e gli altri attributi dipendono dal tipo;
+  - ogni nodo ha un `kind`;
+  - `id` e `tags` valgono per ogni `kind`, `class` e `lang` per i nodi che si
+    vedono; `lang` si eredita (dal contenitore, nel modello di allora: da
+    cosa, con un file per oggetto, è da precisare);
+  - `tags` e `class` sono attributi separati;
+  - l'`id` non è per forza numerico o incrementale, anche mnemonico; è unico
+    nel documento, fatto di minuscole, cifre e trattino, e non si riusa mai.
+
+  Nello stesso modello di allora Alessio aveva approvato anche le sezioni
+  annidate, aperte dal titolo, le sezioni senza titolo e la sezione come unità
+  che si sposta. Con un file per oggetto queste regole vanno riformulate: la
+  proposta è che capitoli e titoli stiano nelle composizioni
+  ([bozza-nodi.md](bozza-nodi.md) §1).
 - I connettori grafici sono un file a parte. La loro disposizione è calcolata
   in automatico; le posizioni sistemate a mano si salvano in un altro file di
   layout, solo per i nodi spostati.
@@ -123,13 +141,15 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   riferimento, e lo stesso oggetto può stare in più layout. Anche le bozze sono
   salvate nei file: nulla esiste solo nell'interfaccia.
 - Il foglio di bozze è un canvas: gli oggetti si mettono dove capita, anche in
-  disordine. Gli oggetti stanno nei file dei loro livelli; il file del foglio
+  disordine. Gli oggetti stanno nei loro file (in origine: nei file dei loro
+  livelli); il file del foglio
   salva solo posizioni e riferimenti, partendo dal formato aperto JSON Canvas
   (MIT, Obsidian).
 - La lista a fianco ha sezioni per tipo (testi, liste, grafici, immagini), una
   sezione "da sistemare" per gli oggetti non ancora classificati, e i layout,
   ordinati da chi scrive, che danno l'ordine di lettura. Ogni sezione
-  corrisponde a un livello, cioè a un file.
+  corrispondeva a un livello, cioè a un file; con un file per oggetto le
+  sezioni sono filtri per `kind`.
 - Classificazione, collegamenti e promozioni automatiche, anche proposte
   dall'AI, sono solo suggerimenti che chi scrive conferma. Nessuna dipendenza
   nasce in silenzio.
