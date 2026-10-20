@@ -113,10 +113,13 @@ semantica.
 Generare collegamenti per significato è semplice: un modello locale da circa
 100 MB, pochi millisecondi per capoverso, in Node e nel browser. Però non può
 prendere il posto del collegamento per id, per tre motivi:
-- non dà gli stessi numeri su macchine diverse;
-- non distingue «le vendite calano» da «le vendite crescono»;
-- anche il sistema meglio documentato, Add a link di Wikipedia, sbaglia circa
-  un collegamento proposto su sei.
+- non dà gli stessi numeri su backend e macchine diversi;
+- non distingue bene antonimi, negazioni e numeri: nella nostra misura «le
+  vendite calano» è più vicina a «le vendite crescono» che a una vera
+  parafrasi;
+- nel proporre collegamenti nuovi sbaglia spesso: Add a link di Wikipedia ha
+  precisione 0,84 sulla Wikipedia italiana, quindi circa un suggerimento su
+  sei non coincide con i collegamenti messi dalle persone.
 
 Proposta: tre strati, dal più semplice.
 
@@ -145,8 +148,8 @@ Proposta: tre strati, dal più semplice.
    - se l'hash non coincide più, il collegamento si segnala da rivedere (vedi
      il §4).
 
-   Lo fanno i robust hyperlinks di Phelps e Wilensky, il W3C per le
-   annotazioni, Hypothesis e Swimm.
+   Qualcosa di simile fanno Phelps e Wilensky, con cinque parole accanto
+   all'URL, e il W3C e Hypothesis, con una citazione accanto alla posizione.
 3. **Il semantico, calcolato e mai salvato nel sorgente.** È un indice locale,
    una cache che si butta e si rigenera, con i vettori di concetti e oggetti.
    Fa tre cose, sempre come `hint`:
