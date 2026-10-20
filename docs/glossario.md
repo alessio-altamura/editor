@@ -163,7 +163,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `manifest` | manifest | File che dice da dove partire; esistenza da decidere | aperto | index |
 | `canvas file` | file del canvas | Quali oggetti stanno sul `canvas` e dove; base JSON Canvas | concetto deciso, nome proposto | layout |
 | `drafts` | bozze | Oggetti non ancora archiviati, salvati nei file | concetto deciso, nome proposto | temp, scratch |
-| `file extension` | estensione del file | Suffisso del nome di file: quello del `bundle`, da scegliere; proposta: anche il `kind` di ogni file, per esempio .chart.json | aperto | extension |
+| `file extension` | estensione del file | Suffisso del nome di file: quello del `bundle`, da scegliere; per i file di testo dice anche il `kind`, per esempio .concept.md (deciso il 2026-10-20) | concetto deciso, nome proposto | extension |
 | `header row` | riga di intestazione | Prima riga di un CSV o TSV con i nomi dei `field` | proposto | header |
 
 ### 4.2 Canvas, oggetti e organizzazione
@@ -185,12 +185,12 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `revert` | gesto inverso | Riportare un oggetto strutturato a testo libero; da decidere | aperto | demote, downgrade |
 | `hint` | suggerimento | Proposta automatica (classificare, collegare, trasformare) che chi scrive conferma | concetto deciso, nome proposto | suggestion, auto- |
 | `embed` | uso per riferimento | Inclusione di un oggetto in una `composition` o nel contenuto, senza copia | concetto deciso, nome proposto | copy, insert |
-| `scratch` | spazio libero | Appunti e `math line` dentro il contenuto, da cui si trasformano oggetti | concetto deciso, nome proposto | free space, notes |
+| `scratch` | spazio libero | Appunti e `math line` dentro il contenuto, da cui si trasformano oggetti; proposta: un `kind` a sé con più blocchi, posto di lavoro e non unità di significato, che una `composition` non usa | concetto deciso, nome proposto | free space, notes |
 | `math line` | riga di calcolo | Riga con un calcolo e l'`inline result` | concetto deciso, nome proposto | calc line, formula |
 | `inline result` | risultato in linea | Valore mostrato accanto a una `math line` | proposto | output |
 | `text table` | tabellina | Tabella scritta nel testo, non ancora `collection` | proposto | table |
 | `text` | testo | `kind` di `object` fatto di prosa | proposto | paragraph (da fissare con la bozza) |
-| `image` | immagine | `kind` di `object` per un'immagine fatta fuori dal `runtime`, con il suo `asset`; dove stanno i suoi attributi è da decidere | proposto | picture, figure |
+| `image` | immagine | `kind` di `object` per un'immagine fatta fuori dal `runtime`: un file descrittore con gli attributi, che nomina il suo `asset` | proposto | picture, figure |
 | `attributes` | metadati comuni | Attributi comuni, opzionali: `id` e `tags` su ogni `kind`, `class` e `lang` sui nodi che si vedono; ogni nodo ha anche un `kind`; `origin` è da decidere; gli altri attributi dipendono dal `kind`; precedente: gli attributi (Attr) di Pandoc | concetto deciso, nome proposto | metadata, properties |
 | `tags` | tag di contesto | Uno o più tag che dicono a cosa si riferisce un `node`, per organizzare e filtrare nel `navigator` | concetto deciso, nome proposto | labels, categories, class |
 | `lang` | lingua | Lingua del contenuto di un `node` che si vede, per sillabazione, controllo ortografico e screen reader; si eredita, da cosa è da precisare | concetto deciso, nome proposto | language, locale |
@@ -200,8 +200,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `origin` | origine | Attributo che dice se un `concept` o un `object` è scritto da una persona o generato e confermato | proposto | source, author |
 | `concept map` | mappa concettuale | Vista generata dei `concept`, degli `object` che li sviluppano e dei loro collegamenti | proposto | knowledge graph, graph |
 | `association` | collegamento | Collegamento fra un `concept` e un `object`, scritto da una parte, dall'altra o da entrambe; non porta dati, a differenza del `wire`; se valga anche fra due `object` o fra due `concept`, e il confine con le dipendenze, sono da decidere | concetto deciso, nome proposto | link, relation, reference |
-| `retired id` | id ritirato | `id` di un nodo cancellato o fuso in un altro, che non si riusa; se e dove se ne tiene traccia, con l'eventuale successore, è da decidere | aperto | dead id, tombstone |
-| `replaces` | sostituisce | Attributo di una delle opzioni per la traccia dei `retired id`: nel successore, gli `id` di cui ha preso il posto | aperto | alias |
+| `retired id` | id ritirato | `id` di un nodo cancellato o fuso in un altro, che non si riusa; sta in un file del documento con l'eventuale successore (deciso il 2026-10-20) | concetto deciso, nome proposto | dead id, tombstone, replaces |
 | `target quote` | impronta | Poche parole e l'hash del bersaglio, salvate insieme con un'`association` confermata per ritrovarlo e per vedere che è cambiato; da decidere | aperto | imprint, fingerprint, signature, checksum |
 | `id reference` | riferimento per id | Forma generica, fissata nel `core`, con cui un file nomina un altro `node` per `id`: un `embed`, un riferimento in linea, un valore di attributo | proposto | link, pointer |
 
