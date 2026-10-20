@@ -18,9 +18,10 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
 - Doppia scrittura: sorgente come codice ed editor grafico; ognuno genera l'altro.
 - Deve essere diffabile con Git. Riferimenti: Notion per il modello a blocchi,
   Obsidian per i file di testo locali; in contrapposizione a Word, LaTeX e Markdown.
-- Un documento è un file sorgente più i suoi asset. Può stare in una cartella in
-  chiaro oppure in uno zip con un'estensione propria; per Alessio le due forme
-  sono equivalenti.
+- Un documento è un insieme di file sorgente più i suoi asset (all'inizio era
+  "un file sorgente"; con la decisione dei livelli i file sono uno per
+  livello). Può stare in una cartella in chiaro oppure in uno zip con
+  un'estensione propria; per Alessio le due forme sono equivalenti.
 - Il codice nel documento porta un marker se va eseguito e un marker se va
   mostrato.
 - Motori per fasi, al posto dei due motori decisi in un primo momento. Si parte

@@ -9,98 +9,235 @@ Regole:
   si aggiunge qui;
 - un nome già usato non si riusa per un concetto diverso;
 - se un nome cambia, si cambia qui e in tutti i file nello stesso commit;
-- **Stato** dice se il nome è deciso da Alessio o solo proposto;
-- **Da non usare** elenca i sinonimi che creerebbero ambiguità.
+- **Stato** dice se il nome è deciso da Alessio o solo proposto. Quasi tutti i
+  concetti sono decisi, quasi nessun nome lo è;
+- **Da non usare** elenca i sinonimi che creerebbero ambiguità;
+- nel codice TypeScript `document`, `navigator`, `Object` ed `export` sono già
+  globali o parole riservate: i nomi del prodotto vanno sotto un namespace.
 
-## Conflitti da risolvere
+I nomi dei tipi di contenuto (paragrafo, titolo, capitolo, sezione, immagine)
+si fissano sulla bozza dei tipi di nodo di Alessio, non prima. La bozza di
+sintassi in [contesto.md](contesto.md) usa `view`, `calc` e `layout` in modo
+diverso da qui: è un bersaglio da criticare e non va corretta.
 
-Nei documenti di lavoro alcune parole italiane sono già state usate con più
-significati. La tabella propone un nome inglese distinto per ciascuno.
+## Parole italiane con più significati
 
-| Parola usata | Significati diversi | Nomi proposti |
+| Parola | Significati | Nomi proposti |
 |---|---|---|
-| layout | (1) l'impaginazione, cioè lo stile nel sottoinsieme di CSS; (2) una vista composta come documento o presentazione; (3) le posizioni sul foglio e dei connettori | `style`, `layout`, `placement` |
-| lista | (1) la tabella pensata come lista moderna; (2) l'elenco puntato nel testo; (3) la lista a fianco del foglio | `collection`, `bullet list`, `navigator` |
-| connettore | (1) il collegamento grafico fra oggetti; (2) l'estensione che porta dati da una fonte esterna | `wire`, `source` |
-| foglio | (1) il foglio bianco di bozze; (2) in Excel, "sheet" è il foglio di calcolo | `canvas` (non `sheet`) |
-| tabella | la griglia come vista e la tabella come dato | `grid` per la vista, `collection` per il dato |
+| layout | impaginazione; documento o presentazione come vista; posizioni sul canvas; schema di una slide; disposizione automatica; layout a vincoli | `stylesheet`, `composition`, `placement`, `slide template`, `auto arrange`, `constraints` |
+| lista | tabella come lista moderna; elenco puntato; pannello a fianco del canvas | `collection`, `bullet list`, `navigator` |
+| connettore | collegamento grafico; fonte di dati esterna | `wire`, `data source` |
+| foglio | foglio di bozze (in inglese "sheet" fa pensare al foglio di calcolo) | `canvas` |
+| tabella | griglia come vista; tabella come dato; tabellina scritta nel testo | `grid`, `collection`, `text table` |
+| vista | vista di una collection; composizione; rappresentazione generata; modalità; anteprima; grafico | `view` solo per la prima; gli altri hanno nomi propri |
+| motore | runtime; rendering; calcolo; browser di stampa | `runtime`, `renderer`, `evaluator`, `print browser` |
+| sorgente | il testo dei file, contro la fonte di dati esterna | `source`, `data source` |
+| nodo | unità del modello, contro le cose collegate dai wire | `node` solo per il modello |
+| documento | la cartella intera, contro la composizione a flusso | `document`, `article` |
+| presentazione, slide | il livello delle slide, contro la presentazione come vista | `deck` per la composizione; il livello è da rivedere |
+| elemento | elemento di una collection, contro oggetto o tipo di contenuto | `record` solo per la collection |
+| blocco | blocco di codice; blocco alla Notion; blocco libero; passo | `code block`, `object`, `scratch`, `step` |
+| livello | file del documento; livelli di diff; strati del linguaggio; profondità del grafo | `part` solo per il primo |
+| tipo | tipo di dato; tipo di oggetto, di nodo, di grafico; tipo di file | `type` per il dato, `kind` per oggetti e nodi, `part` per i file |
+| testo | il sorgente; un oggetto di prosa; testo libero | `source`, `text`, `scratch` |
+| spazio libero | appunti dentro il contenuto, contro il canvas | `scratch`, `canvas` |
+| pagina | pagina stampata; pagina vuota; pagina web; HTML esportato | `page`, `canvas`, `webpage`, `live export` |
+| sezione | sezione del navigator, contro sezione del testo | `shelf`, `section` |
+| intestazione | nome di colonna; riga di intestazione del CSV; titolo; intestazione di pagina | `field`, `header row`, `heading`, `running header` |
+| riferimento | uso di un oggetto; riferimento in un'espressione; riferimento numerato; riferimento fra file | `embed`, `reference`, `cross-ref`, da decidere con il `manifest` |
+| collegamento | wire; relazione fra collection; collegamento suggerito | `wire`, `relation` |
+| albero, grafo | albero di sintassi; modello; albero risolto; dipendenze; vista a connettori | `syntax tree`, `model`, `resolved tree`, `dependency graph`, `wire diagram` |
+| risultato | risultato in linea; output del codice; valori fotografati; HTML e PDF prodotti | `inline result`, `results`, `frozen values`, `output` |
+| stampa | produzione del PDF, contro stampa canonica del formatter | `print`, `format` |
+| schema | schema di una collection, contro schema dei formati JSON | `schema`, `format schema` |
+| dimensione | asse di una collection, contro grandezza | `dimension`, `size` |
+| misura | valore di una collection; unità di misura; misurazioni da fare | `measure`, `unit`, `benchmark` |
+| estensione | pacchetto aggiuntivo, contro estensione del file | `extension`, `file extension` |
+| chiave | chiave di una collection, contro chiave di cache | `key`, `cache key` |
+| ordine | ordine dei record; di lettura; di esecuzione | `record order`, `reading order`, `execution order` |
+| input | controllo del lettore; ingressi di un calcolo; orologio, seme e fuso | `input`, `inputs`, `environment` |
+
+## Nomi inglesi che collidono con usi diffusi
+
+Per ciascuno c'è un nome alternativo, già usato nelle tabelle sotto come
+proposta principale.
+
+| Nome evitato | Dove ha già un significato | Alternativa proposta |
+|---|---|---|
+| `layer` | livelli di sovrapposizione in Figma, Photoshop e Keynote; `@layer` in CSS | `part`, come in OOXML e ODF |
+| `layout` | schema di slide in PowerPoint; calcolo delle posizioni in CSS e Typst | `composition` |
+| `style` | stile con nome in Word | `stylesheet` |
+| `focus` | focus di tastiera nel DOM; focus mode degli editor | `isolate`, come in Illustrator |
+| `promote`, `demote` | alzare o abbassare il livello dei titoli in Word e Org-mode | `turn into` e `revert`, come in Notion |
+| `inbox` | in Gmail archiviare toglie dalla inbox | `unfiled` |
+| `package` | pacchetto npm; pacchetto di Typst Universe | `bundle` |
+| `source` (per i dati) | il testo sorgente | `data source` |
+| `engine` | motore di calcolo in Excel; motori del browser | `renderer` |
+| `run`, `show` | run di testo in OOXML; show rule di Typst | `eval` ed `echo`, come in Quarto e knitr, già noti all'AI |
+| `snapshot` | output atteso dei test in Jest e Vitest | `frozen values`, verbo `freeze` come in Quarto |
+| `suggestion` | modifiche proposte da un collaboratore in Google Docs | `hint` |
+| `calc line` | `calc()` in CSS | `math line` |
+| `item` | voce di un elenco puntato (`<li>`) | `record` |
+
+Da qualificare sempre: `canvas` (contro l'elemento HTML canvas), `grid` (contro
+`display: grid` del CSS), `runtime` (contro Node, Deno, Bun), `view` (contro le
+VIEW di SQL), `measure` e `dimension` (contro i loro usi in Power BI e nel
+design).
 
 ## Documento e file
 
 | Nome | Italiano | Definizione | Stato | Da non usare |
 |---|---|---|---|---|
-| `document` | documento | Insieme di file di testo, uno per livello, più gli asset; sta in una cartella o in uno zip | deciso il concetto, nome proposto | project, workbook |
-| `package` | pacchetto | Il documento compresso in un unico zip con estensione propria; l'estensione è da scegliere | proposto | archive (usato per archiviare) |
-| `asset` | asset | File non testuale del documento: immagini, font, dati grandi | proposto | attachment, resource |
-| `layer` | livello | Uno dei tipi di file del documento: `content`, `style`, `data`, `formulas`, `wires`, `charts`, `slides` | deciso il concetto, nome proposto | level, tier |
-| `schema` | schema | File che dichiara tipi, chiavi e dimensioni di una `collection` | deciso il concetto, nome proposto | header, metadata |
+| `document` | documento | Insieme di file di testo più gli asset, in una cartella o in un `bundle` | concetto deciso, nome proposto | project, workbook |
+| `bundle` | pacchetto | Il documento compresso in un unico zip con `file extension` propria, da scegliere | proposto | package, archive |
+| `part` | livello | Un tipo di file del documento: contenuto, stile, dati, formule, wire, grafici, composizioni, canvas | concetto deciso, nome proposto | layer, level, tier |
+| `source` | sorgente | Il testo dei file del documento, fonte di verità da cui si generano le viste | concetto deciso, nome proposto | code, data source |
+| `asset` | asset | File non testuale: immagini, font, dati grandi | proposto | attachment, resource |
+| `schema` | schema | File che dichiara tipi, chiavi, dimensioni e `dialect` di una `collection` | concetto deciso, nome proposto | header, metadata |
+| `dialect` | dialetto | Separatore, quoting e codifica di un CSV o TSV, dichiarati nello `schema` | proposto | format |
 | `manifest` | manifest | File che dice da dove partire; esistenza da decidere | aperto | index |
+| `canvas file` | file del canvas | Quali oggetti stanno sul `canvas` e dove; base JSON Canvas | concetto deciso, nome proposto | layout |
+| `drafts` | bozze | Oggetti non ancora archiviati, salvati nei file | concetto deciso, nome proposto | temp, scratch |
 
-## Foglio, oggetti e organizzazione
-
-| Nome | Italiano | Definizione | Stato | Da non usare |
-|---|---|---|---|---|
-| `canvas` | foglio bianco, foglio di bozze | Superficie libera da cui si creano gli oggetti; all'apertura si vede questa | deciso il concetto, nome proposto | sheet, board, page |
-| `object` | oggetto | Unità creata sul `canvas`: testo, `collection`, `chart`, immagine, e altri tipi da estensioni | deciso il concetto, nome proposto | element, block, node (riservato al modello) |
-| `navigator` | lista a fianco | Pannello che organizza gli oggetti per tipo, con la sezione `inbox` e i `layout` | deciso il concetto, nome proposto | list, sidebar, library |
-| `inbox` | da sistemare | Sezione del `navigator` con gli oggetti non ancora classificati | proposto | unsorted, misc |
-| `archive` | archiviare | Azione: l'oggetto esce dal `canvas` e resta nel `navigator` | deciso il concetto, nome proposto | store, save |
-| `recall` | richiamare | Azione: riportare sul `canvas` un oggetto archiviato; è lo stesso oggetto, non una copia | deciso il concetto, nome proposto | restore, copy |
-| `focus` | vedere da solo | Aprire un oggetto da solo nella sua vista naturale | deciso il concetto, nome proposto | open, zoom |
-| `duplicate` | duplicare | Azione esplicita che crea una copia indipendente | deciso il concetto, nome proposto | copy |
-| `promote` | promuovere | Trasformare un pezzo del `canvas` in un tipo strutturato, per esempio testo in `collection` o in `chart` | deciso il concetto, nome proposto | convert, upgrade |
-| `demote` | gesto inverso | Riportare un oggetto strutturato a testo libero; da decidere | aperto | downgrade |
-| `suggestion` | suggerimento | Proposta automatica (classificazione, collegamento, promozione) che chi scrive conferma | deciso il concetto, nome proposto | auto-, smart- |
-| `calc line` | riga di calcolo | Riga di testo con un calcolo e il risultato in linea | deciso il concetto, nome proposto | formula (riservato) |
-
-## Layout e stile
+## Canvas, oggetti e organizzazione
 
 | Nome | Italiano | Definizione | Stato | Da non usare |
 |---|---|---|---|---|
-| `layout` | vista layout | Composizione ordinata di oggetti per riferimento: documento, presentazione, pagina web | deciso il concetto, nome proposto | view (riservato), template |
-| `style` | impaginazione | Regole di presentazione nel sottoinsieme di CSS della specifica | deciso il concetto, nome proposto | layout, theme |
-| `template` | template | `layout` o `style` riutilizzabile, distribuibile come estensione | proposto | theme, preset |
-| `placement` | posizioni | Posizioni sul `canvas` e dei nodi dei `wire` sistemate a mano; file a parte, base JSON Canvas | deciso il concetto, nome proposto | layout |
-| `slide` | slide | Pagina a dimensione fissa di un `layout` di presentazione | proposto | page, frame |
+| `canvas` | foglio bianco, foglio di bozze | Superficie libera da cui si creano gli oggetti; all'apertura si vede questa | concetto deciso, nome proposto | sheet, board, page |
+| `object` | oggetto | Unità creata sul `canvas`: testo, `collection`, `chart`, immagine, e tipi da estensioni | concetto deciso, nome proposto | element, block, node |
+| `kind` | tipo di oggetto | Il tipo di un `object` o di un `node` | proposto | type (riservato ai dati) |
+| `navigator` | lista a fianco | Pannello che organizza gli oggetti in `shelf`, con `unfiled` e le `composition` | concetto deciso, nome proposto | list, sidebar, library |
+| `shelf` | sezione del navigator | Gruppo di oggetti di un `kind` nel `navigator` | proposto | section, folder |
+| `unfiled` | da sistemare | Oggetti non ancora classificati | concetto deciso, nome proposto | inbox, misc |
+| `archive` | archiviare | L'oggetto esce dal `canvas` e resta nel `navigator` | concetto deciso, nome proposto | store, save |
+| `recall` | richiamare | Riportare sul `canvas` un oggetto archiviato; è lo stesso oggetto | concetto deciso, nome proposto | restore, copy |
+| `isolate` | vedere da solo | Aprire un oggetto da solo nella sua vista naturale | concetto deciso, nome proposto | focus, zoom |
+| `duplicate` | duplicare | Azione esplicita che crea una copia indipendente | concetto deciso, nome proposto | copy |
+| `classify` | classificare | Assegnare un oggetto al suo `shelf` | concetto deciso, nome proposto | sort, tag |
+| `turn into` | promuovere | Trasformare un pezzo in un tipo strutturato, per esempio testo in `collection` o in `chart` | concetto deciso, nome proposto | promote, convert |
+| `revert` | gesto inverso | Riportare un oggetto strutturato a testo libero; da decidere | aperto | demote, downgrade |
+| `hint` | suggerimento | Proposta automatica (classificare, collegare, trasformare) che chi scrive conferma | concetto deciso, nome proposto | suggestion, auto- |
+| `embed` | uso per riferimento | Inclusione di un oggetto in una `composition` o nel contenuto, senza copia | concetto deciso, nome proposto | copy, insert |
+| `scratch` | spazio libero | Appunti e `math line` dentro il contenuto, da cui si trasformano oggetti | concetto deciso, nome proposto | free space, notes |
+| `math line` | riga di calcolo | Riga con un calcolo e l'`inline result` | concetto deciso, nome proposto | calc line, formula |
+| `inline result` | risultato in linea | Valore mostrato accanto a una `math line` | proposto | output |
+| `text table` | tabellina | Tabella scritta nel testo, non ancora `collection` | proposto | table |
+
+## Composizioni e stile
+
+| Nome | Italiano | Definizione | Stato | Da non usare |
+|---|---|---|---|---|
+| `composition` | vista layout | Composizione ordinata di oggetti per `embed`: `article`, `deck`, `webpage` | concetto deciso, nome proposto | layout, view, template |
+| `article` | documento | `composition` a flusso, per lettura e stampa | proposto | document |
+| `deck` | presentazione | `composition` fatta di `slide` | proposto | presentation, slides |
+| `webpage` | pagina web | `composition` pubblicata come pagina HTML | proposto | page, site |
+| `slide` | slide | Pagina a dimensione fissa di un `deck` | proposto | page, frame |
+| `reading order` | ordine di lettura | Ordine degli oggetti in una `composition`, deciso da chi scrive | concetto deciso, nome proposto | sequence |
+| `stylesheet` | impaginazione | Regole nel sottoinsieme di CSS della specifica | concetto deciso, nome proposto | layout, style, theme |
+| `class` | aggancio | Nome su un `node` a cui si agganciano le regole dello `stylesheet` | proposto | tag, style |
+| `template` | template | `composition` o `stylesheet` riutilizzabile, distribuibile come `extension` | proposto | theme, preset |
+| `slide template` | schema di slide | Disposizione predefinita di una `slide`, come titolo e contenuto | proposto | layout, master |
+| `placement` | posizioni | Posizioni sistemate a mano nel `wire diagram`; file a parte | concetto deciso, nome proposto | layout |
+| `auto arrange` | disposizione automatica | Disposizione automatica e stabile del `wire diagram` | concetto deciso, nome proposto | layout |
+| `page` | pagina | Pagina del PDF o della `paged preview` | proposto | sheet |
+| `running header` | intestazione di pagina | Testo ripetuto in cima alle pagine | proposto | header |
+| `footnote` | nota | Nota a piè di pagina | proposto | note |
+| `numbering` | numerazione | Numeri di figure, tabelle e capitoli calcolati dal `runtime` | proposto | counter |
+| `cross-ref` | riferimento numerato | Riferimento a un `node` numerato | proposto | link |
 
 ## Dati e calcolo
 
 | Nome | Italiano | Definizione | Stato | Da non usare |
 |---|---|---|---|---|
-| `collection` | tabella, lista moderna | Insieme con nome di elementi con identità e proprietà tipizzate; può avere più dimensioni | deciso il concetto, nome proposto | list, table, array, sheet |
-| `item` | elemento | Un elemento di una `collection` | deciso il concetto, nome proposto | row, record |
-| `field` | proprietà, colonna | Proprietà con nome e tipo di un `item` | deciso il concetto, nome proposto | column, attribute, property |
-| `key` | chiave | `field` (o combinazione di `field`) che identifica un `item` | proposto | index |
-| `id` | ID | Identificativo stabile di un `item` o di un oggetto, quando manca una chiave naturale | proposto | uuid, ref |
-| `dimension` | dimensione | `field` che fa da asse di una `collection` multidimensionale | deciso il concetto, nome proposto | axis, category |
+| `collection` | tabella, lista moderna | Insieme con nome di `record` con identità e `field` tipizzati; può avere più `dimension` | concetto deciso, nome proposto | list, table, array, sheet |
+| `record` | elemento | Un elemento di una `collection` | concetto deciso, nome proposto | item, row, element |
+| `field` | proprietà, colonna | Proprietà con nome e `type` di un `record` | concetto deciso, nome proposto | column, attribute, property |
+| `type` | tipo | Tipo di un `field`: numero, testo, data, categoria e altri | concetto deciso, nome proposto | kind |
+| `unit` | unità di misura | Unità facoltativa di un `field` numerico | proposto | measure |
+| `field value` | valore | Valore di un `field` in un `record`, senza coordinate | concetto deciso, nome proposto | cell |
+| `key` | chiave | `field`, o combinazione di `field`, che identifica un `record` | proposto | index |
+| `id` | ID | Identificativo stabile di un `record` o di un oggetto, se manca una `key` | proposto | uuid, ref |
+| `relation` | relazione | `field` che collega `record` di due `collection` | concetto deciso, nome proposto | link, lookup |
+| `dimension` | dimensione | `field` che fa da asse di una `collection` multidimensionale | concetto deciso, nome proposto | axis, category |
 | `measure` | misura | `field` con i valori di una `collection` multidimensionale | proposto | value, metric |
-| `view` | vista | Modo di mostrare una `collection`: `grid`, `board`, `calendar` | deciso il concetto, nome proposto | layout |
-| `grid` | griglia | `view` a righe e colonne per inserire e guardare i dati | deciso il concetto, nome proposto | sheet, table, spreadsheet |
-| `chart` | grafico | Vista grafica di una `collection`, oggetto a sé | deciso il concetto, nome proposto | graph, plot |
-| `formula` | formula | Espressione con nome che calcola un `field` o un valore | deciso il concetto, nome proposto | function, rule |
-| `wire` | connettore, cavo | Collegamento fra oggetti nella vista a connettori; file proprio | deciso il concetto, nome proposto | connector, link, edge |
-| `source` | connettore dati | Fonte di dati esterna (database, API, file remoto), con permessi dichiarati | proposto | connector, feed |
+| `long form` | forma lunga | Salvataggio con una riga per combinazione di `dimension` | proposto | tidy, flat |
+| `record order` | ordine dei record | Ordine dei `record` salvato come dato, non come indirizzo | proposto | index, position |
+| `view` | vista | Modo di mostrare una `collection`: `grid`, `board`, `calendar` | concetto deciso, nome proposto | layout, composition |
+| `grid` | griglia | `view` a righe e colonne per inserire e guardare i dati | concetto deciso, nome proposto | sheet, table, spreadsheet |
+| `pivot` | pivot | `grid` di una `collection` multidimensionale con le `dimension` su righe e colonne | proposto | cross table |
+| `chart` | grafico | Oggetto che mostra graficamente una `collection`; il suo contenuto è una vista dei dati | concetto deciso, nome proposto | graph, plot, view |
+| `formula` | formula | Espressione con nome che calcola un `field` o un valore | concetto deciso, nome proposto | function, rule, calc |
+| `computed field` | colonna calcolata | `field` i cui valori vengono da una `formula` | concetto deciso, nome proposto | calculated column |
+| `override` | eccezione | Valore scritto a mano al posto del risultato di una `formula` di colonna, segnalato; ammissione da decidere | aperto | exception |
+| `expression` | espressione | Calcolo senza nome dentro una `formula`, uno `step` o una `math line` | proposto | formula |
+| `step` | passo | Trasformazione con nome da `collection` a `collection` | proposto | node, block |
+| `wire` | connettore, cavo | Collegamento fra oggetti e `step`; file proprio | concetto deciso, nome proposto | connector, link, edge |
+| `wire diagram` | vista a connettori | Vista generata dei `wire` | concetto deciso, nome proposto | graph, flow |
+| `wire group` | raggruppamento | Gruppo con nome di elementi del `wire diagram`, apribile come livello | proposto | cluster, module |
+| `dependency graph` | grafo delle dipendenze | Chi usa cosa fra `formula`, `collection` e codice, ricavato senza eseguire | proposto | graph |
+| `check` | controllo | `node` che afferma una condizione, eseguito dal `runtime` | proposto | test, assert |
+| `data source` | connettore dati | Fonte di dati esterna (database, API, file remoto), con `permission` dichiarati | proposto | source, connector, feed |
 
-## Codice e motore
-
-| Nome | Italiano | Definizione | Stato | Da non usare |
-|---|---|---|---|---|
-| `code block` | blocco di codice | Codice nel documento, con i marker `run` e `show` | deciso il concetto, nome proposto | cell, snippet |
-| `run` | da eseguire | Marker: il blocco viene eseguito | deciso il concetto, nome proposto | exec, eval |
-| `show` | da mostrare | Marker: il blocco viene mostrato | deciso il concetto, nome proposto | echo, display |
-| `runtime` | runtime, motore | Processo separato che possiede i file, calcola e produce gli output | deciso il concetto, nome proposto | engine, server, daemon |
-| `engine` | motore di rendering | Componente che disegna un output: HTML ora, Typst più avanti | deciso il concetto, nome proposto | renderer, backend |
-| `resolved tree` | albero risolto | Modello con calcoli, riferimenti e numerazioni già risolti, letto dagli `engine` | proposto | AST, model |
-| `snapshot` | valori fotografati | Valori calcolati all'export e salvati, visibili senza eseguire nulla | deciso il concetto, nome proposto | cache, frozen |
-| `static fallback` | forma statica | Forma che un oggetto interattivo o di un'estensione assume dove non può essere eseguito | proposto | placeholder |
-| `export` | esportare | Produrre HTML o PDF dal documento | deciso il concetto, nome proposto | render, publish |
-| `cli` | riga di comando | Client del `runtime` da terminale, pensato anche per l'AI | deciso il concetto, nome proposto | shell, tool |
-| `mcp server` | server MCP | Espone le operazioni della `cli` agli agenti AI | proposto | plugin, bot |
-| `formatter` | formatter | Stampa canonica del testo sorgente | proposto | prettifier, linter |
-
-## Estensioni
+## Codice, runtime e output
 
 | Nome | Italiano | Definizione | Stato | Da non usare |
 |---|---|---|---|---|
-| `extension` | estensione | Pacchetto che aggiunge tipi di oggetto, `template` o `source` | proposto | plugin, addon, module |
-| `registry` | marketplace | Registro aperto e replicabile delle estensioni | proposto | store, marketplace |
+| `code block` | blocco di codice | Codice nel documento, con i marker `eval` ed `echo` | concetto deciso, nome proposto | cell, snippet |
+| `eval` | da eseguire | Marker: il blocco viene eseguito | concetto deciso, nome proposto | run, exec |
+| `echo` | da mostrare | Marker: il blocco viene mostrato | concetto deciso, nome proposto | show, display |
+| `results` | risultati salvati | Output dei `code block`, una voce per `node` con chiave l'hash degli `inputs` | proposto | output, cache |
+| `import` | codice esterno | Riferimento a codice fuori dal documento, fissato con hash | proposto | include, require |
+| `lock` | versioni fissate | Elenco nel documento di `extension` e codice esterno con versione e hash | proposto | pin file |
+| `runtime` | runtime | Processo separato che possiede i file, calcola e produce gli output | concetto deciso, nome proposto | engine, server, daemon |
+| `evaluator` | motore di calcolo | Parte che valuta `formula` e dipendenze, nel `runtime` e nell'HTML esportato | proposto | engine, calc |
+| `renderer` | motore di rendering | Componente che disegna un output: HTML ora, Typst più avanti | concetto deciso, nome proposto | engine, backend |
+| `print browser` | browser di stampa | Browser di versione fissata che produce il PDF dall'HTML | concetto deciso, nome proposto | engine |
+| `mode` | modalità | Scelta fra vista interattiva HTML e vista di scrittura per la stampa | concetto deciso, nome proposto | view |
+| `model` | modello | Albero di `node` tipizzati con ID stabili, ricavato dal `source` | proposto | AST, graph |
+| `node` | nodo | Unità tipizzata del `model` | proposto | element, block |
+| `syntax tree` | albero di sintassi | Albero del `parser` che conserva i commenti | proposto | AST, CST |
+| `parser` | parser | Legge il `source` e produce il `syntax tree` | proposto | reader |
+| `formatter` | formatter | Stampa canonica del `source` (verbo `format`) | proposto | prettifier, linter |
+| `resolved tree` | albero risolto | `model` con calcoli, riferimenti e `numbering` già risolti, letto dai `renderer` | proposto | AST |
+| `frozen values` | valori fotografati | Valori calcolati all'`export` e salvati, visibili senza eseguire (verbo `freeze`) | concetto deciso, nome proposto | snapshot, cache |
+| `static fallback` | forma statica | Forma di un oggetto interattivo o di un'`extension` dove non può essere eseguito | proposto | placeholder |
+| `export` | esportare | Produrre HTML o PDF dal documento | concetto deciso, nome proposto | render, publish |
+| `live export` | HTML vivo | HTML esportato che ricalcola nel browser | concetto deciso, nome proposto | live page |
+| `static export` | HTML statico | HTML esportato senza ricalcolo | concetto deciso, nome proposto | snapshot |
+| `print` | stampa | Produzione del PDF dall'HTML con il `print browser` | concetto deciso, nome proposto | export pdf |
+| `input` | input del lettore | Controllo dell'HTML esportato con cui il lettore cambia un valore | concetto deciso, nome proposto | widget, control |
+| `environment` | ambiente | Orologio, seme e fuso passati come `inputs` espliciti | proposto | context |
+| `service` | servizio | Processo locale o in cloud che dà all'HTML file locali, codice pesante, fonti esterne e salvataggio | concetto deciso, nome proposto | server, backend |
+| `reader`, `author` | lettore, chi scrive | Chi apre il documento esportato; chi lo scrive | proposto | user |
+
+## App, CLI e protocolli
+
+| Nome | Italiano | Definizione | Stato | Da non usare |
+|---|---|---|---|---|
+| `app` | app, editor | Client grafico del `runtime`: `source`, editing e `preview` | concetto deciso, nome proposto | editor, client |
+| `preview` | anteprima | Resa del documento aggiornata dentro l'`app` | concetto deciso, nome proposto | view |
+| `paged preview` | vista per pagina | `preview` divisa nelle `page` della stampa | concetto deciso, nome proposto | page view |
+| `round-trip` | doppia scrittura | `source` ed editing grafico si generano a vicenda senza perdite | concetto deciso, nome proposto | sync |
+| `operation` | operazione | Modifica atomica del `model` esprimibile nel `source`, la stessa da `app`, `cli` e `mcp server` | concetto deciso, nome proposto | command, action |
+| `reconcile` | riconciliare | Integrare nel `model` le modifiche fatte fuori dall'`app` | concetto deciso, nome proposto | merge, sync |
+| `semantic diff` | diff semantico | Confronto fra versioni a livello di `node` | proposto | smart diff |
+| `cli` | riga di comando | Client del `runtime` da terminale, pensato anche per l'AI | concetto deciso, nome proposto | shell, tool |
+| `language server` | server LSP | Parte del `runtime` che parla LSP | concetto deciso, nome proposto | lsp |
+| `runtime protocol` | protocollo proprio | Protocollo fra `runtime` e client per `operation` e `preview` | concetto deciso, nome proposto | api |
+| `mcp server` | server MCP | Espone le `operation` agli agenti AI | proposto | plugin, bot |
+| `format schema` | schema dei formati | Schema JSON dei file e dell'output della `cli` | proposto | schema |
+
+## Specifica, estensioni, conformità
+
+| Nome | Italiano | Definizione | Stato | Da non usare |
+|---|---|---|---|---|
+| `spec` | specifica | Il testo normativo dello standard | proposto | standard, docs |
+| `spec version` | versione della semantica | Versione della specifica scritta in ogni documento | proposto | format version |
+| `profile` | profilo | Sottoinsieme del linguaggio delle formule fissato dalla `spec` | proposto | dialect |
+| `budget` | budget | Limite di tempo e memoria per una valutazione | proposto | quota, limit |
+| `conformance suite` | corpus di conformità | Documenti d'esempio con il `resolved tree` atteso | proposto | tests, corpus |
+| `extension` | estensione | Pacchetto che aggiunge `kind`, `template` o `data source` | proposto | plugin, addon, package |
+| `directive` | forma generica | Sintassi generica per `kind` non noti, conservata dal `formatter` anche senza l'`extension` | proposto | macro, tag |
+| `sandbox` | sandbox | Ambiente isolato per il codice delle `extension` | proposto | container |
+| `permission` | permesso | Accesso a rete e file dichiarato da `data source` ed `extension` | proposto | capability, grant |
+| `registry` | marketplace, registro | Registro aperto e replicabile delle `extension` | proposto | store |
