@@ -1,333 +1,216 @@
 # Passaggio di consegne
 
-Stato del progetto al 2026-10-11, per chi riprende il lavoro in una sessione
-futura. Si legge in dieci minuti. I dettagli stanno nei file citati; dove
-questo file e [contesto.md](contesto.md) divergono, vale contesto.md.
+Stato del progetto al 2026-10-20, per chi riprende il lavoro in una sessione
+futura. Le decisioni esatte stanno in [contesto.md](contesto.md); dove questo
+file e contesto.md divergono, vale contesto.md.
 
 ## Il progetto in breve
 
-Alessio progetta un nuovo standard aperto per scrivere documenti, fogli di
-calcolo e presentazioni con un solo strumento. Non è un clone di Word o di
-ONLYOFFICE: la compatibilità con DOCX, XLSX e PPTX non è un requisito. Il
-sorgente è testo diffabile in Git, un editor grafico scrive lo stesso sorgente
-e un'AI deve poterlo leggere e modificare. Si parte dal motore, non
-dall'interfaccia. Nel repository non c'è ancora codice: solo documenti.
+Alessio progetta un nuovo standard aperto per documenti, fogli di calcolo e
+presentazioni con un solo strumento. Non è un clone di Word o di ONLYOFFICE: la
+compatibilità con DOCX, XLSX e PPTX non è un requisito.
+
+Un documento è una cartella (o uno zip) di file di testo, uno per livello:
+contenuto, impaginazione, dati, formule, connettori, grafici, slide, più gli
+asset. Il testo è la base; l'editor grafico, la griglia, i connettori e le
+pagine sono viste generate dal testo. Il motore è l'HTML; il PDF è la sua
+stampa. Si parte dal motore, non dall'interfaccia. Nel repository non c'è
+ancora codice.
 
 ## Come lavorare con Alessio
 
-- **Tono.** È un ingegnere e vuole un confronto da pari. Scrive brevi messaggi
-  in italiano, spesso decisioni secche ("entrambi", "ok", "html vivo").
+- **Tono.** È un ingegnere e vuole un confronto da pari. Scrive messaggi brevi
+  in italiano, spesso decisioni secche ("entrambi", "ok", "si la seconda").
 - **Le sue bozze.** La prima bozza dei tipi di nodo la scrive lui. Va rivista e
   criticata, non sostituita con una versione finita. Lo stesso vale per le sue
-  bozze future.
-- **Risposte.** Prosa asciutta, poca formattazione. Quando c'è una
-  raccomandazione va detta, lasciando a lui la scelta. Poche domande: solo
+  bozze successive.
+- **Le risposte.** Prosa asciutta, poca formattazione. Quando c'è una
+  raccomandazione va detta, lasciando a lui la scelta. Poche domande, solo
   quelle che cambiano cosa si fa dopo.
-- **Registrare le decisioni.** Ogni sua decisione va scritta subito in
-  [contesto.md](contesto.md), tenendo separate decisioni, orientamenti da
-  precisare e proposte non decise. Poi commit e push.
-- **I suoi "ok".** Un "ok" che risponde a più domande va registrato con
-  prudenza: scrivere a quali domande lo si è applicato e chiedergli di
+- **Registrare le decisioni.** Ogni sua decisione va subito in
+  [contesto.md](contesto.md), separando decisioni, orientamenti da precisare e
+  proposte non decise. Poi commit e push.
+- **I suoi "ok" e i suoi "fai come suggerisci".** Vanno registrati con
+  prudenza: scrivere a quali domande li si è applicati, e chiedergli di
   correggere se serve.
-- **Ricerca mirata.** Si fa ricerca solo quando serve a una scelta che ha
-  davanti. All'inizio di questa sessione era partito un workflow grosso: nove
-  aree di ricerca, critica della bozza di sintassi, scenari del corpus. Alessio
-  ha chiesto "sicuri che servano?" e aveva ragione: è stato fermato prima che
-  producesse qualcosa. Le ricerche successive, mirate a una domanda alla volta,
-  sono servite.
+- **La ricerca.** Si fa solo quando serve a una scelta che ha davanti, mirata a
+  una domanda alla volta, con verifica dei fatti su fonte primaria. All'inizio
+  del progetto un workflow con nove aree di ricerca era partito troppo presto:
+  Alessio ha chiesto "sicuri che servano?" e aveva ragione.
+- **I crediti.** Quando avvisa che i crediti stanno finendo, mettere tutto al
+  sicuro subito: commit, push, passaggio di consegne aggiornato.
 
 ## Decisioni prese
 
-L'elenco esatto è in [contesto.md](contesto.md), sezione "Decisioni di
-Alessio". In breve:
+**Formato e livelli**
+- Un documento è un insieme di file di testo più gli asset, in una cartella in
+  chiaro o in uno zip con estensione propria.
+- Si procede in modo incrementale: un file per livello, uno alla volta, in
+  quest'ordine:
+  1. contenuto e impaginazione;
+  2. dati;
+  3. grafici;
+  4. formule;
+  5. connettori;
+  6. slide.
+- La divisione in file riguarda solo il salvataggio: l'editor mostra ogni
+  livello dove serve, per esempio le formule accanto alla tabella.
+- Il testo in chiaro è la base di tutto. Ogni vista grafica è generata dal
+  testo, e ogni modifica grafica diventa una modifica del testo.
+- Tutto open source, con riuso di componenti esistenti. Le licenze sono ancora
+  da decidere.
 
-- **Il formato.** È uno standard nuovo, con un solo strumento per testo,
-  calcolo e slide. È AI-friendly, diffabile in Git e a doppia scrittura:
-  sorgente ed editor grafico generano l'uno l'altro.
-- **Il documento.** È un file sorgente più i suoi asset, in una cartella in
-  chiaro oppure in uno zip con estensione propria: le due forme sono
-  equivalenti.
-- **Il codice.** Nel documento porta un marker se va eseguito e un marker se
-  va mostrato.
-- **I motori.** Sono due, uno per l'HTML nel browser e uno per il PDF.
-- **L'HTML vivo.** L'HTML esportato è vivo in due sensi: il lettore cambia
-  input e vede ricalcolare, e i dati possono aggiornarsi da fonti esterne.
-- **Cosa vede chi apre l'HTML.** Vede sempre i valori fotografati all'export.
-  Se il motore è incluso o raggiungibile, la pagina ricalcola. Il resto passa
-  da un servizio, locale o nel cloud: file locali, codice pesante, fonti
-  esterne, salvataggio. La versione cloud è installabile da chiunque sul
-  proprio server.
-- **Il runtime.** Il motore è un runtime separato dall'app e parte quando si
-  apre il file. Il runtime possiede il file: applica le modifiche dell'app
-  passando dal formatter canonico e riconcilia quelle fatte da altri editor o
-  da Git. Parla LSP per il testo; le operazioni sul modello e le anteprime
-  useranno un protocollo proprio.
-- **L'app.** Mostra il sorgente, la vista di editing grafico e l'anteprima
-  HTML o PDF secondo la modalità. L'editing grafico avviene sopra l'anteprima
-  HTML, a condizione che esista anche una vista per pagina. Non è stato
-  chiarito cosa succede se la vista per pagina non fosse realizzabile.
+**Tabelle**
+- Le tabelle sono liste moderne: elementi con identità e proprietà tipizzate,
+  relazioni fra liste, più viste dello stesso elenco.
+- Ogni tabella ha un nome obbligatorio. Le celle non hanno coordinate.
+- Le colonne hanno un tipo. Le tabelle possono essere multidimensionali.
+- Tipi, chiavi e dimensioni stanno in uno schema separato dal CSV.
+- La griglia resta come interfaccia per inserire e guardare i dati.
 
-- **Il testo è la base.** Il testo in chiaro è la base di tutto: ogni vista
-  grafica (connettori, griglia, pagine, slide) è generata dal sorgente, e ogni
-  modifica grafica diventa una modifica del testo.
-- **I livelli.** Si procede in modo incrementale, un file di testo per livello:
-  contenuto, impaginazione, dati, formule, connettori, grafici, slide.
-  L'editor mostra ogni livello dove serve.
-- **I connettori.** Hanno un file proprio. Il layout è automatico; le
-  posizioni sistemate a mano vanno in un file di layout a parte.
-- **Le tabelle.** Ogni tabella ha un nome obbligatorio. Le celle non hanno
-  coordinate. Le colonne hanno un tipo. Le tabelle possono essere
-  multidimensionali. Tipi, chiavi e dimensioni stanno in uno schema a parte.
+**Connettori**
+- Hanno un file proprio. Il layout è automatico; le posizioni sistemate a mano
+  vanno in un file di layout a parte, solo per i nodi spostati.
 
-## Orientamenti di Alessio, da precisare
+**Codice**
+- Il codice nel documento ha un marker se va eseguito e un marker se va
+  mostrato.
 
-- Tutto open source, con riuso di componenti esistenti. Restano da decidere le
-  licenze e la governance (domanda 3).
-- Un file di testo con contenuto, presentazione, slide, grafici, codice,
-  tabelle CSV e formattazione, esportabile in HTML e PDF. Resta da decidere se
-  documento e slide condividono dati e grafici (domanda 7).
-- Formule: Python era l'ipotesi più semplice, non un vincolo. Vuole capire
-  cosa convenga e poter richiamare codice esterno al documento.
+**Motori e output**
+- Motori per fasi:
+  - si parte con un solo motore, l'HTML;
+  - il PDF è la stampa dello stesso HTML, fatta da un motore browser di
+    versione fissata;
+  - più avanti potrà arrivare Typst, per una modalità di scrittura orientata
+    alla stampa.
+- Obiettivo finale: una vista interattiva HTML che esporta in PDF, e una vista
+  di scrittura PDF che esporta in HTML statico. Condizione: modello e
+  impaginazione neutri rispetto al motore.
+- L'impaginazione usa un sottoinsieme di CSS definito dalla specifica: solo
+  proprietà con un significato fissato e traducibili anche per Typst.
+- L'HTML esportato è vivo: il lettore cambia gli input e vede ricalcolare, e i
+  dati possono aggiornarsi da fonti esterne. Chi lo apre vede sempre i valori
+  fotografati all'export. Se il motore c'è, la pagina ricalcola; il resto passa
+  da un servizio locale o nel cloud, che chiunque può installare sul proprio
+  server.
 
-## Proposte non decise
+**Runtime ed editor**
+- Il motore è un runtime separato dall'app. Parte quando si apre il file e
+  possiede i file.
+- Parla LSP per il testo, e un protocollo proprio per le operazioni sul modello
+  e per le anteprime.
+- L'app mostra il sorgente, la vista di editing grafico e le anteprime.
+  L'editing grafico avviene sopra l'anteprima HTML, con una vista per pagina.
 
-Sono tutte in [contesto.md](contesto.md), sezione "Proposte non decise". Le
-principali:
+**Implementazione**
+- TypeScript per la prima versione: runtime, LSP, riga di comando, editor.
+- Rust compilato in WASM solo dove le misure lo chiederanno.
 
-- modello a nodi tipizzati con ID stabili, con flusso, griglia e canvas come
-  viste dello stesso grafo;
-- motore di calcolo reattivo come nucleo;
-- sorgente come fonte di verità, con formatter canonico e albero di sintassi
-  che preserva i commenti;
-- layout a vincoli invece di coordinate assolute;
-- ID solo dove un nodo è referenziato, oppure in un file sidecar;
-- diff semantico più avanti, che però richiede ID stabili fin dall'inizio;
-- riuso di Typst, Taffy, Yjs o Automerge, rowan;
-- linguaggio del nucleo da decidere, per esempio Rust con una seconda
-  implementazione in TypeScript, compilato anche in WASM;
-- un albero risolto come unico punto di calcolo per i due motori e per il
-  corpus;
-- Typst come motore del PDF, che disegna anche la vista per pagina;
-- come primo prodotto, il runtime da riga di comando.
+## Orientamenti e proposte da tenere presenti
+
+Gli elenchi completi sono in [contesto.md](contesto.md).
+
+**Orientamenti da precisare**
+- dati in CSV oppure TSV, con il dialetto dichiarato nello schema;
+- formule e connettori in file separati;
+- un ID per ogni elemento delle liste;
+- tabelle multidimensionali salvate in forma lunga e mostrate come pivot;
+- formule: Python non è un vincolo, il linguaggio è da scegliere.
+
+**Proposte non decise**
+- un albero risolto come unico punto di calcolo, letto dai motori e verificato
+  dal corpus;
+- funzioni matematiche fornite dal motore con una libreria fissata;
+- formatter canonico;
+- ID solo dove servono;
+- il runtime da riga di comando come primo prodotto.
 
 ## Ricerca fatta
 
-Ci sono tre note in [ricerca/](ricerca/), con fonti primarie. I fatti portanti
-sono stati ricontrollati da un secondo agente, salvo le parti che ogni nota
-indica. Gli output grezzi della ricerca non sono nel repository, perché il
-container della sessione è effimero.
+Ci sono sei note in [ricerca/](ricerca/), con fonti primarie e fatti
+ricontrollati da un secondo agente, salvo le parti che ogni nota indica.
 
-- [ricerca/formule-python.md](ricerca/formule-python.md): cosa comporta Python
-  come linguaggio delle formule.
-  - Python non ha una semantica formale.
-  - Microsoft, con Python in Excel, ha rinunciato a ricavare le dipendenze dal
-    codice Python e ricalcola tutte le celle Python in sequenza.
-  - Pyodide su Node non faceva da barriera (Grist, CVE-2026-24002), e Cyera ha
-    aggirato sette prodotti che si affidavano a denylist dentro Pyodide.
-  - Il codice esterno rende il diff inaffidabile, se non è fissato per hash o
-    se i risultati non sono salvati e verificati.
-- [ricerca/linguaggio-formule.md](ricerca/linguaggio-formule.md): confronto
-  con JavaScript, formule stile Excel (OpenFormula), CEL e SQL con DuckDB.
-  - Preso così com'è, ogni candidato va bene a un livello solo. JS può coprirli
-    entrambi solo con un sottoinsieme ristretto per le formule.
-  - La nota mette alla pari tre opzioni: due livelli (espressioni pure più
-    codice completo in sandbox), tre strati (con SQL per tabelle e viste), JS
-    ovunque.
-  - Qualunque scelta richiede comunque requisiti comuni: sintassi canonica
-    indipendente dal locale, riferimenti per nome, orologio, seme e fuso come
-    input espliciti, libreria numerica definita, budget di valutazione.
-  - Il determinismo fra export e browser viene dallo stesso binario WASM o da
-    una libm software, non dal linguaggio. Nemmeno CEL e DuckDB danno gli
-    stessi risultati fra motori o fra nativo e wasm su conversione dei numeri
-    in testo, ordine delle mappe e funzioni trascendenti.
-- [ricerca/vista-per-pagina.md](ricerca/vista-per-pagina.md): come avere una
-  vista per pagina coerente con il PDF.
-  - Nessun prodotto noto ci riesce con due motori. CKEditor ci prova, senza
-    garanzie.
-  - La via che regge è far disegnare la vista per pagina a Typst (typst.ts,
-    tinymist, Apache-2.0) dallo stesso layout del PDF. I salti coincidono solo
-    con la stessa versione di Typst, gli stessi font e gli stessi input, e
-    typst.ts e tinymist usano fork di Typst.
-  - Scrivere direttamente sulle pagine è stato dimostrato da un prototipo, ma
-    è insufficiente come modo principale di scrivere: mancano copia e incolla
-    nativi, screen reader, ricerca e undo. Lo stesso prototipo ha poi ripiegato
-    su una lente per paragrafo, dichiaratamente diversa dalla pagina; l'esito
-    non è documentato.
-  - Un blocco reso dal motore HTML in mezzo alle pagine Typst era fallito per
-    la giuntura visibile.
+- **[ricerca/formule-python.md](ricerca/formule-python.md).** Python non ha
+  una semantica formale. Microsoft, con Python in Excel, ha rinunciato a
+  ricavare le dipendenze dal codice. Il caso Grist mostra che una sandbox
+  Pyodide non basta.
+- **[ricerca/linguaggio-formule.md](ricerca/linguaggio-formule.md).** Il
+  confronto fra JavaScript, formule stile Excel, CEL e SQL dice che ogni
+  candidato va bene a un livello solo. Il determinismo viene dallo stesso
+  binario WASM o da una libm fissata, non dal linguaggio.
+- **[ricerca/vista-per-pagina.md](ricerca/vista-per-pagina.md).** Nessun
+  prodotto noto ha una vista per pagina coerente con la stampa usando due
+  motori. Questo ha portato alla decisione di partire con un solo motore.
+- **[ricerca/connettori-e-usi-excel.md](ricerca/connettori-e-usi-excel.md).**
+  - Connettori fra tabelle e passi sì, cablare aritmetica e condizioni no.
+  - Il nucleo di funzioni usate è piccolo, e le formule sono quasi tutte copie.
+  - Togliere le coordinate regge; togliere lo spazio libero no.
+- **[ricerca/excel-e-alternative.md](ricerca/excel-e-alternative.md).**
+  - Excel vince per la griglia come struttura pronta, i valori visibili e la
+    leggibilità.
+  - I suoi difetti hanno cause di progetto che le nostre decisioni affrontano.
+  - Lotus Improv separava già dati, formule e viste, e ha perso perché era
+    debole nel fare tabelle.
 
-## Ultima discussione
+## Domande aperte
 
-A fine sessione Alessio ha detto che la direzione gli sembra troppo complicata
-e ha proposto di procedere per livelli, un file di testo per ciascuno:
-contenuto, impaginazione, dati, formule, grafici, slide. La risposta data: la
-direzione regge, la complessità viene dal volere tutto nella prima versione, e
-la sua idea è un buon modo di tagliare. Precedenti: HTML con CSS, LaTeX con
-BibTeX e CSL, Hugo con `content/`, `layouts/` e `data/`. Si comincia da
-contenuto più impaginazione, che danno subito HTML e PDF. L'idea è registrata
-come orientamento in [contesto.md](contesto.md); si attende la sua risposta.
-
-Alessio ha poi precisato che la divisione in file sta sotto il cofano: l'editor
-presenta ogni livello dove serve, per esempio le formule accanto ai dati. Ha
-chiesto anche se Excel sia davvero il massimo, quali vantaggi abbia e come
-migliorarne l'esperienza. È stata avviata una ricerca mirata su questo: punti
-di forza e difetti documentati di Excel, e chi ha tentato di migliorarlo (in
-particolare Lotus Improv, che separava già dati, formule e viste).
-
-Infine Alessio ha proposto di eliminare il concetto di cella e di usare
-connettori grafici al posto delle formule: l'obiettivo non è rifare Excel ma
-soddisfare le esigenze di chi lo usa. Avviata una seconda ricerca mirata sulla
-programmazione visuale a nodi e sugli usi reali di Excel.
-
-Alla domanda se i connettori siano il sorgente o una vista, Alessio ha
-risposto: "il testo in chiaro è sempre la base di tutto". È registrato come
-decisione in [contesto.md](contesto.md).
-
-Poi ha deciso: layout automatico dei connettori, posizioni manuali in un file
-di layout a parte; i connettori hanno un file proprio; si procede in modo
-incrementale, un livello alla volta. Aperto: il confine fra formule e
-connettori, e l'ordine dei livelli.
-
-Ultima proposta di Alessio: il nome della tabella è obbligatorio, un valore si
-raggiunge con nome più indice di riga e colonna, la tabella viaggia sui
-connettori come un cavo, e può contenere riferimenti a formule in altri file.
-Risposta data: d'accordo sui nomi e sul cavo tipizzato (il tipo del cavo è lo
-schema della tabella); proposto di indicizzare le righe per chiave e non per
-posizione, e di mettere i riferimenti alle formule a livello di colonna.
-Alessio ha precisato: "non esistono le coordinate della cella". È registrato
-come decisione; resta aperto se la chiave di riga sia obbligatoria.
-Poi: le intestazioni portano il tipo, e le tabelle possono essere
-multidimensionali. Proposto di salvarle in forma lunga (tidy) con le
-dimensioni dichiarate, di mostrarle come pivot, e di usare le dimensioni come
-chiave; riuso possibile di CSVW o Frictionless Table Schema per lo schema.
-Alessio ha scelto lo schema a parte e ha chiesto di pensare le tabelle "come
-liste moderne, non come array". Interpretazione proposta, da confermare:
-liste di record con proprietà tipizzate, relazioni fra liste e più viste.
-
-## Da riprendere subito
-
-La sessione si è chiusa per il limite di crediti mentre si discuteva di tabelle.
-Erano in sospeso queste domande:
-- **Liste moderne.** Va confermata l'interpretazione di "liste moderne, non
-  array": elementi con identità e proprietà tipizzate, relazioni fra liste, più
-  viste dello stesso elenco.
-- **Proprietà multiple.** Per le proprietà che contengono più valori, la
-  proposta era CSV piatto con normalizzazione, e codifica in cella solo per le
-  etichette semplici.
-- **Chiave di riga.** La proposta era chiave facoltativa ma consigliata; in una
-  tabella multidimensionale la chiave è la combinazione delle dimensioni.
-- **Formule e connettori.** Il confine fra i due file: per scala (formule
-  dentro la tabella, connettori fra tabelle) oppure un solo file di calcolo.
-- **Ordine dei livelli.** Proposto: contenuto e impaginazione, dati, grafici,
-  formule, connettori, slide.
-
-La ricerca sui connettori grafici e sugli usi reali di Excel è verificata e
-scritta in [ricerca/connettori-e-usi-excel.md](ricerca/connettori-e-usi-excel.md).
-Quella su punti di forza, difetti e tentativi di migliorare Excel è in
-[ricerca/excel-e-alternative.md](ricerca/excel-e-alternative.md), verificata.
-
-## Ripresa del 2026-10-20
-
-Alessio ha confermato le liste moderne e l'ordine dei livelli. Ha proposto
-anche il TSV accanto al CSV, e formule e connettori divisi per tipo. Ha chiesto
-se una chiave abbia senso con le liste. Poi ha rimesso in discussione i due
-motori: HTML come nucleo e PDF come esportazione. Infine ha chiesto quale
-linguaggio di implementazione usare. Le verifiche delle due ricerche
-interrotte sono state rilanciate.
-
-Poi ha chiesto se, partendo con un solo motore, si possa aggiungere il secondo
-in futuro, con l'obiettivo: vista interattiva HTML con export PDF, vista di
-scrittura PDF con export HTML statico. Risposta data: sì, se il modello resta
-neutro rispetto al motore (precedente: Pandoc ha aggiunto lo scrittore Typst
-anni dopo; controesempio: Typst fatica ad aggiungere l'HTML perché il suo
-modello nasce dall'impaginazione). Domanda aperta: vocabolario
-dell'impaginazione in CSS, sottoinsieme di CSS o proprio.
-
-## Domande aperte rivolte ad Alessio
-
-Sono state poste in sessione e non hanno ancora risposta. A queste si
-aggiungono i "Punti aperti" di [contesto.md](contesto.md): ID e merge, CRDT
-contro Git, dati grandi in file colonnari, primo caso d'uso, governance.
-
-1. **Vista per pagina.** La nota elenca cinque opzioni; le tre proposte ad
-   Alessio sono:
-   - pagine di Typst e scrittura nella vista HTML a flusso, che soddisfa la
-     sua condizione solo a metà, perché sulle pagine non si scrive;
-   - pagine di Typst con una lente per blocco che si apre al clic;
-   - righe calcolate da Typst e posizionate nel DOM, con una superficie di
-     editing propria.
-
-   Le due escluse (solo i salti da Typst, vista approssimata) non garantiscono
-   le stesse righe del PDF. Raccomandazione data: partire dalla seconda e
-   tenere la terza come obiettivo, se la latenza regge.
-2. **Linguaggio delle formule.** Due livelli, tre strati o JS ovunque, alla
-   luce di [ricerca/linguaggio-formule.md](ricerca/linguaggio-formule.md).
-3. **Licenza del codice.** Permissiva (MIT, Apache-2.0) o copyleft. Ne
-   dipendono i componenti incorporabili: Pandoc è GPL, Vivliostyle AGPL-3.0,
-   Pyodide MPL-2.0, HyperFormula GPL-3.0 o commerciale. Restano da definire
-   anche la licenza del testo della specifica, la concessione sui brevetti e
-   chi governa le modifiche.
-4. **Pacchetto.** Restano aperte tre domande:
-   - i risultati calcolati e gli export stanno nel pacchetto, e sotto Git si
-     committano?
+1. **Spazio libero per appunti e calcoli al volo.** Proposta: dentro il
+   contenuto, come righe di calcolo con il risultato in linea, più un gesto per
+   promuovere una tabellina a lista vera. Ad Alessio è stata chiesta la
+   conferma, ma la sua risposta "fai come suggerisci per entrambe" è stata
+   applicata ad altre due domande.
+2. **Confine fra formule e connettori.** La ricerca sostiene la divisione per
+   scala: espressioni dentro il blocco, connettori fra tabelle e passi.
+3. **Formula per colonna.** Con eccezioni per cella segnalate, come le tabelle
+   di Excel, o senza eccezioni, come Grist?
+4. **Calcoli fra righe.** Totali progressivi e riga precedente richiedono un
+   ordine esplicito. L'ordine delle righe va salvato come dato, anche se non è
+   un indirizzo.
+5. **Linguaggio delle formule.** Con TypeScript come linguaggio di
+   implementazione, l'opzione di un sottoinsieme di espressioni JavaScript
+   diventa più comoda, ma non è decisa.
+6. **Licenza del codice.** Permissiva o copyleft. Restano da definire anche la
+   licenza della specifica, la concessione sui brevetti e la governance.
+7. **Pacchetto.** Tre domande aperte:
+   - i risultati e gli export stanno nel pacchetto?
    - Gli URL esterni sono ammessi come asset?
-   - Il file principale ha un nome fisso o lo dichiara un manifest?
-
-   Proposte fatte, non confermate: zip deterministico; primo file `mimetype`
-   non compresso, come in EPUB e ODF; percorsi degli asset solo relativi e
-   interni al pacchetto. Le fonti dati vive sono un'altra cosa e restano
-   ammesse.
-5. **Codice eseguito.** Restano aperte tre domande:
-   - un blocco eseguito e una formula sono la stessa cosa per il motore, e
-     condividono i nomi?
-   - L'ordine di esecuzione va dall'alto in basso o per dipendenze?
-   - Quali linguaggi servono per il codice eseguito (Python, JS, SQL), in
-     coerenza con la domanda 2?
-
-   Proposta fatta: l'esecuzione richiede sempre il marker esplicito. Resta da
-   chiarire il comportamento di un blocco senza marker di visualizzazione.
-6. **Due motori.** Restano aperte tre domande:
-   - cosa è garantito uguale fra HTML e PDF? Proposta: contenuto, ordine,
-     numeri, numerazioni e grafici sì, a capo e salti pagina no.
-   - Le indicazioni specifiche di un output sono suggerimenti che l'altro
-     ignora, mai contenuto presente in uno solo?
-   - Le slide le impagina un solo motore per entrambi gli output, oppure si
-     accetta la divergenza segnalando il traboccamento come errore?
-7. **Documento e slide.** Nello stesso file condividono dati e grafici per
-   riferimento? È il punto che distingue il progetto da Quarto, che già fa
-   quasi tutto il resto.
+   - Serve un manifest per sapere da dove partire?
+8. **Codice eseguito.** Tre domande aperte:
+   - blocchi e formule condividono i nomi?
+   - L'ordine di esecuzione va per dipendenze o dall'alto in basso?
+   - Quali linguaggi servono?
+9. **Vista per pagina.** Con l'HTML come motore, la vista per pagina è HTML
+   impaginato (Paged.js o la frammentazione di Chromium). Coincide con il PDF
+   se la stampa la fa lo stesso Chromium con gli stessi font. Le tre opzioni
+   con Typst valgono per la fase successiva.
+10. **I punti aperti di [contesto.md](contesto.md).** ID e merge, CRDT contro
+    Git, primo caso d'uso, governance.
 
 ## Prossimi passi
 
-1. **La bozza dei tipi di nodo.** La scrive Alessio. La revisione deve
-   verificare che la bozza rispetti le decisioni prese: valori fotografati,
-   marker del codice, runtime che possiede il file. Deve anche vedere come
-   tratta le questioni ancora aperte o solo proposte: albero risolto,
-   riferimenti fra documento e slide, ID per il diff e per le operazioni
-   dell'editor e dell'AI. Le debolezze già note della bozza di sintassi sono in
-   [contesto.md](contesto.md).
-2. **La sintassi.** Serve una sintassi testuale canonica con formatter. La
-   bozza in [contesto.md](contesto.md) è solo un bersaglio da criticare.
-3. **Il corpus.** Documenti con output atteso. Se si adotta l'albero risolto,
-   l'output atteso è quell'albero, non i pixel.
-4. **Le misure.** Servono prima di scegliere fra le opzioni della vista per
-   pagina e del linguaggio delle formule:
-   - latenza di Typst 0.15 per tasto sui documenti reali, con e senza salti
-     pagina espliciti, insieme al tempo di disegno nel browser, che nel
-     prototipo era il vero collo di bottiglia;
-   - avvio nel browser di Pyodide, QuickJS wasm e DuckDB-WASM sullo stesso
-     hardware;
-   - quanto coincidono le righe fra Typst e Chromium con gli stessi font;
-   - accessibilità di una vista per pagina su canvas o SVG;
-   - un prototipo del profilo di formule scelto, con il corpus eseguito sia
-     nativo sia in wasm;
-   - le lacune elencate in fondo a ogni nota di ricerca.
+1. **La bozza dei tipi di nodo** del primo livello, contenuto e impaginazione,
+   la scrive Alessio. La revisione deve controllare tre cose:
+   - che il modello sia neutro rispetto al motore;
+   - che l'impaginazione stia nel sottoinsieme di CSS;
+   - che ci siano agganci per l'impaginazione (nomi o classi), forme statiche
+     per gli elementi interattivi e ID per diff e riferimenti.
+2. **Sintassi canonica e formatter** per quel livello.
+3. **Corpus di conformità** con output atteso, verificato sull'albero risolto,
+   e su fogli e documenti reali, non costruiti.
+4. **Un primo prodotto possibile**, solo proposto: il runtime da riga di comando
+   in TypeScript. Prende la cartella del documento e produce l'albero risolto,
+   l'HTML e il PDF, stampato con Playwright e un Chromium fissato.
+5. **Misure da fare:**
+   - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
+     numeri di pagina);
+   - coerenza fra la vista per pagina e la stampa;
+   - avvio nel browser dei motori di calcolo candidati.
 
 ## Riferimenti pratici
 
 - Branch di lavoro: `claude/nuovo-standard-docs-ijv7f4`.
 - File: [../README.md](../README.md), [../CLAUDE.md](../CLAUDE.md),
-  [contesto.md](contesto.md), [ricerca/](ricerca/), questo file.
-- Riferimenti citati da Alessio: Notion per il modello a blocchi, Obsidian per
-  i file di testo locali. La discussione era partita da WordCraft (clone di
-  Word in Rust, pre-alpha) ed Euro-Office (fork di ONLYOFFICE).
+  [contesto.md](contesto.md), [ricerca/](ricerca/).
+- La discussione è partita da WordCraft (clone di Word in Rust, pre-alpha) ed
+  Euro-Office (fork di ONLYOFFICE). I riferimenti citati da Alessio sono Notion
+  per il modello a blocchi e Obsidian per i file di testo locali.
