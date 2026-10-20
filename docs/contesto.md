@@ -243,10 +243,14 @@ quando due rami lavorano in parallelo.
 - Livelli: restano da precisare come si referenziano i file fra loro e quale
   file indica da dove partire.
 
-- Tutto open source, e si possono riusare pezzi esistenti. Restano da
-  precisare: la licenza dell'implementazione (permissiva o copyleft), che
-  decide quali componenti si possono incorporare; la licenza del testo della
-  specifica e la concessione sui brevetti; chi governa le modifiche.
+- Si riusano pezzi esistenti open source. Il progetto è pensato per essere
+  pubblicato in futuro, probabilmente come open source (Alessio, 2026-10-20:
+  "credo avrebbe senso"), ma non è deciso. Restano da precisare: la licenza
+  dell'implementazione (permissiva o copyleft), che decide quali componenti si
+  possono incorporare; la licenza del testo della specifica e la concessione
+  sui brevetti; chi governa le modifiche. Proposta: finché non si decide,
+  preferire componenti con licenza permissiva, così restano aperte tutte e due
+  le strade.
 
 - Un documento contiene contenuto, presentazione, slide, grafici, codice,
   tabelle CSV e formattazione, esportabile in HTML e stampabile in PDF. Con la
@@ -263,8 +267,10 @@ quando due rami lavorano in parallelo.
 - Come tenere gli ID senza rumore nei diff e senza collisioni nei merge.
 - Collaborazione in tempo reale (CRDT) contro merge Git: due modelli di concorrenza.
 - Dati grandi: file colonnari referenziati, non nel sorgente.
-- Primo caso d'uso in cui gli strumenti attuali sono chiaramente peggiori.
-  Ipotesi da confermare: documentazione tecnica con dati vivi, da tenere in Git.
+- Il progetto è generale, non legato a un solo caso d'uso (Alessio,
+  2026-10-20). Per il corpus servono comunque documenti campione reali che
+  coprano gli usi: testo, liste e tracker, modelli e budget, report con
+  grafici, presentazioni, calcoli al volo.
 - Governance e licenza della specifica.
 
 ## Ordine di lavoro

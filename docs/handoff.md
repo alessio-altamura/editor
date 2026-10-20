@@ -58,8 +58,9 @@ ancora codice.
   livello dove serve, per esempio le formule accanto alla tabella.
 - Il testo in chiaro è la base di tutto. Ogni vista grafica è generata dal
   testo, e ogni modifica grafica diventa una modifica del testo.
-- Tutto open source, con riuso di componenti esistenti. Le licenze sono ancora
-  da decidere.
+- Si riusano componenti open source. Il progetto è generale, non legato a un
+  solo caso d'uso, e pensato per essere pubblicato: probabilmente open source,
+  non ancora deciso.
 
 **Tabelle**
 - Le tabelle sono liste moderne (`collection`): elementi con identità e proprietà tipizzate,
@@ -243,7 +244,7 @@ più rischioso, registro aperto.
    se la stampa la fa lo stesso Chromium con gli stessi font. Le tre opzioni
    con Typst valgono per la fase successiva.
 9. **I punti aperti di [contesto.md](contesto.md).** ID e merge, CRDT contro
-    Git, primo caso d'uso, governance.
+    Git, documenti campione per il corpus, governance.
 
 ## Prossimi passi
 
