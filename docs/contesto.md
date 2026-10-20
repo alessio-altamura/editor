@@ -79,7 +79,13 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   sé: una presentazione è una `composition` di tipo `deck`. La divisione in file riguarda solo come
   si salva: l'editor mostra ogni livello dove serve, per esempio le formule
   accanto alla tabella.
-- Ogni oggetto è un file, anche il capoverso (2026-10-20). Precisa la
+- L'unità di significato (per Alessio la `section`) ha negli attributi
+  predefiniti il `concept`, che si sviluppa in più `variant`, anche di `kind`
+  diversi. Il contesto non è collegato nell'oggetto: è il contesto, cioè la
+  `composition`, che punta la `variant` che gli serve (2026-10-20).
+- Ogni oggetto è un file, anche il capoverso (2026-10-20). Orientamento: tutti
+  gli oggetti stanno insieme, mescolati, e l'app li filtra per livello; i
+  livelli non sono cartelle. Precisa la
   decisione precedente di un file per livello: come si organizzano i livelli
   con un file per oggetto è nella bozza, [bozza-nodi.md](bozza-nodi.md).
 - I connettori grafici sono un file a parte. La loro disposizione è calcolata

@@ -89,7 +89,9 @@ Il paragrafo potrebbe essere già un contenitore, con dentro i capoversi, le
 tabelle, le immagini e così via.
 
 Decisioni del 2026-10-20, sulle proposte di Claude:
-- il contenitore si chiama `section`, il capoverso `paragraph`;
+- il contenitore si chiama `section`, il capoverso `paragraph` (correzione del
+  2026-10-20: questi nomi erano una proposta di Claude, registrata per errore
+  come decisione; vedi il §5);
 - le sezioni si possono annidare;
 - nel testo una sezione si apre con il suo titolo e si chiude al titolo
   successivo dello stesso livello o di livello superiore; il modello resta ad
@@ -283,6 +285,77 @@ Ogni oggetto è un file, anche il capoverso.
      documento intero come un testo unico, nell'ordine di lettura, in sola
      lettura. Serve a chi legge e all'AI quando deve vedere tutto il flusso.
 
+## 5. La section come unità di significato
+
+### Alessio (2026-10-20)
+
+Il capoverso lo chiamerei `section`. Ha i metadati predefiniti, con il
+concetto. Questo concetto lo posso sviluppare come bozza, come frase del
+contesto 1, frase del contesto 2, grafico del contesto 3. Il contesto non è
+collegato nell'oggetto: è il contesto che punta il tipo desiderato.
+
+### Note di Claude
+
+- **Come lo leggo.** La `section` è l'unità di significato, un file. Contiene:
+  - i suoi `attributes`, con il `concept`;
+  - i suoi sviluppi: una bozza e le `variant`, anche di `kind` diversi (una
+    frase, un'altra frase, un grafico).
+
+  L'oggetto non sa in quali contesti è usato. È la `composition`, cioè il
+  contesto, che punta allo sviluppo che le serve. Il `concept` quindi è un
+  attributo della `section`, e il raccoglitore di idee è la `section` stessa.
+- **Una conseguenza importante.** Se la `section` è l'unità di significato,
+  la struttura di lettura (capitoli, sottocapitoli, titoli, ordine) non sta
+  più nel contenuto: sta nelle `composition`. Il contenuto diventa un insieme
+  piatto di unità, ciascuna un file, e ogni `composition` costruisce il suo
+  albero puntandole. È esattamente DITA, con argomenti piatti e mappe
+  gerarchiche. La decisione "sezioni annidate, aperte dal titolo" del §2 si
+  sposta quindi nelle `composition`.
+- **Il nome.** In HTML, Word, Typst e quasi ovunque, "section" è una parte di
+  un documento con un titolo, che contiene altro. Qui invece è un'unità che
+  può essere una sola frase o un grafico. Chi legge il formato, AI compresa,
+  si aspetterà un contenitore. Alternativa: `topic`, il nome che DITA dà
+  proprio a questa unità (un file, con un nucleo di significato, usato dalle
+  mappe). La scelta è tua: se tieni `section`, il glossario segna la
+  collisione.
+- **La bozza.** "Bozza" per noi indica già gli oggetti non archiviati del
+  `canvas` (`drafts`). Per il primo sviluppo del concetto propongo un nome
+  diverso: la `variant` predefinita, cioè quella che si usa quando un
+  contesto non ne chiede una precisa.
+- **Come punta il contesto.** Proposta: una `composition` fa `embed` di una
+  `section` e indica la `variant` con il suo nome, per esempio "breve" o
+  "grafico-q3". Se non indica nulla, si usa quella predefinita. Se la
+  `variant` chiesta non esiste, è un errore del `runtime`, non un ripiego
+  silenzioso.
+
+### Alessio (2026-10-20), sui livelli
+
+No, i livelli sono cartelle, ma forse nemmeno: lascerei tutto mischiato, e lo
+filtra la nostra app.
+
+### Note di Claude
+
+- **Tutto insieme, filtrato dall'app.** È la soluzione più semplice: non c'è
+  una struttura su disco da tenere allineata, e un oggetto non deve mai
+  "cambiare cartella". Il livello diventa un filtro dell'`app` e della `cli`,
+  come gli `shelf` del `navigator`, non un posto sul disco.
+- **Il prezzo è uno solo: la cartella diventa lunga.** Con mille file, un
+  `ls` o la pagina del repository non si leggono più. GitHub, se ricordo bene,
+  nell'interfaccia web tronca le cartelle oltre i mille file; non l'ho
+  verificato.
+- **Proposta: il `kind` nell'estensione del file.** Per esempio
+  `risultati-q3.section.md`, `vendite.csv` con `vendite.schema.json`,
+  `vendite-mensili.chart.json`. Così:
+  - anche senza l'`app` si filtra con un comando, per esempio
+    `ls *.chart.json`;
+  - gli altri programmi riconoscono il formato e lo aprono, per esempio un CSV
+    in qualunque foglio di calcolo;
+  - l'editor di testo colora la sintassi giusta.
+
+  Il `kind` resta comunque scritto anche dentro il file, che è la fonte di
+  verità; l'estensione lo ripete solo per comodità, e il `runtime` controlla
+  che i due coincidano.
+
 ## Domande aperte per Alessio
 
 1. **Il nome `concept`** al posto di `summary`, visto che si può partire da
@@ -298,9 +371,13 @@ Ogni oggetto è un file, anche il capoverso.
    varianti e abbozzi dopo ancora?
 7. **Il `concept` come oggetto:** resta anche dopo lo sviluppo? Un oggetto
    può derivare da più `concept`?
-8. **Livelli come cartelle:** con un file per oggetto, ogni `part` diventa una
-   cartella con un file per oggetto?
-9. **I tre accorgimenti:** cartelle che rispecchiano le sezioni, nomi di file
-   leggibili, vista piatta dalla `cli`?
-10. **L'inventario dei `kind`:** quali tipi di blocco e in linea servono al
+8. **Tutto in una cartella:** gli oggetti stanno insieme e l'`app` filtra per
+   livello (orientamento di Alessio); il `kind` anche nell'estensione del file?
+9. **Gli accorgimenti rimasti:** nomi di file leggibili, ricavati dalle prime
+   parole, e vista piatta dalla `cli`?
+10. **Il nome dell'unità:** `section` o `topic`?
+11. **La struttura di lettura nelle `composition`:** capitoli, titoli e ordine
+    stanno lì, e il contenuto è un insieme piatto di unità?
+12. **La `variant` predefinita** al posto di "bozza"?
+13. **L'inventario dei `kind`:** quali tipi di blocco e in linea servono al
    primo livello.

@@ -87,8 +87,9 @@ diverso da qui: è un bersaglio da criticare e non va corretta.
 | nodo | unità del modello, contro le cose collegate dai wire | `node` solo per il modello |
 | documento | la cartella intera, contro la composizione a flusso | `document`, `article` |
 | paragrafo | in italiano la sezione numerata (§3.2), in inglese il capoverso | `section` per il contenitore, `paragraph` per il capoverso |
-| contesto | i tag di contesto; il contesto per cui esiste una versione di un oggetto; il file contesto.md | `tags`, `variant` |
+| contesto | i tag di contesto; il contesto che usa una versione di un oggetto, cioè la `composition`; il file contesto.md | `tags`, `composition` |
 | parte | un file del documento, contro un pezzo del documento | `part` per il file, `object` per il pezzo |
+| bozza | gli oggetti non archiviati del canvas; il primo sviluppo di un concetto | `drafts`, `variant` predefinita |
 | presentazione, slide | la presentazione, contro la singola slide | `deck` per la presentazione, che è una `composition`; `slide` per la pagina; le slide non sono un `part` a sé |
 | elemento | elemento di una collection, contro oggetto o tipo di contenuto | `record` solo per la collection |
 | blocco | blocco di codice; blocco alla Notion; blocco libero; passo | `code block`, `object`, `scratch`, `step` |
@@ -150,7 +151,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 |---|---|---|---|---|
 | `document` | documento | Insieme di file di testo più gli asset, in una cartella o in un `bundle` | concetto deciso, nome proposto | project, workbook |
 | `bundle` | pacchetto | Il documento compresso in un unico zip con `file extension` propria, da scegliere | proposto | package, archive |
-| `part` | livello | Un livello del documento: contenuto, stile, dati, formule, wire, grafici, composizioni, canvas; con un file per `object` diventa probabilmente una cartella (da confermare) | deciso | layer, level, tier |
+| `part` | livello | Un livello del documento (contenuto, stile, dati, formule, wire, grafici, composizioni, canvas): un gruppo di `kind`, sviluppato per fasi; orientamento: non è né un file né una cartella, gli oggetti stanno insieme e l'`app` li filtra per livello | deciso | layer, level, tier |
 | `source` | sorgente | Il testo dei file del documento, fonte di verità da cui si generano le viste | concetto deciso, nome proposto | code, integration |
 | `asset` | asset | File non testuale: immagini, font, dati grandi | proposto | attachment, resource |
 | `schema` | schema | File che dichiara tipi, chiavi, dimensioni e `dialect` di una `collection` | concetto deciso, nome proposto | header, metadata |
@@ -188,14 +189,14 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `attributes` | metadati comuni | Attributi facoltativi di ogni `node`: `id`, `tags`, `class` e altri da decidere; precedente: gli attributi (Attr) di Pandoc | concetto deciso, nome proposto | metadata, properties |
 | `tags` | tag di contesto | Uno o più tag che dicono a cosa si riferisce un `node`, per organizzare e filtrare nel `navigator` | concetto deciso, nome proposto | labels, categories, class |
 | `lang` | lingua | Lingua del contenuto di un `node`, per sillabazione, controllo ortografico e screen reader | proposto | language, locale |
-| `section` | paragrafo (contenitore) | Contenitore di `paragraph`, tabelle, immagini e altri nodi; da precisare se annidabile e se coincide con l'oggetto `text` | concetto deciso, nome proposto | paragraph, block, chapter |
-| `paragraph` | capoverso | Blocco di prosa dentro una `section` | proposto | section, block |
-| `concept` | concetto, raccoglitore di idee | `object` che contiene un'idea, il primo da cui si parte: da lui si fa `develop` di uno o più oggetti di tipi diversi; si può anche ricavare dopo da un oggetto con `distill`; può farlo un LLM come `hint` | proposto | summary, description, abstract, idea |
+| `section` | capoverso, unità di significato | `object` e file con i suoi `attributes` (fra cui il `concept`) e i suoi sviluppi in `variant`; nome scelto da Alessio, collide con l'uso comune di contenitore con titolo; alternativa: topic, come in DITA | concetto deciso, nome proposto | paragraph, block, topic |
+| `paragraph` | capoverso | Blocco di prosa; con la `section` come unità di significato forse non serve | aperto | section, block |
+| `concept` | concetto | Nucleo semantico di una `section`, fra i suoi `attributes`: da lui si fa `develop` delle `variant`, anche di `kind` diversi; si può anche ricavare dal testo con `distill`; può farlo un LLM come `hint` | concetto deciso, nome proposto | summary, description, abstract, idea |
 | `develop` | sviluppare | Operazione: da un `concept` a uno o più `object`, anche di `kind` diversi, o a una `variant` | proposto | expand, generate |
 | `distill` | ricavare il concetto | Operazione: dal testo al `concept` | proposto | summarize, extract |
 | `origin` | origine | Attributo che dice se un `concept` o una `variant` è scritto da una persona o generato e confermato | proposto | source, author |
 | `concept map` | mappa concettuale | Vista generata dei concetti di tutti gli oggetti e dei loro legami | proposto | knowledge graph, graph |
-| `variant` | versione | Versione con nome di un `object` (breve, tecnica, in un'altra lingua), scelta dalla `composition` che lo usa | proposto | version, copy, context |
+| `variant` | versione, sviluppo | Sviluppo con nome di una `section` per un contesto, anche di `kind` diverso (frase, grafico); una è la predefinita; la `composition` punta quella che le serve | proposto | version, copy, context |
 
 ### 4.3 Composizioni e stile
 
