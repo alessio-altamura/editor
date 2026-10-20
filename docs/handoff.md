@@ -45,14 +45,15 @@ ancora codice.
 **Formato e livelli**
 - Un documento è un insieme di file di testo più gli asset, in una cartella in
   chiaro o in uno zip con estensione propria.
-- Si procede in modo incrementale: un file per livello, uno alla volta, in
-  quest'ordine:
+- Si procede in modo incrementale: un file per livello (`part`), uno alla
+  volta, in quest'ordine:
   1. contenuto e impaginazione;
   2. dati;
   3. grafici;
   4. formule;
   5. connettori;
-  6. slide.
+  6. presentazioni, come `composition` di tipo `deck` (le slide non sono un
+     livello a sé).
 - La divisione in file riguarda solo il salvataggio: l'editor mostra ogni
   livello dove serve, per esempio le formule accanto alla tabella.
 - Il testo in chiaro è la base di tutto. Ogni vista grafica è generata dal
@@ -61,7 +62,7 @@ ancora codice.
   da decidere.
 
 **Tabelle**
-- Le tabelle sono liste moderne: elementi con identità e proprietà tipizzate,
+- Le tabelle sono liste moderne (`collection`): elementi con identità e proprietà tipizzate,
   relazioni fra liste, più viste dello stesso elenco.
 - Ogni tabella ha un nome obbligatorio. Le celle non hanno coordinate.
 - Le colonne hanno un tipo. Le tabelle possono essere multidimensionali.
@@ -125,6 +126,10 @@ ancora codice.
   suggerimenti da confermare.
 
 **Implementazione**
+- Regole dei nomi del §1 del glossario decise, e decisi i nomi `collection`,
+  `part` e `composition`. I connettori del marketplace sono `integration`:
+  servizi esterni come fonti di dati, posta, calendari, video e media.
+- La riga di comando ha le proprietà confermate in [contesto.md](contesto.md).
 - Nomi del prodotto in inglese, fissati nel glossario
   [glossario.md](glossario.md), impostato sul modello di quello di ID-Zero:
   regole dei nomi nel §1, parole con più significati, nomi che collidono con

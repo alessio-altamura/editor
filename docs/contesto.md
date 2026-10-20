@@ -35,7 +35,7 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   specifica: solo proprietà con un significato fissato e traducibili anche per
   un futuro motore Typst.
 - Lo strumento nasce con una riga di comando, in modo che un'AI possa
-  configurarlo e usarlo con semplicità. Proposte da confermare: ogni
+  configurarlo e usarlo con semplicità. Proprietà confermate: ogni
   operazione dell'editor esiste anche da riga di comando (la CLI è un client
   del runtime come l'app); output leggibile da macchina (JSON) con schema
   stabile, codici di uscita ed errori con codice e suggerimento di
@@ -48,6 +48,9 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   fissa ogni nome per evitare usi incoerenti. I documenti di lavoro restano in
   italiano finché il repository è privato; se diventa pubblico si traduce
   tutto in inglese.
+- Le regole dei nomi del §1 di [glossario.md](glossario.md) sono decise, e così
+  i nomi `collection` (le liste moderne), `part` (i file del documento) e
+  `composition` (documento, presentazione e altre viste composte).
 - Linguaggio di implementazione: TypeScript per la prima versione (runtime,
   LSP, riga di comando ed editor). Rust compilato in WASM solo dove le misure lo
   chiederanno, per esempio per il motore di calcolo o il parser.
@@ -71,8 +74,9 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   testuale, e ogni modifica fatta nell'editor grafico diventa una modifica del
   testo.
 - Si procede in modo incrementale, per livelli: un file di testo per ciascun
-  livello (contenuto, impaginazione, dati, formule, connettori, grafici,
-  slide), aggiungendone uno alla volta. La divisione in file riguarda solo come
+  livello (contenuto, impaginazione, dati, formule, connettori, grafici, e le
+  composizioni), aggiungendone uno alla volta. Le slide non sono un livello a
+  sé: una presentazione è una `composition` di tipo `deck`. La divisione in file riguarda solo come
   si salva: l'editor mostra ogni livello dove serve, per esempio le formule
   accanto alla tabella.
 - I connettori grafici sono un file a parte. La loro disposizione è calcolata
@@ -91,7 +95,7 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   tipizzate, relazioni fra liste, più viste dello stesso elenco (tabella,
   board, calendario, grafico).
 - Ordine dei livelli: contenuto e impaginazione, poi dati, grafici, formule,
-  connettori, slide.
+  connettori, e infine le presentazioni come `deck`.
 - All'apertura c'è il foglio bianco. I layout (documento, presentazione e
   altri) sono viste create a parte, che usano gli oggetti del foglio.
 - Il foglio bianco è un foglio di bozze. Quando un oggetto viene archiviato
@@ -195,8 +199,9 @@ quando due rami lavorano in parallelo.
   fissate nel documento con un hash; si procede per gradi: prima template di
   layout senza codice, poi tipi dichiarativi, poi tipi con codice in sandbox,
   poi connettori a fonti esterne con permessi dichiarati; il registro è aperto
-  e replicabile, come crates.io o Typst Universe. Da chiarire se "connettori"
-  qui significa fonti di dati esterne o i connettori grafici.
+  e replicabile, come crates.io o Typst Universe. I connettori del
+  marketplace sono integrazioni con servizi esterni: fonti di dati, ma anche
+  posta, calendari, video come YouTube e media in generale.
 
 - Lo spazio libero come punto d'ingresso dello strumento: si parte da una
   pagina vuota e si scrive, poi ogni pezzo si promuove all'elemento che serve

@@ -10,8 +10,8 @@ inglese.
 L'impostazione riprende il glossario di ID-Zero (`id-zero-internal`,
 `docs/glossario.md`, regole DEC-431, DEC-432, DEC-435, DEC-438 e DEC-439),
 adattata a un prodotto senza notazione matematica: niente simboli né
-vocabolario dei pedici. Le regole del §1 sono proposte da confermare con
-Alessio.
+vocabolario dei pedici. Le regole del §1 sono decise da Alessio
+(2026-10-20).
 
 Controllo: `python3 -I tools/verifica_glossario.py docs/glossario.md`. Deve
 dire «esito: OK».
@@ -78,15 +78,15 @@ diverso da qui: è un bersaglio da criticare e non va corretta.
 |---|---|---|
 | layout | impaginazione; documento o presentazione come vista; posizioni sul canvas; schema di una slide; disposizione automatica; layout a vincoli | `stylesheet`, `composition`, `placement`, `slide template`, `auto arrange`, `constraints` |
 | lista | tabella come lista moderna; elenco puntato; pannello a fianco del canvas | `collection`, `bullet list`, `navigator` |
-| connettore | collegamento grafico; fonte di dati esterna | `wire`, `data source` |
+| connettore | collegamento grafico; integrazione con un servizio esterno | `wire`, `integration` |
 | foglio | foglio di bozze (in inglese "sheet" fa pensare al foglio di calcolo) | `canvas` |
 | tabella | griglia come vista; tabella come dato; tabellina scritta nel testo | `grid`, `collection`, `text table` |
 | vista | vista di una collection; composizione; rappresentazione generata; modalità; anteprima; grafico | `view` solo per la prima; gli altri hanno nomi propri |
 | motore | runtime; rendering; calcolo; browser di stampa | `runtime`, `renderer`, `evaluator`, `print browser` |
-| sorgente | il testo dei file, contro la fonte di dati esterna | `source`, `data source` |
+| sorgente | il testo dei file, contro la fonte di dati esterna | `source`, `integration` |
 | nodo | unità del modello, contro le cose collegate dai wire | `node` solo per il modello |
 | documento | la cartella intera, contro la composizione a flusso | `document`, `article` |
-| presentazione, slide | il livello delle slide, contro la presentazione come vista | `deck` per la composizione; il livello è da rivedere |
+| presentazione, slide | la presentazione, contro la singola slide | `deck` per la presentazione, che è una `composition`; `slide` per la pagina; le slide non sono un `part` a sé |
 | elemento | elemento di una collection, contro oggetto o tipo di contenuto | `record` solo per la collection |
 | blocco | blocco di codice; blocco alla Notion; blocco libero; passo | `code block`, `object`, `scratch`, `step` |
 | livello | file del documento; livelli di diff; strati del linguaggio; profondità del grafo | `part` solo per il primo |
@@ -123,7 +123,7 @@ proposta principale.
 | `promote`, `demote` | alzare o abbassare il livello dei titoli in Word e Org-mode | `turn into` e `revert`, come in Notion |
 | `inbox` | in Gmail archiviare toglie dalla inbox | `unfiled` |
 | `package` | pacchetto npm; pacchetto di Typst Universe | `bundle` |
-| `source` (per i dati) | il testo sorgente | `data source` |
+| `source` o `data source` (per i servizi esterni) | il testo sorgente | `integration` |
 | `engine` | motore di calcolo in Excel; motori del browser | `renderer` |
 | `run`, `show` | run di testo in OOXML; show rule di Typst | `eval` ed `echo`, come in Quarto e knitr, già noti all'AI |
 | `snapshot` | output atteso dei test in Jest e Vitest | `frozen values`, verbo `freeze` come in Quarto |
@@ -147,8 +147,8 @@ colonne *codice* e *spec*, come in ID-Zero.
 |---|---|---|---|---|
 | `document` | documento | Insieme di file di testo più gli asset, in una cartella o in un `bundle` | concetto deciso, nome proposto | project, workbook |
 | `bundle` | pacchetto | Il documento compresso in un unico zip con `file extension` propria, da scegliere | proposto | package, archive |
-| `part` | livello | Un tipo di file del documento: contenuto, stile, dati, formule, wire, grafici, composizioni, canvas | concetto deciso, nome proposto | layer, level, tier |
-| `source` | sorgente | Il testo dei file del documento, fonte di verità da cui si generano le viste | concetto deciso, nome proposto | code, data source |
+| `part` | livello | Un tipo di file del documento: contenuto, stile, dati, formule, wire, grafici, composizioni, canvas | deciso | layer, level, tier |
+| `source` | sorgente | Il testo dei file del documento, fonte di verità da cui si generano le viste | concetto deciso, nome proposto | code, integration |
 | `asset` | asset | File non testuale: immagini, font, dati grandi | proposto | attachment, resource |
 | `schema` | schema | File che dichiara tipi, chiavi, dimensioni e `dialect` di una `collection` | concetto deciso, nome proposto | header, metadata |
 | `dialect` | dialetto | Separatore, quoting e codifica di un CSV o TSV, dichiarati nello `schema` | proposto | format |
@@ -187,9 +187,9 @@ colonne *codice* e *spec*, come in ID-Zero.
 
 | Nome | Italiano | Definizione | Stato | Da non usare |
 |---|---|---|---|---|
-| `composition` | vista layout | Composizione ordinata di oggetti per `embed`: `article`, `deck`, `webpage` | concetto deciso, nome proposto | layout, view, template |
+| `composition` | vista layout | Composizione ordinata di oggetti per `embed`: `article`, `deck`, `webpage` | deciso | layout, view, template |
 | `article` | documento | `composition` a flusso, per lettura e stampa | proposto | document |
-| `deck` | presentazione | `composition` fatta di `slide` | proposto | presentation, slides |
+| `deck` | presentazione | `composition` fatta di `slide` | concetto deciso, nome proposto | presentation, slides |
 | `webpage` | pagina web | `composition` pubblicata come pagina HTML | proposto | page, site |
 | `slide` | slide | Pagina a dimensione fissa di un `deck` | proposto | page, frame |
 | `reading order` | ordine di lettura | Ordine degli oggetti in una `composition`, deciso da chi scrive | concetto deciso, nome proposto | sequence |
@@ -211,7 +211,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 
 | Nome | Italiano | Definizione | Stato | Da non usare |
 |---|---|---|---|---|
-| `collection` | tabella, lista moderna | Insieme con nome di `record` con identità e `field` tipizzati; può avere più `dimension` | concetto deciso, nome proposto | list, table, array, sheet |
+| `collection` | tabella, lista moderna | Insieme con nome di `record` con identità e `field` tipizzati; può avere più `dimension` | deciso | list, table, array, sheet |
 | `record` | elemento | Un elemento di una `collection` | concetto deciso, nome proposto | item, row, element |
 | `field` | proprietà, colonna | Proprietà con nome e `type` di un `record` | concetto deciso, nome proposto | column, attribute, property |
 | `type` | tipo | Tipo di un `field`: numero, testo, data, categoria e altri | concetto deciso, nome proposto | kind |
@@ -238,7 +238,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `wire group` | raggruppamento | Gruppo con nome di elementi del `wire diagram`, apribile come livello | proposto | cluster, module |
 | `dependency graph` | grafo delle dipendenze | Chi usa cosa fra `formula`, `collection` e codice, ricavato senza eseguire | proposto | graph |
 | `check` | controllo | `node` che afferma una condizione, eseguito dal `runtime` | proposto | test, assert |
-| `data source` | connettore dati | Fonte di dati esterna (database, API, file remoto), con `permission` dichiarati | proposto | source, connector, feed |
+| `integration` | connettore del marketplace | `extension` che collega un servizio esterno: fonti di dati (database, API, file remoti), posta, calendari, video e media; con `permission` dichiarati e `static fallback` | concetto deciso, nome proposto | data source, source, connector, feed |
 | `board` | board | `view` di una `collection` a colonne di schede | concetto deciso, nome proposto | kanban |
 | `calendar` | calendario | `view` di una `collection` sulle date | concetto deciso, nome proposto | agenda |
 | `reference` | riferimento | Nome di un concetto usato dentro un'`expression` | proposto | link, pointer |
@@ -307,8 +307,8 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `profile` | profilo | Sottoinsieme del linguaggio delle formule fissato dalla `spec` | proposto | dialect |
 | `budget` | budget | Limite di tempo e memoria per una valutazione | proposto | quota, limit |
 | `conformance suite` | corpus di conformità | Documenti d'esempio con il `resolved tree` atteso | proposto | tests, corpus |
-| `extension` | estensione | Pacchetto che aggiunge `kind`, `template` o `data source` | proposto | plugin, addon, package |
+| `extension` | estensione | Pacchetto che aggiunge `kind`, `template` o `integration` | concetto deciso, nome proposto | plugin, addon, package |
 | `directive` | forma generica | Sintassi generica per `kind` non noti, conservata dal `formatter` anche senza l'`extension` | proposto | macro, tag |
 | `sandbox` | sandbox | Ambiente isolato per il codice delle `extension` | proposto | container |
-| `permission` | permesso | Accesso a rete e file dichiarato da `data source` ed `extension` | proposto | capability, grant |
+| `permission` | permesso | Accesso a rete e file dichiarato da `integration` ed `extension` | proposto | capability, grant |
 | `registry` | marketplace, registro | Registro aperto e replicabile delle `extension` | proposto | store |
