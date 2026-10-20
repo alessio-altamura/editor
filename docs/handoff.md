@@ -179,7 +179,7 @@ Gli elenchi completi sono in [contesto.md](contesto.md).
 
 ## Ricerca fatta
 
-Ci sono sei note in [ricerca/](ricerca/), con fonti primarie e fatti
+Ci sono sette note in [ricerca/](ricerca/), con fonti primarie e fatti
 ricontrollati da un secondo agente, salvo le parti che ogni nota indica.
 
 - **[ricerca/formule-python.md](ricerca/formule-python.md).** Python non ha
@@ -212,6 +212,10 @@ ricontrollati da un secondo agente, salvo le parti che ogni nota indica.
     un'impronta del bersaglio; la semantica serve a proporre candidati.
   - Gli script delle misure locali sono in
     [ricerca/misure/embedding/](ricerca/misure/embedding/).
+- **[ricerca/sintassi-testo.md](ricerca/sintassi-testo.md).** CommonMark con
+  un'intestazione contro Djot, per i file di testo. CommonMark non ha né
+  attributi né front matter; Djot ha gli attributi ma si dichiara instabile, e
+  GitHub non lo riconosce. Non sceglie: dà i costi.
 
 ## Ultima discussione
 
@@ -261,6 +265,18 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
 
 ## Prossimi passi
 
+0. **La bozza di specifica**, [specifica.md](specifica.md), del `core` e della
+   classe 1 (2026-10-20). L'ha scritta una sottosessione su mandato
+   dell'orchestratore, in tre giri, ciascuno controllato da revisori
+   indipendenti; gli esempi numerati sono anche i test, e uno script dei
+   revisori li ricalcola tutti. Marca ogni requisito come deciso, proposta o
+   APERTO. Aspetta Alessio su sette punti aperti (§0.1-§0.7): i `kind` della
+   classe 1 e dove si scrivono, un `text` con uno o più capoversi, identità e
+   collegamenti che si rompono, il risultato delle righe di calcolo, il
+   sottoinsieme di CSS, la sintassi, capitoli e titoli. Contiene anche
+   proposte nuove da confermare: classi di conformità 0-6, attributi
+   sconosciuti ignorati con un avviso, una forma generica dei riferimenti nel
+   `core`.
 1. **La bozza dei tipi di nodo** del primo livello è iniziata in
    [bozza-nodi.md](bozza-nodi.md): è di Alessio, scritta insieme. Il
    2026-10-20 è diventata una sintesi del modello: il `concept` come unità di
