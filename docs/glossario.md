@@ -88,6 +88,7 @@ diverso da qui: è un bersaglio da criticare e non va corretta.
 | nodo | unità del modello, contro le cose collegate dai wire | `node` solo per il modello |
 | documento | la cartella intera, contro la composizione a flusso | `document`, `article` |
 | paragrafo, sezione | in italiano la sezione numerata (§3.2), in inglese il capoverso; usati anche per l'unità di significato | il capoverso è un `object` di `kind` `text`; l'unità di significato è il `concept`; capitoli e titoli stanno nella `composition` |
+| nucleo | l'HTML come nucleo dei motori; la parte della specifica che ogni implementazione legge | `renderer` HTML per il primo, `core` per il secondo |
 | contesto | i tag di contesto; il contesto che usa una versione di un oggetto, cioè la `composition`; il file contesto.md | `tags`, `composition` |
 | parte | un file del documento, contro un pezzo del documento | `part` per il file, `object` per il pezzo |
 | oggetto | per Alessio anche l'unità con il concetto, i metadati e gli sviluppi, contro il pezzo con un tipo sul canvas | `concept` per l'unità, `object` per il pezzo |
@@ -95,7 +96,7 @@ diverso da qui: è un bersaglio da criticare e non va corretta.
 | presentazione, slide | la presentazione, contro la singola slide | `deck` per la presentazione, che è una `composition`; `slide` per la pagina; le slide non sono un `part` a sé |
 | elemento | elemento di una collection, contro oggetto o tipo di contenuto | `record` solo per la collection |
 | blocco | blocco di codice; blocco alla Notion; blocco libero; passo | `code block`, `object`, `scratch`, `step` |
-| livello | file del documento; livelli di diff; strati del linguaggio; profondità del grafo | `part` solo per il primo |
+| livello | file del documento, oggi gruppo di `kind`; passo dell'ordine dei livelli come insieme di requisiti; livelli di diff; strati del linguaggio; profondità del grafo | `part` per il primo, `conformance class` per il secondo |
 | tipo | tipo di dato; tipo di oggetto, di nodo, di grafico; tipo di file | `type` per il dato, `kind` per oggetti e nodi, `part` per i file |
 | testo | il sorgente; un oggetto di prosa; testo libero | `source`, `text`, `scratch` |
 | spazio libero | appunti dentro il contenuto, contro il canvas | `scratch`, `canvas` |
@@ -103,7 +104,7 @@ diverso da qui: è un bersaglio da criticare e non va corretta.
 | sezione | sezione del navigator, contro sezione del testo | `shelf` per il navigator; nel testo non ci sono sezioni: capitoli e titoli stanno nella `composition` |
 | intestazione | nome di colonna; riga di intestazione del CSV; titolo; intestazione di pagina | `field`, `header row`, `heading`, `running header` |
 | riferimento | uso di un oggetto; riferimento in un'espressione; riferimento numerato; riferimento fra file | `embed`, `reference`, `cross-ref`, da decidere con il `manifest` |
-| collegamento | wire; relazione fra collection; collegamento suggerito | `wire`, `relation` |
+| collegamento | fra `concept` e `object`; wire; relazione fra collection; collegamento suggerito | `association`, `wire`, `relation`, `hint` |
 | albero, grafo | albero di sintassi; modello; albero risolto; dipendenze; vista a connettori | `syntax tree`, `model`, `resolved tree`, `dependency graph`, `wire diagram` |
 | risultato | risultato in linea; output del codice; valori fotografati; HTML e PDF prodotti | `inline result`, `results`, `frozen values`, `output` |
 | stampa | produzione del PDF, contro stampa canonica del formatter | `print`, `format` |
@@ -136,11 +137,12 @@ proposta principale.
 | `suggestion` | modifiche proposte da un collaboratore in Google Docs | `hint` |
 | `calc line` | `calc()` in CSS | `math line` |
 | `item` | voce di un elenco puntato (`<li>`) | `record` |
+| `imprint` | Impressum, le note legali di un sito | `target quote` |
 
 Da qualificare sempre: `canvas` (contro l'elemento HTML canvas), `grid` (contro
 `display: grid` del CSS), `runtime` (contro Node, Deno, Bun), `view` (contro le
 VIEW di SQL), `measure` e `dimension` (contro i loro usi in Power BI e nel
-design).
+design), `hint` (contro DiagnosticSeverity.Hint di LSP).
 
 ## 4. I concetti del prodotto
 
@@ -188,14 +190,20 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `inline result` | risultato in linea | Valore mostrato accanto a una `math line` | proposto | output |
 | `text table` | tabellina | Tabella scritta nel testo, non ancora `collection` | proposto | table |
 | `text` | testo | `kind` di `object` fatto di prosa | proposto | paragraph (da fissare con la bozza) |
-| `attributes` | metadati comuni | Attributi di ogni file: `id`, `tags`, `lang`, `origin`; sugli `object` anche `kind`, obbligatorio, e `class`; gli altri dipendono dal `kind`; precedente: gli attributi (Attr) di Pandoc | concetto deciso, nome proposto | metadata, properties |
+| `image` | immagine | `kind` di `object` per un'immagine fatta fuori dal `runtime`, con il suo `asset`; dove stanno i suoi attributi è da decidere | proposto | picture, figure |
+| `attributes` | metadati comuni | Attributi comuni, opzionali: `id` e `tags` su ogni `kind`, `class` e `lang` sui nodi che si vedono; ogni nodo ha anche un `kind`; `origin` è da decidere; gli altri attributi dipendono dal `kind`; precedente: gli attributi (Attr) di Pandoc | concetto deciso, nome proposto | metadata, properties |
 | `tags` | tag di contesto | Uno o più tag che dicono a cosa si riferisce un `node`, per organizzare e filtrare nel `navigator` | concetto deciso, nome proposto | labels, categories, class |
-| `lang` | lingua | Lingua del contenuto di un `node`, per sillabazione, controllo ortografico e screen reader | proposto | language, locale |
+| `lang` | lingua | Lingua del contenuto di un `node` che si vede, per sillabazione, controllo ortografico e screen reader; si eredita, da cosa è da precisare | concetto deciso, nome proposto | language, locale |
 | `concept` | concetto | Unità di significato, un file: un'idea in una o due frasi, i suoi `attributes` e i collegamenti agli `object` che la sviluppano; si scrive prima e se ne fa `develop`, o si ricava dopo con `distill`; può proporlo un LLM come `hint`; i collegamenti con gli `object` si scrivono da una parte, dall'altra o da entrambe | deciso | summary, description, abstract, idea, section |
 | `develop` | sviluppare | Operazione: da un `concept` a uno o più `object` nuovi, anche di `kind` diversi, collegati al `concept` | proposto | expand, generate |
 | `distill` | ricavare il concetto | Operazione: da un `object` a un `concept` nuovo che lo collega | proposto | summarize, extract |
 | `origin` | origine | Attributo che dice se un `concept` o un `object` è scritto da una persona o generato e confermato | proposto | source, author |
 | `concept map` | mappa concettuale | Vista generata dei `concept`, degli `object` che li sviluppano e dei loro collegamenti | proposto | knowledge graph, graph |
+| `association` | collegamento | Collegamento fra un `concept` e un `object`, scritto da una parte, dall'altra o da entrambe; non porta dati, a differenza del `wire`; se valga anche fra due `object` o fra due `concept`, e il confine con le dipendenze, sono da decidere | concetto deciso, nome proposto | link, relation, reference |
+| `retired id` | id ritirato | `id` di un nodo cancellato o fuso in un altro, che non si riusa; se e dove se ne tiene traccia, con l'eventuale successore, è da decidere | aperto | dead id, tombstone |
+| `replaces` | sostituisce | Attributo di una delle opzioni per la traccia dei `retired id`: nel successore, gli `id` di cui ha preso il posto | aperto | alias |
+| `target quote` | impronta | Poche parole e l'hash del bersaglio, salvate insieme con un'`association` confermata per ritrovarlo e per vedere che è cambiato; da decidere | aperto | imprint, fingerprint, signature, checksum |
+| `id reference` | riferimento per id | Forma generica, fissata nel `core`, con cui un file nomina un altro `node` per `id`: un `embed`, un riferimento in linea, un valore di attributo | proposto | link, pointer |
 
 ### 4.3 Composizioni e stile
 
@@ -208,7 +216,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `slide` | slide | Pagina a dimensione fissa di un `deck` | proposto | page, frame |
 | `reading order` | ordine di lettura | Ordine degli oggetti in una `composition`, deciso da chi scrive | concetto deciso, nome proposto | sequence |
 | `stylesheet` | impaginazione | Regole nel sottoinsieme di CSS della specifica | concetto deciso, nome proposto | layout, style, theme |
-| `class` | aggancio | Nome su un `node` a cui si agganciano le regole dello `stylesheet` | proposto | tag, style |
+| `class` | aggancio | Nome su un `node` che si vede, a cui si agganciano le regole dello `stylesheet` | concetto deciso, nome proposto | tag, style |
 | `template` | template | Forma riutilizzabile senza contenuto: `composition` o `stylesheet`; orientamento di Alessio: anche il modo di vedere una `collection`, che un `chart` applica a dati diversi; distribuibile come `extension` | proposto | theme, preset |
 | `slide template` | schema di slide | Disposizione predefinita di una `slide`, come titolo e contenuto | proposto | layout, master |
 | `placement` | posizioni | Posizioni sistemate a mano nel `wire diagram`; file a parte | concetto deciso, nome proposto | layout |
@@ -232,7 +240,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `unit` | unità di misura | Unità facoltativa di un `field` numerico | proposto | measure |
 | `field value` | valore | Valore di un `field` in un `record`, senza coordinate | concetto deciso, nome proposto | cell |
 | `key` | chiave | `field`, o combinazione di `field`, che identifica un `record` | proposto | index |
-| `id` | ID | Identificativo stabile di un `record` o di un oggetto, se manca una `key` | proposto | uuid, ref |
+| `id` | ID | Identificativo stabile di ogni `node`, per ogni `kind`: unico, di minuscole, cifre e trattino, mai riusato; per un `record` vale se manca una `key` | concetto deciso, nome proposto | uuid, ref |
 | `relation` | relazione | `field` che collega `record` di due `collection` | concetto deciso, nome proposto | link, lookup |
 | `dimension` | dimensione | `field` che fa da asse di una `collection` multidimensionale | concetto deciso, nome proposto | axis, category |
 | `measure` | misura | `field` con i valori di una `collection` multidimensionale | proposto | value, metric |
@@ -294,6 +302,8 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `output` | output | HTML o PDF prodotto da un `export` | proposto | result, render |
 | `format` | formattare | Verbo del `formatter`: riscrivere il `source` nella forma canonica | proposto | print, prettify |
 | `freeze` | fotografare | Verbo di `frozen values`: salvare i valori all'`export` | concetto deciso, nome proposto | snapshot |
+| `diagnostic` | errore o avviso | Errore o avviso del `runtime` con un codice stabile, il file e, se c'è, un `fix` | proposto | problem, issue, lint |
+| `fix` | suggerimento di correzione | Correzione proposta da un `diagnostic`; diversa dall'`hint`, che propone contenuto o collegamenti | proposto | hint, suggestion, quick fix |
 
 ### 4.6 App, CLI e protocolli
 
@@ -318,11 +328,13 @@ colonne *codice* e *spec*, come in ID-Zero.
 |---|---|---|---|---|
 | `spec` | specifica | Il testo normativo dello standard | proposto | standard, docs |
 | `spec version` | versione della semantica | Versione della specifica scritta in ogni documento | proposto | format version |
+| `core` | nucleo | Ciò che ogni implementazione conforme sa leggere: `document`, `id`, `attributes`, `concept`, `association`, `directive`, `diagnostic` e `resolved tree` | proposto | base, kernel |
+| `conformance class` | classe di conformità | Insieme di requisiti che un'implementazione dichiara di soddisfare: la classe 0 è il `core`, e ogni classe successiva corrisponde a un passo dell'ordine deciso dei livelli; aggiunge `kind` e attributi senza cambiare il significato di ciò che c'era | proposto | conformance level, profile, tier, level |
 | `profile` | profilo | Sottoinsieme del linguaggio delle formule fissato dalla `spec` | proposto | dialect |
 | `budget` | budget | Limite di tempo e memoria per una valutazione | proposto | quota, limit |
 | `conformance suite` | corpus di conformità | Documenti d'esempio con il `resolved tree` atteso | proposto | tests, corpus |
 | `extension` | estensione | Pacchetto che aggiunge `kind`, `template` o `integration` | concetto deciso, nome proposto | plugin, addon, package |
-| `directive` | forma generica | Sintassi generica per `kind` non noti, conservata dal `formatter` anche senza l'`extension` | proposto | macro, tag |
+| `directive` | forma generica | Sintassi generica per `kind` non noti, e il `node` letto in quella forma: il `parser` lo legge e il `formatter` lo conserva anche senza l'`extension` | proposto | macro, tag |
 | `sandbox` | sandbox | Ambiente isolato per il codice delle `extension` | proposto | container |
 | `permission` | permesso | Accesso a rete e file dichiarato da `integration` ed `extension` | proposto | capability, grant |
 | `registry` | marketplace, registro | Registro aperto e replicabile delle `extension` | proposto | store |
