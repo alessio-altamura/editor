@@ -201,8 +201,12 @@ titoli di una `composition`, che non hanno `class` (§0.7).
 
 ### 0.6 APERTO: la sintassi dei file di testo
 
-CommonMark con un'intestazione, oppure Djot. Fatti e costi sono nella nota
-[ricerca/sintassi-testo.md](ricerca/sintassi-testo.md). La scelta tocca gli
+Alessio ha chiesto di valutare quattro strade [C: «Sintassi dei file di
+testo»]: CommonMark con un'intestazione; Djot; Markdown con una sintassi
+nostra, come fa Obsidian; un formato nostro. La nota
+[ricerca/sintassi-testo.md](ricerca/sintassi-testo.md) scrive lo stesso
+documento in tutte e quattro e le confronta con gli stessi criteri. La scelta
+tocca gli
 attributi del file e dei blocchi (§4), l'`embed` (§8), l'inventario del
 contenuto (§7.1), il `formatter` e il `syntax tree` che conserva i
 commenti.
@@ -218,7 +222,9 @@ Con djot.js 0.3.2 questo dà un altro albero, finché non si scrivono tre
 regole: il blocco di attributi davanti al primo blocco vale per il file e
 non per il capoverso; un valore con spazi si legge come lista; un file fatto
 solo di attributi resta un nodo (djot.js scarta un blocco di attributi senza
-blocco dopo). Le prove sono nella nota.
+blocco dopo). Le prove sono nella nota. La sintassi provvisoria degli
+esempi, con `![[id]]` e `"[[id]]"`, è già vicina alla terza strada: non è una
+scelta.
 
 ### 0.7 APERTO: capitoli e titoli nella `composition`
 
