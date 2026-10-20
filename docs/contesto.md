@@ -79,6 +79,9 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   connettori, slide.
 - All'apertura c'è il foglio bianco. I layout (documento, presentazione e
   altri) sono viste create a parte, che usano gli oggetti del foglio.
+- Il foglio bianco è un foglio di bozze. Quando un oggetto viene archiviato
+  esce dal foglio e va nella lista a fianco. Lo si richiama trascinandolo sul
+  foglio, oppure cliccandolo per vederlo da solo.
 - Lo spazio libero per appunti e calcoli al volo sta dentro il contenuto: righe
   di calcolo nel testo con il risultato in linea (come Soulver o le Math Notes
   di Apple). Da ciò che si è scritto nello spazio libero si può poi creare una
@@ -167,9 +170,10 @@ quando due rami lavorano in parallelo.
   altri), ordinati da chi scrive, che danno l'ordine di lettura. Ogni sezione
   corrisponde a un livello, cioè a un file. Precedente: il binder e la
   corkboard di Scrivener.
-  Interpretazione da confermare: un oggetto messo in un layout resta anche sul
-  foglio, perché il layout lo usa per riferimento; lo stesso oggetto può stare
-  in più layout.
+  Proposte da confermare: l'oggetto richiamato sul foglio è lo stesso oggetto,
+  non una copia (duplicare è un'azione esplicita); i layout usano gli oggetti
+  archiviati per riferimento, e lo stesso oggetto può stare in più layout; anche
+  le bozze sono salvate nei file, perché nulla esiste solo nell'interfaccia.
 
 - Lo spazio libero come punto d'ingresso dello strumento: si parte da una
   pagina vuota e si scrive, poi ogni pezzo si promuove all'elemento che serve

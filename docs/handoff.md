@@ -172,9 +172,11 @@ fianco che li organizza. Proposto che la lista abbia sezioni per tipo, una
 sezione "da sistemare" e le sezioni ordinate Documento e Presentazione, che
 danno l'ordine di lettura.
 Decisione: all'apertura c'è il foglio bianco, con i layout (documento,
-presentazione e altri) come viste create a parte. Da confermare se un oggetto
-messo in un layout resta anche sul foglio (interpretazione data: sì, per
-riferimento).
+presentazione e altri) come viste create a parte. Il foglio è un foglio di
+bozze: un oggetto archiviato esce dal foglio e va nella lista; lo si richiama
+trascinandolo sul foglio o cliccandolo per vederlo da solo. Da confermare: che
+l'oggetto richiamato sia lo stesso e non una copia, e che possa stare in più
+layout per riferimento.
 
 ## Domande aperte
 
