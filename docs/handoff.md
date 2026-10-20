@@ -105,6 +105,20 @@ ancora codice.
 - L'app mostra il sorgente, la vista di editing grafico e le anteprime.
   L'editing grafico avviene sopra l'anteprima HTML, con una vista per pagina.
 
+**Foglio bianco e layout**
+- All'apertura c'è un foglio bianco di bozze: si creano oggetti (testi,
+  tabelle, grafici, immagini) anche in disordine, e una lista a fianco li
+  organizza.
+- Un oggetto archiviato esce dal foglio e va nella lista. Lo si richiama
+  trascinandolo sul foglio, o cliccandolo per vederlo da solo; è lo stesso
+  oggetto, non una copia.
+- I layout (documento, presentazione e altri) sono viste create a parte, che
+  usano gli oggetti archiviati per riferimento; lo stesso oggetto può stare in
+  più layout.
+- Lo spazio libero ammette righe di calcolo con il risultato in linea. Da lì si
+  può creare una lista vera.
+- Anche le bozze sono salvate nei file.
+
 **Implementazione**
 - TypeScript per la prima versione: runtime, LSP, riga di comando, editor.
 - Rust compilato in WASM solo dove le misure lo chiederanno.
