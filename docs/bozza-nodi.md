@@ -495,3 +495,5 @@ punta la composizione) hanno avuto risposta: vedi i §1 e §3.
     li conosco: valutiamoli tutti e due, o un formato nostro, o anche Markdown
     con una sintassi nostra, tipo Obsidian. 7 forse dovrebbe essere un
     aggregatore di testi, come un indice dettagliato?
+21. 2 ok, un blocco per text. 5 il runtime. 4 un intervallo di valori di un
+    campo, o tutta la colonna.

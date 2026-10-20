@@ -168,8 +168,14 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   - righe di calcolo (§0.4): il risultato c'è già nella classe 1, con
     un'aritmetica minima. Requisito di Alessio per dopo: deve essere possibile
     usare una funzione dichiarata in un altro file, con argomenti numerici,
-    elementi della stessa lista o anche range. Da precisare cosa vuol dire
-    range, visto che le celle non hanno coordinate.
+    elementi della stessa lista o anche range. Il range è un intervallo di
+    valori di un campo, per esempio da marzo a giugno, oppure tutta la colonna
+    (2026-10-20);
+  - un `text` è un blocco solo: un capoverso, un elenco, una citazione (§0.2,
+    2026-10-20). Proposta che ne segue: lo spazio libero è un `kind` a sé,
+    perché è un posto di lavoro e non un'unità di significato;
+  - il CSS lo applica il `runtime` (§0.5, 2026-10-20): calcola la cascata e
+    scrive i valori finali nel `resolved tree`; chi disegna li applica soltanto.
 
 ## Proposte non decise
 
@@ -349,10 +355,6 @@ quando due rami lavorano in parallelo.
 
 - Capitoli e titoli (specifica §0.7): forse il capitolo dovrebbe essere un
   aggregatore di testi, come un indice dettagliato (Alessio, 2026-10-20).
-
-- Restano aperti, con Alessio indeciso: un `text` con uno o più capoversi
-  (specifica §0.2; la sua domanda: sarebbe un'eccezione, e come si gestiscono
-  i metadati di più capoversi?), e chi applica il CSS (§0.5).
 
 - Formule: Python era l'ipotesi più semplice, non un vincolo. Da capire quale
   linguaggio convenga, con la possibilità di richiamare codice esterno al
