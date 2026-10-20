@@ -248,8 +248,9 @@ più rischioso, registro aperto.
 
 ## Prossimi passi
 
-1. **La bozza dei tipi di nodo** del primo livello, contenuto e impaginazione,
-   la scrive Alessio. La revisione deve controllare tre cose:
+1. **La bozza dei tipi di nodo** del primo livello è iniziata in
+   [bozza-nodi.md](bozza-nodi.md): è di Alessio, scritta insieme. Ha gli
+   attributi comuni e la `section` come contenitore, con sei domande aperte. La revisione deve controllare tre cose:
    - che il modello sia neutro rispetto al motore;
    - che l'impaginazione stia nel sottoinsieme di CSS;
    - che ci siano agganci per l'impaginazione (nomi o classi), forme statiche

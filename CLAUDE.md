@@ -11,8 +11,10 @@ decisioni, domande aperte e prossimi passi.
   `python3 -I tools/verifica_glossario.py docs/glossario.md` deve dire «esito:
   OK».
 - Messaggi di commit in inglese.
-- La bozza dei tipi di nodo la scrive Alessio: va rivista e criticata, non
-  sostituita. Vale anche per le sue bozze successive.
+- La bozza dei tipi di nodo, [docs/bozza-nodi.md](docs/bozza-nodi.md), è di
+  Alessio: Claude la scrive con lui, tenendo separate le sue decisioni dalle
+  note e proposte di Claude, e non la sostituisce con una versione propria.
+  Vale anche per le sue bozze successive.
 - Ogni decisione di Alessio va in [docs/contesto.md](docs/contesto.md), tenendo
   separate decisioni, orientamenti da precisare e proposte non decise. Poi
   commit e push.
