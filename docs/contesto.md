@@ -77,6 +77,9 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   board, calendario, grafico).
 - Ordine dei livelli: contenuto e impaginazione, poi dati, grafici, formule,
   connettori, slide.
+- Lo spazio libero per appunti e calcoli al volo sta dentro il contenuto: righe
+  di calcolo nel testo con il risultato in linea (come Soulver o le Math Notes
+  di Apple), più un gesto per promuovere una tabellina a lista vera.
 
 ## Proposte non decise
 
@@ -139,10 +142,6 @@ quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
 
-- Spazio libero per appunti e calcoli al volo. Proposta: dentro il contenuto,
-  come righe di calcolo nel testo con risultato in linea (come Soulver o le
-  Math Notes di Apple), con un gesto per promuovere una tabellina a lista vera.
-  Da confermare.
 - Dati in CSV oppure TSV, con il dialetto dichiarato nello schema.
 - Formule e connettori in file separati, divisi per tipo, fin dall'inizio.
 - Identità degli elementi di una lista: chiave naturale se dichiarata,

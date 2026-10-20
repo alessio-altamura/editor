@@ -67,6 +67,9 @@ ancora codice.
 - Le colonne hanno un tipo. Le tabelle possono essere multidimensionali.
 - Tipi, chiavi e dimensioni stanno in uno schema separato dal CSV.
 - La griglia resta come interfaccia per inserire e guardare i dati.
+- Lo spazio libero per appunti e calcoli al volo sta dentro il contenuto: righe
+  di calcolo con il risultato in linea, più un gesto per promuovere una
+  tabellina a lista vera.
 
 **Connettori**
 - Hanno un file proprio. Il layout è automatico; le posizioni sistemate a mano
@@ -154,36 +157,31 @@ ricontrollati da un secondo agente, salvo le parti che ogni nota indica.
 
 ## Domande aperte
 
-1. **Spazio libero per appunti e calcoli al volo.** Proposta: dentro il
-   contenuto, come righe di calcolo con il risultato in linea, più un gesto per
-   promuovere una tabellina a lista vera. Ad Alessio è stata chiesta la
-   conferma, ma la sua risposta "fai come suggerisci per entrambe" è stata
-   applicata ad altre due domande.
-2. **Confine fra formule e connettori.** La ricerca sostiene la divisione per
+1. **Confine fra formule e connettori.** La ricerca sostiene la divisione per
    scala: espressioni dentro il blocco, connettori fra tabelle e passi.
-3. **Formula per colonna.** Con eccezioni per cella segnalate, come le tabelle
+2. **Formula per colonna.** Con eccezioni per cella segnalate, come le tabelle
    di Excel, o senza eccezioni, come Grist?
-4. **Calcoli fra righe.** Totali progressivi e riga precedente richiedono un
+3. **Calcoli fra righe.** Totali progressivi e riga precedente richiedono un
    ordine esplicito. L'ordine delle righe va salvato come dato, anche se non è
    un indirizzo.
-5. **Linguaggio delle formule.** Con TypeScript come linguaggio di
+4. **Linguaggio delle formule.** Con TypeScript come linguaggio di
    implementazione, l'opzione di un sottoinsieme di espressioni JavaScript
    diventa più comoda, ma non è decisa.
-6. **Licenza del codice.** Permissiva o copyleft. Restano da definire anche la
+5. **Licenza del codice.** Permissiva o copyleft. Restano da definire anche la
    licenza della specifica, la concessione sui brevetti e la governance.
-7. **Pacchetto.** Tre domande aperte:
+6. **Pacchetto.** Tre domande aperte:
    - i risultati e gli export stanno nel pacchetto?
    - Gli URL esterni sono ammessi come asset?
    - Serve un manifest per sapere da dove partire?
-8. **Codice eseguito.** Tre domande aperte:
+7. **Codice eseguito.** Tre domande aperte:
    - blocchi e formule condividono i nomi?
    - L'ordine di esecuzione va per dipendenze o dall'alto in basso?
    - Quali linguaggi servono?
-9. **Vista per pagina.** Con l'HTML come motore, la vista per pagina è HTML
+8. **Vista per pagina.** Con l'HTML come motore, la vista per pagina è HTML
    impaginato (Paged.js o la frammentazione di Chromium). Coincide con il PDF
    se la stampa la fa lo stesso Chromium con gli stessi font. Le tre opzioni
    con Typst valgono per la fase successiva.
-10. **I punti aperti di [contesto.md](contesto.md).** ID e merge, CRDT contro
+9. **I punti aperti di [contesto.md](contesto.md).** ID e merge, CRDT contro
     Git, primo caso d'uso, governance.
 
 ## Prossimi passi
