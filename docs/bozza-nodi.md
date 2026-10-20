@@ -18,6 +18,8 @@ Prima di tutto i metadati comuni, opzionali:
 - il **tipo**;
 - e forse altro.
 
+Poi: gli attributi opzionali dipendono dal tipo.
+
 ### Note di Claude
 
 - **Precedente.** È quasi esattamente l'`Attr` di Pandoc e gli attributi di
@@ -56,6 +58,22 @@ Prima di tutto i metadati comuni, opzionali:
     nascoste lo sconsigliano. Ciò che non deve uscire non sta in una
     `composition`.
 
+### Note di Claude sugli attributi che dipendono dal tipo
+
+- **Due strati, come in HTML.** HTML ha attributi globali, validi su ogni
+  elemento (`id`, `class`, `lang`), e attributi propri di ciascun elemento
+  (`alt` e `src` per un'immagine). Qui sarebbe lo stesso:
+  - pochi attributi validi per ogni `kind`;
+  - gli altri elencati nella scheda di ciascun `kind`, ognuno con il suo tipo
+    e il suo valore predefinito.
+- **Quali sono globali.** Proposta: `id` e `tags` su ogni `kind`; `class` e
+  `lang` su ogni nodo che si vede. `lang` si eredita dal contenitore, come in
+  HTML, così basta scriverlo una volta per il documento.
+- **Attributi sconosciuti.** Per i `kind` del nucleo, un attributo non
+  previsto è un errore: protegge dai refusi, per esempio `tagz`. Per i `kind`
+  delle `extension` si conserva anche se non lo si capisce, come vale per la
+  `directive`.
+
 ## 2. Il paragrafo come contenitore
 
 ### Alessio (2026-10-20)
@@ -86,11 +104,13 @@ tabelle, le immagini e così via.
 
 ## Domande aperte per Alessio
 
-1. **Tag e class:** due attributi separati, o uno solo?
-2. **id:** unico nel documento, solo minuscole, cifre e trattino, mai
+1. **Attributi globali:** `id` e `tags` su tutto, `class` e `lang` su ciò che
+   si vede, e il resto nella scheda di ciascun tipo?
+2. **Tag e class:** due attributi separati, o uno solo?
+3. **id:** unico nel documento, solo minuscole, cifre e trattino, mai
    riusato?
-3. **`lang`:** lo aggiungiamo agli attributi comuni?
-4. **Sezioni annidate:** sì o no?
-5. **Sezioni aperte dal titolo:** nel testo si aprono con il titolo e si
+4. **`lang`:** ereditato dal contenitore, come in HTML?
+5. **Sezioni annidate:** sì o no?
+6. **Sezioni aperte dal titolo:** nel testo si aprono con il titolo e si
    chiudono al successivo, come in Pandoc?
-6. **La sezione come oggetto `text`:** è l'unità del `canvas`?
+7. **La sezione come oggetto `text`:** è l'unità del `canvas`?
