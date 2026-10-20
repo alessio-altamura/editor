@@ -155,9 +155,9 @@ in chiaro oppure in uno zip con un'estensione propria, e le due forme sono
 equivalenti [C: «Un documento è un insieme di file sorgente»]. Il testo è la
 base di tutto: ogni vista è generata dal testo, e nulla esiste solo
 nell'interfaccia [C: «Il testo in chiaro è sempre la base»; C: «L'oggetto
-richiamato sul foglio»]. Ogni oggetto è un file, anche il capoverso, e tutti
-i file stanno insieme: i livelli non sono cartelle (decisione, con
-l'orientamento sui livelli) [C: «Ogni oggetto è un file»].
+richiamato sul foglio»]. Ogni oggetto è un file, anche il capoverso [C: «Ogni oggetto è un
+file»]. Orientamento della stessa voce: tutti i file stanno insieme e i
+livelli non sono cartelle.
 
 *(proposte)*
 - **Il `bundle`.** È uno zip la cui radice contiene esattamente ciò che
@@ -200,8 +200,8 @@ contesto.md):
 - L'`id` è scritto dentro il file (bozza-nodi.md §3, strato 1). Alessio ha
   detto però che i metadati comuni sono opzionali [B: §7, idea 1]. Per
   tenere insieme le due cose: se un file non scrive l'`id`, il suo `id` è il
-  nome del file fino al primo punto (esempio 16). Quando un altro file lo
-  collega, il `runtime` scrive l'`id` nel file, come fa Logseq con i
+  nome del file fino al primo punto (esempio 16). Quando un'operazione dell'app
+  o della `cli` lo collega, il `runtime` scrive l'`id` nel file, come fa Logseq con i
   riferimenti ai blocchi, così da lì in poi una rinomina non rompe niente.
 - Un `id` vale per tutto il documento, qualunque sia il `kind`: un `concept` e
   un `object` non possono avere lo stesso `id`.
