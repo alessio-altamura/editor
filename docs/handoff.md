@@ -224,7 +224,7 @@ Erano in sospeso queste domande:
 La ricerca sui connettori grafici e sugli usi reali di Excel è verificata e
 scritta in [ricerca/connettori-e-usi-excel.md](ricerca/connettori-e-usi-excel.md).
 Quella su punti di forza, difetti e tentativi di migliorare Excel è in
-[ricerca/grezzo/](ricerca/grezzo/), ancora da verificare.
+[ricerca/excel-e-alternative.md](ricerca/excel-e-alternative.md), verificata.
 
 ## Ripresa del 2026-10-20
 
