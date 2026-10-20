@@ -278,6 +278,11 @@ quando due rami lavorano in parallelo.
   - un foglio di calcolo interattivo, in cui chi legge cambia gli input e vede
     ricalcolare, non solo la presentazione statica dei dati;
   - appunti con calcoli al volo.
+  Alessio non ha documenti propri da usare: il corpus si crea man mano, un
+  livello alla volta. Proposta: due tipi di documenti, cioè casi minimi
+  scritti apposta per una sola regola, e documenti pubblici reali (articoli
+  di Wikipedia, rapporti pubblici, fogli dei corpora EUSES e FUSE) ricreati
+  nel nostro formato, con licenze che permettano di pubblicarli.
 - Governance e licenza della specifica.
 
 ## Ordine di lavoro
