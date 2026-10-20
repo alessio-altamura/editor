@@ -221,10 +221,10 @@ Erano in sospeso queste domande:
 - **Ordine dei livelli.** Proposto: contenuto e impaginazione, dati, grafici,
   formule, connettori, slide.
 
-Due ricerche, su Excel e sui connettori grafici, sono state interrotte prima
-della verifica dei fatti. I risultati grezzi sono in
-[ricerca/grezzo/](ricerca/grezzo/): vanno ricontrollati e trasformati in note
-pulite prima di usarli.
+La ricerca sui connettori grafici e sugli usi reali di Excel è verificata e
+scritta in [ricerca/connettori-e-usi-excel.md](ricerca/connettori-e-usi-excel.md).
+Quella su punti di forza, difetti e tentativi di migliorare Excel è in
+[ricerca/grezzo/](ricerca/grezzo/), ancora da verificare.
 
 ## Ripresa del 2026-10-20
 
