@@ -185,7 +185,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `revert` | gesto inverso | Riportare un oggetto strutturato a testo libero; da decidere | aperto | demote, downgrade |
 | `hint` | suggerimento | Proposta automatica (classificare, collegare, trasformare) che chi scrive conferma | concetto deciso, nome proposto | suggestion, auto- |
 | `embed` | uso per riferimento | Inclusione di un oggetto in una `composition` o nel contenuto, senza copia | concetto deciso, nome proposto | copy, insert |
-| `scratch` | spazio libero | Appunti e `math line` dentro il contenuto, da cui si trasformano oggetti | concetto deciso, nome proposto | free space, notes |
+| `scratch` | spazio libero | Appunti e `math line` dentro il contenuto, da cui si trasformano oggetti; proposta: un `kind` a sé con più blocchi, posto di lavoro e non unità di significato, che una `composition` non usa | concetto deciso, nome proposto | free space, notes |
 | `math line` | riga di calcolo | Riga con un calcolo e l'`inline result` | concetto deciso, nome proposto | calc line, formula |
 | `inline result` | risultato in linea | Valore mostrato accanto a una `math line` | proposto | output |
 | `text table` | tabellina | Tabella scritta nel testo, non ancora `collection` | proposto | table |
