@@ -267,16 +267,22 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
 
 0. **La bozza di specifica**, [specifica.md](specifica.md), del `core` e della
    classe 1 (2026-10-20). L'ha scritta una sottosessione su mandato
-   dell'orchestratore, in tre giri, ciascuno controllato da revisori
+   dell'orchestratore, in cinque giri, quasi tutti controllati da revisori
    indipendenti; gli esempi numerati sono anche i test, e uno script dei
-   revisori li ricalcola tutti. Marca ogni requisito come deciso, proposta o
-   APERTO. Aspetta Alessio su sette punti aperti (§0.1-§0.7): i `kind` della
-   classe 1 e dove si scrivono, un `text` con uno o più capoversi, identità e
-   collegamenti che si rompono, il risultato delle righe di calcolo, il
-   sottoinsieme di CSS, la sintassi, capitoli e titoli. Contiene anche
-   proposte nuove da confermare: classi di conformità 0-6, attributi
-   sconosciuti ignorati con un avviso, una forma generica dei riferimenti nel
-   `core`.
+   revisori li ricalcola tutti (21). Marca ogni requisito come deciso,
+   proposta o APERTO. Alessio ha già deciso: dove si scrive il `kind`, un
+   blocco per `text`, identità (1ii, 1d, 2b), aritmetica minima nella classe 1,
+   CSS applicato dal `runtime`. Restano APERTI: `kind` e `id` del `canvas
+   file`; cancellazione o cambio di ramo per gli `id` ritirati; separatore
+   decimale e arrotondamento; sottoinsieme di CSS e foglio di partenza; la
+   sintassi (quattro strade confrontate in
+   [ricerca/sintassi-testo.md](ricerca/sintassi-testo.md)); capitoli e titoli
+   (quattro opzioni, la D è di Alessio). Le proposte nuove (classi di
+   conformità, attributi sconosciuti ignorati, riferimenti generici nel
+   `core`, `retired-ids.yaml`, lo `style` calcolato) aspettano conferma.
+   Residui minori noti: il §1 dice ancora che «una riga di calcolo riceve il
+   risultato» da una classe successiva, traccia dell'opzione scartata; un
+   capoverso del §0.1 è incollato dentro l'elenco del `canvas file`.
 1. **La bozza dei tipi di nodo** del primo livello è iniziata in
    [bozza-nodi.md](bozza-nodi.md): è di Alessio, scritta insieme. Il
    2026-10-20 è diventata una sintesi del modello: il `concept` come unità di
