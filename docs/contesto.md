@@ -23,7 +23,8 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   sono equivalenti.
 - Il codice nel documento porta un marker se va eseguito e un marker se va
   mostrato.
-- Due motori di rendering: uno per l'HTML nel browser, uno per il PDF.
+- Due motori di rendering: uno per l'HTML nel browser, uno per il PDF. In
+  revisione: vedi gli orientamenti.
 - L'HTML esportato è vivo in due sensi: il lettore cambia input e vede
   ricalcolare, e i dati possono aggiornarsi da fonti esterne.
 - Chi apre un HTML esportato vede sempre i valori fotografati all'export. Se il
@@ -60,6 +61,11 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   multidimensionali, non solo a due dimensioni.
 - Tipi, chiavi e dimensioni si dichiarano in uno schema a parte, non nella riga
   di intestazione del CSV.
+- Le tabelle sono liste moderne, non array: elementi con identità e proprietà
+  tipizzate, relazioni fra liste, più viste dello stesso elenco (tabella,
+  board, calendario, grafico).
+- Ordine dei livelli: contenuto e impaginazione, poi dati, grafici, formule,
+  connettori, slide.
 
 ## Proposte non decise
 
@@ -124,11 +130,17 @@ quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
 
-- Le tabelle vanno pensate come liste moderne, non come array: elementi con
-  proprietà tipizzate e identità propria, senza posizione come indirizzo.
-  Interpretazione da confermare con Alessio: liste di record alla Notion o
-  Airtable, con relazioni fra liste e più viste dello stesso elenco (tabella,
-  board, calendario, grafico).
+- Un solo motore: l'HTML come nucleo e il PDF come sua esportazione, al posto
+  dei due motori. Risolve la vista per pagina (stesso motore per schermo e
+  stampa) e dimezza il lavoro di rendering; costa in tipografia e lega il PDF
+  a un motore browser fissato. Da confermare.
+- Linguaggio di implementazione da scegliere. Alessio nota che oggi molti
+  scrivono in Rust; con l'HTML come nucleo è forte anche TypeScript.
+- Dati in CSV oppure TSV, con il dialetto dichiarato nello schema.
+- Formule e connettori in file separati, divisi per tipo, fin dall'inizio.
+- Identità degli elementi di una lista: chiave naturale se dichiarata,
+  altrimenti una colonna di ID corti. Da decidere se l'ID c'è sempre o solo
+  quando un elemento viene referenziato.
 
 - Tipi e dimensioni: restano da precisare il formato dello schema (si può
   partire da CSVW o da Frictionless Table Schema); come si salva una tabella

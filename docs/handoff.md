@@ -226,6 +226,15 @@ della verifica dei fatti. I risultati grezzi sono in
 [ricerca/grezzo/](ricerca/grezzo/): vanno ricontrollati e trasformati in note
 pulite prima di usarli.
 
+## Ripresa del 2026-10-20
+
+Alessio ha confermato le liste moderne e l'ordine dei livelli. Ha proposto
+anche il TSV accanto al CSV, e formule e connettori divisi per tipo. Ha chiesto
+se una chiave abbia senso con le liste. Poi ha rimesso in discussione i due
+motori: HTML come nucleo e PDF come esportazione. Infine ha chiesto quale
+linguaggio di implementazione usare. Le verifiche delle due ricerche
+interrotte sono state rilanciate.
+
 ## Domande aperte rivolte ad Alessio
 
 Sono state poste in sessione e non hanno ancora risposta. A queste si
