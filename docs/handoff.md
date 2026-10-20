@@ -155,6 +155,13 @@ ricontrollati da un secondo agente, salvo le parti che ogni nota indica.
   - Lotus Improv separava già dati, formule e viste, e ha perso perché era
     debole nel fare tabelle.
 
+## Ultima discussione
+
+Alessio propone lo spazio libero come punto d'ingresso: si scrive su una pagina
+vuota e si promuove ogni pezzo a paragrafo, capitolo, immagine, lista. È
+registrato come orientamento in [contesto.md](contesto.md), con le domande
+aperte che tocca nella bozza dei tipi di nodo.
+
 ## Domande aperte
 
 1. **Confine fra formule e connettori.** La ricerca sostiene la divisione per

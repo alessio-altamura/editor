@@ -148,6 +148,14 @@ quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
 
+- Lo spazio libero come punto d'ingresso dello strumento: si parte da una
+  pagina vuota e si scrive, poi ogni pezzo si promuove all'elemento che serve
+  (paragrafo, capitolo, immagine, lista, e più avanti grafico o slide). Restano
+  da precisare: capitoli impliciti dai titoli o annidamento esplicito; come il
+  testo segna il tipo dopo la promozione; quali promozioni sono possibili da
+  quale tipo; il gesto inverso. Proposta: l'editor o l'AI possono suggerire una
+  promozione, mai farla da soli.
+
 - Dati in CSV oppure TSV, con il dialetto dichiarato nello schema.
 - Formule e connettori in file separati, divisi per tipo, fin dall'inizio.
 - Identità degli elementi di una lista: chiave naturale se dichiarata,
