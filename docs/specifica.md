@@ -1,9 +1,12 @@
-# Specifica: nucleo e primo livello
+# Specifica: `core` e classe 1
 
-Seconda bozza, 2026-10-20. Non è normativa finché Alessio non la approva. I
-nomi seguono il [glossario](glossario.md); i codici dei `diagnostic`, le chiavi
-del `resolved tree` e i tipi di contenuto sono identificatori provvisori, non
-ancora nomi del prodotto.
+Terza bozza, 2026-10-20. Non è normativa finché Alessio non la approva. I
+nomi seguono il [glossario](glossario.md). I tipi di contenuto si fissano sulla
+bozza dei nodi, come ammette il glossario (§1.3). *(proposta)* Anche i codici
+dei `diagnostic`, le chiavi del `resolved tree` e i loro valori (`error`,
+`warning`, `words`, `hash` e simili) sono identificatori provvisori, non ancora
+nomi del prodotto: entrano nel glossario quando si fissa la sintassi. Alcuni
+riusano parole del glossario con un altro senso (`attributes`, `code`).
 
 ## 0. Come leggere questa bozza
 
@@ -13,8 +16,8 @@ ancora nomi del prodotto.
   oggetto è un file»].
 - *(proposta)*: viene dalla [bozza dei nodi](bozza-nodi.md), dall'orchestratore
   o da chi ha scritto questa bozza; resta da confermare.
-- **APERTO**: un punto che blocca il primo livello, con le opzioni e i loro
-  costi, senza una scelta (§0.1-§0.6).
+- **APERTO**: un punto che blocca la classe 1, con le opzioni e i loro costi,
+  senza una scelta (§0.1-§0.7).
 
 **Sintassi provvisoria.** Gli esempi usano CommonMark con un'intestazione YAML
 fra due righe `---`. Un capoverso fatto solo di `![[id]]` è un `embed` di
@@ -23,9 +26,11 @@ serve solo a scrivere gli esempi (§0.6).
 
 **Gli esempi sono test** *(proposta)*. Come nella specifica di CommonMark, ogni
 esempio è un blocco aperto e chiuso da 32 backtick, con l'etichetta
-`example N classe=C stato=S`: C è la `conformance class` (§1), S dice su cosa
-poggia la regola provata (`deciso`, `proposta`, oppure l'opzione di un punto
-APERTO, come `0.1A`). Dentro:
+`example N conf=C status=S`: C è la `conformance class` (§1); S è la
+marcatura più debole fra le regole che l'esempio usa, escluso il formato del
+`resolved tree`, che è proposta per tutti: `decided`, `proposal`, oppure
+`open-0.N-X` per l'opzione X di un punto APERTO, con più valori separati da
+virgola. Dentro:
 - una riga `=== file <percorso>` apre un file di testo, che contiene le righe
   fino al marcatore successivo, ciascuna chiusa da LF;
 - una riga `=== asset <percorso>` crea un file di zero byte;
@@ -36,23 +41,31 @@ Uno script estrae i blocchi, scrive i file in una cartella vuota, sostituisce
 valori JSON. Ignora `message` e `fix` dei `diagnostic`, che non sono
 normativi.
 
-### 0.1 APERTO: i `kind` del primo livello, e dove un file dice il suo `kind`
+### 0.1 APERTO: i `kind` della classe 1, e dove un file dice il suo `kind`
 
 La bozza propone per il primo livello `concept`, `text`, `image` e l'`article`;
-ci sono poi lo `stylesheet` e il `canvas file`. Ogni nodo ha un `kind` [C:
+*(proposta)* ci sono poi lo `stylesheet` e il `canvas file`, e il §1 sposta il
+`concept` nel `core`. Ogni nodo ha un `kind` [C:
 «Attributi e id»]. La domanda è dove si scrive (bozza-nodi.md §6, domanda 2).
 
 - **A. Nell'estensione e dentro il file** (`calo-q3.concept.md`). Si filtra
   senza l'`app` (`ls *.concept.md`), e gli altri programmi aprono ciò che
   riconoscono. Costi: il `kind` è scritto due volte, e il `runtime` controlla
-  che coincidano (esempio 15); `turn into` rinomina il file. Git ritrova la
+  che coincidano (esempio 15); `turn into` rinomina il file. Git ritrova una
   rinomina per somiglianza del contenuto, con soglia predefinita del 50%
-  ([git diff](https://git-scm.com/docs/git-diff)), quindi la storia si segue.
+  ([git diff](https://git-scm.com/docs/git-diff)), e `git log` la segue solo
+  con `--follow` ([git log](https://git-scm.com/docs/git-log)). Un file molto
+  corto, o un `turn into` che ne riscrive il contenuto, risulta invece una
+  cancellazione più una creazione.
 - **B. Solo dentro il file**, con un'estensione unica per i file di testo. Una
   fonte sola. Costi: per filtrare servono l'`app`, la `cli` o un `grep`; un
   altro programma non sa cosa contiene il file.
 - **C. Nell'estensione dove il formato la impone** (`.css`, `.jpg`, `.json`),
   dentro il file per il resto. Costo: due regole.
+- **D. Solo nell'estensione.** Nessuna doppia scrittura e niente da
+  controllare. Costi: `turn into` è sempre una rinomina, e un file perde il
+  suo `kind` se viene rinominato male. È la regola che il §9 usa per lo
+  `stylesheet` con le opzioni A e C.
 
 Lo stesso punto decide i nodi che non sono testo con intestazione: immagini,
 `stylesheet`, il `canvas file` in JSON, e più avanti CSV e `chart`. Le strade
@@ -62,10 +75,22 @@ sono due, e si possono mescolare:
 - **i metadati nel formato**: il commento d'intestazione del CSS, come fa
   WordPress con `style.css`
   ([WordPress](https://developer.wordpress.org/themes/basics/main-stylesheet-style-css/)),
-  una chiave in un JSON, lo `schema` di una `collection`. Non vale per le
-  immagini.
+  una chiave in un JSON, lo `schema` di una `collection`. Anche le immagini
+  hanno posto per metadati, per esempio i chunk `tEXt` e `iTXt` del PNG
+  ([PNG §11.3.3](https://www.w3.org/TR/png-3/)) e i commenti COM del JPEG
+  (prova con Pillow 12.3.0), ma il binario va riscritto, il diff non lo
+  mostra, e alcuni programmi tolgono i metadati. Un CSV non ha posto.
 
-Gli esempi usano A e il descrittore per l'`image`.
+C'è poi un problema che vale per tutte le opzioni: se un file è `source` o
+`asset` lo decide l'estensione (§2), e le estensioni note crescono con le
+classi. Lo stesso file cambia natura secondo chi lo legge: un CSV con lo
+stesso nome di un `text` dà `id-duplicate` in classe 2 e non in classe 1, e un
+`.schema.json` darebbe `kind-missing`. Una regola stabile fra le classi
+sarebbe un elenco di estensioni fissato nel `core` per tutte, oppure un
+descrittore per ogni file che non è testo con intestazione.
+
+Gli esempi usano A per i file di testo, il descrittore per l'`image` e C per
+lo `stylesheet` (esempio 8).
 
 ### 0.2 APERTO: un `text` è un capoverso o più blocchi?
 
@@ -82,25 +107,32 @@ Ogni oggetto è un file, anche il capoverso [C: «Ogni oggetto è un file»]. No
   per un titolo dentro un `text`, perché i titoli stanno nella `composition`
   (§8).
 
+Lo spazio libero per appunti e calcoli sta dentro il contenuto, con le righe
+di calcolo come in Soulver [C: «Lo spazio libero per appunti»]. Con più
+blocchi, lo `scratch` può essere un `text` come gli altri. Con un capoverso
+per `text` non regge: servirebbe un `kind` a sé.
+
 Gli esempi hanno sempre un capoverso, e valgono con tutte e due le opzioni.
 
 ### 0.3 APERTO: identità e collegamenti che si rompono
 
-La bozza propone tre strati: meccanico e `imprint` nel sorgente, semantico
+La bozza propone tre strati: meccanico e `target quote` nel sorgente, semantico
 solo calcolato (bozza-nodi.md §3). Che lo strato semantico venga dopo è una
-proposta della bozza (appendice A). Per il primo livello ci sono tre scelte.
+proposta della bozza (appendice A). Per la classe 1 ci sono tre scelte.
 
 **L'`id` nel file.** I metadati comuni sono opzionali, e l'`id` non si riusa
 mai [C: «Attributi e id»].
 - **1i. Sempre scritto dentro il file**, come chiede lo strato 1. Una
-  rinomina fuori dall'`app` non rompe niente. Costo: ogni file porta l'`id`,
-  anche se nessuno lo collega.
+  rinomina fuori dall'`app` non rompe niente. Costi: ogni file porta l'`id`,
+  anche se nessuno lo collega, e l'`id` non è più fra i metadati opzionali,
+  in conflitto con la decisione. Se a scriverlo è il `runtime`, alla
+  creazione, 1i coincide quasi con 1ii.
 - **1ii. Opzionale**: se manca, l'`id` è il nome del file fino al primo punto
   (esempio 16), e il `runtime` lo scrive nel file quando un'`operation` lo
   collega. Costo: finché l'`id` non è scritto, una rinomina fuori dall'`app`
   rompe i collegamenti.
 
-**La traccia di fusioni e sostituzioni** (`replaces`).
+**La traccia dei `retired id`**, cancellati o fusi.
 - **1a. Nel successore**: un attributo con gli `id` sostituiti (esempio 17).
   Costa un attributo. Se il successore viene cancellato, la traccia si perde.
   Il «mai riusato» si controlla solo per gli `id` scritti lì.
@@ -117,23 +149,23 @@ mai [C: «Attributi e id»].
   conflitto nei merge; una cancellazione fatta fuori dall'`app` entra solo
   quando il `runtime` riconcilia.
 
-Un rischio vale per 1ii, 1a e 1c: un `id` ricavato dal nome o dalle prime
-parole può coincidere con quello di un oggetto cancellato. Allora i vecchi
-collegamenti si risolvono in silenzio sull'oggetto sbagliato. Lo evitano 1d e,
-per i soli `id` fusi, 1b.
+Un rischio vale per 1i e per 1ii, con le tracce 1a e 1c: un `id` nuovo,
+ricavato dal nome o dalle prime parole, può coincidere con quello di un
+oggetto cancellato. Allora i vecchi collegamenti si risolvono in silenzio
+sull'oggetto sbagliato. Lo evitano 1d e, per i soli `id` fusi, 1b.
 
-**L'`imprint`.** Ogni `association` confermata ricorderebbe poche parole e
-l'hash del bersaglio.
-- **2a. Nel primo livello.** Ritrova un bersaglio perso e segnala i
+**La `target quote`.** Ogni `association` confermata ricorderebbe poche parole
+e l'hash del bersaglio.
+- **2a. Nella classe 1.** Ritrova un bersaglio perso e segnala i
   collegamenti da rivedere. Cambia tre cose: la lista `associations` diventa
-  una lista di mappe, `{id: calo-q3-sintesi, imprint: {words: ritardi
+  una lista di mappe, `{id: calo-q3-sintesi, quote: {words: ritardi
   consegne agosto, hash: sha256:…}}`; il `runtime` ricalcola l'hash del
   bersaglio e lo confronta; un codice nuovo, `association-changed`, segnala il
   bersaglio cambiato. Costi: ogni conferma riscrive il file che dichiara il
   collegamento, due file se è dichiarato da entrambe le parti; l'hash dipende
   dalla forma canonica, quindi dal `formatter`; la scelta delle parole va resa
   deterministica.
-- **2b. Più avanti.** Primo livello più semplice e diff più puliti. Costo: fino
+- **2b. Più avanti.** Classe 1 più semplice e diff più puliti. Costo: fino
   ad allora un collegamento che si risolve ma non dice più la stessa cosa non
   si vede.
 
@@ -144,7 +176,7 @@ nell'etichetta dove la regola dipende dalla scelta.
 
 Le righe di calcolo con il risultato in linea sono decise [C: «Lo spazio
 libero per appunti»], e la bozza le mette nel primo livello.
-- **Risultato già al livello 1**, con un'aritmetica minima (numeri, quattro
+- **Risultato già nella classe 1**, con un'aritmetica minima (numeri, quattro
   operazioni, parentesi). Costi: si fissa un pezzo di linguaggio delle
   espressioni prima di scegliere quello delle formule, con il rischio che poi
   non coincidano; anche l'aritmetica minima va resa uguale dappertutto.
@@ -155,8 +187,8 @@ libero per appunti»], e la bozza le mette nel primo livello.
 ### 0.5 APERTO: il sottoinsieme di CSS e chi applica le regole
 
 Il sottoinsieme è definito dalla specifica [C: «Il vocabolario
-dell'impaginazione»], ma non è ancora scritto, e senza di lui metà del primo
-livello non ha requisiti verificabili. C'è anche una scelta di architettura:
+dell'impaginazione»], ma non è ancora scritto, e senza di lui metà della
+classe 1 non ha requisiti verificabili. C'è anche una scelta di architettura:
 - **il `runtime` calcola la cascata** e scrive nel `resolved tree` i valori
   per ogni nodo. È coerente con la proposta che i `renderer` non ricalcolino
   nulla [C: «Un solo punto di calcolo»], e gli esempi possono verificare
@@ -167,14 +199,15 @@ livello non ha requisiti verificabili. C'è anche una scelta di architettura:
 
 Finché i tipi di contenuto hanno nomi provvisori (§11.3), un selettore su un
 tipo cambierebbe significato quando i nomi si fissano: fino ad allora,
-*(proposta)* solo selettori di `class`.
+*(proposta)* solo selettori di `class`. Ne segue che nessuna regola colpisce i
+titoli di una `composition`, che non hanno `class` (§0.7).
 
 ### 0.6 APERTO: la sintassi dei file di testo
 
 CommonMark con un'intestazione, oppure Djot. Fatti e costi sono nella nota
 [ricerca/sintassi-testo.md](ricerca/sintassi-testo.md). La scelta tocca gli
 attributi del file e dei blocchi (§4), l'`embed` (§8), l'inventario del
-contenuto (§7.1), il `formatter` e l'albero di sintassi che conserva i
+contenuto (§7.1), il `formatter` e il `syntax tree` che conserva i
 commenti.
 
 L'esempio 1 in Djot, a titolo illustrativo (non si estrae):
@@ -190,12 +223,36 @@ non per il capoverso; un valore con spazi si legge come lista; un file fatto
 solo di attributi resta un nodo (djot.js scarta un blocco di attributi senza
 blocco dopo). Le prove sono nella nota.
 
+### 0.7 APERTO: capitoli e titoli nella `composition`
+
+Capitoli e titoli stanno nella `composition` *(proposta della bozza, §1)*. È la
+riformulazione, ancora da fare, delle regole sulle sezioni approvate nel
+modello di prima: sezioni annidate e aperte dal titolo, sezioni senza titolo,
+la sezione come unità che si sposta [C: «Attributi e id»]. Contesto.md lascia
+da precisare fra capitoli impliciti dai titoli e annidamento esplicito [C: «Lo
+spazio libero come punto d'ingresso»].
+- **A. Capitoli impliciti dai titoli.** Un titolo apre un capitolo fino al
+  titolo successivo dello stesso grado o più alto. Scrittura semplice, come
+  in Markdown. Costi: una sezione senza titolo non si può scrivere; spostare
+  un capitolo vuol dire spostare un intervallo di righe.
+- **B. Annidamento esplicito.** Un capitolo è un blocco che contiene il suo
+  titolo e i suoi `embed`. Si sposta come un'unità e può portare `id`,
+  `class` e `lang`. Costi: più sintassi, e un rientro o dei
+  marcatori in più nel diff.
+- **C. Annidamento esplicito con il titolo facoltativo.** Come sopra, e conserva
+  le sezioni senza titolo approvate. Costo: un blocco senza titolo si legge
+  male nel sorgente.
+
+Con l'opzione A i titoli non hanno `id` per un `cross-ref`, né `class` o
+`lang`, e un `article` e un `deck` sugli stessi oggetti devono ripeterli
+(appendice B). Gli esempi usano A.
+
 ### Nota: il `deck` per ultimo
 
 Il principio dice che gli stessi mattoni *possono* dare documenti o
 presentazioni completamente diversi [C: «Principio: l'aspetto incrementale»];
 l'ordine dei livelli mette il `deck` per ultimo [C: «Ordine dei livelli»]. Le
-due cose non si contraddicono: il primo livello prepara mattoni che il `deck`
+due cose non si contraddicono: la classe 1 prepara mattoni che il `deck`
 userà senza copiarli. L'appendice B lo mostra.
 
 ## 1. Classi di conformità
@@ -229,13 +286,15 @@ incrementale»].
 - **Compatibilità in avanti.** Un attributo sconosciuto si ignora con un
   avviso, come le proprietà sconosciute in CSS 2.1
   ([§4.2](https://www.w3.org/TR/CSS21/syndata.html#parsing-errors)). La bozza
-  proponeva un errore per i `kind` del nucleo: così però un documento scritto
-  per una versione successiva non si aprirebbe.
-
-Il `core` comprende il documento (§2), l'identità (§3), gli attributi comuni
-(§4), il `concept` (§5), l'`association` (§6), la `directive` (§10) e il
-`runtime` (§11). La classe 1 aggiunge `text`, `image`, `article`,
-`stylesheet` e il `canvas file`.
+  proponeva un errore per i `kind` del `core`: così però un documento scritto
+  per una versione successiva non si aprirebbe. Il precedente copre
+  l'ignorare; l'avviso è una proposta nostra, perché CSS 2.1 non ne parla.
+- **Contenuto delle classi.** Il `core` comprende il documento (§2),
+  l'identità (§3), gli attributi comuni (§4), il `concept` (§5),
+  l'`association` (§6), la `directive` e gli `id reference` (§10) e il
+  `runtime` (§11). La classe 1 aggiunge `text`, `image`, `article`,
+  `stylesheet` e il `canvas file`. La bozza mette il `concept` nel primo
+  livello, e quali `kind` stiano nella classe 1 è APERTO (§0.1).
 
 ## 2. Il documento
 
@@ -267,8 +326,11 @@ strumento nasce con una riga di comando»].
   risolve tutte le `composition`, quindi non serve un punto di partenza.
 - **`canvas file`.** Il `canvas` salva solo posizioni e riferimenti, partendo
   da JSON Canvas [C: «Il foglio di bozze è un canvas»]. Il `runtime` controlla
-  i suoi riferimenti per `id` come gli `embed` e li riscrive alle rinomine; il
-  `canvas file` non entra nel `resolved tree` delle `composition`.
+  i suoi riferimenti come gli `embed` e li riscrive alle rinomine; il `canvas
+  file` non entra nel `resolved tree`. JSON Canvas collega i file per
+  percorso («the path to the file within the system»,
+  [spec 1.0](https://jsoncanvas.org/spec/1.0/)): riferirsi per `id`
+  cambierebbe il formato o aggiungerebbe una chiave, da decidere.
 - Gli URL esterni come `asset` sono una domanda aperta (handoff.md, domanda
   6).
 
@@ -285,8 +347,8 @@ unico nel documento, fatto di minuscole, cifre e trattino, e non si riusa mai
   dall'`app` con lo stesso `id` è un `id` doppio (esempio 13). Quando un
   oggetto si divide, l'`id` resta a una delle parti, e i collegamenti si
   segnalano da rivedere.
-- L'`id` scritto nel file, la traccia `replaces` e l'`imprint` sono APERTI
-  (§0.3).
+- L'`id` scritto nel file, la traccia dei `retired id` e la `target quote`
+  sono APERTI (§0.3).
 - Se chi scrive non dà un `id`, il `runtime` ne propone uno dalle prime
   parole; vale il rischio del §0.3.
 
@@ -308,7 +370,7 @@ fra i metadati opzionali.
 | `lang` | tag di lingua BCP 47 | deciso per i nodi che si vedono |
 | `origin` | da definire | *(proposta della bozza)*: scritto da una persona o generato e confermato |
 | `associations` | lista di `id` | *(proposta)*, §6 |
-| `replaces` | lista di `id` | APERTO, §0.3 |
+| `replaces` | lista di `id` | APERTO, opzione 1a del §0.3 |
 
 *(proposte)*
 - **Nodi che si vedono**: `concept`, `text`, `image`, `article`. Non lo sono lo
@@ -329,7 +391,7 @@ collegamenti agli `object` che la sviluppano, anche di `kind` diversi [C:
 un corpo: il testo dell'idea, in una o due frasi (definizione del glossario).
 Non ha `embed` e non sa in quali `composition` è usato.
 
-```````````````````````````````` example 1 classe=0 stato=deciso
+```````````````````````````````` example 1 conf=0 status=proposal
 === file calo-q3.concept.md
 ---
 id: calo-q3
@@ -365,7 +427,7 @@ separazione fra associazioni e dipendenze (domanda 3).
 - Un'`association` con una `composition` o uno `stylesheet` è un errore: la
   `composition` usa gli oggetti con l'`embed` (esempio 18).
 
-```````````````````````````````` example 2 classe=1 stato=proposta
+```````````````````````````````` example 2 conf=1 status=proposal
 === file calo-q3-sintesi.text.md
 ---
 id: calo-q3-sintesi
@@ -382,7 +444,7 @@ Nel terzo trimestre le vendite sono calate del 12%, soprattutto per i
 }
 ````````````````````````````````
 
-```````````````````````````````` example 3 classe=1 stato=deciso
+```````````````````````````````` example 3 conf=1 status=open-0.3-2b
 === file calo-q3.concept.md
 ---
 id: calo-q3
@@ -410,7 +472,7 @@ Le vendite sono calate del 12%.
 
 Dichiarato anche dall'oggetto, il collegamento resta uno:
 
-```````````````````````````````` example 4 classe=1 stato=deciso
+```````````````````````````````` example 4 conf=1 status=open-0.3-2b
 === file calo-q3.concept.md
 ---
 id: calo-q3
@@ -439,7 +501,7 @@ Le vendite sono calate del 12%.
 
 Dichiarato solo dall'oggetto, è lo stesso collegamento:
 
-```````````````````````````````` example 5 classe=1 stato=deciso
+```````````````````````````````` example 5 conf=1 status=open-0.3-2b
 === file calo-q3.concept.md
 ---
 id: calo-q3
@@ -465,7 +527,7 @@ Le vendite sono calate del 12%.
 }
 ````````````````````````````````
 
-```````````````````````````````` example 6 classe=0 stato=proposta
+```````````````````````````````` example 6 conf=0 status=open-0.3-2b
 === file calo-q3.concept.md
 ---
 id: calo-q3
@@ -493,10 +555,8 @@ l'object»].
 ### 7.1 `text`
 
 Un `text` è un oggetto di prosa, con gli attributi comuni e un corpo
-(esempio 2). Se il corpo è un capoverso o più blocchi è APERTO (§0.2). Lo
-spazio libero per appunti e calcoli sta dentro il contenuto [C: «Lo spazio
-libero per appunti»]: *(proposta)* lo `scratch` è un `text` come gli altri, e
-non un `kind` a sé.
+(esempio 2). Se il corpo è un capoverso o più blocchi, e quindi dove sta lo
+`scratch`, è APERTO (§0.2).
 
 Il contenuto interno è un inventario *(proposto)*; i tipi non hanno ancora un
 nome (§11.3).
@@ -508,7 +568,7 @@ nome (§11.3).
 | `text table` | tabellina non ancora `collection` |
 | `math line` | decisa [C: «Lo spazio libero per appunti»]; il risultato è APERTO (§0.4) |
 | enfasi, forte, codice in linea, collegamento a un URL | in linea |
-| `cross-ref` | riferimento in linea a un oggetto per `id`; la `numbering` è da precisare |
+| riferimento in linea | a un altro nodo, con un `id reference` in linea (§10); se il nodo è numerato è un `cross-ref`, e la `numbering` è da precisare |
 | `footnote` | |
 
 Da decidere: l'`embed` dentro un `text`, che il glossario ammette, e gli
@@ -520,12 +580,12 @@ Un `image` è un'immagine fatta fuori dal `runtime`, come una foto. Secondo la
 bozza, un'immagine disegnata dal `runtime` è una vista generata e non si salva
 come file (bozza-nodi.md §4).
 
-Un file binario non porta attributi: dove stanno dipende dal §0.1. Con il
+Dove stanno gli attributi di un'immagine dipende dal §0.1. Con il
 descrittore *(proposta)*, l'`image` è un file di testo con gli attributi
 comuni, l'attributo `asset` e un corpo con la descrizione, che serve agli
 screen reader ed è la sua `static fallback`.
 
-```````````````````````````````` example 7 classe=1 stato=0.1A
+```````````````````````````````` example 7 conf=1 status=open-0.1-A
 === file lavagna.image.md
 ---
 id: lavagna
@@ -549,32 +609,26 @@ Foto della lavagna con le vendite mensili del 2026.
 La `composition` punta l'`object` [C: «La composition punta l'object»]. Lo
 stesso oggetto può stare in più `composition`, ed è lo stesso oggetto, non
 una copia [C: «L'oggetto richiamato sul foglio»]. Le `composition` danno
-l'ordine di lettura [C: «La lista a fianco ha sezioni per tipo»].
+il `reading order` [C: «La lista a fianco ha sezioni per tipo»].
 
 *(proposte)*
 - La `composition` usa gli oggetti con l'`embed` per `id`. Quale `concept`
   presenta un oggetto lo si ricava dalle sue `association`.
-- Capitoli e titoli stanno nella `composition` (bozza-nodi.md §1). È la
-  riformulazione, ancora da fare, delle regole sulle sezioni approvate nel
-  modello di prima [C: «Attributi e id»]. Il corpo di un `article` contiene
-  solo titoli ed `embed`; un capoverso scritto lì è un errore (esempio 10).
-  Un titolo apre un capitolo fino al titolo successivo dello stesso grado o
-  più alto.
-- Questa regola rende impossibili le sezioni senza titolo, approvate nel
-  modello di prima. Inoltre i titoli così non hanno `id` per un `cross-ref`,
-  né `class` o `lang`, e un `article` e un `deck` sugli stessi oggetti devono
-  ripeterli (appendice B).
+- Capitoli e titoli stanno nella `composition`, e come si scrivono è APERTO
+  (§0.7). Il corpo di un `article` contiene solo titoli ed `embed`; un
+  capoverso scritto lì è un errore (esempio 10).
 - Un `embed` di un `id` inesistente è un errore, e il `resolved tree` lo mostra
   al suo posto (esempio 9). Un `embed` di un `concept` o di una `composition`
   è un errore (esempio 11).
-- L'`article` nomina il suo `stylesheet` con l'attributo `stylesheet`.
+- L'`article` nomina il suo `stylesheet` con l'attributo `stylesheet`, scritto
+  come `id reference` (§10).
 
-```````````````````````````````` example 8 classe=1 stato=proposta
+```````````````````````````````` example 8 conf=1 status=open-0.1-A,open-0.1-C,open-0.7-A
 === file report-q3.article.md
 ---
 id: report-q3
 kind: article
-stylesheet: report
+stylesheet: "[[report]]"
 ---
 # Il terzo trimestre
 
@@ -609,7 +663,7 @@ Foto della lavagna con le vendite mensili.
 }
 ````````````````````````````````
 
-```````````````````````````````` example 9 classe=1 stato=proposta
+```````````````````````````````` example 9 conf=1 status=proposal
 === file report-q3.article.md
 ---
 id: report-q3
@@ -627,7 +681,7 @@ kind: article
 }
 ````````````````````````````````
 
-```````````````````````````````` example 10 classe=1 stato=proposta
+```````````````````````````````` example 10 conf=1 status=open-0.7-A
 === file report-q3.article.md
 ---
 id: report-q3
@@ -647,7 +701,7 @@ Qui scrivo due righe di introduzione.
 }
 ````````````````````````````````
 
-```````````````````````````````` example 11 classe=1 stato=deciso
+```````````````````````````````` example 11 conf=1 status=proposal
 === file report-q3.article.md
 ---
 id: report-q3
@@ -682,19 +736,20 @@ dell'impaginazione»]; modello e impaginazione sono neutri rispetto al motore
 
 *(proposte)*
 - Uno `stylesheet` è un file `.css`. Con l'opzione A o C del §0.1 l'`id` è il
-  nome del file fino al primo punto e il `kind` viene dall'estensione; con B
-  `id` e `kind` stanno nel commento d'intestazione.
+  nome del file fino al primo punto e il `kind` viene dall'estensione, come
+  nell'opzione D; con B `id` e `kind` stanno nel commento d'intestazione.
 - Le regole si agganciano ai nodi con `class`; gli `id` non sono selettori.
-- Lo `stylesheet` non cambia il contenuto né l'ordine di lettura.
-- Ciò che sta fuori dal sottoinsieme è un errore, non un'istruzione ignorata:
-  il sottoinsieme è chiuso perché deve valere anche per Typst.
+- Lo `stylesheet` non cambia il contenuto né il `reading order`.
+- Una proprietà o un selettore fuori dal sottoinsieme si ignora con un
+  avviso, come gli attributi sconosciuti (§1): così uno `stylesheet` scritto
+  per una `spec version` successiva si apre ancora.
 
 ## 10. `directive`: `kind` non noti e riferimenti
 
 La sintassi ha fin dall'inizio una forma generica per i `kind` non noti, che il
 `parser` legge e il `formatter` conserva, e ogni oggetto di un'`extension` porta
-una forma statica (proposte dell'orientamento [C: «Estensibilità: estensioni e
-connettori»]).
+una `static fallback` (proposte dell'orientamento [C: «Estensibilità:
+estensioni e connettori»]).
 
 *(proposte)*
 - Un file con un `kind` che l'implementazione non conosce si legge come
@@ -705,19 +760,29 @@ connettori»]).
   `embed` di una `directive` la mostra. Una `static fallback` in immagine, per
   esempio un grafico con i `frozen values`, tocca la domanda aperta sui
   risultati nel pacchetto (handoff.md, domanda 6).
-- **Riferimenti in forma generica.** Il `core` fissa come si scrive un
-  riferimento per `id`: `![[id]]` per un blocco, `[[id]]` in linea, nella
-  sintassi provvisoria; negli attributi, le liste `associations` e
-  `replaces` e i valori scritti `@id`. Così il `runtime` controlla e riscrive
-  i riferimenti anche dentro una `directive`: un `deck` letto da
-  un'implementazione di classe 1 ha comunque i suoi `embed` controllati.
+- **`id reference`.** Il `core` fissa come si scrive un riferimento per `id`.
+  Nella sintassi provvisoria: `![[id]]` per un blocco, `[[id]]` in linea;
+  negli attributi, la lista `associations`, la lista `replaces` se passa
+  l'opzione 1a del §0.3, e un valore che è esattamente `"[[id]]"`, fra
+  virgolette come nelle proprietà di Obsidian
+  ([Properties](https://github.com/obsidianmd/obsidian-help/blob/master/en/Editing%20and%20formatting/Properties.md)).
+  Così il `runtime` controlla e riscrive i riferimenti anche dentro una
+  `directive`: un `deck` letto da un'implementazione di classe 1 ha comunque
+  i suoi `embed` controllati (esempio 12). Nel `resolved tree` un valore
+  riferimento appare come l'`id` risolto.
+- La forma `@id` della prima stesura non va: in YAML un valore non può
+  cominciare con `@` senza virgolette (prova con PyYAML 6.0.3). Anche con
+  `"[[id]]"` resta un costo: ogni stringa scritta così diventa un
+  riferimento, e per scriverla come testo serve una regola. Il riferimento in
+  linea `[[id]]` non ha ancora un esempio.
 
-```````````````````````````````` example 12 classe=0 stato=proposta
+```````````````````````````````` example 12 conf=0 status=open-0.3-2b
 === file linea-tempo.timeline.md
 ---
 id: linea-tempo
 kind: timeline
 associations: [calo-q3]
+see: "[[calo-q3]]"
 ---
 Luglio: primi ritardi. Agosto: due fornitori in ritardo di tre settimane.
 === file calo-q3.concept.md
@@ -731,7 +796,7 @@ Nel terzo trimestre le vendite calano.
 {
   "nodes": [
     {"id": "calo-q3", "kind": "concept", "file": "calo-q3.concept.md", "attributes": {"colore": "rosso"}, "content": [["paragraph", "Nel terzo trimestre le vendite calano."]]},
-    {"id": "linea-tempo", "kind": "timeline", "directive": true, "file": "linea-tempo.timeline.md", "content": [["paragraph", "Luglio: primi ritardi. Agosto: due fornitori in ritardo di tre settimane."]]}
+    {"id": "linea-tempo", "kind": "timeline", "directive": true, "file": "linea-tempo.timeline.md", "attributes": {"see": "calo-q3"}, "content": [["paragraph", "Luglio: primi ritardi. Agosto: due fornitori in ritardo di tre settimane."]]}
   ],
   "associations": [
     {"ids": ["calo-q3", "linea-tempo"], "declaredIn": ["linea-tempo.timeline.md"]}
@@ -799,9 +864,10 @@ secondo il codice `target`, `message` e `fix`.
 | `eval-unsupported` | warning | blocco da eseguire nella classe 1 | — | non coperto |
 | `asset-missing` | error | `asset` assente | il percorso | 7 |
 | `stylesheet-unresolved` | error | `stylesheet` nominato assente | l'`id` | non coperto |
-| `stylesheet-unsupported` | error | proprietà o selettore fuori dal sottoinsieme (§0.5) | la proprietà o il selettore | non coperto |
+| `stylesheet-unsupported` | warning | proprietà o selettore fuori dal sottoinsieme, ignorato (§0.5) | la proprietà o il selettore | non coperto |
+| `reference-unresolved` | error | `id reference` in un attributo senza bersaglio | l'`id` | non coperto |
 
-```````````````````````````````` example 13 classe=0 stato=deciso
+```````````````````````````````` example 13 conf=0 status=proposal
 === file calo-q3.concept.md
 ---
 id: calo-q3
@@ -827,7 +893,7 @@ Nel terzo trimestre le vendite calano molto.
 }
 ````````````````````````````````
 
-```````````````````````````````` example 14 classe=0 stato=deciso
+```````````````````````````````` example 14 conf=0 status=decided
 === file calo-q3.concept.md
 ---
 id: Calo_Q3
@@ -847,7 +913,7 @@ Nel terzo trimestre le vendite calano.
 
 Con l'opzione A del §0.1 vince il `kind` scritto nel file:
 
-```````````````````````````````` example 15 classe=0 stato=0.1A
+```````````````````````````````` example 15 conf=0 status=open-0.1-A
 === file calo-q3.text.md
 ---
 id: calo-q3
@@ -865,7 +931,7 @@ Nel terzo trimestre le vendite calano.
 }
 ````````````````````````````````
 
-```````````````````````````````` example 16 classe=1 stato=0.3-1ii
+```````````````````````````````` example 16 conf=1 status=open-0.3-1ii
 === file ritardi-agosto.text.md
 ---
 kind: text
@@ -885,7 +951,7 @@ successore viene a sua volta sostituito, il nuovo eredita la sua lista, così
 non ci sono catene: Zotero, quando fonde, riscrive le relazioni verso
 l'elemento che resta ([mergeItems.mjs](https://github.com/zotero/zotero/blob/main/chrome/content/zotero/mergeItems.mjs)).
 
-```````````````````````````````` example 17 classe=1 stato=0.3-1a
+```````````````````````````````` example 17 conf=1 status=open-0.3-1a,open-0.3-2b
 === file calo-q3.concept.md
 ---
 id: calo-q3
@@ -915,7 +981,7 @@ A luglio e ad agosto i fornitori hanno consegnato in ritardo.
 }
 ````````````````````````````````
 
-```````````````````````````````` example 18 classe=1 stato=proposta
+```````````````````````````````` example 18 conf=1 status=open-0.3-2b,open-0.7-A
 === file calo-q3.concept.md
 ---
 id: calo-q3
@@ -945,7 +1011,7 @@ kind: article
 
 È un valore JSON con tre liste; una lista vuota si omette.
 
-- **`nodes`**: un elemento per `source`, ordinati per `id` e poi per `file`.
+- **`nodes`**: un elemento per `source`, tranne il `canvas file`, ordinati per `id` e poi per `file`.
   Ogni nodo ha `id`, `kind`, `file` (percorso con `/`), `attributes` (quelli
   dichiarati, con le chiavi come nel file, tranne `id`, `kind` e
   `associations`; si omette se vuoto), `content` (il corpo; si omette se il
@@ -970,17 +1036,19 @@ per `text table`, `math line`, `cross-ref` e la definizione di una
 `footnote`.
 
 Nel contenuto di una `composition` un `embed` porta negli attributi `id`,
-`kind`, e se ci sono `lang`, `class` e `asset` dell'oggetto, e come figli il
+`kind`, il `lang` effettivo (quello dell'oggetto o, se manca, quello del
+documento), e se ci sono `class` e `asset` dell'oggetto, e come figli il
 suo contenuto risolto. Un `embed` che non si risolve ha `"unresolved": true`
 e nessun figlio. Così un `renderer` legge la `composition` senza cercare altri
 nodi.
 
-## Appendice A. Livelli successivi (non normativa)
+## Appendice A. Classi successive (non normativa)
 
-Dove si aggancerà ciascuno al nucleo.
+Dove si aggancerà ciascuna al `core`.
 
-- **Dati e `collection`** (classe 2). Un CSV o TSV con il suo `schema`
-  separato [C: «Tipi, chiavi e dimensioni si dichiarano»]; i metadati del
+- **Dati e `collection`** (classe 2). Un CSV o TSV, che è un orientamento [C:
+  «Dati in CSV oppure TSV»], con il suo `schema` separato [C: «Tipi, chiavi e
+  dimensioni si dichiarano»]; i metadati del
   `core` passano dal §0.1. È un `object`, con `association` ed `embed`.
 - **Grafici** (classe 3). *(proposta della bozza)* Il `chart` applica un
   `template` a una `collection`, e un aggregatore lo ripete su più dati
@@ -996,7 +1064,7 @@ Dove si aggancerà ciascuno al nucleo.
   `embed` [C: «Si procede in modo incrementale»]. Appendice B.
 - **Collegamenti semantici.** *(proposta della bozza)* Un indice locale, mai
   nel sorgente, che propone `hint`; un `hint` confermato diventa
-  un'`association`, quindi il nucleo non cambia.
+  un'`association`, quindi il `core` non cambia.
 
 ## Appendice B. Gli stessi oggetti in un `deck` (non normativa)
 
@@ -1008,7 +1076,7 @@ l'esempio.
 ---
 id: riunione-q3
 kind: deck
-stylesheet: riunione
+stylesheet: "[[riunione]]"
 ---
 # Il terzo trimestre
 
