@@ -167,6 +167,10 @@ in disordine, che il sistema crea, classifica e collega. Registrato come
 orientamento, con la proposta di salvare sul canvas solo posizioni e
 riferimenti (JSON Canvas come base) e di tenere documento e slide come
 composizioni ordinate.
+Ha precisato: un unico foglio bianco da cui creare gli oggetti e una lista a
+fianco che li organizza. Proposto che la lista abbia sezioni per tipo, una
+sezione "da sistemare" e le sezioni ordinate Documento e Presentazione, che
+danno l'ordine di lettura.
 
 ## Domande aperte
 

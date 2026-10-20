@@ -158,6 +158,13 @@ quando due rami lavorano in parallelo.
   pescano dal canvas, perché il canvas non ha un ordine di lettura;
   classificazione e collegamenti automatici sono suggerimenti che chi scrive
   conferma, mai dipendenze create in silenzio.
+  Precisazione di Alessio: un unico foglio bianco da cui creare gli oggetti, e
+  una lista a fianco che li organizza. Proposta: la lista ha sezioni per tipo
+  (testi, liste, grafici, immagini), una sezione "da sistemare" per gli
+  oggetti non ancora classificati, e le sezioni Documento e Presentazione,
+  ordinate da chi scrive, che danno l'ordine di lettura. Ogni sezione
+  corrisponde a un livello, cioè a un file. Precedente: il binder e la
+  corkboard di Scrivener.
 
 - Lo spazio libero come punto d'ingresso dello strumento: si parte da una
   pagina vuota e si scrive, poi ogni pezzo si promuove all'elemento che serve
