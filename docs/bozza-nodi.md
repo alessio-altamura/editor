@@ -116,13 +116,76 @@ Decisioni del 2026-10-20, sulle proposte di Claude:
   ordinato di sezioni. Così l'unità che si sposta, si archivia e si compone è
   la stessa.
 
+## 3. Descrizione semantica e varianti
+
+### Alessio (2026-10-20)
+
+Sì alle tre domande: id unico nel documento, fatto di minuscole, cifre e
+trattino, mai riusato dopo una cancellazione; sezioni senza titolo ammesse; la
+sezione è l'oggetto `text`, cioè l'unità che si sposta sul `canvas`, si
+archivia e si mette in una `composition`.
+
+Poi un'idea nuova. Scrivendo un capoverso sarebbe bello avere in automatico
+qualcosa di concettuale, di semantico, che descriva l'oggetto. Per ora è un
+metadato predefinito; più avanti potrebbe assegnarlo un LLM via API. Da queste
+descrizioni si ricava una mappa semantica e concettuale dell'intero insieme di
+oggetti, da cui mettere insieme un documento abbozzato, da armonizzare poi. Così
+un oggetto avrebbe anche versioni diverse di sé, a seconda del contesto.
+
+### Note di Claude
+
+- **Un nome da sistemare.** Nel glossario `part` è un file del documento.
+  Qui il senso è "un pezzo del documento", cioè un `object`, per esempio una
+  `section`: le versioni diverse sono dell'oggetto, non del file.
+- **Precedenti.**
+  - Per la mappa: Obsidian, Tana e Heptabase ricavano grafi di concetti dalle
+    note.
+  - Per le versioni diverse dello stesso pezzo: la documentazione tecnica le
+    usa da anni con il testo condizionale e il riuso dei contenuti, per
+    esempio DITA e FrameMaker. Un pezzo ha varianti per pubblico, lunghezza o
+    lingua, e ogni pubblicazione sceglie la sua.
+- **Come si incastra con il modello.** Molto bene:
+  - la descrizione è un attributo, `summary`, più un elenco di concetti;
+  - la mappa è una vista generata, la `concept map`;
+  - una `variant` è una versione con nome di un oggetto (per esempio "breve",
+    "tecnica", "inglese);
+  - una `composition` sceglie quale `variant` usare quando fa `embed` di un
+    oggetto, così il report usa la versione lunga e il `deck` quella breve
+    dello stesso oggetto.
+- **Il testo resta la base, quindi tre cautele.**
+  - **Dove si salva.** Le descrizioni generate cambiano ogni volta che si
+    rigenerano. Se stanno nel file del contenuto, sporcano il diff. Proposta:
+    un `part` a sé per le descrizioni, con, per ogni voce, l'hash del
+    contenuto descritto e il modello che l'ha generata. Si rigenera solo
+    quando il contenuto cambia; prima di allora la descrizione si segnala come
+    scaduta.
+  - **Sono suggerimenti.** Vale la regola già decisa: descrizione,
+    classificazione e abbozzo del documento generati dall'LLM sono `hint` che
+    chi scrive conferma o corregge. Un abbozzo è una `composition` proposta,
+    non scritta al posto suo.
+  - **Le varianti invecchiano.** Se cambia un fatto nella versione lunga,
+    quella breve diventa sbagliata. Proposta: ogni `variant` ricorda l'hash
+    dell'oggetto da cui deriva, e quando l'oggetto cambia si segnala come
+    scaduta. I numeri restano coerenti da soli se sono `reference` ai dati e
+    non testo scritto a mano.
+- **Privacy.** Mandare i documenti a un LLM esterno è un'uscita di dati.
+  Proposta: va attivato esplicitamente; il fornitore è configurabile; è
+  possibile usare un modello locale. È un'`integration` come le altre, con i
+  suoi `permission`.
+- **Dove sta nel percorso incrementale.** Proposta:
+  - primo livello: l'attributo `summary`, scritto a mano o vuoto;
+  - più avanti: la generazione automatica e la `concept map`;
+  - poi: le `variant` e l'abbozzo di documento.
+
 ## Domande aperte per Alessio
 
-1. **id:** unico nel documento, solo minuscole, cifre e trattino, mai
-   riusato dopo una cancellazione?
-2. **Sezioni senza titolo:** ammesse, per esempio per raggruppare capoversi
-   con una `class` comune?
-3. **La sezione come oggetto `text`:** è l'unità che si sposta sul `canvas`,
-   si archivia e si mette in una `composition`?
-4. **L'inventario dei `kind`:** quali tipi di blocco e in linea servono al
+1. **Un `part` a sé per le descrizioni semantiche,** fuori dal file del
+   contenuto?
+2. **Varianti:** versioni con nome di un oggetto, scelte dalla `composition`,
+   segnalate come scadute quando l'oggetto cambia?
+3. **LLM:** attivazione esplicita, fornitore configurabile, possibilità di un
+   modello locale?
+4. **Ordine:** `summary` a mano nel primo livello, generazione e mappa dopo,
+   varianti e abbozzi dopo ancora?
+5. **L'inventario dei `kind`:** quali tipi di blocco e in linea servono al
    primo livello.

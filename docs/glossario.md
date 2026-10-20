@@ -87,6 +87,8 @@ diverso da qui: è un bersaglio da criticare e non va corretta.
 | nodo | unità del modello, contro le cose collegate dai wire | `node` solo per il modello |
 | documento | la cartella intera, contro la composizione a flusso | `document`, `article` |
 | paragrafo | in italiano la sezione numerata (§3.2), in inglese il capoverso | `section` per il contenitore, `paragraph` per il capoverso |
+| contesto | i tag di contesto; il contesto per cui esiste una versione di un oggetto; il file contesto.md | `tags`, `variant` |
+| parte | un file del documento, contro un pezzo del documento | `part` per il file, `object` per il pezzo |
 | presentazione, slide | la presentazione, contro la singola slide | `deck` per la presentazione, che è una `composition`; `slide` per la pagina; le slide non sono un `part` a sé |
 | elemento | elemento di una collection, contro oggetto o tipo di contenuto | `record` solo per la collection |
 | blocco | blocco di codice; blocco alla Notion; blocco libero; passo | `code block`, `object`, `scratch`, `step` |
@@ -188,6 +190,9 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `lang` | lingua | Lingua del contenuto di un `node`, per sillabazione, controllo ortografico e screen reader | proposto | language, locale |
 | `section` | paragrafo (contenitore) | Contenitore di `paragraph`, tabelle, immagini e altri nodi; da precisare se annidabile e se coincide con l'oggetto `text` | concetto deciso, nome proposto | paragraph, block, chapter |
 | `paragraph` | capoverso | Blocco di prosa dentro una `section` | proposto | section, block |
+| `summary` | descrizione semantica | Descrizione concettuale di un `node`: scritta a mano, o più avanti generata da un LLM come `hint` | proposto | description, abstract, meaning |
+| `concept map` | mappa concettuale | Vista generata dei concetti di tutti gli oggetti e dei loro legami | proposto | knowledge graph, graph |
+| `variant` | versione | Versione con nome di un `object` (breve, tecnica, in un'altra lingua), scelta dalla `composition` che lo usa | proposto | version, copy, context |
 
 ### 4.3 Composizioni e stile
 
