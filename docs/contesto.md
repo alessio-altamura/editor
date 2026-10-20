@@ -148,6 +148,17 @@ quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
 
+- Lo spazio libero come canvas: si inseriscono caselle di testo, tabelle e
+  grafici dove capita, anche in disordine, e poi il sistema crea gli oggetti, li
+  classifica e li collega. Riprende la proposta iniziale di flusso, griglia e
+  canvas come viste dello stesso modello. Proposte da confermare: gli oggetti
+  stanno nei file dei loro livelli e il canvas salva solo posizioni e
+  riferimenti, in un file di layout (si può partire da JSON Canvas, formato
+  aperto MIT di Obsidian); documento e slide sono composizioni ordinate che
+  pescano dal canvas, perché il canvas non ha un ordine di lettura;
+  classificazione e collegamenti automatici sono suggerimenti che chi scrive
+  conferma, mai dipendenze create in silenzio.
+
 - Lo spazio libero come punto d'ingresso dello strumento: si parte da una
   pagina vuota e si scrive, poi ogni pezzo si promuove all'elemento che serve
   (paragrafo, capitolo, immagine, lista, grafico, e più avanti slide). Un

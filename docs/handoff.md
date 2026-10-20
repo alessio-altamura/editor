@@ -162,6 +162,12 @@ vuota e si promuove ogni pezzo a paragrafo, capitolo, immagine, lista o grafico.
 registrato come orientamento in [contesto.md](contesto.md), con le domande
 aperte che tocca nella bozza dei tipi di nodo.
 
+Poi ha proposto di pensare lo spazio libero come un canvas: oggetti messi anche
+in disordine, che il sistema crea, classifica e collega. Registrato come
+orientamento, con la proposta di salvare sul canvas solo posizioni e
+riferimenti (JSON Canvas come base) e di tenere documento e slide come
+composizioni ordinate.
+
 ## Domande aperte
 
 1. **Confine fra formule e connettori.** La ricerca sostiene la divisione per
