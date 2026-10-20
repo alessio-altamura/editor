@@ -10,6 +10,8 @@ scrive Alessio.
 
 - [docs/handoff.md](docs/handoff.md): passaggio di consegne per le sessioni
   future: stato, decisioni, domande aperte, prossimi passi.
+- [docs/glossario.md](docs/glossario.md): i nomi del prodotto, in inglese, con
+  la loro definizione.
 - [docs/contesto.md](docs/contesto.md): decisioni prese, proposte non decise,
   bozza di sintassi, punti aperti.
 - [docs/ricerca/](docs/ricerca/): note di ricerca con fonti primarie, una per

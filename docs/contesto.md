@@ -42,6 +42,11 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   di applicare; configurazione in file di testo nella cartella, senza stato
   nascosto; la CLI descrive sé stessa e gli schemi dei file; un server MCP che
   espone le stesse operazioni agli agenti AI.
+- I nomi del prodotto (oggetti, tipi, file, comandi, variabili, codice) sono in
+  inglese. Fin da subito c'è un glossario, [glossario.md](glossario.md), che
+  fissa ogni nome per evitare usi incoerenti. I documenti di lavoro restano in
+  italiano finché il repository è privato; se diventa pubblico si traduce
+  tutto in inglese.
 - Linguaggio di implementazione: TypeScript per la prima versione (runtime,
   LSP, riga di comando ed editor). Rust compilato in WASM solo dove le misure lo
   chiederanno, per esempio per il motore di calcolo o il parser.

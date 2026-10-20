@@ -125,6 +125,9 @@ ancora codice.
   suggerimenti da confermare.
 
 **Implementazione**
+- Nomi del prodotto in inglese, fissati nel glossario
+  [glossario.md](glossario.md). Documenti di lavoro in italiano finché il
+  repository è privato.
 - Nasce con una riga di comando, così un'AI può configurarlo e usarlo. Le
   proposte su come deve essere fatta sono in [contesto.md](contesto.md).
 - TypeScript per la prima versione: runtime, LSP, riga di comando, editor.
