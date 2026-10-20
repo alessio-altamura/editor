@@ -188,6 +188,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `inline result` | risultato in linea | Valore mostrato accanto a una `math line` | proposto | output |
 | `text table` | tabellina | Tabella scritta nel testo, non ancora `collection` | proposto | table |
 | `text` | testo | `kind` di `object` fatto di prosa | proposto | paragraph (da fissare con la bozza) |
+| `image` | immagine | `kind` di `object` fatto da un `asset` di immagine e dalla sua descrizione, che ne è anche la `static fallback` | proposto | picture, figure |
 | `attributes` | metadati comuni | Attributi di ogni file: `id`, `tags`, `lang`, `origin`; sugli `object` anche `kind`, obbligatorio, e `class`; gli altri dipendono dal `kind`; precedente: gli attributi (Attr) di Pandoc | concetto deciso, nome proposto | metadata, properties |
 | `tags` | tag di contesto | Uno o più tag che dicono a cosa si riferisce un `node`, per organizzare e filtrare nel `navigator` | concetto deciso, nome proposto | labels, categories, class |
 | `lang` | lingua | Lingua del contenuto di un `node`, per sillabazione, controllo ortografico e screen reader | proposto | language, locale |
@@ -196,6 +197,9 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `distill` | ricavare il concetto | Operazione: da un `object` a un `concept` nuovo che lo collega | proposto | summarize, extract |
 | `origin` | origine | Attributo che dice se un `concept` o un `object` è scritto da una persona o generato e confermato | proposto | source, author |
 | `concept map` | mappa concettuale | Vista generata dei `concept`, degli `object` che li sviluppano e dei loro collegamenti | proposto | knowledge graph, graph |
+| `association` | collegamento | Collegamento bilaterale fra un `concept` e un `object`, o fra due `object`: esiste se almeno uno dei due file lo dichiara; diverso dall'`embed`, che è una dipendenza scritta solo da chi usa | concetto deciso, nome proposto | link, relation, reference |
+| `replaces` | sostituisce | Attributo con gli `id` dei `concept` o degli `object` di cui questo ha preso il posto, per fusione o sostituzione; i riferimenti a quegli `id` si risolvono su di lui | proposto | redirect, alias, replaced-by |
+| `fingerprint` | impronta | Poche parole e l'hash del bersaglio, salvate con un'`association` confermata per ritrovarlo e per vedere che è cambiato; da decidere | aperto | signature, checksum |
 
 ### 4.3 Composizioni e stile
 
@@ -294,6 +298,8 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `output` | output | HTML o PDF prodotto da un `export` | proposto | result, render |
 | `format` | formattare | Verbo del `formatter`: riscrivere il `source` nella forma canonica | proposto | print, prettify |
 | `freeze` | fotografare | Verbo di `frozen values`: salvare i valori all'`export` | concetto deciso, nome proposto | snapshot |
+| `diagnostic` | errore o avviso | Errore o avviso del `runtime` con un codice stabile, il file e, se c'è, un `fix` | proposto | problem, issue, lint |
+| `fix` | suggerimento di correzione | Correzione proposta da un `diagnostic`; diversa dall'`hint`, che propone contenuto o collegamenti | proposto | hint, suggestion, quick fix |
 
 ### 4.6 App, CLI e protocolli
 
@@ -318,6 +324,8 @@ colonne *codice* e *spec*, come in ID-Zero.
 |---|---|---|---|---|
 | `spec` | specifica | Il testo normativo dello standard | proposto | standard, docs |
 | `spec version` | versione della semantica | Versione della specifica scritta in ogni documento | proposto | format version |
+| `core` | nucleo | Ciò che ogni implementazione conforme sa leggere: `document`, `id`, `attributes`, `concept`, `association`, `directive`, `diagnostic` e `resolved tree` | proposto | base, kernel |
+| `conformance level` | livello di conformità | Il `core` più i `part` aggiunti fino a quel punto, nell'ordine deciso; un livello aggiunge `kind` e `template` senza cambiare il significato di ciò che c'era | proposto | profile, tier, level |
 | `profile` | profilo | Sottoinsieme del linguaggio delle formule fissato dalla `spec` | proposto | dialect |
 | `budget` | budget | Limite di tempo e memoria per una valutazione | proposto | quota, limit |
 | `conformance suite` | corpus di conformità | Documenti d'esempio con il `resolved tree` atteso | proposto | tests, corpus |
