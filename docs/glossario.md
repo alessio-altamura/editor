@@ -190,8 +190,8 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `lang` | lingua | Lingua del contenuto di un `node`, per sillabazione, controllo ortografico e screen reader | proposto | language, locale |
 | `section` | paragrafo (contenitore) | Contenitore di `paragraph`, tabelle, immagini e altri nodi; da precisare se annidabile e se coincide con l'oggetto `text` | concetto deciso, nome proposto | paragraph, block, chapter |
 | `paragraph` | capoverso | Blocco di prosa dentro una `section` | proposto | section, block |
-| `concept` | concetto, descrizione semantica | Nucleo semantico di un `object`: si scrive prima e da lì si fa `develop` del testo, o si ricava dopo dal testo con `distill`; può farlo un LLM come `hint` | proposto | summary, description, abstract, meaning |
-| `develop` | sviluppare | Operazione: dal `concept` a una `variant` di testo per un contesto | proposto | expand, generate |
+| `concept` | concetto, raccoglitore di idee | `object` che contiene un'idea, il primo da cui si parte: da lui si fa `develop` di uno o più oggetti di tipi diversi; si può anche ricavare dopo da un oggetto con `distill`; può farlo un LLM come `hint` | proposto | summary, description, abstract, idea |
+| `develop` | sviluppare | Operazione: da un `concept` a uno o più `object`, anche di `kind` diversi, o a una `variant` | proposto | expand, generate |
 | `distill` | ricavare il concetto | Operazione: dal testo al `concept` | proposto | summarize, extract |
 | `origin` | origine | Attributo che dice se un `concept` o una `variant` è scritto da una persona o generato e confermato | proposto | source, author |
 | `concept map` | mappa concettuale | Vista generata dei concetti di tutti gli oggetti e dei loro legami | proposto | knowledge graph, graph |

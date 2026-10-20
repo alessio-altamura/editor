@@ -209,6 +209,29 @@ contesto.
 - **Con lo spazio libero.** Sul `canvas` si possono buttare giù solo concetti,
   come un elenco di idee, e svilupparli dopo.
 
+### Alessio (2026-10-20), seguito
+
+Il concetto come un primo raccoglitore di idee, che poi diventano un tipo o più
+tipi.
+
+### Note di Claude sul concetto come raccoglitore
+
+- **Il `concept` diventa un oggetto a sé.** Non è più solo un attributo di un
+  oggetto: è il primo oggetto, quello da cui si parte. Il percorso diventa:
+  1. scrivi le idee come `concept` sul `canvas`;
+  2. da ciascun `concept` fai `develop` di uno o più oggetti, anche di tipi
+     diversi, per esempio un `paragraph`, un `chart` e una `slide`;
+  3. ogni oggetto può avere le sue `variant` per i diversi contesti;
+  4. le `composition` mettono insieme gli oggetti.
+- **Il legame resta.** Ogni oggetto sviluppato ricorda da quale `concept`
+  viene. Il `navigator` può mostrare un'idea con tutto ciò che ne è nato, e la
+  `concept map` diventa la mappa delle idee e dei loro sviluppi. Se un'idea
+  cambia, gli oggetti che ne derivano si segnalano come da rivedere.
+- **Il percorso inverso resta.** Si può sempre scrivere direttamente un
+  oggetto e ricavarne il `concept` dopo (`distill`).
+- **È coerente con lo spazio libero.** Il `canvas` come raccoglitore di idee
+  è proprio il punto d'ingresso deciso: prima le idee, poi i tipi.
+
 ## Domande aperte per Alessio
 
 1. **Il nome `concept`** al posto di `summary`, visto che si può partire da
@@ -222,5 +245,7 @@ contesto.
    modello locale?
 6. **Ordine:** `concept` a mano nel primo livello, generazione e mappa dopo,
    varianti e abbozzi dopo ancora?
-7. **L'inventario dei `kind`:** quali tipi di blocco e in linea servono al
+7. **Il `concept` come oggetto:** resta anche dopo lo sviluppo? Un oggetto
+   può derivare da più `concept`?
+8. **L'inventario dei `kind`:** quali tipi di blocco e in linea servono al
    primo livello.
