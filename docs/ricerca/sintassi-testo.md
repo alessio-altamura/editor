@@ -60,7 +60,7 @@ Versioni e date dal registry npm (`registry.npmjs.org/<nome>`).
 | Pacchetto | Ultima versione | Licenza | Note |
 |---|---|---|---|
 | `commonmark` (commonmark.js) | 0.31.2, 2024-09-19 | BSD-2-Clause | implementazione di riferimento; commit fino al 2026-10 |
-| `markdown-it` | 15.0.3, 2026-10-16 | MIT | usato da VS Code |
+| `markdown-it` | 15.0.3, 2026-10-16 | MIT | usato da VS Code; la 15.0.0 è del 2026-07 |
 | `micromark`, `mdast-util-from-markdown`, `mdast-util-to-markdown` | 4.0.3, 2.1.0, 2.2.0, tutti 2026 | MIT | ecosistema unified |
 | `remark-frontmatter` | 5.0.0, 2023-09-18 | MIT | front matter come nodo `yaml` |
 | `remark-directive` | 4.0.0, 2025-02-27 | MIT | direttive generiche |
@@ -101,8 +101,11 @@ Rust, Go, Haskell); in JavaScript o TypeScript c'è solo djot.js
 ## Intestazione (front matter)
 
 - La spec CommonMark non nomina né front matter né metadati. Sul forum di
-  CommonMark, nel 2016: «front matter is not amongst the planned features for
-  1.0» ([forum](https://talk.commonmark.org/t/front-matter-best-practice/2235/2)).
+  CommonMark, il 2016-09-22, un moderatore sposta la discussione fra le
+  estensioni «since front matter is not amongst the planned features for
+  1.0», e il giorno dopo MacFarlane scrive «Front matter is not going to be
+  part of the spec.»
+  ([forum](https://talk.commonmark.org/t/front-matter-best-practice/2235)).
 - Pandoc definisce il blocco YAML: «delimited by a line of three hyphens
   (`---`) at the top and a line of three hyphens (`---`) or three dots
   (`...`) at the bottom»
@@ -119,7 +122,8 @@ Rust, Go, Haskell); in JavaScript o TypeScript c'è solo djot.js
 
 ## GitHub e gli editor
 
-- **GitHub.** github/markup rende i `.md` con commonmarker, e Djot non è fra
+- **GitHub.** github/markup rende i `.md` con commonmarker (il primo di una
+  lista di librerie di ripiego), e Djot non è fra
   i formati. La sanitizzazione toglie fra l'altro gli attributi `class` e
   `id` dall'HTML ([github/markup](https://github.com/github/markup)). Il front
   matter YAML appare come tabella orizzontale
@@ -162,7 +166,17 @@ Rust, Go, Haskell); in JavaScript o TypeScript c'è solo djot.js
 
 ## Correzioni del secondo controllo
 
-(Da completare con l'esito della verifica.)
+Il secondo agente ha confermato tutti i fatti portanti, con due correzioni
+e alcune precisazioni, già applicate sopra:
+- la frase sul front matter nel forum di CommonMark non è una decisione della
+  spec ma il motivo di uno spostamento fra le estensioni; la posizione di
+  MacFarlane è nel messaggio successivo;
+- markdown-it ha avuto più release nel 2026, non una sola;
+- github/markup usa commonmarker come prima scelta, con altre librerie di
+  ripiego;
+- le prove su djot.js sono state ripetute: anche un commento dentro gli
+  attributi sparisce (`{#id % c %}` diventa `{#id}`), e dove c'era un
+  commento in linea restano due spazi.
 
 ## Cosa ne segue per noi
 
