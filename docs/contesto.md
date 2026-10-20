@@ -269,8 +269,15 @@ quando due rami lavorano in parallelo.
 - Dati grandi: file colonnari referenziati, non nel sorgente.
 - Il progetto è generale, non legato a un solo caso d'uso (Alessio,
   2026-10-20). Per il corpus servono comunque documenti campione reali che
-  coprano gli usi: testo, liste e tracker, modelli e budget, report con
-  grafici, presentazioni, calcoli al volo.
+  coprano gli usi:
+  - un testo lungo con capitoli;
+  - liste e tracker;
+  - modelli e budget;
+  - report con tabelle e grafici;
+  - una presentazione a slide;
+  - un foglio di calcolo interattivo, in cui chi legge cambia gli input e vede
+    ricalcolare, non solo la presentazione statica dei dati;
+  - appunti con calcoli al volo.
 - Governance e licenza della specifica.
 
 ## Ordine di lavoro
