@@ -68,8 +68,8 @@ ancora codice.
 - Tipi, chiavi e dimensioni stanno in uno schema separato dal CSV.
 - La griglia resta come interfaccia per inserire e guardare i dati.
 - Lo spazio libero per appunti e calcoli al volo sta dentro il contenuto: righe
-  di calcolo con il risultato in linea, più un gesto per promuovere una
-  tabellina a lista vera.
+  di calcolo con il risultato in linea. Da lì si può poi creare una lista vera
+  (il meccanismo proposto è in [contesto.md](contesto.md)).
 
 **Connettori**
 - Hanno un file proprio. Il layout è automatico; le posizioni sistemate a mano

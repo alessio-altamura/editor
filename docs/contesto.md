@@ -79,7 +79,8 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   connettori, slide.
 - Lo spazio libero per appunti e calcoli al volo sta dentro il contenuto: righe
   di calcolo nel testo con il risultato in linea (come Soulver o le Math Notes
-  di Apple), più un gesto per promuovere una tabellina a lista vera.
+  di Apple). Da ciò che si è scritto nello spazio libero si può poi creare una
+  lista vera.
 
 ## Proposte non decise
 
@@ -107,6 +108,11 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
 - Quando arriverà il motore Typst, la sua vista per pagina sarà disegnata da
   Typst dallo stesso layout del PDF (vedi
   [ricerca/vista-per-pagina.md](ricerca/vista-per-pagina.md)).
+- Creazione di una lista dallo spazio libero: l'editor (o l'AI) propone nomi
+  presi da intestazioni ed etichette, tipi riconosciuti dai valori e una
+  chiave; chi scrive conferma o corregge; il runtime crea il file dei dati e lo
+  schema, e al posto del blocco libero lascia nel contenuto un riferimento alla
+  lista, così il diff mostra lo spostamento.
 - Come primo prodotto, il runtime da riga di comando: prende il file e produce
   l'albero risolto, l'HTML e il PDF, senza app.
 
