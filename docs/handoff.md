@@ -197,6 +197,12 @@ trascinandolo sul foglio o cliccandolo per vederlo da solo. Da confermare: che
 l'oggetto richiamato sia lo stesso e non una copia, e che possa stare in più
 layout per riferimento.
 
+Infine Alessio ha proposto estensioni e connettori su un marketplace per
+ampliare tipi di oggetti e template di layout. Registrato come orientamento con
+le proposte: forma generica nella sintassi per i tipi non noti, forma statica
+obbligatoria, versioni fissate con hash, gradi di estensione dal più sicuro al
+più rischioso, registro aperto.
+
 ## Domande aperte
 
 1. **Confine fra formule e connettori.** La ricerca sostiene la divisione per

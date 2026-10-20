@@ -168,6 +168,20 @@ quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
 
+- Estensibilità: estensioni e connettori distribuiti da un marketplace, per
+  ampliare i tipi di oggetti e i template dei layout, coerente con l'approccio
+  incrementale. Proposte da confermare: la specifica definisce il meccanismo
+  di estensione, non le estensioni; la sintassi ha fin dall'inizio una forma
+  generica per i tipi di oggetto non noti, che il parser legge e il formatter
+  conserva anche senza l'estensione (come le direttive di MyST); ogni oggetto
+  di un'estensione porta nel documento una forma statica, così il documento si
+  apre anche dove l'estensione manca; le versioni delle estensioni sono
+  fissate nel documento con un hash; si procede per gradi: prima template di
+  layout senza codice, poi tipi dichiarativi, poi tipi con codice in sandbox,
+  poi connettori a fonti esterne con permessi dichiarati; il registro è aperto
+  e replicabile, come crates.io o Typst Universe. Da chiarire se "connettori"
+  qui significa fonti di dati esterne o i connettori grafici.
+
 - Lo spazio libero come punto d'ingresso dello strumento: si parte da una
   pagina vuota e si scrive, poi ogni pezzo si promuove all'elemento che serve
   (paragrafo, capitolo, immagine, lista, grafico, e più avanti slide). Un
