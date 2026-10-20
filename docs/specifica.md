@@ -17,8 +17,9 @@ riusano parole del glossario con un altro senso (`attributes`, `code`).
 - *(proposta)*: viene dalla [bozza dei nodi](bozza-nodi.md), dall'orchestratore
   o da chi ha scritto questa bozza; resta da confermare.
 - **APERTO**: un punto che blocca la classe 1, con le opzioni e i loro costi,
-  senza una scelta (§0.2, §0.5, §0.6, §0.7). I §0.1, §0.3 e §0.4 erano aperti
-  e sono stati decisi.
+  senza una scelta: il sottoinsieme di CSS (§0.5), la sintassi (§0.6) e i
+  capitoli (§0.7). I §0.1-§0.4 e la prima parte del §0.5 erano aperti e sono
+  stati decisi.
 
 **Sintassi provvisoria.** Gli esempi usano CommonMark con un'intestazione YAML
 fra due righe `---`. Un capoverso fatto solo di `![[id]]` è un `embed` di
@@ -30,8 +31,8 @@ esempio è un blocco aperto e chiuso da 32 backtick, con l'etichetta
 `example N conf=C status=S`: C è la `conformance class` (§1); S è la
 marcatura più debole fra le regole che l'esempio usa, escluso il formato del
 `resolved tree`, che è proposta per tutti: `decided`, `proposal`, oppure
-`open-0.N-X` per l'opzione X di un punto APERTO, con più valori separati da
-virgola. Dentro:
+`open-0.N-X` per l'opzione X di un punto APERTO, oppure `open-0.N` se il
+punto non ha opzioni, con più valori separati da virgola. Dentro:
 - una riga `=== file <percorso>` apre un file di testo, che contiene le righe
   fino al marcatore successivo, ciascuna chiusa da LF;
 - una riga `=== asset <percorso>` crea un file di zero byte;
@@ -78,27 +79,21 @@ segnaposto finché la sintassi non è scelta (§0.6). La bozza mette nel primo
 livello `concept`, `text`, `image` e l'`article`; *(proposta)* il §1 sposta il
 `concept` nel `core` e aggiunge `stylesheet` e `canvas file`.
 
-### 0.2 APERTO: un `text` è un capoverso o più blocchi?
+### 0.2 Deciso: un `text` è un blocco solo
 
-Ogni oggetto è un file, anche il capoverso [C: «Ogni oggetto è un file»]. Non
-è deciso se un `text` possa contenerne più d'uno.
-- **Un solo capoverso.** Scrittura: ogni capoverso nuovo è un file nuovo, cosa
-  che l'`app` fa da sola ma che a mano, con un programma di testo, è pesante.
-  Diff: piccoli e localizzati; spostare un capoverso cambia solo la
-  `composition`. Composizioni: lunghe liste di `embed`, e anche un elenco o
-  una citazione sono oggetti a sé. Riuso al grado più fine.
-- **Più blocchi.** Scrittura: naturale, come un file Markdown. Diff: come un
-  testo normale; spostare un capoverso fra due oggetti cambia due file.
-  Composizioni: pochi `embed`. Il riuso è più grossolano, e serve una regola
-  per un titolo dentro un `text`, perché i titoli stanno nella `composition`
-  (§8).
+Un `text` è un blocco solo: un capoverso, un elenco, una citazione [C: «Sulla
+bozza di specifica»]. Ne segue che spostare un capoverso cambia solo la
+`composition`, e che un elenco o una citazione sono oggetti a sé.
 
-Lo spazio libero per appunti e calcoli sta dentro il contenuto, con le righe
-di calcolo come in Soulver [C: «Lo spazio libero per appunti»]. Con più
-blocchi, lo `scratch` può essere un `text` come gli altri. Con un capoverso
-per `text` non regge: servirebbe un `kind` a sé.
-
-Gli esempi hanno sempre un capoverso, e valgono con tutte e due le opzioni.
+*(proposte)*
+- Un `code block` e una `text table` sono blocchi anche loro, quindi possono
+  fare un `text`. Un titolo invece no: i titoli stanno nella `composition`
+  (§0.7).
+- Un `text` con più di un blocco, o con un titolo, è l'errore `text-blocks`
+  (esempio 21). Il `fix` propone di dividerlo in più `text`.
+- Lo spazio libero è un `kind` a sé, `scratch`, perché è un posto di lavoro e
+  non un'unità di significato (proposta che segue dalla decisione, [C:
+  «Sulla bozza di specifica»]): §7.3.
 
 ### 0.3 Deciso: identità e collegamenti che si rompono
 
@@ -181,23 +176,35 @@ Due punti restano aperti, senza bloccare la grammatica:
   regola fissata per stampare il risultato. Con la prima `0.1 + 0.2` dà
   `0.3`.
 
-### 0.5 APERTO: il sottoinsieme di CSS e chi applica le regole
+### 0.5 Il CSS: chi lo applica è deciso, il sottoinsieme è APERTO
 
-Il sottoinsieme è definito dalla specifica [C: «Il vocabolario
-dell'impaginazione»], ma non è ancora scritto, e senza di lui metà della
-classe 1 non ha requisiti verificabili. C'è anche una scelta di architettura:
-- **il `runtime` calcola la cascata** e scrive nel `resolved tree` i valori
-  per ogni nodo. È coerente con la proposta che i `renderer` non ricalcolino
-  nulla [C: «Un solo punto di calcolo»], e gli esempi possono verificare
-  l'impaginazione. Costo: il `runtime` implementa la cascata;
-- **il `renderer` applica il CSS**. L'HTML lo fa da sé. Costi: l'aspetto non è
-  nel `resolved tree`, e un futuro `renderer` Typst deve implementare la
-  cascata a parte.
+Il CSS lo applica il `runtime`: calcola la cascata e scrive i valori finali
+nel `resolved tree`, e i `renderer` li applicano soltanto [C: «Sulla bozza di
+specifica»]. È coerente con la proposta che i `renderer` non ricalcolino
+nulla [C: «Un solo punto di calcolo»], e permette agli esempi di verificare
+l'impaginazione (esempio 8).
 
-Finché i tipi di contenuto hanno nomi provvisori (§11.3), un selettore su un
-tipo cambierebbe significato quando i nomi si fissano: fino ad allora,
-*(proposta)* solo selettori di `class`. Ne segue che nessuna regola colpisce i
-titoli di una `composition`, che non hanno `class` (§0.7).
+*(proposte)*
+- **La forma dei valori.** Ogni nodo del contenuto di una `composition` porta
+  negli attributi un oggetto `style`, con le proprietà del sottoinsieme il cui
+  valore calcolato è diverso da quello del nodo che lo contiene; un nodo
+  senza differenze non ha `style`. I valori sono stringhe CSS normalizzate:
+  parole chiave in minuscolo, lunghezze assolute in `pt`, colori in
+  `#rrggbb`.
+- **L'ereditarietà.** Solo le proprietà del sottoinsieme che il CSS dichiara
+  ereditate passano dal contenitore al contenuto: dalla `composition`
+  all'`embed`, dall'`embed` ai suoi blocchi. Le altre partono dal valore
+  iniziale del CSS.
+- **I selettori.** Finché i tipi di contenuto hanno nomi provvisori (§11.3),
+  un selettore su un tipo cambierebbe significato quando i nomi si fissano:
+  fino ad allora solo selettori di `class`. Ne segue che nessuna regola
+  colpisce i titoli di una `composition`, che non hanno `class`, salvo con
+  l'opzione D del §0.7.
+
+**APERTO: il sottoinsieme**, cioè quali proprietà e quali valori. È definito
+dalla specifica [C: «Il vocabolario dell'impaginazione»], ma non è ancora
+scritto, e senza di lui le regole qui sopra non hanno ancora proprietà su cui
+lavorare. L'esempio 8 usa `font-weight`, e dipende da questo punto.
 
 ### 0.6 APERTO: la sintassi dei file di testo
 
@@ -572,9 +579,8 @@ l'object»].
 
 ### 7.1 `text`
 
-Un `text` è un oggetto di prosa, con gli attributi comuni e un corpo
-(esempio 2). Se il corpo è un capoverso o più blocchi, e quindi dove sta lo
-`scratch`, è APERTO (§0.2).
+Un `text` è un oggetto di prosa, con gli attributi comuni e un corpo fatto
+di un blocco solo (§0.2, deciso; esempio 2).
 
 Il contenuto interno è un inventario *(proposto)*; i tipi non hanno ancora un
 nome (§11.3).
@@ -589,8 +595,8 @@ nome (§11.3).
 | riferimento in linea | a un altro nodo, con un `id reference` in linea (§10); se il nodo è numerato è un `cross-ref`, e la `numbering` è da precisare |
 | `footnote` | |
 
-Da decidere: l'`embed` dentro un `text`, che il glossario ammette, e gli
-attributi sui singoli blocchi, che dipendono dalla sintassi.
+Da decidere: l'`embed` dentro un `text`, che il glossario ammette. Con un
+blocco per `text`, gli attributi del blocco sono quelli del file.
 
 ### 7.2 `image`
 
@@ -622,6 +628,20 @@ Foto della lavagna con le vendite mensili del 2026.
 }
 ````````````````````````````````
 
+### 7.3 `scratch` *(proposta)*
+
+Lo spazio libero per appunti e calcoli sta dentro il contenuto, con le righe
+di calcolo come in Soulver [C: «Lo spazio libero per appunti»]. Con un blocco
+per `text` (§0.2) diventa un `kind` a sé, `scratch`: un posto di lavoro, non
+un'unità di significato.
+- Un `scratch` contiene quanti blocchi si vuole, titoli compresi, e le `math
+  line` con il loro risultato (§0.4).
+- Non si usa in una `composition`: un `embed` di uno `scratch` è
+  `embed-kind`. Da lì si ricavano oggetti con `turn into`: un blocco diventa
+  un `text`, una `text table` diventa una `collection`.
+- Ha gli attributi comuni e le `association`, così un appunto può già
+  collegare un `concept`.
+
 ## 8. La `composition` `article`
 
 La `composition` punta l'`object` [C: «La composition punta l'object»]. Lo
@@ -641,7 +661,7 @@ il `reading order` [C: «La lista a fianco ha sezioni per tipo»].
 - L'`article` nomina il suo `stylesheet` con l'attributo `stylesheet`, scritto
   come `id reference` (§10).
 
-```````````````````````````````` example 8 conf=1 status=open-0.7-A
+```````````````````````````````` example 8 conf=1 status=open-0.5,open-0.7-A
 === file report-q3.article.md
 ---
 id: report-q3
@@ -673,13 +693,14 @@ Foto della lavagna con le vendite mensili.
 kind: stylesheet
 id: report
 */
+.evidenza { font-weight: bold; }
 === resolved
 {
   "nodes": [
     {"id": "calo-q3-sintesi", "kind": "text", "file": "calo-q3-sintesi.text.md", "attributes": {"class": ["evidenza"]}, "content": [["paragraph", "Le vendite sono calate del 12%."]]},
     {"id": "lavagna", "kind": "image", "file": "lavagna.image.md", "attributes": {"asset": "lavagna.jpg"}, "content": [["paragraph", "Foto della lavagna con le vendite mensili."]]},
     {"id": "report", "kind": "stylesheet", "file": "report.stylesheet.css"},
-    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"stylesheet": "report"}, "content": [["heading", {"depth": 1}, "Il terzo trimestre"], ["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["evidenza"]}, ["paragraph", "Le vendite sono calate del 12%."]], ["embed", {"id": "lavagna", "kind": "image", "asset": "lavagna.jpg"}, ["paragraph", "Foto della lavagna con le vendite mensili."]]]}
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"stylesheet": "report"}, "content": [["heading", {"depth": 1}, "Il terzo trimestre"], ["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["evidenza"], "style": {"font-weight": "bold"}}, ["paragraph", "Le vendite sono calate del 12%."]], ["embed", {"id": "lavagna", "kind": "image", "asset": "lavagna.jpg"}, ["paragraph", "Foto della lavagna con le vendite mensili."]]]}
   ]
 }
 ````````````````````````````````
@@ -752,7 +773,8 @@ Nel terzo trimestre le vendite calano.
 Il vocabolario dell'impaginazione è un sottoinsieme di CSS definito dalla
 specifica, con proprietà traducibili anche per Typst [C: «Il vocabolario
 dell'impaginazione»]; modello e impaginazione sono neutri rispetto al motore
-[C: «Motori per fasi»]. Il sottoinsieme e chi applica le regole sono APERTI
+[C: «Motori per fasi»]. Le regole le applica il `runtime`, che scrive i valori
+nel `resolved tree` [C: «Sulla bozza di specifica»]; il sottoinsieme è APERTO
 (§0.5).
 
 *(proposte)*
@@ -879,9 +901,10 @@ secondo il codice `target`, `message` e `fix`.
 | `association-kind` | error | con una `composition` o uno `stylesheet` | l'`id` | 18 |
 | `association-retired` | warning | bersaglio ritirato, risolto sul successore | l'`id` ritirato | 17 |
 | `embed-unresolved` | error | `id` inesistente | l'`id` | 9 |
-| `embed-kind` | error | `embed` di un `concept` o di una `composition` | l'`id` | 11 |
+| `embed-kind` | error | `embed` di un `concept`, di uno `scratch` o di una `composition` | l'`id` | 11 |
 | `embed-retired` | warning | `embed` di un `id` ritirato, risolto sul successore | l'`id` ritirato | non coperto |
 | `id-reused` | error | un file vivo con un `id` ritirato | l'`id` | 19 |
+| `text-blocks` | error | un `text` con più di un blocco, o con un titolo | — | 21 |
 | `composition-content` | error | nella `composition` un blocco che non è titolo né `embed` | — | 10 |
 | `math-line-invalid` | warning | riga di calcolo fuori grammatica, o divisione per zero | — | non coperto |
 | `eval-unsupported` | warning | blocco da eseguire nella classe 1 | — | non coperto |
@@ -1067,6 +1090,28 @@ Pezzi prodotti nel trimestre: `= 1200 + 1350 + 1280`.
 }
 ````````````````````````````````
 
+Un `text` è un blocco solo:
+
+```````````````````````````````` example 21 conf=1 status=proposal
+=== file appunti-q3.text.md
+---
+id: appunti-q3
+kind: text
+---
+Le vendite sono calate.
+
+Le consegne sono arrivate tardi.
+=== resolved
+{
+  "nodes": [
+    {"id": "appunti-q3", "kind": "text", "file": "appunti-q3.text.md", "content": [["paragraph", "Le vendite sono calate."], ["paragraph", "Le consegne sono arrivate tardi."]]}
+  ],
+  "diagnostics": [
+    {"severity": "error", "code": "text-blocks", "file": "appunti-q3.text.md", "fix": "dividi in due text"}
+  ]
+}
+````````````````````````````````
+
 ### 11.3 Il `resolved tree` *(proposta)*
 
 È un valore JSON con tre liste; una lista vuota si omette.
@@ -1099,7 +1144,8 @@ per `text table`, `cross-ref` e la definizione di una
 
 Nel contenuto di una `composition` un `embed` porta negli attributi `id`,
 `kind`, il `lang` effettivo (quello dell'oggetto o, se manca, quello del
-documento), e se ci sono `class` e `asset` dell'oggetto, e come figli il
+documento), e se ci sono `class` e `asset` dell'oggetto e lo `style`
+calcolato (§0.5), e come figli il
 suo contenuto risolto. Un `embed` che non si risolve ha `"unresolved": true`
 e nessun figlio. Così un `renderer` legge la `composition` senza cercare altri
 nodi.
@@ -1120,10 +1166,10 @@ Dove si aggancerà ciascuna al `core`.
   connettori in file separati»]. Estendono l'aritmetica delle `math line`
   (§0.4). Requisito di Alessio [C: «Sulla bozza di specifica»]: deve essere
   possibile usare una funzione dichiarata in un altro file, con argomenti
-  numerici, elementi della stessa lista o anche range. Cosa sia un range è da
-  precisare, perché le celle non hanno coordinate [C: «Le celle non hanno
-  coordinate»]: può essere un intervallo di valori, oppure righe scelte per
-  contenuto.
+  numerici, elementi della stessa lista o anche range. Un range è un
+  intervallo di valori di un campo, per esempio da marzo a giugno, oppure
+  tutta la colonna; non un indirizzo, perché le celle non hanno coordinate
+  [C: «Le celle non hanno coordinate»].
 - **Connettori** (classe 5). Un file proprio, e un file per le posizioni
   sistemate a mano [C: «I connettori grafici sono un file a parte»].
   *(proposta)* Puntano gli `object` per `id`, nella forma generica del §10.
