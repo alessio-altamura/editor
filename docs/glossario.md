@@ -208,7 +208,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `reading order` | ordine di lettura | Ordine degli oggetti in una `composition`, deciso da chi scrive | concetto deciso, nome proposto | sequence |
 | `stylesheet` | impaginazione | Regole nel sottoinsieme di CSS della specifica | concetto deciso, nome proposto | layout, style, theme |
 | `class` | aggancio | Nome su un `node` a cui si agganciano le regole dello `stylesheet` | proposto | tag, style |
-| `template` | template | `composition` o `stylesheet` riutilizzabile, distribuibile come `extension` | proposto | theme, preset |
+| `template` | template | Forma riutilizzabile senza contenuto: `composition` o `stylesheet`; orientamento di Alessio: anche il modo di vedere una `collection`, che un `chart` applica a dati diversi; distribuibile come `extension` | proposto | theme, preset |
 | `slide template` | schema di slide | Disposizione predefinita di una `slide`, come titolo e contenuto | proposto | layout, master |
 | `placement` | posizioni | Posizioni sistemate a mano nel `wire diagram`; file a parte | concetto deciso, nome proposto | layout |
 | `auto arrange` | disposizione automatica | Disposizione automatica e stabile del `wire diagram` | concetto deciso, nome proposto | layout |
@@ -240,7 +240,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `view` | vista | Modo di mostrare una `collection`: `grid`, `board`, `calendar` | concetto deciso, nome proposto | layout, composition |
 | `grid` | griglia | `view` a righe e colonne per inserire e guardare i dati | concetto deciso, nome proposto | sheet, table, spreadsheet |
 | `pivot` | pivot | `grid` di una `collection` multidimensionale con le `dimension` su righe e colonne | proposto | cross table |
-| `chart` | grafico | Oggetto che mostra graficamente una `collection`; il suo contenuto è una vista dei dati | concetto deciso, nome proposto | graph, plot, view |
+| `chart` | grafico | Oggetto che mostra graficamente una `collection`; il suo contenuto è una vista dei dati; orientamento: applica un `template` a una `collection`, con il campo per ogni ruolo | concetto deciso, nome proposto | graph, plot, view |
 | `formula` | formula | Espressione con nome che calcola un `field` o un valore | concetto deciso, nome proposto | function, rule, calc |
 | `computed field` | colonna calcolata | `field` i cui valori vengono da una `formula` | concetto deciso, nome proposto | calculated column |
 | `override` | eccezione | Valore scritto a mano al posto del risultato di una `formula` di colonna, segnalato; ammissione da decidere | aperto | exception |

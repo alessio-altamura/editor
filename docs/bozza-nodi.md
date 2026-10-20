@@ -65,7 +65,9 @@ calo-q3.concept.md          concetto: nel terzo trimestre le vendite calano
 calo-q3-sintesi.md          text: il capoverso che lo sviluppa
 vendite-2026.csv            collection: la tabella
 vendite-2026.schema.json    lo schema della tabella
-vendite-mensili.chart.json  chart: prende i dati da vendite-2026
+barre-mensili.template.json template: barre, x un mese, y un numero
+vendite-mensili.chart.json  chart: applica barre-mensili a vendite-2026
+                            (proposta del §3, il grafico come template)
 lavagna-vendite.jpg         image: una foto della lavagna, rappresenta
                             vendite-2026
 margini-q3.concept.md       secondo concetto: collega vendite-2026 e
@@ -100,6 +102,58 @@ la proposta di Claude era farli scrivere solo al file che dipende).
   restano nel file che dipende, perché senza non si può risolvere: il grafico
   scrive da quale tabella prende i dati, la composizione scrive cosa usa
   (questo era già deciso: il contesto punta, l'oggetto non lo sa).
+
+### Il grafico come template
+
+Alessio (2026-10-20): il grafico potrebbe essere un template? Un modo di vedere
+una tabella, che si applica a dati diversi in un oggetto.
+
+*(note e proposte di Claude)*
+- **Si incastra con ciò che è già deciso.** Una tabella ha più viste dello
+  stesso elenco, fra cui il grafico. Nel glossario il `template` è già una
+  forma riutilizzabile senza contenuto, finora per composizioni e
+  `stylesheet`. Il grafico diventa due cose:
+  - **il template**, che dice come si vede una tabella: il tipo di grafico, i
+    ruoli (asse x, asse y, serie) e il tipo di dato che ogni ruolo accetta. Non
+    nomina nessuna tabella;
+  - **l'oggetto `chart`**, che applica un template a una `collection`: dice
+    quale campo va in ogni ruolo, con un eventuale filtro (per esempio solo il
+    2026). È questo che un concetto collega e che una composizione usa.
+- **Precedenti.**
+  - ggplot2 separa i dati dalla descrizione del grafico e permette di
+    sostituire i dati di un grafico già fatto: prima con l'operatore `%+%`,
+    deprecato dalla versione 4.0.0 in favore di `+`
+    ([gg-add](https://ggplot2.tidyverse.org/reference/gg-add.html)).
+  - In Vega-Lite una specifica può dichiarare i dati solo con un nome e
+    riceverli dopo: «Provide a placeholder name and bind data at runtime»
+    ([data](https://vega.github.io/vega-lite/docs/data.html)).
+  - Excel salva un grafico come template `.crtx` e lo applica a dati nuovi o a
+    un grafico esistente. Il template porta con sé i suoi colori, che
+    prevalgono su quelli del tema del documento
+    ([supporto](https://support.microsoft.com/en-us/office/save-a-custom-chart-as-a-template-259a5f9d-a9ec-4b3f-94b6-9f5e55187f2a)).
+- **I ruoli hanno un tipo, e lo schema permette di controllarlo.** I tipi dei
+  campi stanno già nello schema della tabella (deciso). Il `runtime` può quindi
+  verificare l'applicazione: un campo di testo sull'asse y è un errore, non un
+  grafico sbagliato. Se chi scrive non dice quale campo va dove, il `runtime`
+  propone un abbinamento dai tipi, come `hint`.
+- **L'aspetto resta nello `stylesheet`.** Il template dice che grafico è, non i
+  colori e i caratteri. Così lo stesso template appare coerente nell'articolo
+  e nella presentazione. È la differenza da Excel, dove il template porta
+  colori propri che scavalcano il tema.
+- **Risponde alla domanda sulle dipendenze, per i grafici.** Il template non
+  dipende da niente. L'oggetto `chart` dipende dal template e dalla tabella, e
+  scrive tutti e due i collegamenti.
+- **Si può estendere a tutte le viste.** Anche la griglia, la board e il
+  calendario sono modi di vedere una tabella: template con i loro ruoli (per la
+  board il campo per cui raggruppare, per il calendario il campo data). Sarebbe
+  un solo meccanismo per tutte le viste.
+- **Più dati nello stesso oggetto.** Lo stesso template si può applicare anche
+  più volte in un oggetto, affiancato: un grafico per ogni regione, o uno per
+  ogni campo. Vega-Lite lo fa con facet e repeat
+  ([repeat](https://vega.github.io/vega-lite/docs/repeat.html)), ggplot2 con
+  i facet ([facet_wrap](https://ggplot2.tidyverse.org/reference/facet_wrap.html)).
+- **I template si possono distribuire,** come le altre `extension`: un
+  catalogo di grafici pronti, coerente con l'orientamento sul marketplace.
 
 ### Collegamenti che si rompono
 
@@ -261,6 +315,13 @@ punta la composizione) hanno avuto risposta: vedi i §1 e §3.
    ci lavora, o solo nella cache locale? Propongo il file del documento: i
    promemoria ripetuti vengono accettati sempre meno (Ancker et al., nella
    ricerca), e la cache si perde quando si rigenera.
+6. **Il grafico come template:** il template dice come si vede una tabella, con
+   ruoli tipizzati e senza dati; l'oggetto `chart` lo applica a una
+   `collection`, con il campo per ogni ruolo. Ti torna? E con "dati diversi in
+   un oggetto" intendevi anche lo stesso template ripetuto per più tabelle o
+   più parti di una tabella, affiancato?
+7. **Tutte le viste come template:** griglia, board e calendario funzionano
+   allo stesso modo del grafico?
 
 ## 7. Le idee di Alessio, in ordine (2026-10-20)
 
@@ -312,3 +373,5 @@ punta la composizione) hanno avuto risposta: vedi i §1 e §3.
 14. Il problema del collegamento meccanico, e non semantico, è che si può
     rompere: sarebbe da aggiungere un collegamento generato in automatico per
     semantica. Non so quanto sia semplice.
+15. Il grafico potrebbe essere un template? Un modo di vedere una tabella, che
+    si applica a dati diversi in un oggetto.

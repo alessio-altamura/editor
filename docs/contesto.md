@@ -291,6 +291,13 @@ quando due rami lavorano in parallelo.
   quanto sia semplice (2026-10-20). Analisi e proposte in
   [bozza-nodi.md](bozza-nodi.md).
 
+- Il grafico come template: un modo di vedere una tabella, che si applica a
+  dati diversi in un oggetto (Alessio, 2026-10-20, in forma di domanda).
+  Proposta di Claude: il template dice tipo di grafico e ruoli tipizzati senza
+  dati, l'oggetto `chart` lo applica a una `collection` con il campo per ogni
+  ruolo; lo stesso meccanismo può valere per tutte le viste. Dettagli in
+  [bozza-nodi.md](bozza-nodi.md).
+
 - Formule: Python era l'ipotesi più semplice, non un vincolo. Da capire quale
   linguaggio convenga, con la possibilità di richiamare codice esterno al
   documento.
