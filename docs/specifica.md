@@ -289,29 +289,30 @@ browser, perché il `resolved tree` resti l'unica fonte (inferenza).
 ### 0.6 APERTO: la sintassi dei file di testo
 
 Alessio ha chiesto di valutare quattro strade [C: «Sintassi dei file di
-testo»]: CommonMark con un'intestazione; Djot; Markdown con una sintassi
-nostra, come fa Obsidian; un formato nostro. La nota
-[ricerca/sintassi-testo.md](ricerca/sintassi-testo.md) scrive lo stesso
-documento in tutte e quattro e le confronta con gli stessi criteri. La scelta
-tocca gli
-attributi del file e dei blocchi (§4), l'`embed` (§8), l'inventario del
-contenuto (§7.1), il `formatter` e il `syntax tree` che conserva i
-commenti.
+testo»]. La nota [ricerca/sintassi-testo.md](ricerca/sintassi-testo.md)
+scrive lo stesso documento in tutte e quattro e le confronta con gli stessi
+criteri. I costi in breve:
+- **CommonMark con un'intestazione YAML.** Librerie mature, e prettier
+  conserva commenti e intestazione. Costi: collegamenti per `id` ed `embed`
+  vanno aggiunti sopra CommonMark e su GitHub si vedono rotti; YAML va
+  ristretto a sole stringhe (§0.3).
+- **Djot.** Attributi nativi. Costi: sintassi dichiarata instabile, una sola
+  implementazione TypeScript senza release dal 2024; gli attributi del file
+  chiedono una regola, quella proposta da matklad (un blocco di attributi in
+  testa seguito da una riga vuota), che `renderDjot` non conserva; i valori
+  sono stringhe, quindi le liste chiedono una convenzione; GitHub mostra il
+  testo semplice.
+- **Markdown con una sintassi nostra, come fa Obsidian.** Gli strumenti della
+  prima strada più `[[id]]` e `![[id]]`, con regole nostre. Costi: plugin da
+  scrivere o scegliere, YAML come nella prima, e la cartella non funziona in
+  Obsidian, che collega per nome del file e non per `id`.
+- **Un formato nostro.** Nessuna dipendenza. Costi: parser, `formatter`,
+  commenti e supporto negli editor sono tutti da fare.
 
-L'esempio 1 in Djot, a titolo illustrativo (non si estrae):
-
-```
-{#calo-q3 kind=concept tags="vendite q3" lang=it}
-Nel terzo trimestre le vendite calano.
-```
-
-Con djot.js 0.3.2 questo dà un altro albero, finché non si scrivono tre
-regole: il blocco di attributi davanti al primo blocco vale per il file e
-non per il capoverso; un valore con spazi si legge come lista; un file fatto
-solo di attributi resta un nodo (djot.js scarta un blocco di attributi senza
-blocco dopo). Le prove sono nella nota. La sintassi provvisoria degli
-esempi, con `![[id]]` e `"[[id]]"`, è già vicina alla terza strada: non è una
-scelta.
+La scelta tocca gli attributi del file (§4), l'`embed` (§8), l'inventario del
+contenuto (§7.1), il `formatter` e il `syntax tree` che conserva i commenti.
+La sintassi provvisoria degli esempi, con `![[id]]` e `"[[id]]"`, è vicina
+alla terza strada: non è una scelta.
 
 ### 0.7 APERTO: capitoli e titoli nella `composition`
 
