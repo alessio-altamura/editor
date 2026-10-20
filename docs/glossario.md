@@ -190,7 +190,10 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `lang` | lingua | Lingua del contenuto di un `node`, per sillabazione, controllo ortografico e screen reader | proposto | language, locale |
 | `section` | paragrafo (contenitore) | Contenitore di `paragraph`, tabelle, immagini e altri nodi; da precisare se annidabile e se coincide con l'oggetto `text` | concetto deciso, nome proposto | paragraph, block, chapter |
 | `paragraph` | capoverso | Blocco di prosa dentro una `section` | proposto | section, block |
-| `summary` | descrizione semantica | Descrizione concettuale di un `node`: scritta a mano, o più avanti generata da un LLM come `hint` | proposto | description, abstract, meaning |
+| `concept` | concetto, descrizione semantica | Nucleo semantico di un `object`: si scrive prima e da lì si fa `develop` del testo, o si ricava dopo dal testo con `distill`; può farlo un LLM come `hint` | proposto | summary, description, abstract, meaning |
+| `develop` | sviluppare | Operazione: dal `concept` a una `variant` di testo per un contesto | proposto | expand, generate |
+| `distill` | ricavare il concetto | Operazione: dal testo al `concept` | proposto | summarize, extract |
+| `origin` | origine | Attributo che dice se un `concept` o una `variant` è scritto da una persona o generato e confermato | proposto | source, author |
 | `concept map` | mappa concettuale | Vista generata dei concetti di tutti gli oggetti e dei loro legami | proposto | knowledge graph, graph |
 | `variant` | versione | Versione con nome di un `object` (breve, tecnica, in un'altra lingua), scelta dalla `composition` che lo usa | proposto | version, copy, context |
 

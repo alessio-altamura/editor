@@ -177,15 +177,50 @@ un oggetto avrebbe anche versioni diverse di sé, a seconda del contesto.
   - più avanti: la generazione automatica e la `concept map`;
   - poi: le `variant` e l'abbozzo di documento.
 
+### Alessio (2026-10-20), seguito
+
+Oppure si potrebbe partire anche dal concetto, che poi si sviluppa nel
+contesto.
+
+### Note di Claude sul partire dal concetto
+
+- **Due direzioni, lo stesso modello.**
+  - Dal testo al concetto: scrivi il capoverso e il concetto si ricava.
+  - Dal concetto al testo: scrivi l'idea in una o due frasi, e da lì si
+    sviluppa il testo per ciascun contesto, cioè le `variant`.
+
+  È il modo di lavorare degli outliner (Workflowy, OmniOutliner) e dei CMS a
+  contenuti strutturati, che scrivono il contenuto una volta e lo rendono per
+  canali diversi.
+- **Un nome solo per tutte e due.** `summary` va bene solo per la prima
+  direzione: un riassunto viene dopo il testo. Proposta: `concept`, il nucleo
+  semantico di un oggetto, che si può scrivere prima o ricavare dopo. Con
+  `concept map` il nome resta coerente.
+- **Due operazioni.** `develop`, dal `concept` a una `variant` di testo per un
+  contesto; `distill`, dal testo al `concept`. Possono farle chi scrive o un
+  LLM come `hint`.
+- **Sapere chi ha scritto cosa.** Proposta: un attributo `origin` su
+  `concept` e `variant`, che dice se è scritto da una persona o generato e
+  confermato. Serve alla fiducia nel documento, e prima di pubblicare dice
+  quali parti ha scritto un'AI.
+- **Niente testo che cambia da solo.** Una `variant` sviluppata da un LLM si
+  salva come testo e non si rigenera a ogni apertura. Si rigenera solo con un
+  comando esplicito, e se il `concept` cambia si segnala come scaduta.
+- **Con lo spazio libero.** Sul `canvas` si possono buttare giù solo concetti,
+  come un elenco di idee, e svilupparli dopo.
+
 ## Domande aperte per Alessio
 
-1. **Un `part` a sé per le descrizioni semantiche,** fuori dal file del
-   contenuto?
-2. **Varianti:** versioni con nome di un oggetto, scelte dalla `composition`,
+1. **Il nome `concept`** al posto di `summary`, visto che si può partire da
+   tutte e due le parti?
+2. **`origin`:** un attributo che dice se un `concept` o una `variant` è
+   scritto da una persona o generato?
+3. **Un `part` a sé per i `concept`,** fuori dal file del contenuto?
+4. **Varianti:** versioni con nome di un oggetto, scelte dalla `composition`,
    segnalate come scadute quando l'oggetto cambia?
-3. **LLM:** attivazione esplicita, fornitore configurabile, possibilità di un
+5. **LLM:** attivazione esplicita, fornitore configurabile, possibilità di un
    modello locale?
-4. **Ordine:** `summary` a mano nel primo livello, generazione e mappa dopo,
+6. **Ordine:** `concept` a mano nel primo livello, generazione e mappa dopo,
    varianti e abbozzi dopo ancora?
-5. **L'inventario dei `kind`:** quali tipi di blocco e in linea servono al
+7. **L'inventario dei `kind`:** quali tipi di blocco e in linea servono al
    primo livello.
