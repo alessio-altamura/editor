@@ -284,6 +284,13 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
    rapporti dei revisori non sono nel repository: vanno ripetuti se servono.
    La sottosessione è session_01LJTSfiwiWSRkNwwAHxW4pz, ramo
    claude/spec-draft-level1.
+0b. **Il runtime da riga di comando**, ridotto al `resolved tree` (scelta di
+   Alessio del 2026-10-21, in contesto.md, «Ordine di lavoro»). Lo scrive in
+   TypeScript una sottosessione, session_01JKaTQnokvANPi9qrYbW1p9, sul ramo
+   claude/runtime-level1, con un test di conformità che legge gli esempi da
+   specifica.md: fatto quando i 35 esempi passano. I punti della specifica
+   che trova ambigui vanno girati alla sottosessione della specifica. Il
+   nome del binario è provvisorio: il prodotto non ha ancora un nome.
 1. **La bozza dei tipi di nodo** del primo livello è iniziata in
    [bozza-nodi.md](bozza-nodi.md): è di Alessio, scritta insieme. Il
    2026-10-20 è diventata una sintesi del modello: il `concept` come unità di
