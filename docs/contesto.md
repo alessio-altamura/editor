@@ -193,7 +193,11 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   - numeri delle righe di calcolo (§0.4, 2026-10-21): nel sorgente il punto
     come separatore decimale e nessun separatore delle migliaia; «1.200» dà un
     avviso perché è ambiguo; il risultato si mostra secondo la lingua;
-    aritmetica decimale;
+    aritmetica decimale. Precisazione di Alessio, lo stesso giorno: nei file,
+    scritti a mano o tradotti dall'app, solo cifre più un separatore per i
+    decimali, che sia «.» o «,» (lettura di Claude del messaggio, da
+    confermare). Da valutare: i suffissi di scala (1K = 1000, M, T) e la
+    notazione scientifica;
   - `kind` e `id` del `canvas file` (§0.1, 2026-10-21): in un descrittore, come
     per le immagini;
   - sintassi dei file di testo (§0.6, 2026-10-21): Markdown con una sintassi

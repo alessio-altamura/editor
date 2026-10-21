@@ -514,3 +514,7 @@ punta la composizione) hanno avuto risposta: vedi i §1 e §3.
 27. Ok, va bene così: per ora vietati. E forse ancora di più: anche nel caso
     di un collegamento dentro al testo o di una formula, l'impaginazione finale
     viene sempre da fuori e non da dentro.
+28. Per la scrittura sui file, diretta o tradotta dall'app, io farei: solo
+    numero più un separatore per i decimali, che sia «.» o «,». Valuterei se
+    aggiungere, non so come si chiamano, K M T (per esempio 1K è 1000), oltre
+    alla notazione scientifica.
