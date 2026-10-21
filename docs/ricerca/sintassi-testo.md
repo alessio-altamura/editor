@@ -1,5 +1,8 @@
 # Sintassi dei file di testo: quattro strade
 
+Scelta la terza strada il 2026-10-21: Markdown con una sintassi nostra, come
+fa Obsidian (contesto.md, voce «Sulla bozza di specifica»).
+
 Ricerca del 2026-10-20 per la scelta APERTA nella
 [specifica](../specifica.md), §0.6. Domanda: quale sintassi per i file di
 testo (`concept`, `text`, `composition`)? Le strade sono quattro: CommonMark
