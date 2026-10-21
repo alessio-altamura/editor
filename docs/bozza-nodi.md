@@ -521,3 +521,4 @@ punta la composizione) hanno avuto risposta: vedi i §1 e §3.
 29. Hai ragione, facciamo solo «.» per i decimali. Attenzione: un italiano che
     scrive nell'app scrive come è abituato, ma il file salvato conterrà
     unità.decimali.
+30. Ok a tutto, confermo anche i suffissi.

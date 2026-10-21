@@ -196,11 +196,22 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     aritmetica decimale. Precisazione di Alessio, lo stesso giorno: nel file
     solo cifre e il punto per i decimali, «unità.decimali». Nell'app un
     italiano scrive come è abituato (virgola decimale, punto delle migliaia),
-    e l'app salva nel file la forma con il punto. Restano da confermare le
-    proposte di Claude sui suffissi di scala (K, M, T): nel file il numero
-    pieno o la notazione scientifica (`1.2e6`); nell'app «1,2M» si scrive e
-    viene tradotto; «1,2 M» come modo di mostrare un numero è una scelta di
-    stile, da fuori;
+    e l'app salva nel file la forma con il punto. Suffissi di scala (K, M, T),
+    confermato da Alessio: nel file il numero pieno o la notazione
+    scientifica (`1.2e6`); nell'app «1,2M» si scrive e viene tradotto; «1,2 M»
+    come modo di mostrare un numero è una scelta di stile, da fuori;
+  - conseguenze dell'ottavo giro della bozza (2026-10-21, «ok a tutto»):
+    - un `[[id]]` senza testo mostra il titolo dell'oggetto collegato, se ne
+      ha uno; altrimenti l'`id`, con un avviso che suggerisce `[[id|testo]]`;
+    - gli `stylesheet` possono agganciarsi anche a pochi tipi in linea, con
+      nomi fissati ora: collegamento, enfasi, forte, codice;
+    - la `class` sta sia sull'oggetto (cos'è, sempre) sia sull'`embed` nella
+      composizione (come appare lì); in conflitto vince quella della
+      composizione;
+    - `tags` è sempre scritto: il `formatter` scrive `tags: []` quando manca;
+    - il file `document` è uno e uno solo, e il `runtime` lo crea se manca;
+    - i numeri a schermo seguono la lingua dell'oggetto, altrimenti quella
+      del documento;
   - `kind` e `id` del `canvas file` (§0.1, 2026-10-21): in un descrittore, come
     per le immagini;
   - sintassi dei file di testo (§0.6, 2026-10-21): Markdown con una sintassi
