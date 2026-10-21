@@ -1,7 +1,7 @@
 // Cases the examples of the spec do not cover: crashes, exit codes and rules
 // found by review. Each case writes a folder, runs the cli and checks the tree.
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -31,7 +31,7 @@ const DOCUMENT = '---\nid: doc\nkind: document\ntags: []\nspec-version: "0.1"\n-
 const front = (id: string, kind: string, extra = '') => `---\nid: ${id}\nkind: ${kind}\n${extra}---\n`;
 
 /** Writes the files (a Buffer is written as is), adds the document file unless `doc` is false, runs the cli. */
-function run(files: Record<string, string | Buffer>, options: { doc?: boolean; setup?: (folder: string) => void } = {}): Run {
+function run(files: Record<string, string | Buffer>, options: { doc?: boolean; setup?: (folder: string) => void; args?: string[] } = {}): Run {
   const folder = mkdtempSync(join(tmpdir(), 'robustness-'));
   try {
     if (options.doc !== false) writeFileSync(join(folder, 'doc.document.md'), DOCUMENT);
@@ -40,7 +40,7 @@ function run(files: Record<string, string | Buffer>, options: { doc?: boolean; s
       writeFileSync(join(folder, path), content);
     }
     options.setup?.(folder);
-    const result = spawnSync(process.execPath, [cliPath, 'resolve-tree', folder], { encoding: 'utf8' });
+    const result = spawnSync(process.execPath, [cliPath, 'resolve-tree', folder, ...(options.args ?? [])], { encoding: 'utf8', maxBuffer: 1 << 30 });
     let tree: Tree = {};
     try {
       tree = JSON.parse(result.stdout) as Tree;
@@ -290,6 +290,86 @@ check('ids out of form in retired-ids.yaml are id-invalid', () => {
 check('a canvas path that leaves the document is canvas-path-unresolved', () => {
   const r = run({ 'cv.canvas-file.md': front('cv', 'canvas-file', 'asset: a.canvas\n') + 'Canvas.\n', 'a.canvas': '{"nodes":[{"id":"1","type":"file","file":"../doc.document.md"}]}' });
   return tree(r) ?? (has(r.tree, 'canvas-path-unresolved', '../doc.document.md') ? null : json(r.tree.diagnostics));
+});
+
+// Fourth review: limits, output, the [[…]] construct and the rest.
+check('a chapter that includes itself with recursion 2500 is cut by tree-limit', () => {
+  const r = run({ 'c.chapter.md': front('c', 'chapter', 'recursion: "2500"\n') + '![[c]]\n' });
+  return tree(r) ?? (has(r.tree, 'tree-limit', undefined, 'c.chapter.md') && r.status === 1 ? null : json(r.tree.diagnostics));
+});
+check('a chain of 1500 chapters is cut by tree-limit', () => {
+  const files: Record<string, string> = {};
+  for (let i = 0; i < 1500; i++) files[`c${i}.chapter.md`] = front(`c${i}`, 'chapter') + `![[c${i + 1}]]\n`;
+  const r = run(files);
+  return tree(r) ?? (has(r.tree, 'tree-limit') ? null : 'no tree-limit');
+});
+check('a chapter that includes itself twice with recursion 30 stays under the embed limit', () => {
+  const started = Date.now();
+  const r = run({ 'c.chapter.md': front('c', 'chapter', 'recursion: "30"\n') + '![[c]]\n\n![[c]]\n' });
+  const seconds = (Date.now() - started) / 1000;
+  return tree(r) ?? (has(r.tree, 'tree-limit') && seconds < 20 ? null : `${seconds}s ${json(r.tree.diagnostics)}`);
+});
+check('the output is compact, and --pretty indents it', () => {
+  const files = text('t');
+  const compact = run(files);
+  const pretty = run(files, { args: ['--pretty'] });
+  return tree(compact) ?? tree(pretty) ?? (compact.stdout.trim().includes('\n') || !pretty.stdout.includes('\n  ') || json(compact.tree) !== json(pretty.tree) ? 'output form' : null);
+});
+check('private-use characters written by the author stay text', () => {
+  const pua = '\uE000\uE100\uE002\uE001';
+  const r = run({ 'x.text.md': front('x', 'text') + `Icona ${pua} qui.\n`, ...text('t') });
+  return tree(r) ?? (json(node(r.tree, 'x')?.content) === json([['paragraph', `Icona ${pua} qui.`]]) ? null : r.stdout);
+});
+check('[[…]] stays as written in URLs, autolinks, inline code and markdown-image targets', () => {
+  const r = run({ 'x.text.md': front('x', 'text') + '[a](http://e.org/[[q]]) <http://e.org/[[z]]> `[[c]]` ![i](f[[g]].jpg)\n' });
+  const content = json(node(r.tree, 'x')?.content);
+  const ok = content.includes('"url":"http://e.org/[[q]]"') && content.includes('"url":"http://e.org/[[z]]"') && content.includes('["inlineCode","[[c]]"]');
+  return tree(r) ?? (ok && has(r.tree, 'markdown-image', 'f[[g]].jpg') ? null : r.stdout);
+});
+check('the text after | is plain even with code: [[k|`codice`]]', () => {
+  const r = run({ 'x.text.md': front('x', 'text') + 'Vedi [[k|`codice`]].\n', 'k.concept.md': front('k', 'concept') + 'Idea.\n' });
+  return tree(r) ?? (json(node(r.tree, 'x')?.content).includes('["hyperlink",{"ref":"k"},"`codice`"]') ? null : r.stdout);
+});
+check('an unprotected | in a math line inside a table splits the cell, a protected one does not', () => {
+  const r = run({ 'x.text.md': front('x', 'text') + '| a |\n|---|\n| `= 1 \\| 2` |\n' });
+  return tree(r) ?? (json(node(r.tree, 'x')?.content).includes('"1 | 2"') ? null : r.stdout);
+});
+check('an unreadable document folder exits 2; an unreadable subfolder gives syntax', () => {
+  // As root the permissions do not apply, and the case cannot be built.
+  if (process.getuid?.() === 0) return null;
+  const outer = run({}, { setup: (f) => { mkdirSync(join(f, 'chiusa')); chmodSync(join(f, 'chiusa'), 0); } });
+  if (!has(outer.tree, 'syntax', undefined, 'chiusa')) return json(outer.tree);
+  const folder = mkdtempSync(join(tmpdir(), 'closed-'));
+  chmodSync(folder, 0);
+  const result = spawnSync(process.execPath, [cliPath, 'resolve-tree', folder], { encoding: 'utf8' });
+  chmodSync(folder, 0o700);
+  rmSync(folder, { recursive: true, force: true });
+  return result.status === 2 ? null : `exit ${result.status}`;
+});
+check('a class sign that goes on to the next line is embed-class-invalid', () => {
+  const r = run({ 'a.article.md': front('a', 'article') + '![[t]]{.nota\n.grande}\n', ...text('t') });
+  return tree(r) ?? (has(r.tree, 'embed-class-invalid', '{.nota') && !json(node(r.tree, 'a')?.content).includes('grande') ? null : r.stdout);
+});
+check('![[id]] nested in a quote inside a chapter is composition-content only', () => {
+  const r = run({ 'c.chapter.md': front('c', 'chapter') + '> ![[t]]\n', ...text('t') });
+  return tree(r) ?? (has(r.tree, 'composition-content') && !has(r.tree, 'embed-outside-composition') && !has(r.tree, 'embed-inline') ? null : json(r.tree.diagnostics));
+});
+check('with two definitions of a label the first wins; a definition in a chapter is not a block', () => {
+  const r = run({
+    'x.text.md': front('x', 'text') + 'Vedi [s].\n\n[s]: http://uno\n[s]: http://due\n',
+    'c.chapter.md': front('c', 'chapter') + '![[x]]\n\n[d]: http://tre\n',
+  });
+  return tree(r) ?? (json(node(r.tree, 'x')?.content).includes('http://uno') && !has(r.tree, 'composition-content') ? null : r.stdout);
+});
+check('the embed with "recursion": true carries lang and class', () => {
+  const r = run({ 'c.chapter.md': front('c', 'chapter', 'lang: en\nclass: [nota]\nrecursion: infinite\n') + '![[c]]\n' });
+  const content = json(node(r.tree, 'c')?.content);
+  return tree(r) ?? (content === '[["embed",{"id":"c","kind":"chapter","lang":"en","class":["nota"],"recursion":true}]]' ? null : content);
+});
+check('a number of 35 nines that rounds past decimal128 is invalid', () => {
+  const nines = '9'.repeat(35) + 'e6110';
+  const r = run({ 'x.text.md': front('x', 'text') + `\`= ${nines}\` \`= ${nines} + 0\`\n` });
+  return tree(r) ?? (count(r.tree, 'math-line-invalid') === 2 ? null : r.stdout);
 });
 
 let failed = 0;
