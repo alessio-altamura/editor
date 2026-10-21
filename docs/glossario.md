@@ -187,7 +187,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `hint` | suggerimento | Proposta automatica (classificare, collegare, trasformare) che chi scrive conferma | concetto deciso, nome proposto | suggestion, auto- |
 | `embed` | uso per riferimento | Inclusione di un oggetto in una `composition`, senza copia; dentro un capoverso per ora non è ammesso (deciso il 2026-10-21) | concetto deciso, nome proposto | copy, insert |
 | `scratch` | spazio libero | Appunti e `math line` dentro il contenuto, da cui si trasformano oggetti; proposta: un `kind` a sé con più blocchi, posto di lavoro e non unità di significato, che una `composition` non usa | concetto deciso, nome proposto | free space, notes |
-| `math line` | riga di calcolo | Riga con un calcolo e l'`inline result` | concetto deciso, nome proposto | calc line, formula |
+| `math line` | riga di calcolo | Calcolo con l'`inline result`, anche dentro una frase; proposta: fra backtick, comincia con il segno di uguale e uno spazio | concetto deciso, nome proposto | calc line, formula |
 | `inline result` | risultato in linea | Valore mostrato accanto a una `math line` | proposto | output |
 | `text table` | tabellina | Tabella scritta nel testo, non ancora `collection` | proposto | table |
 | `text` | testo | `kind` di `object` fatto di prosa, un blocco solo: un capoverso, un elenco, una citazione (deciso il 2026-10-21) | concetto deciso, nome proposto | paragraph (da fissare con la bozza) |
@@ -214,11 +214,11 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `composition` | vista layout | Composizione ordinata di oggetti per `embed`: `article`, `deck`, `webpage`, e il `chapter` che si annida | deciso | layout, view, template |
 | `article` | documento | `composition` a flusso, per lettura e stampa; è l'indice dei suoi `chapter` | proposto | document |
 | `chapter` | capitolo | `composition` che si può annidare e raccoglie in ordine `object` e altri `chapter`, con un `title` facoltativo; `article` e `deck` la usano con l'`embed` (deciso il 2026-10-21; nome proposto) | concetto deciso, nome proposto | section, part, group |
-| `title` | titolo | Attributo con il titolo di un `chapter` o di una `composition`, nel `front matter` | proposto | name |
+| `title` | titolo | Attributo con il titolo di un `chapter` o di una `composition`, nel `front matter`; proposta: anche il nodo del `resolved tree` che porta il titolo di un `chapter` | proposto | name |
 | `hyperlink` | collegamento | Tipo in linea del contenuto: un collegamento a un URL o un `id reference` in linea; uno `stylesheet` lo può colpire (deciso il 2026-10-21, nome proposto) | concetto deciso, nome proposto | link, anchor |
 | `emphasis` | enfasi | Tipo in linea del contenuto, scritto con un asterisco o un trattino basso; uno `stylesheet` lo può colpire | concetto deciso, nome proposto | italic |
 | `strong` | forte | Tipo in linea del contenuto, scritto con due asterischi; uno `stylesheet` lo può colpire | concetto deciso, nome proposto | bold |
-| `inline code` | codice in linea | Tipo in linea del contenuto, fra backtick, tranne quello che comincia con il segno di uguale, che è una `math line` (proposta); uno `stylesheet` lo può colpire | concetto deciso, nome proposto | code span, monospace |
+| `inline code` | codice in linea | Tipo in linea del contenuto, fra backtick, tranne quello che comincia con il segno di uguale e uno spazio, che è una `math line` (proposta); uno `stylesheet` lo può colpire | concetto deciso, nome proposto | code span, monospace |
 | `heading` | titolo Markdown | Titolo scritto con il cancelletto nel corpo; ammesso solo nello `scratch`, distinto dal `title` | proposto | title |
 | `deck` | presentazione | `composition` fatta di `slide` | concetto deciso, nome proposto | presentation, slides |
 | `webpage` | pagina web | `composition` pubblicata come pagina HTML | proposto | page, site |
