@@ -242,7 +242,9 @@ punto (stessa voce). È un comportamento dell'`app`, non del formato.
 - **Il valore** si scrive nel `resolved tree` con il punto, senza zeri finali
   dopo il punto e senza esponente: in decimale `1.200 * 2` dà 2.400, che si
   scrive `2.4` (prova con il modulo decimal di Python), e `1.2e6` si scrive
-  `1200000`. Lo zero negativo (`-0`, `0 * -1`) ha `value` e `display` «0».
+  `1200000`. Uno zero col segno meno si scrive senza segno: `-0` e `0 * -1`
+  hanno `value` e `display` «0», e `= -1e-11`, che nel `display` arrotonda a
+  zero, mostra «0».
 - **La stringa da mostrare.** Il `runtime` scrive accanto al valore la
   stringa da mostrare: arrotondata al pari a 10 decimali al massimo, senza
   zeri finali, con i separatori della lingua dell'oggetto, altrimenti di
@@ -349,14 +351,23 @@ l'attributo HTML.
   ([css-values-4](https://www.w3.org/TR/css-values-4/#font-relative-lengths)).
   Il genitore della radice, per `em` e per l'eredità, è la regola `root` del
   foglio di partenza: `font-size: 1.2em` sull'`article` dà `13.2pt`.
-- **Calcolo e forma scritta.** I valori si calcolano in decimale esatto,
-  come le righe di calcolo (§0.4), e si arrotondano al pari a 4 decimali
-  solo quando si scrivono; i figli ereditano e risolvono `em` sul valore non
-  arrotondato. Nel `computedStyle` le lunghezze sono in `pt` senza zeri
-  finali (`11pt`, `2.8346pt` per `1mm`); `line-height` è un numero senza
-  zeri finali o una lunghezza in `pt`; `font-weight` è un numero; i colori
-  sono `#rrggbb` in minuscolo; `font-family` è una lista separata da «, »,
-  con fra virgolette doppie i nomi che contengono spazi.
+- **Calcolo e forma scritta.** Ogni valore si calcola con l'aritmetica
+  delle righe di calcolo (§0.4), con un ordine fisso per le conversioni:
+  × 72 / 25.4 per `mm`, × 72 / 2.54 per `cm`, × 72 per `in`, × 3 / 4 per
+  `px`, × il `font-size` per `em`. Poi si arrotonda subito al pari a 4
+  decimali, e il valore arrotondato è il valore calcolato: si eredita, è la
+  base di `em` ed è quello che si confronta per decidere cosa entra nel
+  `computedStyle`. Così confronto e stringa scritta coincidono. Nel
+  `computedStyle` le lunghezze sono in `pt` senza zeri finali (`11pt`,
+  `2.8346pt` per `1mm`); `line-height` è un numero senza zeri finali o una
+  lunghezza in `pt`, e `0` è il numero «0», come in CSS, dove uno 0 che può
+  essere numero o lunghezza «must parse as a `<number>`»
+  ([css-values-4 §6](https://www.w3.org/TR/css-values-4/#lengths));
+  `font-weight` è un numero senza zeri finali; i colori sono `#rrggbb` in
+  minuscolo; `font-family` è una lista separata da «, », con le famiglie
+  generiche in minuscolo senza virgolette e ogni altro nome fra virgolette
+  doppie, così `"serif"` resta distinto da `serif`. Uno zero col segno meno
+  si scrive senza segno: «0pt».
 - **`--number-notation`** ammette solo `standard` e `compact`. Un altro
   valore, comprese le parole chiave CSS-wide, `scientific` ed
   `engineering`, fa ignorare la dichiarazione, con `stylesheet-unsupported`.
@@ -369,7 +380,8 @@ l'attributo HTML.
   `chapter` al grado n:
 
   ```
-  root          { font-family: serif; font-size: 11pt; line-height: 1.4; color: #000000; }
+  root          { font-family: serif; font-size: 11pt; line-height: 1.4; color: #000000;
+                  font-weight: 400; font-style: normal; text-align: left; }
   paragraph     { margin-bottom: 6pt; }
   title 1       { font-size: 18pt; font-weight: 700; margin-top: 18pt; margin-bottom: 9pt; }
   title 2       { font-size: 14pt; font-weight: 700; margin-top: 12pt; margin-bottom: 6pt; }
@@ -383,6 +395,8 @@ l'attributo HTML.
   ```
 
   `thematicBreak` non ha regole: la linea la disegna il `renderer` (§7.4).
+  La regola `root` dà tutte le proprietà ereditate del sottoinsieme; un
+  margine senza regola vale `0pt`.
 - **La forma dei valori.** Ogni nodo del contenuto della `composition` radice,
   cioè l'`article` o il `deck`, porta negli attributi un oggetto
   `computedStyle` con le proprietà il cui valore finale differisce da quello
@@ -665,8 +679,10 @@ sulla numerazione (§0.10) dice che un `cross-ref` porta il numero.
   perde il suo riferimento più corto.
 - **B. Numero e `title`**, «1 Le vendite». Costo: un testo più lungo, e una
   regola per separarli.
-- **C. Solo il numero.** Costo: fuori dalla `composition` radice il numero non
-  c'è, e lì il collegamento resterebbe senza testo. Capitoli e immagini hanno
+- **C. Solo il numero.** Fuori dalla `composition` radice il numero non c'è,
+  e C mostra quello che mostra A: il `title`, e per un'immagine l'`id` con
+  `reference-text-missing`. Costo: lo stesso collegamento mostra un numero
+  o un `title` secondo dove sta. Capitoli e immagini hanno
   sequenze separate e senza prefisso, quindi `[[cap-vendite]]` e
   `[[lavagna]]` mostrano tutti e due «1» (esempio 8); chi scrive dovrebbe
   aggiungere «capitolo» o «figura» nel testo, contro l'orientamento di
@@ -1198,9 +1214,11 @@ una `composition` che si può annidare, e l'`article` è l'indice dei capitoli
   radice, `article` o `deck`, con l'attributo `stylesheet` scritto come `id
   reference` (§10): la radice decide come appare un capitolo. Il riferimento segue sempre la
   forma generica del §10: un `id` che non esiste è `reference-unresolved`,
-  uno ritirato `reference-retired`. Un `chapter` con l'attributo
-  `stylesheet` dà in più l'avviso `stylesheet-ignored`, con `target` l'`id`
-  nominato. L'alternativa, uno
+  uno ritirato `reference-retired`; un `id` che esiste ma non è uno
+  `stylesheet` è l'errore `stylesheet-kind`, come `association-kind` ed
+  `embed-kind`. Un `chapter` con l'attributo `stylesheet` dà in più l'avviso
+  `stylesheet-ignored`, con `target` l'`id` nominato, o il successore se è
+  ritirato, come per `reference-text-missing`. L'alternativa, uno
   `stylesheet` per capitolo che si somma a quello della radice, servirebbe a
   riusare un capitolo con il suo aspetto in più documenti, ma chiede un
   ordine fra i due fogli.
@@ -1488,7 +1506,8 @@ tutta la cartella, come `document-missing`, `file` è `.`.
 | `reference-retired` | warning | `[[id]]` verso un `id` ritirato, risolto sul successore | l'`id` ritirato | non coperto |
 | `embed-class-unused` | warning | con A o B del §0.15, una chiave di `embed-class` senza `embed`, o ritirata senza successore | l'`id`; il successore, se è lui a non avere `embed` | non coperto |
 | `embed-class-retired` | warning | con A o B del §0.15, una chiave di `embed-class` ritirata con successore | l'`id` ritirato | non coperto |
-| `stylesheet-ignored` | warning | un `chapter` con l'attributo `stylesheet` | l'`id` dello `stylesheet` nominato | non coperto |
+| `stylesheet-ignored` | warning | un `chapter` con l'attributo `stylesheet` | l'`id` dello `stylesheet` nominato, o il successore | non coperto |
+| `stylesheet-kind` | error | l'attributo `stylesheet` nomina un `id` che non è uno `stylesheet` | l'`id` | non coperto |
 | `spec-version-missing` | warning | un `document file` senza `spec-version` | — | non coperto |
 | `lang-unsupported` | warning | una lingua fuori dalla tabella, una volta per file con righe di calcolo | il `lang` | non coperto |
 | `reference-text-missing` | warning | `[[id]]` senza testo verso un oggetto senza `title` | l'`id` | 28 |
@@ -1868,7 +1887,7 @@ Nell'esempio `.evidenza.urgente` è più specifica e viene dopo nello
 strato che viene dopo.
 
 Un `[[id]]` senza testo mostra il `title`, altrimenti l'`id` con un avviso
-(§7.4). Con le opzioni B e D del §0.14 l'albero è lo stesso, perché qui il
+(§7.4). Con le opzioni B, C e D del §0.14 l'albero è lo stesso, perché qui il
 capitolo non è in una `composition` radice e non ha numero:
 
 ```````````````````````````````` example 28 conf=1 status=open-0.14-A
