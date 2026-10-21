@@ -429,7 +429,7 @@ l'attributo HTML.
   enfasi, forte, codice [C: «Sulla bozza di specifica»]. *(proposta)* I nomi, normativi: `hyperlink`,
   `emphasis`, `strong`, `inline-code` (nel `resolved tree` `inlineCode`).
   I titoli dei capitoli si colpiscono per grado con `title-1`, `title-2` e
-  `title-3` (§0.16). Per gli altri tipi, che hanno nomi provvisori (§11.3),
+  `title-3` (deciso [C: «Sulla bozza di specifica»], §0.16). Per gli altri tipi, che hanno nomi provvisori (§11.3),
   niente selettori.
 - **Il sottoinsieme dei selettori.** *(proposta)* Selettori di `class`
   semplici e composti (`.a.b`), i quattro tipi in linea e i tre gradi dei
@@ -663,7 +663,8 @@ Il testo di un collegamento lo scrive chi scrive, dove mette il collegamento:
 `[[cap-vendite|vendite]]`; senza testo vale il `title`, come già deciso. Il
 numero compare solo dove chi scrive lo chiede con un segnaposto nel testo,
 `[[lavagna|figura {n}]]`, e lo mette il `runtime` con il numero calcolato
-nella `composition` che include il testo [C: «Sulla bozza di specifica»].
+nel documento che include il testo [C: «Sulla bozza di specifica»], cioè
+nella `composition` radice, `article` o `deck` (§0.10).
 
 *(proposte)*
 - **La forma** è `{n}`, il `number slot`, e vale solo nel testo di un
@@ -672,12 +673,14 @@ nella `composition` che include il testo [C: «Sulla bozza di specifica»].
   un collegamento: nessun caso noto la chiede.
 - **Dove c'è il numero.** Nel contenuto della `composition` radice il
   `hyperlink` porta il testo con il numero, lo stesso `number` dell'`embed`
-  del nodo collegato (§0.10, esempio 33).
+  del nodo collegato (§0.10, esempio 33). Se il nodo collegato è incluso
+  più volte nella radice, `{n}` prende il `number` del primo `embed` in
+  ordine di lettura.
 - **Dove non c'è**, cioè nel nodo del `text`, nel nodo di un `chapter`, in
-  una `composition` che non include il nodo collegato o verso un capitolo
-  senza `title`, il segnaposto si toglie e gli spazi rimasti si riducono
-  come in HTML: spariscono ai bordi, due vicini diventano uno. `figura {n}`
-  mostra «figura». Se il testo resta vuoto vale come un collegamento senza
+  una `composition` che non include il nodo collegato, verso un capitolo
+  senza `title` o in un riferimento che non si risolve, il segnaposto si
+  toglie; poi il testo del collegamento perde gli spazi U+0020 ai bordi, e
+  ogni sequenza di spazi dentro diventa uno. `figura {n}` mostra «figura». Se il testo resta vuoto vale come un collegamento senza
   testo, senza avviso.
 - **L'avviso.** Un `{n}` verso un nodo di un `kind` che non si numera mai,
   né `chapter` né `image`, dà l'avviso `number-slot-kind`, con `target`
@@ -706,18 +709,25 @@ annidato, ma la dà al capitolo intero [C: «Sulla bozza di specifica»].
   class-ref  = "." class-name
   ```
 
-  `class-name` ha la forma dei nomi dell'attributo `class` (§4), e fra due
+  `class-name` ha la forma dei nomi dell'attributo `class` (§3), e fra due
   `class` c'è uno spazio. Pandoc, nell'estensione `link_attributes`, ammette
   anche `#id` e `chiave=valore`
   ([Pandoc](https://pandoc.org/MANUAL.html#extension-link_attributes)); qui
   ci sono solo le `class`.
-- **Un segno mal formato.** Nel corpo di una `composition`, una riga che
-  comincia con `![[id]]` e continua con un `{`, anche dopo spazi, ma non
-  segue la grammatica (`![[id]] {.nota}`, `![[id]]{nota}`, `{.Nota}`, un `{`
-  senza `}`) è l'errore `embed-class-invalid`, con `target` il segno come è
-  scritto e un `fix` che lo riscrive; l'`embed` vale senza `class`. Fuori dal
-  corpo di una `composition` e dopo qualcosa che non è un `![[id]]`,
-  `{.nota}` è testo, senza avviso.
+- **Dove vale.** Il segno fa parte della forma generica del §10: si
+  riconosce dopo ogni `![[id]]` di blocco, in ogni file, anche in una
+  `directive`. Dopo qualcosa che non è un `![[id]]`, `{.nota}` è testo,
+  senza avviso.
+- **Un segno mal formato.** Una riga che comincia con `![[id]]` e continua
+  con un `{`, anche dopo spazi, ma non segue la grammatica
+  (`![[id]] {.nota}`, `![[id]]{nota}`, `{.Nota}`, un `{` senza `}`) è l'errore
+  `embed-class-invalid`, con `target` la riga dal primo `{` alla fine, senza
+  spazi ai bordi, e un `fix` che la riscrive; l'`embed` vale senza `class`
+  (esempio 35).
+- **Class ripetute e riferimenti non risolti.** Una `class` ripetuta nel
+  segno (`{.grande .grande}`) compare una volta sola. Un `embed` che non si
+  risolve porta comunque le `class` del segno, accanto a `id` e
+  `unresolved`.
 - **Due inclusioni** dello stesso oggetto hanno ciascuna le sue `class`
   (esempio 27).
 - **Costo:** per CommonMark `{.nota}` è testo dopo l'inclusione (prova con
@@ -745,6 +755,14 @@ capitolo non è deciso (stessa voce).
   capitolo, per esempio con le `class` del suo `chapter`
   (`title-1.compatto`). Si aggiunge dopo senza rompere niente, perché oggi
   quel selettore è `stylesheet-unsupported`.
+
+### Nota: il `deck` per ultimo
+
+Il principio dice che gli stessi mattoni *possono* dare documenti o
+presentazioni completamente diversi [C: «Principio: l'aspetto incrementale»];
+l'ordine dei livelli mette il `deck` per ultimo [C: «Ordine dei livelli»]. Le
+due cose non si contraddicono: la classe 1 prepara mattoni, capitoli
+compresi, che il `deck` userà senza copiarli. L'appendice B lo mostra.
 
 ## 1. Classi di conformità
 
@@ -840,6 +858,9 @@ di specifica»] (§0.3).
 
 *(proposte)*
 - La forma è `[a-z0-9]+(-[a-z0-9]+)*`.
+- La forma dei nomi di `class` è `[a-z][a-z0-9]*(-[a-z0-9]+)*`: comincia con
+  una lettera, così ogni `class` si può colpire con un selettore CSS
+  (`.2col` non è un selettore valido).
 - Un `id` vale per tutto il documento, qualunque sia il `kind`.
 - `duplicate` crea una copia con un `id` nuovo. Una copia fatta fuori
   dall'`app` con lo stesso `id` è un `id` doppio (esempio 13). Quando un
@@ -860,7 +881,7 @@ sono separati (stessa voce).
 | `id` | comune | §3 | deciso; sempre scritto (§0.3) |
 | `kind` | comune | un `kind` della specifica o di un'`extension` | deciso; nell'estensione e nel file (§0.1) |
 | `tags` | comune | lista di parole | deciso; *(proposta)* se manca vale la lista vuota |
-| `class` | per i nodi che si vedono | lista di nomi in `kebab-case` | deciso |
+| `class` | per i nodi che si vedono | lista di nomi in `kebab-case` (§3) | deciso |
 | `lang` | per i nodi che si vedono | tag di lingua BCP 47 | deciso |
 | `title` | `chapter`, `article`, `deck` | stringa | *(proposta)*, §0.7; in `article` e `deck` è un metadato |
 | `spec-version` | `document file` | stringa | §0.8; *(proposta)* la chiave |
@@ -1360,7 +1381,8 @@ estensioni e connettori»]).
   risultati nel pacchetto (handoff.md, domanda 6).
 - **`id reference`.** Il `core` ha una forma generica dei riferimenti per `id`
   [C: «Sulla bozza di specifica»]. *(proposta)* La forma:
-  `![[id]]` per un blocco, `[[id]]` o `[[id|testo]]` in linea; negli
+  `![[id]]` per un blocco, con le `class` accanto (`{.nota}`, §0.15),
+  `[[id]]` o `[[id|testo]]` in linea; negli
   attributi, la lista `associations` e un valore che è esattamente
   `"[[id]]"`, fra virgolette come nelle proprietà di Obsidian
   ([Properties](https://github.com/obsidianmd/obsidian-help/blob/master/en/Editing%20and%20formatting/Properties.md)).
@@ -1488,7 +1510,7 @@ il riferimento non si risolve (§0.3) e il `target` è l'`id` scritto.
 | `embed-inline` | error | un `![[id]]` dentro un capoverso | l'`id` | non coperto |
 | `document-missing` | warning | nessun `document file`; il `fix` lo crea | — | 31 |
 | `reference-retired` | warning | `[[id]]` verso un `id` ritirato, risolto sul successore | l'`id` ritirato | non coperto |
-| `embed-class-invalid` | error | le `class` accanto a un `![[id]]` fuori dalla grammatica del §0.15 | il segno come è scritto | non coperto |
+| `embed-class-invalid` | error | le `class` accanto a un `![[id]]` fuori dalla grammatica del §0.15 | la riga dal primo `{` alla fine, senza spazi ai bordi | 35 |
 | `number-slot-kind` | warning | un `{n}` nel testo di un collegamento verso un nodo che non si numera mai | l'`id` | non coperto |
 | `stylesheet-ignored` | warning | un `chapter` con l'attributo `stylesheet` | l'`id` dello `stylesheet` nominato, o il successore | non coperto |
 | `stylesheet-kind` | error | l'attributo `stylesheet` nomina un `id` che non è uno `stylesheet` | l'`id` | non coperto |
@@ -2119,6 +2141,33 @@ title-1 { font-size: 24pt; }
 }
 ````````````````````````````````
 
+Un segno mal formato dà un errore, e l'`embed` vale senza `class` (§0.15):
+
+```````````````````````````````` example 35 conf=1 status=proposal
+=== file report-q3.article.md
+---
+id: report-q3
+kind: article
+---
+![[calo-q3-sintesi]] {.nota}
+=== file calo-q3-sintesi.text.md
+---
+id: calo-q3-sintesi
+kind: text
+---
+Le vendite sono calate del 12%.
+=== resolved
+{
+  "nodes": [
+    {"id": "calo-q3-sintesi", "kind": "text", "file": "calo-q3-sintesi.text.md", "content": [["paragraph", "Le vendite sono calate del 12%."]]},
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "content": [["embed", {"id": "calo-q3-sintesi", "kind": "text"}, ["paragraph", "Le vendite sono calate del 12%."]]]}
+  ],
+  "diagnostics": [
+    {"severity": "error", "code": "embed-class-invalid", "file": "report-q3.article.md", "target": "{.nota}", "fix": "![[calo-q3-sintesi]]{.nota}"}
+  ]
+}
+````````````````````````````````
+
 ### 11.3 Il `resolved tree` *(proposta)*
 
 È un valore JSON con tre liste, e la chiave `document` con il `document file`
@@ -2181,7 +2230,7 @@ vendite"]`, così le regole `title-1`, `title-2`, `title-3` e i valori che
 eredita dal `chapter` hanno dove stare; porta `computedStyle` come gli altri
 nodi (§0.16, esempio 34). Nel nodo del `chapter` il titolo
 resta solo nell'attributo `title`, e `content` è il corpo. Un `embed` che non si risolve ha `"unresolved":
-true` e nessun figlio. Così un `renderer` legge la `composition` senza
+true`, le `class` del segno se ci sono, e nessun figlio. Così un `renderer` legge la `composition` senza
 cercare altri nodi.
 
 ## Appendice A. Classi successive (non normativa)
