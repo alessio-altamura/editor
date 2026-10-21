@@ -208,8 +208,10 @@ colonne *codice* e *spec*, come in ID-Zero.
 
 | Nome | Italiano | Definizione | Stato | Da non usare |
 |---|---|---|---|---|
-| `composition` | vista layout | Composizione ordinata di oggetti per `embed`: `article`, `deck`, `webpage` | deciso | layout, view, template |
-| `article` | documento | `composition` a flusso, per lettura e stampa | proposto | document |
+| `composition` | vista layout | Composizione ordinata di oggetti per `embed`: `article`, `deck`, `webpage`, e il `chapter` che si annida | deciso | layout, view, template |
+| `article` | documento | `composition` a flusso, per lettura e stampa; è l'indice dei suoi `chapter` | proposto | document |
+| `chapter` | capitolo | `composition` che si può annidare e raccoglie in ordine `object` e altri `chapter`, con un `title` facoltativo; `article` e `deck` la usano con l'`embed` (deciso il 2026-10-21; nome proposto) | concetto deciso, nome proposto | section, part, group |
+| `title` | titolo | Attributo con il titolo di un `chapter` o di una `composition` | proposto | heading, name |
 | `deck` | presentazione | `composition` fatta di `slide` | concetto deciso, nome proposto | presentation, slides |
 | `webpage` | pagina web | `composition` pubblicata come pagina HTML | proposto | page, site |
 | `slide` | slide | Pagina a dimensione fissa di un `deck` | proposto | page, frame |
