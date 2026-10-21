@@ -346,8 +346,8 @@ l'attributo HTML.
   titoli si colpiscono con la `class` del loro `chapter`; come cambiarne
   l'aspetto è APERTO (§0.16).
 - **Il sottoinsieme dei selettori.** *(proposta)* Selettori di `class`
-  semplici e composti (`.a.b`) e i quattro tipi in linea, anche insieme a una
-  `class` (`.nota strong` no: niente combinatori). Il resto è
+  semplici e composti (`.a.b`) e i quattro tipi in linea da soli, senza
+  combinatori: `.nota strong` non è ammesso. Il resto è
   `stylesheet-unsupported`. Anche `!important` è fuori dal sottoinsieme: in
   CSS Cascade 5, per le dichiarazioni important vince lo strato che viene
   prima, e la decisione «vince la `composition`» cadrebbe.
