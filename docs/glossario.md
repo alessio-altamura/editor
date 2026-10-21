@@ -239,7 +239,8 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `running header` | intestazione di pagina | Testo ripetuto in cima alle pagine | proposto | header |
 | `footnote` | nota | Nota a piè di pagina | proposto | note |
 | `numbering` | numerazione | Numeri di capitoli e immagini, calcolati dal `runtime` e scritti nel `resolved tree` (deciso il 2026-10-21); tabelle e figure più avanti | concetto deciso, nome proposto | counter |
-| `cross-ref` | riferimento numerato | Riferimento a un `node` numerato | proposto | link |
+| `cross-ref` | riferimento numerato | Collegamento a un `node` numerato che mostra il numero con il `number slot` nel suo testo (deciso il 2026-10-21) | concetto deciso, nome proposto | link |
+| `number slot` | segnaposto del numero | Segnaposto nel testo di un collegamento che il `runtime` sostituisce con il numero del `node` collegato (deciso il 2026-10-21); la forma «{n}» è proposta | concetto deciso, nome proposto | placeholder, field |
 | `size` | dimensione | Larghezza e altezza di una `page` o di una `slide` | proposto | dimension |
 | `constraints` | layout a vincoli | Regole di allineamento e distribuzione al posto delle coordinate assolute; proposta non decisa | proposto | layout |
 

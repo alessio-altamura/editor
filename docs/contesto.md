@@ -249,6 +249,16 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     riferimenti per `id` nel `core`; il file degli `id` ritirati si chiama
     `retired-ids.yaml`; lo `style` calcolato dal `runtime` sta nel `resolved
     tree`.
+  - Testo di un collegamento verso un capitolo o un'immagine numerati (§0.14
+    della bozza, 2026-10-21, idea di Alessio, poi «si si perfetto»): il
+    testo lo scrive chi scrive, dove mette il collegamento,
+    `[[cap-vendite|vendite]]`; senza testo vale il titolo, come già deciso.
+    Il numero compare solo dove chi scrive lo chiede con un segnaposto nel
+    testo, per esempio `[[lavagna|figura {n}]]`, e lo mette il `runtime` con
+    il numero calcolato nel documento che include il testo. Cadono le
+    opzioni B, C e D della bozza e la E proposta dall'orchestratore (forma
+    scelta dallo stylesheet). Restano da proporre il nome del segnaposto e
+    cosa si mostra quando il numero non c'è, per esempio nel testo da solo.
 
 ## Proposte non decise
 
