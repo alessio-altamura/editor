@@ -199,6 +199,11 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   - sintassi dei file di testo (§0.6, 2026-10-21): Markdown con una sintassi
     nostra, come fa Obsidian: CommonMark, `[[id]]`, `![[id]]` e
     un'intestazione YAML ristretta a sole stringhe;
+  - la riga di separazione `---` (2026-10-21, scritto da Alessio direttamente
+    alla sottosessione della specifica): «ammettila come linea, con le righe
+    vuote dal formatter se teniamo md». Quindi `---` è una linea, e il
+    `formatter` le mette una riga vuota prima e dopo, perché in CommonMark
+    `---` subito sotto una riga di testo la trasforma in un titolo;
   - capitoli (§0.7, 2026-10-21): l'opzione D di Alessio, il capitolo come
     composizione che si può annidare; l'`article` è l'indice dei capitoli, e
     un `deck` usa gli stessi capitoli senza ripetere i titoli.
