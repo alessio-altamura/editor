@@ -267,21 +267,20 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
 
 0. **La bozza di specifica**, [specifica.md](specifica.md), del `core` e della
    classe 1 (2026-10-20/21). L'ha scritta una sottosessione su mandato
-   dell'orchestratore, in quindici giri, controllati da revisori
+   dell'orchestratore, in sedici giri, controllati da revisori
    indipendenti; i 32 esempi sono anche i test. Le decisioni di Alessio sono
-   in contesto.md, voce «Sulla bozza di specifica». Restano tre punti
-   APERTI, §0.14-§0.16, in attesa di Alessio: il testo di un `[[id]]` verso
-   un nodo numerato, la forma di `embed-class`, l'aspetto dei titoli. Le
-   preferenze dell'orchestratore, già dette ad Alessio: per il §0.14
-   l'opzione D (il nome del tipo nella lingua del documento davanti al
+   in contesto.md, voce «Sulla bozza di specifica». La bozza è ferma in
+   attesa di Alessio su tre punti APERTI, §0.14-§0.16: il testo di un
+   `[[id]]` verso un nodo numerato, la forma di `embed-class`, l'aspetto dei
+   titoli. Le preferenze dell'orchestratore, già dette ad Alessio: per il
+   §0.14 l'opzione D (il nome del tipo nella lingua del documento davanti al
    numero, come \autoref di LaTeX); la mappa a un livello di sole stringhe;
-   i titoli fra i tipi agganciabili, con nomi per grado (`title-1`…). Il
-   controllo del quindicesimo giro (d2d47a0) ha trovato che il §0.14 non è
-   ancora neutro (il costo del testo che cambia secondo il contesto è
-   scritto solo per C) e alcuni casi limite; vanno in un sedicesimo giro
-   breve. Dopo, l'orchestratore controlla solo esempi, glossario e i punti
-   chiesti, senza altri giri di revisione: i dettagli che restano li
-   faranno emergere gli esempi quando si scriverà il `runtime`. I
+   i titoli fra i tipi agganciabili, con nomi per grado (`title-1`…).
+   L'ultimo giro (d6f1ff0) è stato controllato solo su esempi, glossario e
+   punti chiesti: dopo il sedicesimo giro le revisioni trovavano solo casi
+   limite, che faranno emergere meglio gli esempi quando si scriverà il
+   `runtime`. Alle risposte di Alessio: registrarle in contesto.md, girarle
+   alla sottosessione e controllare il giro che ne segue. I
    rapporti dei revisori non sono nel repository: vanno ripetuti se servono.
    La sottosessione è session_01LJTSfiwiWSRkNwwAHxW4pz, ramo
    claude/spec-draft-level1.
