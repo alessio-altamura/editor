@@ -518,3 +518,6 @@ punta la composizione) hanno avuto risposta: vedi i §1 e §3.
     numero più un separatore per i decimali, che sia «.» o «,». Valuterei se
     aggiungere, non so come si chiamano, K M T (per esempio 1K è 1000), oltre
     alla notazione scientifica.
+29. Hai ragione, facciamo solo «.» per i decimali. Attenzione: un italiano che
+    scrive nell'app scrive come è abituato, ma il file salvato conterrà
+    unità.decimali.
