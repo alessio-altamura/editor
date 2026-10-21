@@ -231,7 +231,8 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     commenti si scrivono solo come commenti HTML `<!-- -->`, unica eccezione
     al divieto dell'HTML grezzo; il file di configurazione del documento è un
     file come gli altri, con `kind` `document` e tutto nell'intestazione, uno
-    solo per documento; un oggetto dentro un capoverso per ora non è ammesso
+    solo per documento; porta la lingua del documento e la versione della
+    specifica (così era scritto nel suggerimento approvato); un oggetto dentro un capoverso per ora non è ammesso
     (un `text` resta un blocco solo); la numerazione di capitoli e immagini la
     calcola il `runtime` e la scrive nel `resolved tree`; nel `canvas file`
     ogni nodo porta l'`id`, se JSON Canvas ammette una chiave in più e gli
