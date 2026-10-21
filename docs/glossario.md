@@ -332,6 +332,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `reconcile` | riconciliare | Integrare nel `model` le modifiche fatte fuori dall'`app` | concetto deciso, nome proposto | merge, sync |
 | `semantic diff` | diff semantico | Confronto fra versioni a livello di `node` | proposto | smart diff |
 | `cli` | riga di comando | Client del `runtime` da terminale, pensato anche per l'AI | concetto deciso, nome proposto | shell, tool |
+| `resolve-tree` | risolvi l'albero | Comando della `cli` che legge la cartella di un `document` e stampa il `resolved tree` in JSON, con i `diagnostic`; nome da N3. Il binario che lo offre si chiama per ora doc-runtime, nome provvisorio da scegliere | proposto | resolve, build, compile |
 | `language server` | server LSP | Parte del `runtime` che parla LSP | concetto deciso, nome proposto | lsp |
 | `runtime protocol` | protocollo proprio | Protocollo fra `runtime` e client per `operation` e `preview` | concetto deciso, nome proposto | api |
 | `mcp server` | server MCP | Espone le `operation` agli agenti AI | proposto | plugin, bot |
