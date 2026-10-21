@@ -106,7 +106,7 @@ Rust, Go, Haskell); in JavaScript o TypeScript c'è solo djot.js
     attributi vanno sulla riga prima; uno span è testo fra quadre seguito da
     attributi, `[read the manual]{.big .red}`;
   - i valori degli attributi sono stringhe: per le liste (`tags`,
-    `associations`, `replaces`) serve una convenzione, per esempio valori
+    `associations`) serve una convenzione, per esempio valori
     separati da spazi. Nella prova `tags="vendite q3"` arriva nell'AST come la
     stringa `"vendite q3"`.
 - **CommonMark** non ha una sintassi per gli attributi: nella spec la parola
@@ -287,8 +287,9 @@ Nella prova con djot.js 0.3.2 il blocco di attributi va sul blocco che segue
 anche con una riga vuota in mezzo: nel `text` gli attributi finiscono sul
 capoverso, ed è il risultato voluto, perché un `text` è un blocco solo;
 nell'`article` finiscono sulla sezione del titolo. Per il `concept` e
-l'`article` serve quindi una regola per gli attributi del file. Quella della
-specifica (§0.6) è la proposta di matklad nella issue #35, il 2022-11-03: gli
+l'`article` serve quindi una regola per gli attributi del file. Per questa
+strada la regola sarebbe stata la proposta di matklad nella issue #35, il
+2022-11-03: gli
 attributi valgono per il documento «if the doc starts with attributes and they
 are followed by a blank line». MacFarlane risponde con un limite e non la
 adotta. `renderDjot` toglie la riga vuota fra gli attributi e il primo blocco
