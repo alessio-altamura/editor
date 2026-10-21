@@ -500,3 +500,13 @@ Prima del motore e dell'editor servono tre cose piccole:
 2. Sintassi testuale canonica con formatter.
 3. Corpus di documenti di esempio con l'output atteso, base dei test di
    conformità.
+
+Il 2026-10-21, a bozza di specifica finita, Alessio ha scelto di partire dal
+runtime da riga di comando («ok 4», sul quarto dei prossimi passi di
+[handoff.md](handoff.md)), ridotto all'essenziale come proposto
+dall'orchestratore: legge la cartella del documento e scrive il `resolved
+tree`, finché i 35 esempi della bozza passano. In TypeScript, come deciso.
+HTML, PDF, formatter e corpus vengono dopo. Così il motore arriva prima del
+formatter e del corpus, al contrario dell'ordine qui sopra; i tipi del
+modello per testo e capitoli li dà già la bozza, per tabella, vista e slide
+il modello resta da fare.
