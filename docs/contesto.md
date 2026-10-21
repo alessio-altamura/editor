@@ -204,10 +204,13 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     un `deck` usa gli stessi capitoli senza ripetere i titoli.
 
   Questi ultimi punti Alessio li ha approvati con «ok ai tuoi suggerimenti»,
-  riferito ai sei punti aperti della bozza. Le proposte nuove della bozza
-  (classi di conformità, attributi sconosciuti ignorati, riferimenti generici
-  nel `core`, il nome `retired-ids.yaml`, lo `style` calcolato) restano
-  proposte finché non le conferma.
+  riferito ai sei punti aperti della bozza.
+  - Confermate anche le proposte nuove della bozza (2026-10-21): le classi di
+    conformità da 0 a 6, cioè il `core` e i sei passi dell'ordine deciso; un
+    attributo sconosciuto si ignora con un avviso; una forma generica dei
+    riferimenti per `id` nel `core`; il file degli `id` ritirati si chiama
+    `retired-ids.yaml`; lo `style` calcolato dal `runtime` sta nel `resolved
+    tree`.
 
 ## Proposte non decise
 

@@ -504,3 +504,4 @@ punta la composizione) hanno avuto risposta: vedi i §1 e §3.
 23. 1i; per gli altri punti ok ai tuoi suggerimenti. Unica cosa: in Markdown
     come trattiamo la sua impaginazione? Non rischiamo di avere
     sovrapposizioni?
+24. Ok, confermo anche le proposte nuove.
