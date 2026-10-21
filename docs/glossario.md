@@ -188,7 +188,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `embed` | uso per riferimento | Inclusione di un oggetto in una `composition`, senza copia; dentro un capoverso per ora non è ammesso (deciso il 2026-10-21) | concetto deciso, nome proposto | copy, insert |
 | `scratch` | spazio libero | Appunti e `math line` dentro il contenuto, da cui si trasformano oggetti; proposta: un `kind` a sé con più blocchi, posto di lavoro e non unità di significato, che una `composition` non usa | concetto deciso, nome proposto | free space, notes |
 | `math line` | riga di calcolo | Calcolo con l'`inline result`; proposta: anche dentro una frase, fra backtick, comincia con il segno di uguale e uno spazio | concetto deciso, nome proposto | calc line, formula |
-| `inline result` | risultato in linea | Valore mostrato accanto a una `math line` | proposto | output |
+| `inline result` | risultato in linea | Valore mostrato accanto a una `math line` | concetto deciso, nome proposto | output |
 | `text table` | tabellina | Tabella scritta nel testo, non ancora `collection` | proposto | table |
 | `text` | testo | `kind` di `object` fatto di prosa, un blocco solo: un capoverso, un elenco, una citazione (deciso il 2026-10-21) | concetto deciso, nome proposto | paragraph (da fissare con la bozza) |
 | `image` | immagine | `kind` di `object` per un'immagine fatta fuori dal `runtime`: un file descrittore con gli attributi, che nomina il suo `asset` | proposto | picture, figure |
