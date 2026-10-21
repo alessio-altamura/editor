@@ -22,8 +22,8 @@ parole del glossario con un altro senso (`attributes`, `code`).
   tree` [C: «Sulla bozza di specifica»]. I dettagli intorno restano proposte.
 - **APERTO**: un punto che blocca la classe 1, con le opzioni e i loro costi.
   Il 2026-10-21 Alessio ha chiuso quelli della bozza precedente, e i §0.1-
-  §0.7 riportano le decisioni e le proposte che ne seguono. Restano APERTI i
-  §0.8-§0.13.
+  §0.7 riportano le decisioni e le proposte che ne seguono; lo stesso giorno
+  ha deciso anche i §0.8-§0.13. Non restano punti APERTI.
 
 **Sintassi.** I file di testo sono Markdown con una sintassi nostra, come fa
 Obsidian: CommonMark, `[[id]]`, `![[id]]` e un'intestazione YAML ristretta a
@@ -204,7 +204,7 @@ lingua; l'aritmetica è decimale.
   migliaia del `lang`. Le regole di stampa per ogni `lang` sono fissate dalla
   specifica e non prese dal sistema, perché la stringa sia uguale
   dappertutto; senza `lang` la stringa è il valore. Il `lang` del documento
-  viene dal file di configurazione, che è APERTO (§0.8). I `renderer` la
+  viene dal file `document` (§0.8, esempio 25). I `renderer` la
   applicano soltanto (§0.5).
 - **Errori.** Una riga che non segue la grammatica, o che divide per zero,
   non ha risultato e dà l'avviso `math-line-invalid`.
@@ -327,64 +327,80 @@ si sposta come un'unità, si annida, e può non avere titolo.
   `chapter` ordina oggetti diversi; Alessio ha paragonato quell'aggregatore
   alla «section per le pagine» (bozza-nodi.md §7, idea 18).
 
-### 0.8 APERTO: il file di configurazione
+### 0.8 Deciso: il file del documento
 
-Da qui vengono il `lang` del documento e la `spec version` (§2); senza, la
-decisione «il risultato si mostra secondo la lingua» non si può provare negli
-esempi.
-- **A. Un nome fisso in YAML**, per esempio `document.yaml`. Costo: un nome
-  riservato in più, e un altro formato oltre ai `.<kind>.md`.
-- **B. Un `.<kind>.md` con un `kind` proprio**, per esempio `document`, con
-  tutto nel `front matter`. Costo: un nodo in più nel `resolved tree`, e va
-  detto che è uno solo.
-- **C. Lo stesso file del `manifest`**, che è aperto. Costo: lega due domande,
-  e aspetta la seconda.
+Il file di configurazione del documento è un file come gli altri, con `kind`
+`document` e tutto nell'intestazione, uno solo per documento [C: «Sulla bozza di specifica»].
 
-### 0.9 APERTO: l'`embed` dentro un `text`
+*(proposte)*
+- Si chiama `<id>.document.md`, per esempio `rapporto-q3.document.md`, e il
+  suo `front matter` porta `id`, `kind`, `tags`, `lang` e `spec-version`. Il
+  corpo è vuoto; un corpo non vuoto è `document-content`.
+- Due file `document` nello stesso documento sono l'errore
+  `document-duplicate`, uno per file. Una cartella senza file `document` è
+  ammessa, senza avviso: non ha `lang` del documento né `spec version`.
+- `document` è già nel glossario per la cartella intera: il file è il nodo che
+  porta gli attributi di quel documento, quindi il nome non indica un altro
+  concetto (esempio 25).
 
-- **A. Vietato.** Un `text` è un blocco solo, e un `embed` è un blocco:
-  sarebbe `text-blocks`. Costo: niente immagini o formule in mezzo a un
-  capoverso.
-- **B. Ammesso in linea**, `![[id]]` dentro un capoverso. Costo: un `text`
-  dipende da un altro oggetto, e la `static fallback` in linea va definita.
+### 0.9 Deciso: nessun oggetto dentro un capoverso, per ora
 
-### 0.10 APERTO: la `numbering`
+Un oggetto dentro un capoverso per ora non è ammesso, e un `text` resta un
+blocco solo [C: «Sulla bozza di specifica»]. *(proposta)* Un `![[id]]` in mezzo a un capoverso è l'errore
+`embed-inline`.
 
-- **A. La calcola il `runtime`** per capitoli e immagini, e la scrive nel
-  `resolved tree`, come lo stile. Costo: regole di numerazione da scrivere.
-- **B. Nessuna numerazione nella classe 1.** Costo: niente `cross-ref`
-  numerati fino a una classe successiva.
+*Nota non normativa, per Alessio, che chiede se si debba per forza spezzare il
+testo* (stessa voce). In linea ci sono già il collegamento `[[id]]` e la riga
+di calcolo `` `= …` ``. I valori presi da una tabella arriveranno in linea con
+la classe delle formule. Un oggetto piccolo in linea, come un'icona o un
+grafico minuscolo, si può aggiungere in una classe successiva senza rompere
+niente: oggi è un errore, domani diventa ammesso, e nessun documento valido
+cambia significato. Per un oggetto grande è l'`app` a spezzare il testo da
+sola, in due `text` con l'`embed` in mezzo.
 
-### 0.11 APERTO: i riferimenti nel `canvas file`
+### 0.10 Deciso: la numerazione
 
-- **A. I percorsi di JSON Canvas**, che il `runtime` riscrive alle rinomine
-  fatte dall'`app`. Costo: una rinomina fatta fuori dall'`app` li rompe.
-- **B. Una chiave in più con l'`id`** in ogni nodo del `canvas`. Costo: si
-  estende JSON Canvas, e un altro programma che riscrive il file potrebbe non
-  conservarla (da verificare).
+La numerazione di capitoli e immagini la calcola il `runtime` e la scrive nel
+`resolved tree` [C: «Sulla bozza di specifica»].
 
-### 0.12 APERTO: `tags` obbligatori o no
+*(proposte)*
+- Nel contenuto di una `composition`, l'`embed` di un `chapter` e quello di un
+  `image` portano l'attributo `number`, una stringa.
+- I capitoli si numerano per grado, `1`, `1.1`, `1.2`, `2`; le immagini di
+  seguito in tutta la `composition`, `1`, `2`, `3`, nell'ordine di lettura
+  (esempio 8). Un capitolo senza `title` non prende un numero.
+- Un `cross-ref` a un nodo numerato mostra quel numero.
 
-`tags` è un metadato comune [C: «Attributi e id»], e Alessio ha scritto «uno
-o più tag di contesto» (bozza-nodi.md §7, idea 1).
-- **A. Almeno un tag, sempre.** Coerente con «comune». Costo: ogni file,
-  anche un capoverso, chiede un tag, e manca un codice per l'errore.
-- **B. Lista vuota ammessa.** Costo: di fatto `tags` diventa facoltativo, che
-  è la lettura dei metadati appena corretta.
+### 0.11 Deciso: i riferimenti nel `canvas file`
 
-Gli esempi senza `tags` usano B, e lo dicono nell'etichetta.
+Ogni nodo del `canvas` porta l'`id` in una chiave in più, se JSON Canvas
+ammette una chiave in più e gli altri programmi la conservano; altrimenti
+restano i percorsi [C: «Sulla bozza di specifica»].
 
-### 0.13 APERTO: i commenti
+La verifica non regge. La specifica JSON Canvas 1.0 (2024-03-11) elenca gli
+attributi di nodi e archi e non dice nulla delle proprietà che non definisce
+([spec 1.0](https://jsoncanvas.org/spec/1.0/); lo stesso testo in
+[jsoncanvas](https://github.com/obsidianmd/jsoncanvas/blob/main/spec/1.0.md)).
+Se Obsidian conservi una chiave sconosciuta quando riscrive un `.canvas` non
+si può verificare su una fonte primaria: la sua guida non ne parla, e l'app
+non è open source. Per il momento restano quindi i percorsi (§2).
+*(proposta)* Se un giorno la verifica reggesse, la chiave si chiamerebbe
+`nodeRef`, perché `id` è già l'identificativo dei nodi di JSON Canvas.
 
-`raw-html` (§7.4) rende un errore anche `<!-- -->`, l'unica forma di commento
-di CommonMark.
-- **A. Solo i commenti HTML, come eccezione.** GitHub non li mostra, e
-  prettier li conserva (nota di ricerca). Costo: un'eccezione alla regola
-  sull'HTML.
-- **B. `%% … %%` come Obsidian.** Costo: su GitHub e negli altri programmi si
-  vedono come testo, e serve una regola nostra nel parser.
-- **C. Nessun commento.** Costo: chi scrive non ha dove lasciare note nel
-  sorgente.
+### 0.12 Deciso: `tags`
+
+`tags` è sempre presente, ma la lista vuota è ammessa [C: «Sulla bozza di specifica»]. *(proposta)* Se
+`tags` manca, il `runtime` lo legge come lista vuota senza avviso, e il
+`formatter` scrive `tags: []`.
+
+### 0.13 Deciso: i commenti
+
+I commenti si scrivono solo come commenti HTML `<!-- -->`, unica eccezione al
+divieto dell'HTML grezzo [C: «Sulla bozza di specifica»].
+
+*(proposte)* Un commento non è un blocco: non conta per `text-blocks` e non
+entra nel `resolved tree`; il `formatter` lo conserva dov'è (esempio 26). In
+linea, il commento sparisce e il testo intorno resta com'è.
 
 ### Nota: il `deck` per ultimo
 
@@ -462,10 +478,10 @@ strumento nasce con una riga di comando»].
   finale; il `runtime` legge anche CRLF e BOM.
 - **Nomi.** Il nome è l'`id` più l'estensione. Il nome non conta per
   l'identità, perché l'`id` è scritto nel file (§0.3). I nomi
-  `retired-ids.yaml` e quello del file di configurazione sono riservati.
+  `retired-ids.yaml` è riservato.
 - **Configurazione del documento.** Il file di configurazione della cartella
-  dichiara la `spec version` e il `lang` del documento. Il suo nome e la sua
-  forma sono APERTI (§0.8). Il `runtime`
+  dichiara la `spec version` e il `lang` del documento: è il file `document`
+  (§0.8, deciso). Il `runtime`
   risolve tutte le `composition`, quindi non serve un punto di partenza.
 - **`canvas file`.** Il `canvas` salva solo posizioni e riferimenti, partendo
   da JSON Canvas [C: «Il foglio di bozze è un canvas»]. Il file `.canvas` è un
@@ -473,7 +489,7 @@ strumento nasce con una riga di comando»].
   *(proposta)*. JSON Canvas
   collega i file per percorso («the path to the file within the system»,
   [spec 1.0](https://jsoncanvas.org/spec/1.0/)): il `runtime` controlla quei
-  percorsi e li riscrive alle rinomine. Riferirsi per `id` è APERTO (§0.11).
+  percorsi e li riscrive alle rinomine. Per ora restano i percorsi (§0.11).
 - Gli URL esterni come `asset` sono una domanda aperta (handoff.md, domanda
   6).
 
@@ -570,7 +586,7 @@ separazione fra associazioni e dipendenze (domanda 3).
 - Un'`association` con una `composition` o uno `stylesheet` è un errore: la
   `composition` usa gli oggetti con l'`embed` (esempio 18).
 
-```````````````````````````````` example 2 conf=1 status=open-0.12-B
+```````````````````````````````` example 2 conf=1 status=proposal
 === file calo-q3-sintesi.text.md
 ---
 id: calo-q3-sintesi
@@ -587,7 +603,7 @@ Nel terzo trimestre le vendite sono calate del 12%, soprattutto per i
 }
 ````````````````````````````````
 
-```````````````````````````````` example 3 conf=1 status=open-0.12-B
+```````````````````````````````` example 3 conf=1 status=proposal
 === file calo-q3.concept.md
 ---
 id: calo-q3
@@ -615,7 +631,7 @@ Le vendite sono calate del 12%.
 
 Dichiarato anche dall'oggetto, il collegamento resta uno:
 
-```````````````````````````````` example 4 conf=1 status=open-0.12-B
+```````````````````````````````` example 4 conf=1 status=proposal
 === file calo-q3.concept.md
 ---
 id: calo-q3
@@ -644,7 +660,7 @@ Le vendite sono calate del 12%.
 
 Dichiarato solo dall'oggetto, è lo stesso collegamento:
 
-```````````````````````````````` example 5 conf=1 status=open-0.12-B
+```````````````````````````````` example 5 conf=1 status=proposal
 === file calo-q3.concept.md
 ---
 id: calo-q3
@@ -670,7 +686,7 @@ Le vendite sono calate del 12%.
 }
 ````````````````````````````````
 
-```````````````````````````````` example 6 conf=0 status=open-0.12-B
+```````````````````````````````` example 6 conf=0 status=proposal
 === file calo-q3.concept.md
 ---
 id: calo-q3
@@ -711,11 +727,11 @@ nome (§11.3).
 | `text table` | la tabella di GFM ([gfm](https://github.github.com/gfm/)), ammessa nella classe 1 *(proposta)*; non ancora `collection` |
 | `math line` | decisa, con il risultato già nella classe 1 (§0.4) |
 | enfasi, forte, codice in linea, collegamento a un URL | in linea |
-| riferimento in linea | `[[id]]` o `[[id\|testo]]`, un `id reference` (§10); se il nodo è numerato è un `cross-ref`, e la `numbering` è APERTA (§0.10) |
+| riferimento in linea | `[[id]]` o `[[id\|testo]]`, un `id reference` (§10); se il nodo è numerato è un `cross-ref`, con il numero del §0.10 |
 | interruzione di riga forzata | contenuto |
 | `footnote` | senza sintassi, rimandata (§0.6) |
 
-L'`embed` dentro un `text`, che il glossario ammette, è APERTO (§0.9).
+Un oggetto dentro un capoverso per ora non è ammesso (§0.9, deciso).
 
 ### 7.2 `image`
 
@@ -728,7 +744,7 @@ quindi un file di testo con gli attributi, l'attributo `asset` e un corpo
 con la descrizione, che serve agli screen reader ed è la sua `static
 fallback`.
 
-```````````````````````````````` example 7 conf=1 status=open-0.12-B
+```````````````````````````````` example 7 conf=1 status=proposal
 === file lavagna.image.md
 ---
 id: lavagna
@@ -768,8 +784,8 @@ Queste regole le evitano:
 - **I segni dicono cosa è una cosa, non come appare.** Enfasi, forte, codice,
   collegamento, elenco, citazione: `**x**` è «forte», non «grassetto».
   L'aspetto viene solo dal foglio di partenza e dagli `stylesheet` (§0.5).
-- **Niente HTML grezzo e niente stili in linea.** CommonMark li ammette, la
-  nostra sintassi no. Un pezzo di HTML grezzo è l'errore `raw-html`, e nel
+- **Niente HTML grezzo e niente stili in linea**, salvo i commenti `<!-- -->`
+  (§0.13, deciso). CommonMark li ammette, la nostra sintassi no. Un pezzo di HTML grezzo è l'errore `raw-html`, e nel
   `resolved tree` resta come testo letterale, così si vede e non disegna
   niente (esempio 23).
 - **La struttura sta al suo posto.** I titoli sono `title` dei `chapter`
@@ -817,7 +833,7 @@ una `composition` che si può annidare, e l'`article` è l'indice dei capitoli
   `stylesheet`, scritto come `id reference` (§10); un `chapter` senza usa
   quello della `composition` che lo contiene.
 
-```````````````````````````````` example 8 conf=1 status=open-0.12-B
+```````````````````````````````` example 8 conf=1 status=proposal
 === file report-q3.article.md
 ---
 id: report-q3
@@ -863,15 +879,15 @@ id: report
     {"id": "cap-vendite", "kind": "chapter", "file": "cap-vendite.chapter.md", "attributes": {"title": "Le vendite"}, "content": [["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["evidenza"]}, ["paragraph", "Le vendite sono calate del 12%."]], ["embed", {"id": "lavagna", "kind": "image", "asset": "lavagna.jpg"}, ["paragraph", "Foto della lavagna con le vendite mensili."]]]},
     {"id": "lavagna", "kind": "image", "file": "lavagna.image.md", "attributes": {"asset": "lavagna.jpg"}, "content": [["paragraph", "Foto della lavagna con le vendite mensili."]]},
     {"id": "report", "kind": "stylesheet", "file": "report.stylesheet.css"},
-    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"title": "Rapporto del terzo trimestre", "stylesheet": "report"}, "content": [["embed", {"id": "cap-vendite", "kind": "chapter", "title": "Le vendite", "depth": 1}, ["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["evidenza"], "computedStyle": {"font-weight": "700"}}, ["paragraph", "Le vendite sono calate del 12%."]], ["embed", {"id": "lavagna", "kind": "image", "asset": "lavagna.jpg"}, ["paragraph", "Foto della lavagna con le vendite mensili."]]]]}
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"title": "Rapporto del terzo trimestre", "stylesheet": "report"}, "content": [["embed", {"id": "cap-vendite", "kind": "chapter", "title": "Le vendite", "depth": 1, "number": "1"}, ["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["evidenza"], "computedStyle": {"font-weight": "700"}}, ["paragraph", "Le vendite sono calate del 12%."]], ["embed", {"id": "lavagna", "kind": "image", "asset": "lavagna.jpg", "number": "1"}, ["paragraph", "Foto della lavagna con le vendite mensili."]]]]}
   ]
 }
 ````````````````````````````````
 
-Nel nodo del `chapter` il `computed style` non c'è: dipende dalla `composition` in cui
+Nel nodo del `chapter` il `computed style` e il `number` non ci sono: dipende dalla `composition` in cui
 il capitolo è usato, e lo calcola il nodo dell'`article`.
 
-```````````````````````````````` example 9 conf=1 status=open-0.12-B
+```````````````````````````````` example 9 conf=1 status=proposal
 === file report-q3.article.md
 ---
 id: report-q3
@@ -889,7 +905,7 @@ kind: article
 }
 ````````````````````````````````
 
-```````````````````````````````` example 10 conf=1 status=open-0.12-B
+```````````````````````````````` example 10 conf=1 status=proposal
 === file cap-vendite.chapter.md
 ---
 id: cap-vendite
@@ -908,7 +924,7 @@ Qui scrivo due righe di introduzione.
 }
 ````````````````````````````````
 
-```````````````````````````````` example 11 conf=1 status=open-0.12-B
+```````````````````````````````` example 11 conf=1 status=proposal
 === file report-q3.article.md
 ---
 id: report-q3
@@ -981,7 +997,7 @@ estensioni e connettori»]).
   scritta `"[[...]]"` diventa un riferimento, e per scriverla come testo
   serve una regola. Il riferimento in linea non ha ancora un esempio.
 
-```````````````````````````````` example 12 conf=0 status=open-0.12-B
+```````````````````````````````` example 12 conf=0 status=proposal
 === file linea-tempo.timeline.md
 ---
 id: linea-tempo
@@ -1075,7 +1091,10 @@ secondo il codice `target` e `message`. Ogni errore ha anche un `fix` [C:
 | `retired-successor-missing` | error | un successore che non esiste | l'`id` | non coperto |
 | `text-blocks` | error | un `text` con più di un blocco, o con un titolo | — | 21 |
 | `composition-content` | error | nel corpo di una `composition` un blocco che non è un `embed` né una riga di separazione | — | 10 |
-| `raw-html` | error | HTML grezzo nel corpo | — | 23 |
+| `raw-html` | error | HTML grezzo nel corpo, che non sia un commento | — | 23 |
+| `embed-inline` | error | un `![[id]]` dentro un capoverso | l'`id` | non coperto |
+| `document-duplicate` | error | due file `document`; uno per file | l'`id` | non coperto |
+| `document-content` | error | un corpo non vuoto in un file `document` | — | non coperto |
 | `math-line-invalid` | warning | riga di calcolo fuori grammatica, o divisione per zero | — | non coperto |
 | `math-line-ambiguous` | warning | un numero come `1.200` | il numero | 22 |
 | `eval-unsupported` | warning | blocco da eseguire nella classe 1 | — | non coperto |
@@ -1084,7 +1103,7 @@ secondo il codice `target` e `message`. Ogni errore ha anche un `fix` [C:
 | `stylesheet-unsupported` | warning | proprietà o selettore fuori dal sottoinsieme, ignorato | la proprietà o il selettore | non coperto |
 | `reference-unresolved` | error | `id reference` in un attributo senza bersaglio | l'`id` | non coperto |
 
-```````````````````````````````` example 13 conf=0 status=open-0.12-B
+```````````````````````````````` example 13 conf=0 status=proposal
 === file calo-q3.concept.md
 ---
 id: calo-q3
@@ -1110,7 +1129,7 @@ Nel terzo trimestre le vendite calano molto.
 }
 ````````````````````````````````
 
-```````````````````````````````` example 14 conf=0 status=open-0.12-B
+```````````````````````````````` example 14 conf=0 status=proposal
 === file calo-q3.concept.md
 ---
 id: Calo_Q3
@@ -1130,7 +1149,7 @@ Nel terzo trimestre le vendite calano.
 
 Se `kind` ed estensione non coincidono, vince il `kind` scritto nel file:
 
-```````````````````````````````` example 15 conf=0 status=open-0.12-B
+```````````````````````````````` example 15 conf=0 status=proposal
 === file calo-q3.text.md
 ---
 id: calo-q3
@@ -1151,7 +1170,7 @@ Nel terzo trimestre le vendite calano.
 Un file creato a mano senza `id` non ha un `id` finché il `runtime` non lo
 scrive (§0.3); l'`id` proposto sta solo nel `fix`:
 
-```````````````````````````````` example 16 conf=1 status=open-0.12-B
+```````````````````````````````` example 16 conf=1 status=proposal
 === file ritardi-agosto.text.md
 ---
 kind: text
@@ -1170,7 +1189,7 @@ Ad agosto due fornitori hanno consegnato con tre settimane di ritardo.
 
 Un collegamento a un oggetto fuso in un altro si risolve sul successore:
 
-```````````````````````````````` example 17 conf=1 status=open-0.12-B
+```````````````````````````````` example 17 conf=1 status=proposal
 === file calo-q3.concept.md
 ---
 id: calo-q3
@@ -1202,7 +1221,7 @@ ritardi-luglio: ritardi-estate
 }
 ````````````````````````````````
 
-```````````````````````````````` example 18 conf=1 status=open-0.12-B
+```````````````````````````````` example 18 conf=1 status=proposal
 === file calo-q3.concept.md
 ---
 id: calo-q3
@@ -1230,7 +1249,7 @@ title: Rapporto del terzo trimestre
 
 Un `id` ritirato non si riusa:
 
-```````````````````````````````` example 19 conf=0 status=open-0.12-B
+```````````````````````````````` example 19 conf=0 status=proposal
 === file vecchia-intro.concept.md
 ---
 id: vecchia-intro
@@ -1252,7 +1271,7 @@ vecchia-intro: null
 
 Una riga di calcolo riceve il risultato nel `resolved tree` (§0.4):
 
-```````````````````````````````` example 20 conf=1 status=open-0.12-B
+```````````````````````````````` example 20 conf=1 status=proposal
 === file totale-q3.text.md
 ---
 id: totale-q3
@@ -1269,7 +1288,7 @@ Pezzi prodotti nel trimestre: `= 1200 + 1350 + 1280`.
 
 Un `text` è un blocco solo:
 
-```````````````````````````````` example 21 conf=1 status=open-0.12-B
+```````````````````````````````` example 21 conf=1 status=proposal
 === file appunti-q3.text.md
 ---
 id: appunti-q3
@@ -1291,7 +1310,7 @@ Le consegne sono arrivate tardi.
 
 Un punto seguito da tre cifre è ambiguo, e si legge come decimale (§0.4):
 
-```````````````````````````````` example 22 conf=1 status=open-0.12-B
+```````````````````````````````` example 22 conf=1 status=proposal
 === file costo.text.md
 ---
 id: costo
@@ -1311,7 +1330,7 @@ Due lotti: `= 1.200 * 2`.
 
 L'HTML grezzo resta testo letterale (§7.4):
 
-```````````````````````````````` example 23 conf=1 status=open-0.12-B
+```````````````````````````````` example 23 conf=1 status=proposal
 === file grassetto.text.md
 ---
 id: grassetto
@@ -1331,7 +1350,7 @@ Le vendite sono <b>calate</b>.
 
 Una riga di separazione fra due `embed` (§7.4):
 
-```````````````````````````````` example 24 conf=1 status=open-0.12-B
+```````````````````````````````` example 24 conf=1 status=proposal
 === file cap-vendite.chapter.md
 ---
 id: cap-vendite
@@ -1361,6 +1380,50 @@ Ad agosto due fornitori hanno consegnato in ritardo.
     {"id": "calo-q3-sintesi", "kind": "text", "file": "calo-q3-sintesi.text.md", "content": [["paragraph", "Le vendite sono calate del 12%."]]},
     {"id": "cap-vendite", "kind": "chapter", "file": "cap-vendite.chapter.md", "attributes": {"title": "Le vendite"}, "content": [["embed", {"id": "calo-q3-sintesi", "kind": "text"}, ["paragraph", "Le vendite sono calate del 12%."]], ["thematicBreak"], ["embed", {"id": "ritardi-agosto", "kind": "text"}, ["paragraph", "Ad agosto due fornitori hanno consegnato in ritardo."]]]},
     {"id": "ritardi-agosto", "kind": "text", "file": "ritardi-agosto.text.md", "content": [["paragraph", "Ad agosto due fornitori hanno consegnato in ritardo."]]}
+  ]
+}
+````````````````````````````````
+
+Il `lang` del file `document` decide come si mostra il risultato (§0.4,
+§0.8):
+
+```````````````````````````````` example 25 conf=1 status=proposal
+=== file rapporto-q3.document.md
+---
+id: rapporto-q3
+kind: document
+lang: it
+spec-version: "0.1"
+---
+=== file costo.text.md
+---
+id: costo
+kind: text
+---
+Due lotti: `= 1.5 + 0.9`.
+=== resolved
+{
+  "nodes": [
+    {"id": "costo", "kind": "text", "file": "costo.text.md", "content": [["paragraph", "Due lotti: ", ["mathLine", {"value": "2.4", "display": "2,4"}, "1.5 + 0.9"], "."]]},
+    {"id": "rapporto-q3", "kind": "document", "file": "rapporto-q3.document.md", "attributes": {"lang": "it", "spec-version": "0.1"}}
+  ]
+}
+````````````````````````````````
+
+Un commento non è un blocco e non entra nel `resolved tree` (§0.13):
+
+```````````````````````````````` example 26 conf=1 status=proposal
+=== file calo-q3-sintesi.text.md
+---
+id: calo-q3-sintesi
+kind: text
+---
+<!-- da ricontrollare con i dati di settembre -->
+Le vendite sono calate del 12%.
+=== resolved
+{
+  "nodes": [
+    {"id": "calo-q3-sintesi", "kind": "text", "file": "calo-q3-sintesi.text.md", "content": [["paragraph", "Le vendite sono calate del 12%."]]}
   ]
 }
 ````````````````````````````````
@@ -1402,7 +1465,8 @@ fra i *Da non usare* di `text`. Mancano ancora i tipi per `text table`,
 Nel contenuto di una `composition` un `embed` porta negli attributi `id`,
 `kind`, il `lang` effettivo (quello dell'oggetto o, se manca, quello del
 documento), e se ci sono `class` e `asset` dell'oggetto, il `title` e il
-grado (`depth`) di un `chapter`, e il `computed style` (§0.5); come figli,
+grado (`depth`) di un `chapter`, il `number` di capitoli e immagini (§0.10) e
+il `computed style` (§0.5); come figli,
 il suo contenuto risolto. Un `embed` che non si risolve ha `"unresolved":
 true` e nessun figlio. Così un `renderer` legge la `composition` senza
 cercare altri nodi.
