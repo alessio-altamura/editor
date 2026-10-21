@@ -39,6 +39,8 @@ marcatura più debole fra le regole che l'esempio usa, escluso il formato del
 - una riga `=== file <percorso>` apre un file di testo, che contiene le righe
   fino al marcatore successivo, ciascuna chiusa da LF;
 - una riga `=== asset <percorso>` crea un file di zero byte;
+- una riga `=== no-document` dice allo script di non creare il `document file`
+  (esempio 31);
 - l'ultima sezione, `=== resolved`, è il `resolved tree` atteso (§11.3).
 
 *(proposta)* Gli esempi sono in forma non canonica in due punti, per restare
@@ -202,12 +204,18 @@ punto (stessa voce). È un comportamento dell'`app`, non del formato.
   exponent   = ( "e" | "E" ) [ "+" | "-" ] digit { digit }
   ```
 
-- **L'esponente.** *(proposte)* In valore assoluto non supera 6144, il limite
-  di decimal128; oltre, e quando un risultato esce dall'intervallo di
-  decimal128, la riga è `math-line-invalid`. Il `formatter` non normalizza
+- **L'esponente.** *(proposte)* Il limite sta sul valore, non sull'esponente
+  scritto: decimal128 ha Emax 6144 ed Emin −6143 (Cowlishaw, [Decimal
+  Encoding Specification](http://speleotrove.com/decimal/dbover.html)). Una
+  riga è `math-line-invalid` quando un numero, letto esatto, o un risultato
+  ha l'esponente aggiustato fuori da [−6143, 6144], senza numeri subnormali:
+  `99e6144` va fuori, `0.001e6146`, che vale 1e6143, no. Il `formatter` non normalizza
   `1E6` né `1.20`: li lascia come sono. Per «1,2M» l'`app` scrive il numero
   pieno, `1200000`.
-- **L'ambiguità.** *(proposta)* Un numero senza esponente con un punto seguito da esattamente tre cifre,
+- **L'ambiguità.** *(proposta)* L'avviso vale solo senza esponente: chi scrive
+  in notazione scientifica non usa separatori delle migliaia, quindi
+  `1.200e3` è 1,2 per mille, e il `fix` «1200» lo cambierebbe in 1200e3. Un
+  numero senza esponente con un punto seguito da esattamente tre cifre,
   come `1.200`, si legge come decimale (1,2) e dà l'avviso
   `math-line-ambiguous`, con un `fix` che propone `1200` (esempio 22).
 - **Precisione e arrotondamento.** Ogni operazione si calcola in decimale con
@@ -234,25 +242,46 @@ punto (stessa voce). È un comportamento dell'`app`, non del formato.
 
 - **Le forme brevi** («1,2 Mln», «1.2M») sono una scelta di stile, da fuori
   [C: «Sulla bozza di specifica»]. *(proposte)* Si dichiarano nello `stylesheet` con la proprietà
-  personalizzata `--number-notation`, `plain` (il valore iniziale) o
-  `compact`: è CSS valido, perché una proprietà personalizzata è «any
+  personalizzata `--number-notation`, `standard` se non è data, oppure
+  `compact`. Il nome `standard` viene da ECMA-402, che chiama così la forma
+  piena accanto a `scientific`, `engineering` e `compact`; prima la bozza
+  diceva `plain`. Il valore iniziale CSS di una proprietà personalizzata è il
+  «guaranteed-invalid value», quindi «se non è data» non è lo stesso del
+  valore iniziale. È è CSS valido, perché una proprietà personalizzata è «any
   property whose name starts with two dashes», ed è ereditata
   ([CSS Custom Properties](https://www.w3.org/TR/css-variables-1/)). Così si
   può dare per `class`, per esempio solo in un capitolo o in un `deck`. È
-  l'unica proprietà personalizzata del sottoinsieme. Con `compact` il
-  `display` divide il valore per mille, un milione, un miliardo o mille
-  miliardi, lo arrotonda al pari a un decimale, toglie lo zero finale e usa la
-  forma breve di CLDR 48: in `it` «0K», «0 Mln», «0 Mld», «0 Bln», in `en`
-  «0K», «0M», «0B», «0T». Lo spazio in «0 Mln» è il non-breaking space
-  U+00A0, come in CLDR. Sotto mille resta la forma piena.
+  l'unica proprietà personalizzata del sottoinsieme, e lo allarga oltre il
+  minimo deciso (carattere, colore, allineamento, margini, interlinea).
+  Il `runtime` la consuma per scrivere `display` e non la mette nel
+  `computed style`. Con `compact` il `display` divide il valore per mille, un
+  milione, un miliardo o mille miliardi, lo arrotonda al pari a un decimale,
+  toglie lo zero finale e usa la forma breve di CLDR 48: in `it` «0K», «0
+  Mln», «0 Mld», «0 Bln», in `en` «0K», «0M», «0B», «0T». Lo spazio in «0
+  Mln» è il non-breaking space U+00A0, come in CLDR. Sotto mille resta la
+  forma piena. Il divisore si sceglie sul valore già arrotondato: 999950 dà
+  «1 Mln» e «1M», non «1000K». Arrotondare sempre a un decimale è una scelta
+  che differisce dalle librerie: `Intl.NumberFormat` con `notation: "compact"`
+  dà «123K» per 123456, la bozza «123,5K» (prova con Node 22). «0K» per `it`
+  è nuovo in CLDR 48: in CLDR 47 il modello era «0», quindi una libreria su
+  CLDR 47 non coincide (prova su cldr-json 47.0.0 e 48.2.3).
+- **Dove sta il `display` compatto.** Nel contenuto dell'`embed` dentro la
+  `composition` radice, perché dipende dallo `stylesheet` di quella
+  `composition`; il nodo del `text` resta con la forma piena. Lo stesso
+  `text` può quindi avere `display` diversi in `composition` diverse, come il
+  numero di un `cross-ref`.
 - **Le lingue.** *(proposta)* La specifica ha una tabella delle lingue che
   supporta, oggi `it` ed `en`. Un tag con regione cerca prima la riga
-  esatta, perché CLDR ha regole proprie per alcune regioni (`it-CH` usa il
-  punto decimale e l'apostrofo per le migliaia), poi la lingua senza regione.
-  Una lingua fuori tabella mostra il valore semplice, con l'avviso
-  `lang-unsupported`.
-- **Errori.** Una riga che non segue la grammatica, o che divide per zero,
-  non ha risultato e dà l'avviso `math-line-invalid`.
+  esatta, perché CLDR ha regole proprie per alcune regioni, poi la lingua
+  senza regione. Con la tabella di oggi `it-CH` ricade su `it` e mostra la
+  virgola, mentre CLDR 48 gli dà il punto decimale e l'apostrofo U+0027 per
+  le migliaia (in CLDR 47 era U+2019): è un ripiego voluto, per ora. Una
+  lingua fuori tabella mostra il valore semplice, con l'avviso
+  `lang-unsupported`, una volta per file e solo se il file ha righe di
+  calcolo da mostrare.
+- **Errori.** Una riga che non segue la grammatica, che divide per zero o che
+  esce dall'intervallo di decimal128 non ha risultato e dà l'avviso
+  `math-line-invalid`.
 
 ### 0.5 Deciso: il CSS lo applica il `runtime`
 
@@ -292,13 +321,17 @@ l'attributo HTML.
   ```
 
   `thematicBreak` non ha regole: la linea la disegna il `renderer` (§7.4).
-- **La forma dei valori.** Ogni nodo del contenuto di una `composition` porta
-  negli attributi un oggetto `computedStyle`, con le proprietà il cui valore
-  calcolato è diverso da quello che il foglio di partenza da solo darebbe a
-  quel nodo, ereditati compresi: un capoverso dentro un `embed` in grassetto
-  porta anch'esso `font-weight` 700. Il foglio di partenza è fisso nella specifica, come i valori
-  iniziali del CSS: chi disegna lo applica tale e quale e sovrappone lo
-  `computedStyle`, senza calcolare cascate. L'alternativa è scrivere ogni valore per
+- **La forma dei valori.** Ogni nodo del contenuto della `composition` radice,
+  cioè l'`article` o il `deck`, porta negli attributi un oggetto
+  `computedStyle` con le proprietà il cui valore finale differisce da quello
+  che il nodo avrebbe applicando le regole dirette del foglio di partenza per
+  il suo tipo ed ereditando i valori finali del genitore. Chi disegna fa solo
+  questo: applica le regole del foglio di partenza per tipo, eredita dal
+  genitore e sovrappone il `computedStyle`, senza calcolare cascate. Così un
+  capoverso dentro un `embed` in grassetto non porta niente, perché eredita
+  700; uno `strong` che torna nero sotto un `embed` blu porta il suo colore
+  (esempio 29). Il nodo di un `chapter` non radice non ha `computedStyle`,
+  come non ha `number`. L'alternativa è scrivere ogni valore per
   ogni nodo: nessun foglio da conoscere, ma un `resolved tree` molto più
   grande. I valori sono i valori calcolati del CSS, scritti come stringhe:
   per `font-weight` è un numero (CSS Fonts 4, «Computed value: a number»,
@@ -310,13 +343,21 @@ l'attributo HTML.
   enfasi, forte, codice [C: «Sulla bozza di specifica»]. *(proposta)* I nomi, normativi: `hyperlink`,
   `emphasis`, `strong`, `inline-code` (nel `resolved tree` `inlineCode`).
   Per gli altri tipi, che hanno nomi provvisori (§11.3), niente selettori. I
-  titoli si colpiscono con la `class` del loro `chapter`.
+  titoli si colpiscono con la `class` del loro `chapter`; come cambiarne
+  l'aspetto è APERTO (§0.16).
+- **Il sottoinsieme dei selettori.** *(proposta)* Selettori di `class`
+  semplici e composti (`.a.b`) e i quattro tipi in linea, anche insieme a una
+  `class` (`.nota strong` no: niente combinatori). Il resto è
+  `stylesheet-unsupported`. Anche `!important` è fuori dal sottoinsieme: in
+  CSS Cascade 5, per le dichiarazioni important vince lo strato che viene
+  prima, e la decisione «vince la `composition`» cadrebbe.
 - **La `class` sull'`embed`.** La `class` sta sia sull'oggetto (cos'è,
   sempre) sia sull'`embed` nella `composition` (come appare lì), e in
   conflitto vince quella della `composition` [C: «Sulla bozza di specifica»].
-  *(proposte)* Si scrive nel `front matter` della `composition` (la forma è
-  APERTA, §0.15), in una mappa dall'`id` dell'oggetto
-  alle sue `class`, e nell'`embed` le `class` dell'oggetto vengono prima di quelle dell'`embed`:
+  *(proposte)* Dove e in che forma si scrive è APERTO (§0.15). Con l'opzione A
+  è una mappa nel `front matter` della `composition`, dall'`id`
+  dell'oggetto alle sue `class`, e nell'`embed` le `class` dell'oggetto
+  vengono prima di quelle dell'`embed`:
 
   ```
   embed-class:
@@ -326,17 +367,21 @@ l'attributo HTML.
   Nella cascata le dichiarazioni che colpiscono un nodo grazie a una `class`
   dell'`embed` stanno in uno strato che viene dopo quello delle altre, e
   vincono qualunque sia la specificità: così `.evidenza.urgente` sull'oggetto
-  non batte `.nota` sull'`embed`. È il meccanismo dei cascade layers di CSS
+  non batte `.nota` sull'`embed` (esempio 27). Un selettore misto come
+  `.evidenza.nota` sta nello strato dell'`embed` se almeno una delle sue
+  `class` viene solo dall'`embed`; una `class` che sta sia sull'oggetto sia
+  nell'`embed` conta come dell'`embed`. È analogo ai cascade layers di CSS
   Cascade 5, dove gli strati vengono prima della specificità fra i criteri
-  della cascata ([css-cascade-5 §6](https://www.w3.org/TR/css-cascade-5/#cascade-sort))
-  (esempio 27).
-- **Le chiavi di `embed-class`** sono `id`, e il `runtime` le riscrive quando
-  un oggetto viene fuso, come gli `id reference`. Una chiave che non
-  corrisponde a nessun `embed` è l'avviso `embed-class-unused`. La mappa vale
-  per tutti gli `embed` di quell'`id` nella `composition`, anche dentro i
-  `chapter` annidati; se un `chapter` ha la sua mappa per lo stesso `id`, le
-  `class` della `composition` radice vengono dopo e vincono, perché decide
-  come appare lì.
+  della cascata ([css-cascade-5 §6.1](https://www.w3.org/TR/css-cascade-5/#cascade-sort));
+  in CSS però lo strato appartiene alla regola (§6.4.1), qui a come la
+  regola colpisce il nodo.
+- **Le chiavi**, con le opzioni A o B del §0.15, sono `id`, e il `runtime` le
+  riscrive quando un oggetto viene fuso, come gli `id reference`; una chiave
+  che è un `id` ritirato si riscrive sul successore. Una chiave che non
+  corrisponde a nessun `embed` è l'avviso `embed-class-unused`. Una mappa vale
+  per tutti gli `embed` di quell'`id` nella sua `composition`, anche dentro i
+  `chapter` annidati. Per lo stesso `id` la mappa più esterna sostituisce le
+  altre, senza unirle: vince la radice, poi il `chapter` più esterno.
 - **I selettori e i nomi.** Negli `stylesheet` il selettore è `inline-code`,
   in `kebab-case` come i selettori CSS; nel `resolved tree` e nel foglio di
   partenza il tipo è `inlineCode`, in `camelCase` come le chiavi JSON
@@ -399,8 +444,10 @@ si sposta come un'unità, si annida, e può non avere titolo.
   dall'annidamento, non dal file: lo stesso `chapter` è di grado 1
   nell'`article` e di grado 2 se lo si mette dentro un altro capitolo con
   `title`. Un capitolo senza `title` non aumenta il grado e non ha `depth` né
-  `number` (§0.10).
-- **L'`article` e il `deck`** hanno un `title` e un corpo di soli `embed`,
+  `number` (§0.10, esempio 30). Nel nodo di un `chapter` che non è radice, gli
+  `embed` dei `chapter` annidati non hanno `depth` né `number`: li hanno solo
+  nella `composition` radice.
+- **L'`article` e il `deck`** possono avere un `title`, e hanno un corpo di soli `embed`,
   di `chapter` o di `object`.
 - **Cicli.** Un `chapter` che contiene sé stesso, anche attraverso altri, è
   l'errore `embed-cycle`.
@@ -412,8 +459,10 @@ si sposta come un'unità, si annida, e può non avere titolo.
 ### 0.8 Deciso: il file del documento
 
 Il file di configurazione del documento è un file come gli altri, con `kind`
-`document` e tutto nell'intestazione [C: «Sulla bozza di specifica»]. È uno e uno solo, e il `runtime` lo
-crea se manca (stessa voce).
+`document` e tutto nell'intestazione [C: «Sulla bozza di specifica»]: porta la
+lingua del documento e la versione della specifica. È uno e uno solo, e il
+`runtime` lo crea se manca (stessa voce). Restano proposte i nomi delle
+chiavi.
 
 *(proposte)*
 - Si chiama `<id>.document.md`, per esempio `rapporto-q3.document.md`, e il
@@ -466,7 +515,8 @@ La numerazione di capitoli e immagini la calcola il `runtime` e la scrive nel
   sequenza, e non aumenta il grado: un capitolo con `title` dentro di lui
   prende il numero e il grado che avrebbe al suo posto, per esempio `1` e
   non `1.1`.
-- Un `cross-ref` a un nodo numerato mostra quel numero, e si risolve nel
+- Un `cross-ref` a un nodo numerato mostra quel numero (che testo mostri è
+  APERTO, §0.14), e si risolve nel
   contesto della `composition` che si sta risolvendo; nel nodo del `text`
   resta senza numero.
 
@@ -533,12 +583,18 @@ sulla numerazione (§0.10) dice che un `cross-ref` mostra il numero.
 
 La mappa nel `front matter` estende la decisione «intestazione ristretta a
 sole stringhe» più delle liste.
-- **A. Ammettere la mappa** (esempio 27). Costo: un terzo tipo di valore nel
-  `front matter`.
-- **B. Una forma piatta**, una lista di stringhe «id: class». Costo: una
-  piccola sintassi dentro le stringhe, da leggere a parte.
-- **C. La `class` accanto all'`embed`** nel corpo della `composition`. Costo:
-  la sintassi non ha attributi sui blocchi, e andrebbero introdotti.
+- **A. Ammettere la mappa** (esempio 27). Costi: un terzo tipo di valore nel
+  `front matter`, e le regole sulle chiavi del §0.5 (riscrittura alle
+  fusioni, `chapter` annidati, mappe in conflitto).
+- **B. Una forma piatta**, una lista di stringhe «id: class». Costi: le stesse
+  regole sulle chiavi, una piccola sintassi dentro le stringhe, e YAML legge
+  `id: class` senza virgolette come una mappa (`[calo-q3-sintesi: nota]` dà
+  una lista di mappe, prova con PyYAML 6.0.3), quindi ogni elemento va fra
+  virgolette e il `formatter` le deve mettere.
+- **C. La `class` accanto all'`embed`** nel corpo della `composition`. Costi:
+  la sintassi non ha attributi sui blocchi, e andrebbero introdotti; la
+  radice non può dare una `class` agli `embed` dentro un `chapter` annidato.
+  Le regole sulle chiavi non servono.
 
 ### 0.16 APERTO: l'aspetto dei titoli
 
@@ -549,10 +605,13 @@ uno `stylesheet` non può cambiare il corpo di un titolo.
   agganciabili sono quattro, tutti in linea, per decisione; sarebbe il primo
   tipo di blocco.
 - **B. Lasciare i titoli fissi**, con l'aspetto del `base stylesheet`. Costo:
-  un documento non può cambiare i suoi titoli.
+  un documento non può cambiare corpo, peso e margini dei titoli; colore e
+  carattere arrivano dal `chapter` per eredità.
 - **C. Le proprietà del titolo prese dal `chapter`** con una regola apposta:
-  per esempio, `font-size` dato al `chapter` vale per il titolo. Costo: una
-  regola che non c'è in CSS.
+  per esempio, `font-size` dato al `chapter` vale per il titolo. Costi: una
+  regola che non c'è in CSS, e un `font-size` dato al `chapter` passa per
+  eredità anche al corpo del capitolo, quindi titolo e testo non si
+  dimensionano più separatamente.
 
 ### Nota: il `deck` per ultimo
 
@@ -594,7 +653,8 @@ non cambia la risoluzione né l'aspetto; il `formatter` lo conserva, e il
   «La composition punta l'object»], e lo stesso oggetto sta in più
   `composition` [C: «L'oggetto richiamato sul foglio»].
 - **Classe di un documento.** È la più alta fra le classi dei `kind` che usa.
-  Il documento dichiara anche la `spec version` (§2).
+  Il documento dichiara anche la `spec version`, nel `document file` (§0.8,
+  deciso).
 - **Compatibilità in avanti.** L'attributo sconosciuto ignorato con un avviso
   (deciso, sopra) segue le proprietà sconosciute di CSS 2.1
   ([§4.2](https://www.w3.org/TR/CSS21/syndata.html#parsing-errors)), che però
@@ -679,7 +739,7 @@ sono separati (stessa voce).
 | `lang` | per i nodi che si vedono | tag di lingua BCP 47 | deciso |
 | `title` | `chapter`, `article`, `deck` | stringa | *(proposta)*, §0.7 |
 | `spec-version` | `document file` | stringa | §0.8; *(proposta)* la chiave |
-| `embed-class` | `composition` | mappa da `id` a lista di `class` | §0.5; *(proposta)* la forma |
+| `embed-class` | `composition` | mappa da `id` a lista di `class` | §0.5; APERTO, §0.15 |
 | `origin` | da definire | da definire | *(proposta della bozza)*: scritto da una persona o generato e confermato |
 | `associations` | `concept`, `object` | lista di `id` | *(proposta)*, §6 |
 
@@ -881,7 +941,7 @@ nome (§11.3).
 | `text table` | la tabella di GFM ([gfm](https://github.github.com/gfm/)), ammessa nella classe 1 *(proposta)*; non ancora `collection` |
 | `math line` | decisa, con il risultato già nella classe 1 (§0.4) |
 | enfasi, forte, codice in linea, collegamento a un URL | in linea |
-| riferimento in linea | `[[id]]` o `[[id\|testo]]`, un `id reference` (§10); se il nodo è numerato è un `cross-ref`, con il numero del §0.10 |
+| riferimento in linea | `[[id]]` o `[[id\|testo]]`, un `id reference` (§10); se il nodo è numerato è un `cross-ref`, con il numero del §0.10; il testo che mostra è APERTO (§0.14) |
 | interruzione di riga forzata | contenuto |
 | `footnote` | senza sintassi, rimandata (§0.6) |
 
@@ -967,22 +1027,25 @@ Queste regole le evitano:
 fuori»]: l'impaginazione finale viene sempre da fuori, non da dentro il testo,
 forse anche per i collegamenti e le formule scritti dentro il testo. Il testo
 dice cosa è una cosa; come appare lo decidono il `runtime`, gli `stylesheet` e
-la configurazione del documento. Non è una decisione. Quasi tutti i punti in
-cui la bozza lo toccava sono stati decisi, e lo seguono:
-- **Il testo di un `[[id]]`.** Un `[[id]]` senza testo mostra il `title`
-  dell'oggetto collegato, se ne ha uno; altrimenti l'`id`, con un avviso che
-  suggerisce `[[id|testo]]` [C: «Sulla bozza di specifica»]. *(proposta)* L'avviso è
-  `reference-text-missing` (esempio 28).
-- **L'aspetto di un `[[id]]`.** È un `hyperlink`, e uno `stylesheet` lo può
-  colpire; il `base stylesheet` gli dà un colore (§0.5).
-- **Il risultato di una riga di calcolo.** È coerente: la stringa la scrive il
-  `runtime` con la lingua dell'oggetto, altrimenti del documento (§0.4),
-  cioè da fuori. Dentro il testo resta solo l'espressione.
-- **Nessun aspetto in linea dentro un `text`.** È coerente: niente attributi
-  in linea e niente HTML. Enfasi, forte, codice e collegamenti si colpiscono
-  per tipo da uno `stylesheet` (§0.5).
-- **La `class`** sta sull'oggetto e sull'`embed`, e vince quella della
-  `composition` (§0.5).
+la configurazione del documento. Non è una decisione. Come la toccano le
+regole di questa bozza, punto per punto:
+- **Il testo di un `[[id]]`** (deciso [C: «Sulla bozza di specifica»]): senza
+  testo mostra il `title` dell'oggetto collegato, se ne ha uno; altrimenti
+  l'`id`, con un avviso che suggerisce `[[id|testo]]`. *(proposta)* L'avviso
+  è `reference-text-missing` (esempio 28). Verso un nodo numerato è APERTO
+  (§0.14).
+- **L'aspetto di un `[[id]]`** *(proposta)*: è un `hyperlink`, e uno
+  `stylesheet` lo può colpire; il `base stylesheet` gli dà un colore (§0.5).
+  Che i tipi in linea siano agganciabili è deciso; i nomi e il colore no.
+- **Il risultato di una riga di calcolo** (deciso): la stringa la scrive il
+  `runtime` con la lingua dell'oggetto, altrimenti del documento (§0.4), cioè
+  da fuori. Dentro il testo resta solo l'espressione.
+- **Nessun aspetto in linea dentro un `text`** (lettura di questa bozza,
+  coerente con le decisioni): niente attributi in linea e niente HTML;
+  enfasi, forte, codice e collegamenti si colpiscono per tipo da uno
+  `stylesheet` (§0.5).
+- **La `class`** (deciso): sta sull'oggetto e sull'`embed`, e vince quella
+  della `composition` (§0.5).
 
 ## 8. Le `composition` della classe 1: `chapter` e `article`
 
@@ -1050,15 +1113,15 @@ id: report
 {
   "nodes": [
     {"id": "calo-q3-sintesi", "kind": "text", "file": "calo-q3-sintesi.text.md", "attributes": {"class": ["evidenza"]}, "content": [["paragraph", "Le vendite sono calate del 12%."]]},
-    {"id": "cap-vendite", "kind": "chapter", "file": "cap-vendite.chapter.md", "attributes": {"title": "Le vendite"}, "content": [["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["evidenza"]}, ["paragraph", "Le vendite sono calate del 12%."]], ["embed", {"id": "lavagna", "kind": "image", "asset": "lavagna.jpg"}, ["paragraph", "Foto della lavagna con le vendite mensili."]]]},
+    {"id": "cap-vendite", "kind": "chapter", "file": "cap-vendite.chapter.md", "attributes": {"title": "Le vendite"}, "content": [["title", "Le vendite"], ["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["evidenza"]}, ["paragraph", "Le vendite sono calate del 12%."]], ["embed", {"id": "lavagna", "kind": "image", "asset": "lavagna.jpg"}, ["paragraph", "Foto della lavagna con le vendite mensili."]]]},
     {"id": "lavagna", "kind": "image", "file": "lavagna.image.md", "attributes": {"asset": "lavagna.jpg"}, "content": [["paragraph", "Foto della lavagna con le vendite mensili."]]},
     {"id": "report", "kind": "stylesheet", "file": "report.stylesheet.css"},
-    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"title": "Rapporto del terzo trimestre", "stylesheet": "report"}, "content": [["embed", {"id": "cap-vendite", "kind": "chapter", "title": "Le vendite", "depth": 1, "number": "1"}, ["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["evidenza"], "computedStyle": {"font-weight": "700"}}, ["paragraph", {"computedStyle": {"font-weight": "700"}}, "Le vendite sono calate del 12%."]], ["embed", {"id": "lavagna", "kind": "image", "asset": "lavagna.jpg", "number": "1"}, ["paragraph", "Foto della lavagna con le vendite mensili."]]]]}
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"title": "Rapporto del terzo trimestre", "stylesheet": "report"}, "content": [["embed", {"id": "cap-vendite", "kind": "chapter", "depth": 1, "number": "1"}, ["title", "Le vendite"], ["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["evidenza"], "computedStyle": {"font-weight": "700"}}, ["paragraph", "Le vendite sono calate del 12%."]], ["embed", {"id": "lavagna", "kind": "image", "asset": "lavagna.jpg", "number": "1"}, ["paragraph", "Foto della lavagna con le vendite mensili."]]]]}
   ]
 }
 ````````````````````````````````
 
-Nel nodo del `chapter` il `computed style` e il `number` non ci sono: dipende dalla `composition` in cui
+Nel nodo del `chapter` il `computed style`, il `depth` e il `number` non ci sono: dipende dalla `composition` in cui
 il capitolo è usato, e lo calcola il nodo dell'`article`.
 
 ```````````````````````````````` example 9 conf=1 status=proposal
@@ -1090,7 +1153,7 @@ Qui scrivo due righe di introduzione.
 === resolved
 {
   "nodes": [
-    {"id": "cap-vendite", "kind": "chapter", "file": "cap-vendite.chapter.md", "attributes": {"title": "Le vendite"}, "content": [["paragraph", "Qui scrivo due righe di introduzione."]]}
+    {"id": "cap-vendite", "kind": "chapter", "file": "cap-vendite.chapter.md", "attributes": {"title": "Le vendite"}, "content": [["title", "Le vendite"], ["paragraph", "Qui scrivo due righe di introduzione."]]}
   ],
   "diagnostics": [
     {"severity": "error", "code": "composition-content", "file": "cap-vendite.chapter.md", "fix": "sposta il capoverso in un text e mettine l'embed"}
@@ -1172,9 +1235,14 @@ estensioni e connettori»]).
   serve una regola. Un riferimento in linea si vede nell'esempio 28.
 - **Un `[[id]]` in linea che non si risolve** è l'errore
   `reference-unresolved`, come negli attributi, e nel `resolved tree` resta
-  un `hyperlink` con `"unresolved": true` e come testo quello scritto o
-  l'`id`. Verso un `id` ritirato con successore si risolve sul successore, con
-  l'avviso `reference-retired` e un `fix` che lo riscrive.
+  un `hyperlink` con `ref` e `"unresolved": true`, e come testo quello scritto
+  o l'`id`. Verso un `id` ritirato con successore si risolve sul successore,
+  con l'avviso `reference-retired` e un `fix` che lo riscrive; il testo
+  mostrato e il `target` di `reference-text-missing` sono quelli del
+  successore. `reference-retired` vale anche per un valore di attributo
+  `"[[id]]"`.
+- **Le chiavi di `embed-class`** sono fuori dalla forma generica: sono `id`
+  nudi. Il costo: dentro una `directive` non si riconoscono come riferimenti.
 
 ```````````````````````````````` example 12 conf=0 status=proposal
 === file linea-tempo.timeline.md
@@ -1232,8 +1300,8 @@ calcolo», proposta]. I passi:
 5. calcola l'unione delle `association` e ne controlla i bersagli;
 6. risolve gli `embed` e i capitoli annidati, gli `asset` e gli `stylesheet`
    nominati;
-7. calcola le righe di calcolo, la `numbering` di ogni `composition` radice
-   e il `computed style` di ogni nodo.
+7. calcola le righe di calcolo, e per ogni `composition` radice la
+   `numbering` e il `computed style` dei nodi del suo contenuto.
 
 La risoluzione non si ferma a un errore: l'albero esce sempre, con il
 `diagnostic` accanto. Con un errore la `cli` esce con un codice diverso da
@@ -1246,7 +1314,8 @@ risolve e non dà un secondo errore.
 
 Ogni `diagnostic` ha `severity` (`error` o `warning`), `code`, `file`, e
 secondo il codice `target` e `message`. Ogni errore ha anche un `fix` [C:
-«Lo strumento nasce con una riga di comando»]; un avviso può averlo.
+«Lo strumento nasce con una riga di comando»]; un avviso può averlo. *(proposta)* Per un `diagnostic` che riguarda
+tutta la cartella, come `document-missing`, `file` è `.`.
 
 | Codice | Gravità | Quando | `target` | Esempio |
 |---|---|---|---|---|
@@ -1274,15 +1343,15 @@ secondo il codice `target` e `message`. Ogni errore ha anche un `fix` [C:
 | `composition-content` | error | nel corpo di una `composition` un blocco che non è un `embed` né una riga di separazione | — | 10 |
 | `raw-html` | error | HTML grezzo nel corpo, che non sia un commento | — | 23 |
 | `embed-inline` | error | un `![[id]]` dentro un capoverso | l'`id` | non coperto |
-| `document-missing` | warning | nessun `document file`; il `fix` lo crea | — | non coperto |
+| `document-missing` | warning | nessun `document file`; il `fix` lo crea | — | 31 |
 | `reference-retired` | warning | `[[id]]` verso un `id` ritirato, risolto sul successore | l'`id` ritirato | non coperto |
 | `embed-class-unused` | warning | una chiave di `embed-class` senza `embed` | l'`id` | non coperto |
-| `lang-unsupported` | warning | una lingua fuori dalla tabella della specifica | il `lang` | non coperto |
+| `lang-unsupported` | warning | una lingua fuori dalla tabella, una volta per file con righe di calcolo | il `lang` | non coperto |
 | `reference-text-missing` | warning | `[[id]]` senza testo verso un oggetto senza `title` | l'`id` | 28 |
 | `canvas-path-unresolved` | error | un percorso del `canvas file` senza file | il percorso | non coperto |
 | `document-duplicate` | error | due file `document`; uno per file | l'`id` | non coperto |
 | `document-content` | error | un corpo non vuoto in un file `document` | — | non coperto |
-| `math-line-invalid` | warning | riga di calcolo fuori grammatica, o divisione per zero | — | non coperto |
+| `math-line-invalid` | warning | riga di calcolo fuori grammatica, divisione per zero, o valore fuori da decimal128 | — | non coperto |
 | `math-line-ambiguous` | warning | un numero come `1.200` | il numero | 22 |
 | `eval-unsupported` | warning | blocco da eseguire nella classe 1 | — | non coperto |
 | `asset-missing` | error | `asset` assente | il percorso | 7 |
@@ -1565,7 +1634,7 @@ Ad agosto due fornitori hanno consegnato in ritardo.
 {
   "nodes": [
     {"id": "calo-q3-sintesi", "kind": "text", "file": "calo-q3-sintesi.text.md", "content": [["paragraph", "Le vendite sono calate del 12%."]]},
-    {"id": "cap-vendite", "kind": "chapter", "file": "cap-vendite.chapter.md", "attributes": {"title": "Le vendite"}, "content": [["embed", {"id": "calo-q3-sintesi", "kind": "text"}, ["paragraph", "Le vendite sono calate del 12%."]], ["thematicBreak"], ["embed", {"id": "ritardi-agosto", "kind": "text"}, ["paragraph", "Ad agosto due fornitori hanno consegnato in ritardo."]]]},
+    {"id": "cap-vendite", "kind": "chapter", "file": "cap-vendite.chapter.md", "attributes": {"title": "Le vendite"}, "content": [["title", "Le vendite"], ["embed", {"id": "calo-q3-sintesi", "kind": "text"}, ["paragraph", "Le vendite sono calate del 12%."]], ["thematicBreak"], ["embed", {"id": "ritardi-agosto", "kind": "text"}, ["paragraph", "Ad agosto due fornitori hanno consegnato in ritardo."]]]},
     {"id": "ritardi-agosto", "kind": "text", "file": "ritardi-agosto.text.md", "content": [["paragraph", "Ad agosto due fornitori hanno consegnato in ritardo."]]}
   ]
 }
@@ -1646,7 +1715,7 @@ id: report
   "nodes": [
     {"id": "calo-q3-sintesi", "kind": "text", "file": "calo-q3-sintesi.text.md", "attributes": {"class": ["evidenza", "urgente"]}, "content": [["paragraph", "Le vendite sono calate del 12%."]]},
     {"id": "report", "kind": "stylesheet", "file": "report.stylesheet.css"},
-    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"stylesheet": "report", "embedClass": {"calo-q3-sintesi": ["nota"]}}, "content": [["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["evidenza", "urgente", "nota"], "computedStyle": {"color": "#0000aa"}}, ["paragraph", {"computedStyle": {"color": "#0000aa"}}, "Le vendite sono calate del 12%."]]]}
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"stylesheet": "report", "embedClass": {"calo-q3-sintesi": ["nota"]}}, "content": [["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["evidenza", "urgente", "nota"], "computedStyle": {"color": "#0000aa"}}, ["paragraph", "Le vendite sono calate del 12%."]]]}
   ]
 }
 ````````````````````````````````
@@ -1656,9 +1725,10 @@ Nell'esempio `.evidenza.urgente` è più specifica e viene dopo nello
 strato che viene dopo.
 
 Un `[[id]]` senza testo mostra il `title`, altrimenti l'`id` con un avviso
-(§7.4):
+(§7.4). Con l'opzione B del §0.14 l'albero è lo stesso, perché qui il
+capitolo non è in una `composition` radice e non ha numero:
 
-```````````````````````````````` example 28 conf=1 status=proposal
+```````````````````````````````` example 28 conf=1 status=open-0.14-A
 === file vedi.text.md
 ---
 id: vedi
@@ -1681,11 +1751,105 @@ Nel terzo trimestre le vendite calano.
 {
   "nodes": [
     {"id": "calo-q3", "kind": "concept", "file": "calo-q3.concept.md", "content": [["paragraph", "Nel terzo trimestre le vendite calano."]]},
-    {"id": "cap-vendite", "kind": "chapter", "file": "cap-vendite.chapter.md", "attributes": {"title": "Le vendite"}},
+    {"id": "cap-vendite", "kind": "chapter", "file": "cap-vendite.chapter.md", "attributes": {"title": "Le vendite"}, "content": [["title", "Le vendite"]]},
     {"id": "vedi", "kind": "text", "file": "vedi.text.md", "content": [["paragraph", "Vedi ", ["hyperlink", {"ref": "cap-vendite"}, "Le vendite"], " e ", ["hyperlink", {"ref": "calo-q3"}, "calo-q3"], "."]]}
   ],
   "diagnostics": [
     {"severity": "warning", "code": "reference-text-missing", "file": "vedi.text.md", "target": "calo-q3", "fix": "[[calo-q3|testo]]"}
+  ]
+}
+````````````````````````````````
+
+Uno `strong` che torna nero sotto un `embed` blu porta il suo colore (§0.5):
+
+```````````````````````````````` example 29 conf=1 status=proposal
+=== file report-q3.article.md
+---
+id: report-q3
+kind: article
+stylesheet: "[[report]]"
+---
+![[calo-q3-sintesi]]
+=== file calo-q3-sintesi.text.md
+---
+id: calo-q3-sintesi
+kind: text
+class: [nota]
+---
+Le vendite sono **calate**.
+=== file report.stylesheet.css
+/*
+kind: stylesheet
+id: report
+*/
+.nota { color: #0000aa; }
+strong { color: #000000; }
+=== resolved
+{
+  "nodes": [
+    {"id": "calo-q3-sintesi", "kind": "text", "file": "calo-q3-sintesi.text.md", "attributes": {"class": ["nota"]}, "content": [["paragraph", "Le vendite sono ", ["strong", "calate"], "."]]},
+    {"id": "report", "kind": "stylesheet", "file": "report.stylesheet.css"},
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"stylesheet": "report"}, "content": [["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["nota"], "computedStyle": {"color": "#0000aa"}}, ["paragraph", "Le vendite sono ", ["strong", {"computedStyle": {"color": "#000000"}}, "calate"], "."]]]}
+  ]
+}
+````````````````````````````````
+
+Un capitolo senza `title` non conta e non aumenta il grado (§0.10):
+
+```````````````````````````````` example 30 conf=1 status=proposal
+=== file report-q3.article.md
+---
+id: report-q3
+kind: article
+---
+![[cap-senza]]
+=== file cap-senza.chapter.md
+---
+id: cap-senza
+kind: chapter
+---
+![[cap-cause]]
+=== file cap-cause.chapter.md
+---
+id: cap-cause
+kind: chapter
+title: Le cause
+---
+![[ritardi-agosto]]
+=== file ritardi-agosto.text.md
+---
+id: ritardi-agosto
+kind: text
+---
+Ad agosto due fornitori hanno consegnato in ritardo.
+=== resolved
+{
+  "nodes": [
+    {"id": "cap-cause", "kind": "chapter", "file": "cap-cause.chapter.md", "attributes": {"title": "Le cause"}, "content": [["title", "Le cause"], ["embed", {"id": "ritardi-agosto", "kind": "text"}, ["paragraph", "Ad agosto due fornitori hanno consegnato in ritardo."]]]},
+    {"id": "cap-senza", "kind": "chapter", "file": "cap-senza.chapter.md", "content": [["embed", {"id": "cap-cause", "kind": "chapter"}, ["title", "Le cause"], ["embed", {"id": "ritardi-agosto", "kind": "text"}, ["paragraph", "Ad agosto due fornitori hanno consegnato in ritardo."]]]]},
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "content": [["embed", {"id": "cap-senza", "kind": "chapter"}, ["embed", {"id": "cap-cause", "kind": "chapter", "depth": 1, "number": "1"}, ["title", "Le cause"], ["embed", {"id": "ritardi-agosto", "kind": "text"}, ["paragraph", "Ad agosto due fornitori hanno consegnato in ritardo."]]]]]},
+    {"id": "ritardi-agosto", "kind": "text", "file": "ritardi-agosto.text.md", "content": [["paragraph", "Ad agosto due fornitori hanno consegnato in ritardo."]]}
+  ]
+}
+````````````````````````````````
+
+Senza `document file` il `runtime` dà un avviso e lo crea (§0.8):
+
+```````````````````````````````` example 31 conf=0 status=proposal
+=== no-document
+=== file calo-q3.concept.md
+---
+id: calo-q3
+kind: concept
+---
+Nel terzo trimestre le vendite calano.
+=== resolved
+{
+  "nodes": [
+    {"id": "calo-q3", "kind": "concept", "file": "calo-q3.concept.md", "content": [["paragraph", "Nel terzo trimestre le vendite calano."]]}
+  ],
+  "diagnostics": [
+    {"severity": "warning", "code": "document-missing", "file": ".", "fix": "crea un file .document.md"}
   ]
 }
 ````````````````````````````````
@@ -1705,7 +1869,12 @@ toglie uno.
   `id` e conta come `id` vuoto. Ogni nodo ha `id`, `kind`, `file` (percorso con
   `/`), `attributes` (quelli dichiarati, con le chiavi in `camelCase` come
   vuole il glossario per il JSON: `spec-version` diventa `specVersion`,
-  `embed-class` diventa `embedClass`; tranne
+  `embed-class` diventa `embedClass`; un trattino seguito da una lettera
+  diventa la lettera maiuscola, e una chiave senza trattini resta com'è. Se
+  due chiavi danno la stessa forma, come `foo-bar` e `fooBar`, è
+  `attribute-invalid` e vale la prima nell'ordine del file. Restano come sono
+  i nomi delle proprietà CSS, chiavi di `computedStyle`, e gli `id`, chiavi
+  di `embedClass`; tranne
   `id`, `kind` e `associations`; si omette se vuoto), `content` (il corpo; si
   omette se il `kind` non ne ha o è vuoto) e `"directive": true` per i `kind`
   non noti.
@@ -1736,10 +1905,13 @@ non usare* di `text`. Mancano ancora i tipi per `text table`,
 Nel contenuto di una `composition` un `embed` porta negli attributi `id`,
 `kind`, il `lang` effettivo (quello dell'oggetto o, se manca, quello del
 documento), e se ci sono la `class` (quelle dell'oggetto, poi quelle
-dell'`embed`), l'`asset` dell'oggetto, il `title` e il
-grado (`depth`) di un `chapter`, il `number` di capitoli e immagini (§0.10) e
-il `computed style` (§0.5); come figli,
-il suo contenuto risolto. Un `embed` che non si risolve ha `"unresolved":
+dell'`embed`), l'`asset` dell'oggetto, il grado (`depth`) di un `chapter`, il
+`number` di capitoli e immagini (§0.10) e il `computed style` (§0.5); come
+figli, il suo contenuto risolto. *(proposta)* Il titolo di un `chapter` è il
+primo figlio del suo `embed`, `["title", {"computedStyle": …}, "Le
+vendite"]`, così le regole `title n` e i valori che eredita dal `chapter`
+hanno dove stare; vale con tutte le opzioni del §0.16. Anche nel nodo del
+`chapter` il contenuto comincia con `["title", …]`, senza `computedStyle`. Un `embed` che non si risolve ha `"unresolved":
 true` e nessun figlio. Così un `renderer` legge la `composition` senza
 cercare altri nodi.
 
