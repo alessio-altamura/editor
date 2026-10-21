@@ -266,28 +266,16 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
 ## Prossimi passi
 
 0. **La bozza di specifica**, [specifica.md](specifica.md), del `core` e della
-   classe 1 (2026-10-20). L'ha scritta una sottosessione su mandato
-   dell'orchestratore, in cinque giri, quasi tutti controllati da revisori
-   indipendenti; gli esempi numerati sono anche i test, e uno script dei
-   revisori li ricalcola tutti (21). Marca ogni requisito come deciso,
-   proposta o APERTO. Alessio ha già deciso: dove si scrive il `kind`, un
-   blocco per `text`, identità (1ii, 1d, 2b), aritmetica minima nella classe 1,
-   CSS applicato dal `runtime`. Restano APERTI: `kind` e `id` del `canvas
-   file`; cancellazione o cambio di ramo per gli `id` ritirati; separatore
-   decimale e arrotondamento; sottoinsieme di CSS e foglio di partenza; la
-   sintassi (quattro strade confrontate in
-   [ricerca/sintassi-testo.md](ricerca/sintassi-testo.md)); capitoli e titoli
-   (quattro opzioni, la D è di Alessio). Le proposte nuove (classi di
-   conformità, attributi sconosciuti ignorati, riferimenti generici nel
-   `core`, `retired-ids.yaml`, lo `style` calcolato) aspettano conferma.
-   Da correggere nella bozza: il 2026-10-21 Alessio ha chiarito che i
-   metadati comuni e quelli opzionali sono due gruppi, mentre la bozza (§0.3,
-   §3, §4) dice «i metadati comuni sono opzionali» e descrive 1i in conflitto
-   con una decisione che non c'era; va riscritta, e la scelta fra 1i e 1ii va
-   riproposta ad Alessio con le opzioni corrette.
-   Residui minori noti: il §1 dice ancora che «una riga di calcolo riceve il
-   risultato» da una classe successiva, traccia dell'opzione scartata; un
-   capoverso del §0.1 è incollato dentro l'elenco del `canvas file`.
+   classe 1 (2026-10-20/21). L'ha scritta una sottosessione su mandato
+   dell'orchestratore, in sette giri, quasi tutti controllati da revisori
+   indipendenti; i 24 esempi sono anche i test. Marca ogni requisito come
+   deciso, proposta o APERTO. Le decisioni di Alessio sono in contesto.md,
+   voce «Sulla bozza di specifica». Restano APERTI sei punti, §0.8-§0.13: il
+   file di configurazione del documento, l'`embed` dentro un `text`, la
+   `numbering`, i riferimenti nel `canvas file`, `tags` obbligatori o no, i
+   commenti. Le risposte di Alessio vanno integrate con un altro giro della
+   sottosessione (session_01LJTSfiwiWSRkNwwAHxW4pz, ramo
+   claude/spec-draft-level1), poi un controllo indipendente.
 1. **La bozza dei tipi di nodo** del primo livello è iniziata in
    [bozza-nodi.md](bozza-nodi.md): è di Alessio, scritta insieme. Il
    2026-10-20 è diventata una sintesi del modello: il `concept` come unità di
