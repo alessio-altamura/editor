@@ -104,7 +104,7 @@ diverso da qui: è un bersaglio da criticare e non va corretta.
 | sezione | sezione del navigator, contro sezione del testo | `shelf` per il navigator; nel testo non ci sono sezioni: capitoli e titoli stanno nella `composition` |
 | intestazione | nome di colonna; riga di intestazione del CSV; titolo; intestazione di pagina | `field`, `header row`, `heading`, `running header` |
 | riferimento | uso di un oggetto; riferimento in un'espressione; riferimento numerato; riferimento fra file | `embed`, `reference`, `cross-ref`, da decidere con il `manifest` |
-| collegamento | fra `concept` e `object`; wire; relazione fra collection; collegamento suggerito | `association`, `wire`, `relation`, `hint` |
+| collegamento | fra `concept` e `object`; wire; relazione fra collection; collegamento suggerito; collegamento nel testo | `association`, `wire`, `relation`, `hint`, `hyperlink` |
 | albero, grafo | albero di sintassi; modello; albero risolto; dipendenze; vista a connettori | `syntax tree`, `model`, `resolved tree`, `dependency graph`, `wire diagram` |
 | risultato | risultato in linea; output del codice; valori fotografati; HTML e PDF prodotti | `inline result`, `results`, `frozen values`, `output` |
 | stampa | produzione del PDF, contro stampa canonica del formatter | `print`, `format` |
@@ -227,6 +227,9 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `stylesheet` | impaginazione | Regole nel sottoinsieme di CSS della specifica | concetto deciso, nome proposto | layout, style, theme |
 | `class` | aggancio | Nome su un `node` che si vede, a cui si agganciano le regole dello `stylesheet` | concetto deciso, nome proposto | tag, style |
 | `base stylesheet` | foglio di partenza | Foglio fisso della specifica, applicato dal `runtime` prima degli `stylesheet` del documento (deciso il 2026-10-21) | concetto deciso, nome proposto | default style, user agent stylesheet |
+| `embed class` | class sull'embed | `class` data a un oggetto da una `composition`, per come appare lì; vince su quella dell'oggetto (deciso il 2026-10-21); nel `front matter` si scrive embed-class, forma da decidere | concetto deciso, nome proposto | override, local class |
+| `number notation` | notazione dei numeri | Proprietà personalizzata CSS (--number-notation) che sceglie fra la forma piena e la forma breve dei numeri a schermo | proposto | number format, compact |
+| `target id` | id nel canvas | Chiave proposta per scrivere l'`id` in un nodo del `canvas file` (targetId), se si verificherà che JSON Canvas la conserva | proposto | node ref, ref |
 | `computed style` | stile calcolato | Valori finali delle proprietà di un `node`, calcolati dal `runtime` e scritti nel `resolved tree` (deciso il 2026-10-21) | concetto deciso, nome proposto | style, styles |
 | `template` | template | Forma riutilizzabile senza contenuto: `composition` o `stylesheet`; orientamento di Alessio: anche il modo di vedere una `collection`, che un `chart` applica a dati diversi; distribuibile come `extension` | proposto | theme, preset |
 | `slide template` | schema di slide | Disposizione predefinita di una `slide`, come titolo e contenuto | proposto | layout, master |
@@ -338,7 +341,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | Nome | Italiano | Definizione | Stato | Da non usare |
 |---|---|---|---|---|
 | `spec` | specifica | Il testo normativo dello standard | proposto | standard, docs |
-| `spec version` | versione della semantica | Versione della specifica, scritta nel `document file` | concetto deciso, nome proposto | format version |
+| `spec version` | versione della semantica | Versione della specifica, scritta nel `document file` (deciso il 2026-10-21) | concetto deciso, nome proposto | format version |
 | `core` | nucleo | Ciò che ogni implementazione conforme sa leggere: `document`, `id`, `attributes`, `concept`, `association`, `directive`, `id reference`, `diagnostic` e `resolved tree`; è la classe 0 | concetto deciso, nome proposto | base, kernel |
 | `conformance class` | classe di conformità | Insieme di requisiti che un'implementazione dichiara di soddisfare: la classe 0 è il `core`, e ogni classe successiva corrisponde a un passo dell'ordine deciso dei livelli; aggiunge `kind` e attributi senza cambiare il significato di ciò che c'era (classi da 0 a 6, deciso il 2026-10-21) | concetto deciso, nome proposto | conformance level, profile, tier, level |
 | `profile` | profilo | Sottoinsieme del linguaggio delle formule fissato dalla `spec` | proposto | dialect |
