@@ -40,6 +40,13 @@ marcatura più debole fra le regole che l'esempio usa, escluso il formato del
 - una riga `=== asset <percorso>` crea un file di zero byte;
 - l'ultima sezione, `=== resolved`, è il `resolved tree` atteso (§11.3).
 
+*(proposta)* Gli esempi sono in forma non canonica in due punti, per restare
+corti: quasi nessun file scrive `tags: []`, che il `formatter` aggiungerebbe
+(§0.12), e quasi nessun esempio ha il `document file`. Se manca, lo script
+crea `doc.document.md` con `id: doc`, `kind: document` e `tags: []`; nel
+`resolved tree` il `document file` compare nella chiave `document` solo se ha
+altri attributi (esempio 25).
+
 Uno script estrae i blocchi, scrive i file in una cartella vuota, esegue il
 `runtime` e confronta gli alberi come valori JSON. Il testo di `message` e
 `fix` non è normativo e non si confronta; la presenza del `fix` in ogni
@@ -167,11 +174,16 @@ l'estensione e quindi chiede di rinominare insieme il `kind` scritto nel file
 ### 0.4 Deciso: le righe di calcolo
 
 Le righe di calcolo con il risultato in linea sono decise [C: «Lo spazio
-libero per appunti»]. Alessio ha deciso [C: «Sulla bozza di specifica»]: il
-risultato c'è già nella classe 1, con un'aritmetica minima; nel sorgente il
-separatore decimale è il punto e non c'è un separatore delle migliaia;
-«1.200» dà un avviso perché è ambiguo; il risultato si mostra secondo la
-lingua; l'aritmetica è decimale.
+libero per appunti»]. Alessio ha deciso [C: «Sulla bozza di specifica»]: il risultato c'è già nella
+classe 1, con un'aritmetica minima e decimale; nel file un numero è fatto
+solo di cifre e del punto per i decimali, «unità.decimali», senza separatori
+delle migliaia, oppure in notazione scientifica (`1.2e6`); i suffissi di
+scala (K, M, T) non stanno mai nel file; «1.200» dà un avviso; i numeri a
+schermo seguono la lingua dell'oggetto, altrimenti quella del documento.
+
+Nell'`app` un italiano scrive come è abituato, con la virgola decimale, il
+punto delle migliaia e anche «1,2M», e l'`app` salva nel file la forma con il
+punto (stessa voce). È un comportamento dell'`app`, non del formato.
 
 *(proposte)*
 - **Come si scrive.** Una riga di calcolo è un codice in linea che comincia
@@ -185,10 +197,11 @@ lingua; l'aritmetica è decimale.
   expression = term { ("+" | "-") term }
   term       = factor { ("*" | "/") factor }
   factor     = [ "-" ] ( number | "(" expression ")" )
-  number     = digit { digit } [ "." digit { digit } ]
+  number     = digit { digit } [ "." digit { digit } ] [ exponent ]
+  exponent   = ( "e" | "E" ) [ "+" | "-" ] digit { digit }
   ```
 
-- **L'ambiguità.** Un numero con un punto seguito da esattamente tre cifre,
+- **L'ambiguità.** *(proposta)* Un numero con un punto seguito da esattamente tre cifre,
   come `1.200`, si legge come decimale (1,2) e dà l'avviso
   `math-line-ambiguous`, con un `fix` che propone `1200` (esempio 22).
 - **Precisione e arrotondamento.** Ogni operazione si calcola in decimale con
@@ -197,15 +210,27 @@ lingua; l'aritmetica è decimale.
   prodotto di numeri brevi sono quindi esatti: `0.1 + 0.2` dà 0,3.
 - **Il valore** si scrive nel `resolved tree` con il punto, senza zeri finali
   dopo il punto e senza esponente: in decimale `1.200 * 2` dà 2.400, che si
-  scrive `2.4` (prova con il modulo decimal di Python).
+  scrive `2.4` (prova con il modulo decimal di Python), e `1.2e6` si scrive
+  `1200000`.
 - **La stringa da mostrare.** Il `runtime` scrive accanto al valore la
-  stringa da mostrare: arrotondata al pari a 10
-  decimali al massimo, senza zeri finali, con il separatore decimale e delle
-  migliaia del `lang`. Le regole di stampa per ogni `lang` sono fissate dalla
-  specifica e non prese dal sistema, perché la stringa sia uguale
-  dappertutto; senza `lang` la stringa è il valore. Il `lang` del documento
-  viene dal file `document` (§0.8, esempio 25). I `renderer` la
-  applicano soltanto (§0.5).
+  stringa da mostrare: arrotondata al pari a 10 decimali al massimo, senza
+  zeri finali, con i separatori della lingua dell'oggetto, altrimenti di
+  quella del documento (§0.8, esempio 25); senza lingua la stringa è il
+  valore. I `renderer` la applicano soltanto (§0.5). Le regole di stampa sono
+  fissate dalla specifica e non prese dal sistema, perché la stringa sia
+  uguale dappertutto. Per `it` e `en`, da CLDR 48 (cldr-json 48.2.3,
+  [numbers.json](https://github.com/unicode-org/cldr-json/tree/main/cldr-json/cldr-numbers-full/main)):
+
+  | `lang` | Decimale | Migliaia | Raggruppa da |
+  |---|---|---|---|
+  | `it` | `,` | `.` | 5 cifre (`minimumGroupingDigits` 2): 1200, 12.000 |
+  | `en` | `.` | `,` | 4 cifre (`minimumGroupingDigits` 1): 1,200 |
+
+- **Le forme brevi** («1,2 Mln», «1.2M») sono una scelta di stile, da fuori
+  {C}. *(proposta)* Si dichiarano nel `document file` con l'attributo
+  `number-notation`, `plain` o `compact`, senza toccare il sottoinsieme di
+  CSS; le forme per lingua sono quelle brevi di CLDR (in `it` «0 Mln» per i
+  milioni, in `en` «0M»).
 - **Errori.** Una riga che non segue la grammatica, o che divide per zero,
   non ha risultato e dà l'avviso `math-line-invalid`.
 
@@ -240,7 +265,8 @@ l'attributo HTML.
   title 3+      { font-size: 11pt; font-weight: 700; margin-top: 9pt; margin-bottom: 3pt; }
   emphasis      { font-style: italic; }
   strong        { font-weight: 700; }
-  inlineCode, code { font-family: monospace; }
+  inline-code, code { font-family: monospace; }
+  hyperlink     { color: #1a4f8b; }
   blockquote    { margin-left: 24pt; }
   list          { margin-left: 18pt; margin-bottom: 6pt; }
   ```
@@ -258,10 +284,26 @@ l'attributo HTML.
   [css-fonts-4](https://drafts.csswg.org/css-fonts-4/#font-weight-prop)),
   quindi `bold` diventa `"700"`; lunghezze assolute in `pt`, colori in
   `#rrggbb` (esempio 8).
-- **I selettori degli `stylesheet`.** Finché i tipi di contenuto hanno nomi
-  provvisori (§11.3), solo selettori di `class`: un selettore su un tipo
-  cambierebbe significato quando i nomi si fissano. I titoli si colpiscono
-  con la `class` del loro `chapter`.
+- **I selettori degli `stylesheet`.** Gli `stylesheet` si agganciano alla
+  `class` e a quattro tipi in linea con nomi fissati ora: collegamento,
+  enfasi, forte, codice [C: «Sulla bozza di specifica»]. *(proposta)* I nomi, normativi: `hyperlink`,
+  `emphasis`, `strong`, `inline-code` (nel `resolved tree` `inlineCode`).
+  Per gli altri tipi, che hanno nomi provvisori (§11.3), niente selettori. I
+  titoli si colpiscono con la `class` del loro `chapter`.
+- **La `class` sull'`embed`.** La `class` sta sia sull'oggetto (cos'è,
+  sempre) sia sull'`embed` nella `composition` (come appare lì), e in
+  conflitto vince quella della `composition` [C: «Sulla bozza di specifica»]. *(proposte)* Si scrive nel
+  `front matter` della `composition`, in una mappa dall'`id` dell'oggetto
+  alle sue `class`, e nell'`embed` le `class` dell'oggetto vengono prima di quelle dell'`embed`:
+
+  ```
+  embed-class:
+    calo-q3-sintesi: [nota]
+  ```
+
+  Nella cascata, a parità di specificità, una regola che si aggancia a una
+  `class` dell'`embed` viene dopo una che si aggancia a una `class`
+  dell'oggetto, e quindi vince (esempio 27).
 - **Il foglio del browser.** Il `renderer` HTML deve neutralizzare il foglio
   di stile predefinito del browser
   ([HTML §15.3](https://html.spec.whatwg.org/multipage/rendering.html#non-replaced-elements)),
@@ -330,18 +372,22 @@ si sposta come un'unità, si annida, e può non avere titolo.
 ### 0.8 Deciso: il file del documento
 
 Il file di configurazione del documento è un file come gli altri, con `kind`
-`document` e tutto nell'intestazione, uno solo per documento [C: «Sulla bozza di specifica»].
+`document` e tutto nell'intestazione [C: «Sulla bozza di specifica»]. È uno e uno solo, e il `runtime` lo
+crea se manca (stessa voce).
 
 *(proposte)*
 - Si chiama `<id>.document.md`, per esempio `rapporto-q3.document.md`, e il
   suo `front matter` porta `id`, `kind`, `tags`, `lang` e `spec-version`. Il
   corpo è vuoto; un corpo non vuoto è `document-content`.
 - Due file `document` nello stesso documento sono l'errore
-  `document-duplicate`, uno per file. Una cartella senza file `document` è
-  ammessa, senza avviso: non ha `lang` del documento né `spec version`.
-- `document` è già nel glossario per la cartella intera: il file è il nodo che
-  porta gli attributi di quel documento, quindi il nome non indica un altro
-  concetto (esempio 25).
+  `document-duplicate`, uno per file. Se manca, è l'avviso `document-missing`,
+  con un `fix` che lo crea; il `runtime` lo crea quando riconcilia.
+- Nel glossario sono due righe: `document` per la cartella intera e
+  `document file` per il file, come `canvas` e `canvas file`.
+- Il `document file` non è un nodo che si vede: il suo `lang` è la lingua
+  predefinita del documento, non l'attributo `lang` di un nodo.
+- Sta nel `core`: serve a tutte le classi. Non si collega e non si usa:
+  un'`association` con lui è `association-kind`, un `embed` è `embed-kind`.
 
 ### 0.9 Deciso: nessun oggetto dentro un capoverso, per ora
 
@@ -351,12 +397,14 @@ blocco solo [C: «Sulla bozza di specifica»]. *(proposta)* Un `![[id]]` in mezz
 
 *Nota non normativa, per Alessio, che chiede se si debba per forza spezzare il
 testo* (stessa voce). In linea ci sono già il collegamento `[[id]]` e la riga
-di calcolo `` `= …` ``. I valori presi da una tabella arriveranno in linea con
-la classe delle formule. Un oggetto piccolo in linea, come un'icona o un
-grafico minuscolo, si può aggiungere in una classe successiva senza rompere
-niente: oggi è un errore, domani diventa ammesso, e nessun documento valido
-cambia significato. Per un oggetto grande è l'`app` a spezzare il testo da
-sola, in due `text` con l'`embed` in mezzo.
+di calcolo `` `= …` ``. *(proposta)* I valori presi da una tabella
+arriveranno in linea con la classe delle formule. Un oggetto piccolo in
+linea, come un'icona o un grafico minuscolo, si può aggiungere in una classe
+successiva senza rompere niente: oggi è un errore, domani diventa ammesso, e
+nessun documento valido cambia significato. *(proposta)* Per un oggetto
+grande è l'`app` a spezzare il testo da sola, in due `text` con l'`embed` in
+mezzo; se il `text` è usato in più `composition`, l'`app` aggiorna l'`embed`
+in tutte, oppure chiede a chi scrive.
 
 ### 0.10 Deciso: la numerazione
 
@@ -368,8 +416,16 @@ La numerazione di capitoli e immagini la calcola il `runtime` e la scrive nel
   `image` portano l'attributo `number`, una stringa.
 - I capitoli si numerano per grado, `1`, `1.1`, `1.2`, `2`; le immagini di
   seguito in tutta la `composition`, `1`, `2`, `3`, nell'ordine di lettura
-  (esempio 8). Un capitolo senza `title` non prende un numero.
-- Un `cross-ref` a un nodo numerato mostra quel numero.
+  (esempio 8).
+- Il `number` si calcola nella `composition` radice, cioè l'`article` o il
+  `deck`, e compare solo nel suo albero; il nodo di un `chapter` non lo porta.
+- Un capitolo senza `title` non prende un numero e non conta nella
+  sequenza, e non aumenta il grado: un capitolo con `title` dentro di lui
+  prende il numero e il grado che avrebbe al suo posto, per esempio `1` e
+  non `1.1`.
+- Un `cross-ref` a un nodo numerato mostra quel numero, e si risolve nel
+  contesto della `composition` che si sta risolvendo; nel nodo del `text`
+  resta senza numero.
 
 ### 0.11 Deciso: i riferimenti nel `canvas file`
 
@@ -377,21 +433,29 @@ Ogni nodo del `canvas` porta l'`id` in una chiave in più, se JSON Canvas
 ammette una chiave in più e gli altri programmi la conservano; altrimenti
 restano i percorsi [C: «Sulla bozza di specifica»].
 
-La verifica non regge. La specifica JSON Canvas 1.0 (2024-03-11) elenca gli
-attributi di nodi e archi e non dice nulla delle proprietà che non definisce
+La condizione non si può verificare. La specifica JSON Canvas 1.0
+(2024-03-11) elenca gli attributi di nodi e archi e non dice nulla delle
+proprietà che non definisce
 ([spec 1.0](https://jsoncanvas.org/spec/1.0/); lo stesso testo in
 [jsoncanvas](https://github.com/obsidianmd/jsoncanvas/blob/main/spec/1.0.md)).
+Il readme dice soltanto che il formato è nato per dare «longevity,
+readability, interoperability, and extensibility»
+([readme](https://github.com/obsidianmd/jsoncanvas/blob/main/readme.md)).
 Se Obsidian conservi una chiave sconosciuta quando riscrive un `.canvas` non
 si può verificare su una fonte primaria: la sua guida non ne parla, e l'app
 non è open source. Per il momento restano quindi i percorsi (§2).
-*(proposta)* Se un giorno la verifica reggesse, la chiave si chiamerebbe
-`nodeRef`, perché `id` è già l'identificativo dei nodi di JSON Canvas.
+*(proposte)* Se un giorno la verifica reggesse, la chiave si chiamerebbe
+`targetId`, perché `id` è già l'identificativo dei nodi di JSON Canvas. Un
+percorso del `canvas file` che non si risolve è l'errore
+`canvas-path-unresolved`.
 
 ### 0.12 Deciso: `tags`
 
-`tags` è sempre presente, ma la lista vuota è ammessa [C: «Sulla bozza di specifica»]. *(proposta)* Se
-`tags` manca, il `runtime` lo legge come lista vuota senza avviso, e il
-`formatter` scrive `tags: []`.
+`tags` è sempre presente, ma la lista vuota è ammessa [C: «Sulla bozza di specifica»]; è sempre scritto,
+e il `formatter` scrive `tags: []` quando manca (stessa voce). *(proposta)*
+Il `runtime`, se manca, lo legge come lista vuota senza avviso, perché lo
+corregge il `formatter`. Nel `resolved tree` una lista `tags` vuota si
+omette.
 
 ### 0.13 Deciso: i commenti
 
@@ -399,8 +463,15 @@ I commenti si scrivono solo come commenti HTML `<!-- -->`, unica eccezione al
 divieto dell'HTML grezzo [C: «Sulla bozza di specifica»].
 
 *(proposte)* Un commento non è un blocco: non conta per `text-blocks` e non
-entra nel `resolved tree`; il `formatter` lo conserva dov'è (esempio 26). In
-linea, il commento sparisce e il testo intorno resta com'è.
+entra nel `resolved tree`; il `formatter` lo conserva dov'è (esempio 26).
+- Un commento che apre una riga sta su righe proprie. `<!-- nota --> testo`
+  per CommonMark è un blocco HTML di tipo 2 con tutta la riga, quindi è
+  `raw-html`.
+- Dentro un capoverso, non all'inizio della riga, un commento è ammesso: sparisce
+  e il testo intorno resta com'è.
+- Nel `front matter` i commenti YAML `#` non sono ammessi (`attribute-invalid`),
+  perché la sola forma di commento è quella HTML. In uno `stylesheet` valgono
+  i commenti CSS `/* */`, come il commento d'intestazione (§0.1).
 
 ### Nota: il `deck` per ultimo
 
@@ -477,7 +548,7 @@ strumento nasce con una riga di comando»].
 - **Codifica.** UTF-8. Il `formatter` scrive senza BOM, con LF e un a capo
   finale; il `runtime` legge anche CRLF e BOM.
 - **Nomi.** Il nome è l'`id` più l'estensione. Il nome non conta per
-  l'identità, perché l'`id` è scritto nel file (§0.3). I nomi
+  l'identità, perché l'`id` è scritto nel file (§0.3). Il nome
   `retired-ids.yaml` è riservato.
 - **Configurazione del documento.** Il file di configurazione della cartella
   dichiara la `spec version` e il `lang` del documento: è il file `document`
@@ -526,6 +597,8 @@ sono separati (stessa voce).
 | `class` | per i nodi che si vedono | lista di nomi in `kebab-case` | deciso |
 | `lang` | per i nodi che si vedono | tag di lingua BCP 47 | deciso |
 | `title` | `chapter`, `article`, `deck` | stringa | *(proposta)*, §0.7 |
+| `spec-version` | `document file` | stringa | §0.8; *(proposta)* la chiave |
+| `embed-class` | `composition` | mappa da `id` a lista di `class` | §0.5; *(proposta)* la forma |
 | `origin` | da definire | da definire | *(proposta della bozza)*: scritto da una persona o generato e confermato |
 | `associations` | `concept`, `object` | lista di `id` | *(proposta)*, §6 |
 
@@ -794,8 +867,7 @@ Queste regole le evitano:
   interruzioni di riga forzate sono contenuto.
 - **La riga di separazione `---`** è ammessa come linea, come in Obsidian
   ([Basic formatting syntax](https://github.com/obsidianmd/obsidian-help/blob/master/en/Editing%20and%20formatting/Basic%20formatting%20syntax.md)),
-  e il `formatter` le mette sempre una riga vuota prima e dopo (decisione di
-  Alessio del 2026-10-21, con la sintassi Markdown). La riga vuota conta: in
+  e il `formatter` le mette sempre una riga vuota prima e dopo [C: «Sulla bozza di specifica»]. La riga vuota conta: in
   CommonMark `---` subito sotto una riga di testo fa di quella riga un titolo
   di secondo livello (prova con commonmark.js 0.31.2). Il parser non la
   confonde con l'intestazione, che vale solo in testa al file.
@@ -816,26 +888,20 @@ forse anche per i collegamenti e le formule scritti dentro il testo. Il testo
 dice cosa è una cosa; come appare lo decidono il `runtime`, gli `stylesheet` e
 la configurazione del documento. Non è una decisione. Confronto con questa
 bozza, senza scegliere:
-- **Il testo di un `[[id]]`.** In `[[id|testo]]` il testo è scritto dentro, ed
-  è contenuto. Per un `[[id]]` senza testo la bozza non dice cosa si mostra:
-  il `title` del bersaglio, l'`id`, la frase del `concept`. Qualunque scelta
-  verrebbe da fuori, e va fatta.
-- **L'aspetto di un `[[id]]`.** Il `base stylesheet` (§0.5) non ha una regola
-  per i collegamenti, e con i soli selettori di `class` uno `stylesheet` non
-  li può colpire. Oggi l'aspetto di un collegamento non viene da nessuna
-  parte: è un buco, non una contraddizione.
+- **Il testo di un `[[id]]`.** Un `[[id]]` senza testo mostra il `title`
+  dell'oggetto collegato, se ne ha uno; altrimenti l'`id`, con un avviso che
+  suggerisce `[[id|testo]]` [C: «Sulla bozza di specifica»]. *(proposta)* L'avviso è
+  `reference-text-missing` (esempio 28).
+- **L'aspetto di un `[[id]]`.** È un `hyperlink`, e uno `stylesheet` lo può
+  colpire; il `base stylesheet` gli dà un colore (§0.5).
 - **Il risultato di una riga di calcolo.** È coerente: la stringa la scrive il
-  `runtime` con il `lang` del file `document` (§0.4, §0.8), cioè da fuori.
-  Dentro il testo resta solo l'espressione.
+  `runtime` con la lingua dell'oggetto, altrimenti del documento (§0.4),
+  cioè da fuori. Dentro il testo resta solo l'espressione.
 - **Nessun aspetto in linea dentro un `text`.** È coerente: niente attributi
-  in linea e niente HTML (§7.4). La conseguenza: enfasi e forte hanno solo
-  l'aspetto del `base stylesheet`, perché con i soli selettori di `class`
-  nessuno `stylesheet` del documento li può cambiare.
-- **La `class` è scritta dentro l'oggetto.** L'aspetto viene da fuori, ma
-  l'aggancio sta nel `front matter` del `text`: l'oggetto sa come vuole
-  essere trattato. Con l'orientamento si potrebbe spostare la `class` nella
-  `composition`, sull'`embed`. Oggi la `class` sui nodi che si vedono è
-  decisa [C: «Attributi e id»].
+  in linea e niente HTML. Enfasi, forte, codice e collegamenti si colpiscono
+  per tipo da uno `stylesheet` (§0.5).
+- **La `class`** sta sull'oggetto e sull'`embed`, e vince quella della
+  `composition` (§0.5).
 
 ## 8. Le `composition` della classe 1: `chapter` e `article`
 
@@ -854,7 +920,7 @@ una `composition` che si può annidare, e l'`article` è l'indice dei capitoli
   `composition-content` (esempio 10).
 - Un `embed` di un `id` inesistente è un errore, e il `resolved tree` lo mostra
   al suo posto (esempio 9). Un `embed` di un `concept`, di uno `scratch`, di
-  un `article` o di un `deck` è `embed-kind` (esempio 11); un `embed` di un
+  un `article`, di un `deck` o del `document file` è `embed-kind` (esempio 11); un `embed` di un
   `chapter` è ammesso.
 - L'`article` e il `chapter` nominano il loro `stylesheet` con l'attributo
   `stylesheet`, scritto come `id reference` (§10); un `chapter` senza usa
@@ -1073,13 +1139,15 @@ tree`, che i `renderer` leggono senza ricalcolare [C: «Un solo punto di
 calcolo», proposta]. I passi:
 
 1. elenca i file e separa `source` e `asset` (§2);
-2. legge di ogni `source` `kind`, `id`, attributi e corpo;
+2. legge il `document file`, poi di ogni `source` `kind`, `id`, attributi e
+   corpo;
 3. controlla forma e unicità degli `id` e i `kind`;
 4. legge `retired-ids.yaml` e costruisce la mappa degli `id`;
 5. calcola l'unione delle `association` e ne controlla i bersagli;
 6. risolve gli `embed` e i capitoli annidati, gli `asset` e gli `stylesheet`
    nominati;
-7. calcola le righe di calcolo e il `computed style` di ogni nodo.
+7. calcola le righe di calcolo, la `numbering` di ogni `composition` radice
+   e il `computed style` di ogni nodo.
 
 La risoluzione non si ferma a un errore: l'albero esce sempre, con il
 `diagnostic` accanto. Con un errore la `cli` esce con un codice diverso da
@@ -1107,10 +1175,10 @@ secondo il codice `target` e `message`. Ogni errore ha anche un `fix` [C:
 | `attribute-unknown` | warning | attributo sconosciuto, ignorato | il nome | 12 |
 | `attribute-invalid` | error | valore di forma sbagliata | il nome | non coperto |
 | `association-unresolved` | error | bersaglio inesistente | l'`id` | 6 |
-| `association-kind` | error | con una `composition` o uno `stylesheet` | l'`id` | 18 |
+| `association-kind` | error | con una `composition`, uno `stylesheet` o il `document file` | l'`id` | 18 |
 | `association-retired` | warning | bersaglio ritirato, risolto sul successore | l'`id` ritirato | 17 |
 | `embed-unresolved` | error | `id` inesistente | l'`id` | 9 |
-| `embed-kind` | error | `embed` di un `concept`, di uno `scratch`, di un `article` o di un `deck` | l'`id` | 11 |
+| `embed-kind` | error | `embed` di un `concept`, di uno `scratch`, di un `article`, di un `deck` o del `document file` | l'`id` | 11 |
 | `embed-retired` | warning | `embed` di un `id` ritirato, risolto sul successore | l'`id` ritirato | non coperto |
 | `embed-cycle` | error | un `chapter` che contiene sé stesso | l'`id` | non coperto |
 | `retired-chain` | warning | in `retired-ids.yaml` un successore a sua volta ritirato | l'`id` | non coperto |
@@ -1120,6 +1188,9 @@ secondo il codice `target` e `message`. Ogni errore ha anche un `fix` [C:
 | `composition-content` | error | nel corpo di una `composition` un blocco che non è un `embed` né una riga di separazione | — | 10 |
 | `raw-html` | error | HTML grezzo nel corpo, che non sia un commento | — | 23 |
 | `embed-inline` | error | un `![[id]]` dentro un capoverso | l'`id` | non coperto |
+| `document-missing` | warning | nessun `document file`; il `fix` lo crea | — | non coperto |
+| `reference-text-missing` | warning | `[[id]]` senza testo verso un oggetto senza `title` | l'`id` | 28 |
+| `canvas-path-unresolved` | error | un percorso del `canvas file` senza file | il percorso | non coperto |
 | `document-duplicate` | error | due file `document`; uno per file | l'`id` | non coperto |
 | `document-content` | error | un corpo non vuoto in un file `document` | — | non coperto |
 | `math-line-invalid` | warning | riga di calcolo fuori grammatica, o divisione per zero | — | non coperto |
@@ -1411,7 +1482,7 @@ Ad agosto due fornitori hanno consegnato in ritardo.
 }
 ````````````````````````````````
 
-Il `lang` del file `document` decide come si mostra il risultato (§0.4,
+Senza `lang` nell'oggetto, la lingua del documento decide come si mostra il risultato (§0.4,
 §0.8):
 
 ```````````````````````````````` example 25 conf=1 status=proposal
@@ -1431,9 +1502,9 @@ Due lotti: `= 1.5 + 0.9`.
 === resolved
 {
   "nodes": [
-    {"id": "costo", "kind": "text", "file": "costo.text.md", "content": [["paragraph", "Due lotti: ", ["mathLine", {"value": "2.4", "display": "2,4"}, "1.5 + 0.9"], "."]]},
-    {"id": "rapporto-q3", "kind": "document", "file": "rapporto-q3.document.md", "attributes": {"lang": "it", "spec-version": "0.1"}}
-  ]
+    {"id": "costo", "kind": "text", "file": "costo.text.md", "content": [["paragraph", "Due lotti: ", ["mathLine", {"value": "2.4", "display": "2,4"}, "1.5 + 0.9"], "."]]}
+  ],
+  "document": {"id": "rapporto-q3", "file": "rapporto-q3.document.md", "attributes": {"lang": "it", "spec-version": "0.1"}}
 }
 ````````````````````````````````
 
@@ -1455,9 +1526,84 @@ Le vendite sono calate del 12%.
 }
 ````````````````````````````````
 
+La `class` sull'`embed` vince su quella dell'oggetto (§0.5):
+
+```````````````````````````````` example 27 conf=1 status=proposal
+=== file report-q3.article.md
+---
+id: report-q3
+kind: article
+stylesheet: "[[report]]"
+embed-class:
+  calo-q3-sintesi: [nota]
+---
+![[calo-q3-sintesi]]
+=== file calo-q3-sintesi.text.md
+---
+id: calo-q3-sintesi
+kind: text
+class: [evidenza]
+---
+Le vendite sono calate del 12%.
+=== file report.stylesheet.css
+/*
+kind: stylesheet
+id: report
+*/
+.nota { color: #0000aa; }
+.evidenza { color: #aa0000; }
+=== resolved
+{
+  "nodes": [
+    {"id": "calo-q3-sintesi", "kind": "text", "file": "calo-q3-sintesi.text.md", "attributes": {"class": ["evidenza"]}, "content": [["paragraph", "Le vendite sono calate del 12%."]]},
+    {"id": "report", "kind": "stylesheet", "file": "report.stylesheet.css"},
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"stylesheet": "report", "embed-class": {"calo-q3-sintesi": ["nota"]}}, "content": [["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["evidenza", "nota"], "computedStyle": {"color": "#0000aa"}}, ["paragraph", "Le vendite sono calate del 12%."]]]}
+  ]
+}
+````````````````````````````````
+
+Nell'esempio la regola di `.evidenza` viene dopo nello `stylesheet`, ma vince
+`.nota`, perché è una `class` dell'`embed`.
+
+Un `[[id]]` senza testo mostra il `title`, altrimenti l'`id` con un avviso
+(§7.4):
+
+```````````````````````````````` example 28 conf=1 status=proposal
+=== file vedi.text.md
+---
+id: vedi
+kind: text
+---
+Vedi [[cap-vendite]] e [[calo-q3]].
+=== file cap-vendite.chapter.md
+---
+id: cap-vendite
+kind: chapter
+title: Le vendite
+---
+=== file calo-q3.concept.md
+---
+id: calo-q3
+kind: concept
+---
+Nel terzo trimestre le vendite calano.
+=== resolved
+{
+  "nodes": [
+    {"id": "calo-q3", "kind": "concept", "file": "calo-q3.concept.md", "content": [["paragraph", "Nel terzo trimestre le vendite calano."]]},
+    {"id": "cap-vendite", "kind": "chapter", "file": "cap-vendite.chapter.md", "attributes": {"title": "Le vendite"}},
+    {"id": "vedi", "kind": "text", "file": "vedi.text.md", "content": [["paragraph", "Vedi ", ["hyperlink", {"ref": "cap-vendite"}, "Le vendite"], " e ", ["hyperlink", {"ref": "calo-q3"}, "calo-q3"], "."]]}
+  ],
+  "diagnostics": [
+    {"severity": "warning", "code": "reference-text-missing", "file": "vedi.text.md", "target": "calo-q3", "fix": "[[calo-q3|testo]]"}
+  ]
+}
+````````````````````````````````
+
 ### 11.3 Il `resolved tree` *(proposta)*
 
-È un valore JSON con tre liste; una lista vuota si omette.
+È un valore JSON con tre liste, e la chiave `document` con il `document file`
+se ha attributi oltre a `id`, `kind` e `tags`; una lista vuota si omette.
 
 - **`nodes`**: un elemento per `source`, tranne `retired-ids.yaml`, ordinati
   per `id` e poi per `file`; un nodo senza `id` (esempio 16) non ha la chiave
@@ -1480,13 +1626,14 @@ come valori degli attributi solo stringhe, numeri, `true`, `false` e `null`
 e oggetti (`computedStyle`). Un blocco o un pezzo in linea è un
 array con il tipo, un oggetto di attributi facoltativo e i figli; il testo è
 una stringa. Un a capo morbido diventa uno spazio, e stringhe vicine si
-uniscono; l'HTML grezzo diventa testo. I nomi dei tipi sono presi da mdast
-(`paragraph`, `emphasis`, `strong`, `list`, `listItem`, `blockquote`,
-`code`, `inlineCode`, `link`, `break`, `thematicBreak`), più `embed` e
-`mathLine`, con
-`value` e `display`; non sono normativi finché la bozza non fissa i nomi
-(glossario §1.3): alcuni collidono con il glossario, per esempio paragraph è
-fra i *Da non usare* di `text`. Mancano ancora i tipi per `text table`,
+uniscono; l'HTML grezzo diventa testo, tranne i commenti, che non entrano. I
+tipi in linea `hyperlink` (con `ref` per un `id reference` o `url`),
+`emphasis`, `strong` e `inlineCode` sono normativi (§0.5). Gli altri nomi
+sono presi da mdast (`paragraph`, `list`, `listItem`, `blockquote`, `code`,
+`break`, `thematicBreak`), più `embed` e `mathLine`, con `value` e
+`display`; non sono normativi finché la bozza non fissa i nomi (glossario
+§1.3): alcuni collidono con il glossario, per esempio paragraph è fra i *Da
+non usare* di `text`. Mancano ancora i tipi per `text table`,
 `cross-ref` e la definizione di una `footnote`.
 
 Nel contenuto di una `composition` un `embed` porta negli attributi `id`,
@@ -1518,7 +1665,10 @@ Dove si aggancerà ciascuna al `core`.
   in un altro file, con argomenti numerici, elementi della stessa lista o
   anche range. Un range è un intervallo di valori di un campo, per esempio da
   marzo a giugno, oppure tutta la colonna; non un indirizzo, perché le celle
-  non hanno coordinate [C: «Le celle non hanno coordinate»].
+  non hanno coordinate [C: «Le celle non hanno coordinate»]. Nota: con la
+  virgola decimale nell'`app`, in italiano la virgola non può separare gli
+  argomenti di una funzione mentre si scrive; nel file vale il punto, quindi
+  lì la virgola come separatore degli argomenti resta possibile.
 - **Connettori** (classe 5). Un file proprio, e un file per le posizioni
   sistemate a mano [C: «I connettori grafici sono un file a parte»].
   *(proposta)* Puntano gli `object` per `id`, nella forma generica del §10.
