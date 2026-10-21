@@ -284,7 +284,7 @@ si sposta come un'unità, si annida, e può non avere titolo.
   semplice: il corpo resta fatto solo di `embed`, e un capitolo senza
   `title` è una sezione senza titolo.
 - **Il corpo** di un `chapter` contiene solo `embed`, di `object` o di altri
-  `chapter`, in ordine di lettura. Il grado di un titolo viene
+  `chapter`, in ordine di lettura, e righe di separazione (§7.4). Il grado di un titolo viene
   dall'annidamento, non dal file: lo stesso `chapter` è di grado 1
   nell'`article` e di grado 2 se lo si mette dentro un altro capitolo.
 - **L'`article` e il `deck`** hanno un `title` e un corpo di soli `embed`,
@@ -681,10 +681,20 @@ Queste regole le evitano:
   niente (esempio 23).
 - **La struttura sta al suo posto.** I titoli sono `title` dei `chapter`
   (§0.7): un titolo Markdown in un `text` è `text-blocks`, in una
-  `composition` è `composition-content`; solo uno `scratch` li ammette. La
-  riga di separazione `---` è vietata, errore `thematic-break`: collide con i
-  delimitatori dell'intestazione, e una separazione si fa con un `chapter`.
-  Le interruzioni di riga forzate sono contenuto.
+  `composition` è `composition-content`; solo uno `scratch` li ammette. Le
+  interruzioni di riga forzate sono contenuto.
+- **La riga di separazione `---`** è ammessa come linea, come in Obsidian
+  ([Basic formatting syntax](https://github.com/obsidianmd/obsidian-help/blob/master/en/Editing%20and%20formatting/Basic%20formatting%20syntax.md)),
+  e il `formatter` le mette sempre una riga vuota prima e dopo (decisione di
+  Alessio del 2026-10-21, con la sintassi Markdown). La riga vuota conta: in
+  CommonMark `---` subito sotto una riga di testo fa di quella riga un titolo
+  di secondo livello (prova con commonmark.js 0.31.2). Il parser non la
+  confonde con l'intestazione, che vale solo in testa al file.
+  *(proposte)* Sta nel corpo di un `chapter` o di un `article`, fra due
+  `embed` (esempio 24), e in uno `scratch`; in un `text` è un blocco in più,
+  quindi `text-blocks`. Nel `resolved tree` è `["thematicBreak"]`; la linea la
+  disegna il `renderer` dal tipo, perché spessore e colore non sono nel
+  sottoinsieme della classe 1.
 - **GitHub e gli altri programmi** mostrano il Markdown con il loro aspetto:
   è un'anteprima, non l'impaginazione del documento.
 
@@ -700,8 +710,9 @@ una `composition` che si può annidare, e l'`article` è l'indice dei capitoli
 *(proposte)*
 - La `composition` usa gli oggetti con l'`embed` per `id`. Quale `concept`
   presenta un oggetto lo si ricava dalle sue `association`.
-- Il corpo di `chapter` e `article` contiene solo `embed`; qualunque altro
-  blocco, titoli compresi, è `composition-content` (esempio 10).
+- Il corpo di `chapter` e `article` contiene solo `embed` e righe di
+  separazione `---` (§7.4); qualunque altro blocco, titoli compresi, è
+  `composition-content` (esempio 10).
 - Un `embed` di un `id` inesistente è un errore, e il `resolved tree` lo mostra
   al suo posto (esempio 9). Un `embed` di un `concept`, di uno `scratch`, di
   un `article` o di un `deck` è `embed-kind` (esempio 11); un `embed` di un
@@ -967,9 +978,8 @@ secondo il codice `target` e `message`. Ogni errore ha anche un `fix` [C:
 | `retired-cycle` | error | un ciclo fra successori | l'`id` | non coperto |
 | `retired-successor-missing` | error | un successore che non esiste | l'`id` | non coperto |
 | `text-blocks` | error | un `text` con più di un blocco, o con un titolo | — | 21 |
-| `composition-content` | error | nel corpo di una `composition` un blocco che non è un `embed` | — | 10 |
+| `composition-content` | error | nel corpo di una `composition` un blocco che non è un `embed` né una riga di separazione | — | 10 |
 | `raw-html` | error | HTML grezzo nel corpo | — | 23 |
-| `thematic-break` | error | una riga di separazione `---` nel corpo | — | non coperto |
 | `math-line-invalid` | warning | riga di calcolo fuori grammatica, o divisione per zero | — | non coperto |
 | `math-line-ambiguous` | warning | un numero come `1.200` | il numero | 22 |
 | `eval-unsupported` | warning | blocco da eseguire nella classe 1 | — | non coperto |
@@ -1223,6 +1233,42 @@ Le vendite sono <b>calate</b>.
 }
 ````````````````````````````````
 
+Una riga di separazione fra due `embed` (§7.4):
+
+```````````````````````````````` example 24 conf=1 status=proposal
+=== file cap-vendite.chapter.md
+---
+id: cap-vendite
+kind: chapter
+title: Le vendite
+---
+![[calo-q3-sintesi]]
+
+---
+
+![[ritardi-agosto]]
+=== file calo-q3-sintesi.text.md
+---
+id: calo-q3-sintesi
+kind: text
+---
+Le vendite sono calate del 12%.
+=== file ritardi-agosto.text.md
+---
+id: ritardi-agosto
+kind: text
+---
+Ad agosto due fornitori hanno consegnato in ritardo.
+=== resolved
+{
+  "nodes": [
+    {"id": "calo-q3-sintesi", "kind": "text", "file": "calo-q3-sintesi.text.md", "content": [["paragraph", "Le vendite sono calate del 12%."]]},
+    {"id": "cap-vendite", "kind": "chapter", "file": "cap-vendite.chapter.md", "attributes": {"title": "Le vendite"}, "content": [["embed", {"id": "calo-q3-sintesi", "kind": "text"}, ["paragraph", "Le vendite sono calate del 12%."]], ["thematicBreak"], ["embed", {"id": "ritardi-agosto", "kind": "text"}, ["paragraph", "Ad agosto due fornitori hanno consegnato in ritardo."]]]},
+    {"id": "ritardi-agosto", "kind": "text", "file": "ritardi-agosto.text.md", "content": [["paragraph", "Ad agosto due fornitori hanno consegnato in ritardo."]]}
+  ]
+}
+````````````````````````````````
+
 ### 11.3 Il `resolved tree` *(proposta)*
 
 È un valore JSON con tre liste; una lista vuota si omette.
@@ -1246,7 +1292,8 @@ array con il tipo, un oggetto di attributi facoltativo e i figli; il testo è
 una stringa. Un a capo morbido diventa uno spazio, e stringhe vicine si
 uniscono; l'HTML grezzo diventa testo. I nomi dei tipi sono presi da mdast
 (`paragraph`, `emphasis`, `strong`, `list`, `listItem`, `blockquote`,
-`code`, `inlineCode`, `link`, `break`), più `embed` e `mathLine`, con
+`code`, `inlineCode`, `link`, `break`, `thematicBreak`), più `embed` e
+`mathLine`, con
 `value` e `display`; non sono normativi finché la bozza non fissa i nomi
 (glossario §1.3): alcuni collidono con il glossario, per esempio paragraph è
 fra i *Da non usare* di `text`. Mancano ancora i tipi per `text table`,
