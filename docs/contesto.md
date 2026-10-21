@@ -219,7 +219,8 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     ogni nodo porta l'`id`, se JSON Canvas ammette una chiave in più e gli
     altri programmi la conservano, altrimenti restano i percorsi. Dubbio di
     Alessio sull'oggetto dentro un capoverso: se si deve spezzare per forza il
-    testo, o se esiste un modo in linea;
+    testo, o se esiste un modo in linea. Risposta di Alessio, dopo la
+    spiegazione: «va bene così, per ora vietati»;
 
   Questi ultimi punti Alessio li ha approvati con «ok ai tuoi suggerimenti»,
   riferito ai sei punti aperti della bozza.
@@ -405,6 +406,11 @@ quando due rami lavorano in parallelo.
 - Sintassi dei file di testo (specifica §0.6): Alessio non conosce CommonMark e
   Djot, e chiede di valutarli insieme a due altre strade: un formato nostro,
   oppure Markdown con una sintassi nostra, come fa Obsidian (2026-10-20).
+
+- L'impaginazione finale viene sempre da fuori, non da dentro il testo, forse
+  anche per i collegamenti e le formule scritti dentro il testo (Alessio,
+  2026-10-21). Il testo dice cosa è una cosa; come appare lo decidono il
+  `runtime`, gli `stylesheet` e la configurazione del documento.
 
 - Capitoli e titoli (specifica §0.7): forse il capitolo dovrebbe essere un
   aggregatore di testi, come un indice dettagliato (Alessio, 2026-10-20).
