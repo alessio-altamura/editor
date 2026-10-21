@@ -34,7 +34,9 @@ export function readDecimal(literal: string): Decimal | null {
     if (adjusted < BigInt(E_MIN) || adjusted > BigInt(E_MAX)) return null;
   }
   // More than 34 digits round when read, so `= x` and `= x + 0` agree (§0.4).
-  return new Decimal(literal).toSignificantDigits(34, Decimal.ROUND_HALF_EVEN);
+  const rounded = new Decimal(literal).toSignificantDigits(34, Decimal.ROUND_HALF_EVEN);
+  // Rounding can carry past the range, as 35 nines do: checked again like a result.
+  return inDecimal128Range(rounded) ? rounded : null;
 }
 
 /** Writes a value with the point, without exponent or trailing zeros, and without the sign of a zero. */

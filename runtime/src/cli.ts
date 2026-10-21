@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // The command line: one command, `resolve-tree`, that prints the resolved tree as JSON.
-import { existsSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, statSync } from 'node:fs';
 import { resolveTree, SPEC_VERSION } from './resolve-tree.js';
 
 /** Provisional name of the binary, not decided yet: change it here and in package.json. */
@@ -16,7 +16,9 @@ const EXIT_INTERNAL = 3;
 const HELP = `${BINARY_NAME} — runtime del documento, spec-version ${SPEC_VERSION} (bozza)
 
 Uso:
-  ${BINARY_NAME} resolve-tree <cartella>   stampa il resolved tree in JSON su stdout
+  ${BINARY_NAME} resolve-tree <cartella> [--pretty]
+                                         stampa il resolved tree in JSON su stdout,
+                                         compatto; --pretty lo indenta
   ${BINARY_NAME} --help                    questo aiuto
   ${BINARY_NAME} --version                 la spec-version che il runtime implementa
 
@@ -48,7 +50,8 @@ function main(args: string[]): number {
     process.stdout.write(`${SPEC_VERSION}\n`);
     return EXIT_OK;
   }
-  const [command, folder, ...rest] = args;
+  const pretty = args.includes('--pretty');
+  const [command, folder, ...rest] = args.filter((arg) => arg !== '--pretty');
   if (command !== 'resolve-tree' || folder === undefined || rest.length > 0) {
     process.stderr.write(`${BINARY_NAME}: uso: ${BINARY_NAME} resolve-tree <cartella> (vedi --help)\n`);
     return EXIT_USAGE;
@@ -57,8 +60,14 @@ function main(args: string[]): number {
     process.stderr.write(`${BINARY_NAME}: ${folder} non è una cartella\n`);
     return EXIT_USAGE;
   }
+  try {
+    readdirSync(folder);
+  } catch {
+    process.stderr.write(`${BINARY_NAME}: la cartella ${folder} non si legge\n`);
+    return EXIT_USAGE;
+  }
   const tree = resolveTree(folder);
-  process.stdout.write(JSON.stringify(tree, null, 2) + '\n');
+  process.stdout.write(JSON.stringify(tree, null, pretty ? 2 : undefined) + '\n');
   return tree.diagnostics?.some((d) => d.severity === 'error') ? EXIT_ERRORS : EXIT_OK;
 }
 

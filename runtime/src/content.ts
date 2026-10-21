@@ -15,6 +15,8 @@ export interface Element {
     lang?: string | undefined;
     /** A chapter title: its depth, for title-1, title-2 and title-3. */
     depth?: number;
+    /** A link with `{n}` in a root composition, filled once every number is known. */
+    numberSlot?: { label: string; id: string; fallback: string };
   };
 }
 export type Child = Element | string;

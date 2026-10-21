@@ -18,7 +18,8 @@ npm run build
 ## Lanciare
 
 ```
-node dist/src/cli.js resolve-tree <cartella>
+node dist/src/cli.js resolve-tree <cartella>            # JSON compatto
+node dist/src/cli.js resolve-tree <cartella> --pretty   # JSON indentato
 node dist/src/cli.js --help
 ```
 
@@ -31,7 +32,16 @@ almeno un errore, 2 per un uso sbagliato o una cartella che non si legge, 3
 per un errore interno del runtime, senza albero (provvisorio).
 
 I collegamenti simbolici non si seguono, così il runtime non legge niente
-fuori dalla cartella; un file che non è UTF-8 dà `syntax`.
+fuori dalla cartella: come un file che non è UTF-8 o una sottocartella che non
+si legge, danno `syntax`.
+
+Limiti provvisori, finché la specifica non li fissa: oltre 1000 livelli di
+`embed` o 100000 `embed` in tutto l'albero gli `embed` si tagliano, con
+l'errore `tree-limit`; una riga di calcolo con più di 100 parentesi annidate è
+`math-line-invalid`.
+
+`[[…]]` e `![[…]]` li riconosce un'estensione micromark scritta qui,
+`src/wiki-reference.ts`, prima degli altri costrutti in linea (§0.6).
 
 ## Test
 
@@ -69,5 +79,5 @@ Dipendenze, con versione fissata: `mdast-util-from-markdown` 2.1.0,
 `micromark-extension-gfm-table` 2.1.2 e `mdast-util-gfm-table` 2.0.0 (MIT), per
 CommonMark con le tabelle di GFM; `yaml` 2.9.1 (ISC); `decimal.js` 10.6.0
 (MIT). Per lo sviluppo `typescript` 5.9.3 (Apache-2.0) e `@types/node`,
-`@types/mdast` (MIT). Il parser del CSS è scritto qui: il sottoinsieme è
+`@types/mdast`, `micromark-util-types` (MIT). Il parser del CSS è scritto qui: il sottoinsieme è
 piccolo.

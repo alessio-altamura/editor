@@ -5,6 +5,7 @@ import type { Nodes, Paragraph, PhrasingContent, Root, RootContent, Text } from 
 import { fromMarkdown } from 'mdast-util-from-markdown';
 import { gfmTableFromMarkdown } from 'mdast-util-gfm-table';
 import { gfmTable } from 'micromark-extension-gfm-table';
+import { wikiReference, wikiReferenceFromMarkdown } from './wiki-reference.js';
 import { appendChildren, element, toJsonML, type Child, type Element } from './content.js';
 import { compareCodePoints, report, sortDiagnostics, type Diagnostic, type DiagnosticSink } from './diagnostic.js';
 import { parseYamlMap, splitFrontMatter, type RawValue } from './front-matter.js';
@@ -104,6 +105,8 @@ interface BuildContext {
   /** The nodes being expanded, to stop at an `embed-cycle`. */
   expanding: string[];
   definitions: Map<string, string>;
+  /** True in a composition or a directive, where `![[id]]` is an embed. */
+  inComposition: boolean;
 }
 
 export interface ResolvedTree {
@@ -123,7 +126,16 @@ const utf8 = new TextDecoder('utf-8', { fatal: true });
 function listFiles(folder: string, prefix = '', unreadable: string[] = []): { files: string[]; unreadable: string[] } {
   const files: string[] = [];
   const names: string[] = [];
-  for (const raw of readdirSync(join(folder, prefix), { encoding: 'buffer' })) {
+  let entries: Buffer[];
+  try {
+    entries = readdirSync(join(folder, prefix), { encoding: 'buffer' });
+  } catch (error) {
+    // The document folder itself is the cli's to report (exit 2); a subfolder gives syntax.
+    if (prefix === '') throw error;
+    unreadable.push(prefix);
+    return { files, unreadable };
+  }
+  for (const raw of entries) {
     try {
       names.push(utf8.decode(raw));
     } catch {
@@ -133,7 +145,13 @@ function listFiles(folder: string, prefix = '', unreadable: string[] = []): { fi
   for (const name of names.sort(compareCodePoints)) {
     if (name.startsWith('.')) continue;
     const path = prefix === '' ? name : `${prefix}/${name}`;
-    const stat = lstatSync(join(folder, path));
+    let stat;
+    try {
+      stat = lstatSync(join(folder, path));
+    } catch {
+      unreadable.push(path);
+      continue;
+    }
     if (stat.isSymbolicLink()) unreadable.push(path);
     else if (stat.isDirectory()) files.push(...listFiles(folder, path, unreadable).files);
     else if (stat.isFile()) files.push(path);
@@ -150,6 +168,10 @@ function readText(path: string): string | null {
   }
 }
 
+/** Provisional limits of the resolved tree, past which embeds are cut with `tree-limit`. */
+const MAX_EMBED_DEPTH = 1000;
+const MAX_EMBEDS = 100000;
+
 /** Deeper nesting than this is `syntax`: the tree is built by recursion (reading). */
 const MAX_NESTING = 100;
 
@@ -164,42 +186,16 @@ function nestingDepth(root: Nodes): number {
   return deepest;
 }
 
-/*
- * `[[…]]` is read before CommonMark, outside code (§0.6): each one is masked
- * with private-use characters of the same length, so offsets stay the same,
- * and restored in the text nodes. The text after `|` stays plain text.
- */
-const MASK_START = '\uE000';
-const MASK_END = '\uE001';
-const MASK_PAD = '\uE002';
-const MASK_DIGIT = 0xe100;
-const MASK_BASE = 6000;
-
-function maskReferences(source: string, references: string[]): string {
-  const skip: Array<[number, number]> = [];
-  const stack: Nodes[] = [parseMarkdown(source)];
-  while (stack.length > 0) {
-    const node = stack.pop()!;
-    if ((node.type === 'inlineCode' || node.type === 'code' || node.type === 'html') && node.position) {
-      skip.push([node.position.start.offset!, node.position.end.offset!]);
-    }
-    if ('children' in node) stack.push(...node.children);
-  }
-  return source.replace(/\[\[[^[\]\n]*\]\]/g, (match, offset: number) => {
-    if (skip.some(([start, end]) => offset < end && offset + match.length > start)) return match;
-    let digits = '';
-    for (let n = references.length; ; n = Math.floor(n / MASK_BASE)) {
-      digits = String.fromCharCode(MASK_DIGIT + (n % MASK_BASE)) + digits;
-      if (n < MASK_BASE) break;
-    }
-    if (match.length < digits.length + 2) return match;
-    references.push(match.replace(/\\\|/g, '|'));
-    return MASK_START + digits + MASK_PAD.repeat(match.length - digits.length - 2) + MASK_END;
-  });
+/** Removes the number slot, then trims and collapses the spaces U+0020 (§0.14). */
+function removeSlot(text: string): string {
+  return text.replaceAll('{n}', '').replace(/^ +| +$/g, '').replace(/ {2,}/g, ' ');
 }
 
 function parseMarkdown(text: string): Root {
-  return fromMarkdown(text, { extensions: [gfmTable()], mdastExtensions: [gfmTableFromMarkdown()] });
+  return fromMarkdown(text, {
+    extensions: [gfmTable(), wikiReference()],
+    mdastExtensions: [gfmTableFromMarkdown(), wikiReferenceFromMarkdown()],
+  });
 }
 
 function toCamelCase(key: string): string {
@@ -221,19 +217,10 @@ const isComment = (node: RootContent): boolean =>
 export function resolveTree(folder: string): ResolvedTree {
   const diagnostics: Diagnostic[] = [];
   const { files, unreadable } = listFiles(folder);
-  for (const file of unreadable) report(diagnostics, 'syntax', file, undefined, 'sostituisci il link simbolico o il nome che non è UTF-8 con un file');
+  for (const file of unreadable) report(diagnostics, 'syntax', file, undefined, 'rendilo un file o una cartella leggibile, con un nome in UTF-8 e senza link simbolici');
   const fileSet = new Set(files);
   const nodes: SourceNode[] = [];
   let retiredFileText: string | null = null;
-  const references: string[] = [];
-  const restoreReferences = (text: string) =>
-    text.replace(/\uE000([\uE100-\uF8FF]+)\uE002*\uE001/g, (_, digits: string) => {
-      let n = 0;
-      for (const digit of digits) n = n * MASK_BASE + (digit.charCodeAt(0) - MASK_DIGIT);
-      return references[n] ?? '';
-    });
-
-  // Steps 1 and 2: list the files, separate source and asset, read each source.
   for (const file of files) {
     const base = posix.basename(file);
     const match = /^.+\.([^.]+)\.md$/.exec(base);
@@ -247,7 +234,7 @@ export function resolveTree(folder: string): ResolvedTree {
     }
     if (file === RETIRED_IDS_FILE) retiredFileText = text;
     else if (isStylesheet) nodes.push(readStylesheetNode(file, text, diagnostics));
-    else nodes.push(readTextNode(file, match![1]!, text, diagnostics, references));
+    else nodes.push(readTextNode(file, match![1]!, text, diagnostics));
   }
 
   const idIndex = new Map<string, SourceNode[]>();
@@ -304,6 +291,7 @@ export function resolveTree(folder: string): ResolvedTree {
 
   const pairs = new Map<string, { ids: [string, string]; declaredIn: string[] }>();
   const reportedOnce = new Set<string>();
+  let embedCount = 0;
   const reportOnce = (sink: DiagnosticSink, code: string, file: string, target?: string, fix?: string) => {
     if (sink === null || reportedOnce.has(`${code}\0${file}`)) return;
     reportedOnce.add(`${code}\0${file}`);
@@ -528,29 +516,35 @@ export function resolveTree(folder: string): ResolvedTree {
   }
 
   /**
-   * `![[id]]` alone in a paragraph, followed only by a class sign if any, read on
-   * the content CommonMark gives: trailing spaces removed, a soft line break a space.
+   * `![[id]]` alone in a paragraph, followed only by a class sign if any, read on the
+   * content CommonMark gives (trailing spaces removed). The sign must be complete on
+   * the line of the `![[id]]` and end it (§0.15); otherwise `invalid` is its first line.
    */
-  function embedLine(paragraph: Paragraph): { id: string; rest: string; text: string } | null {
-    if (!paragraph.children.every((child) => child.type === 'text')) return null;
-    const text = restoreReferences(paragraph.children.map((child) => (child as Text).value).join('').replace(/\n/g, ' '));
-    const match = /^!\[\[([^\]]*)\]\](.*)$/.exec(text);
-    if (!match || !(match[2] === '' || /^\s*\{/.test(match[2]!))) return null;
-    return { id: match[1]!, rest: match[2]!, text };
+  function embedLine(paragraph: Paragraph): { id: string; classes: string[]; invalid?: string; text: string } | null {
+    const [first, ...rest] = paragraph.children;
+    if (first?.type !== 'wikiReference' || !first.embed || !rest.every((child) => child.type === 'text')) return null;
+    const after = rest.map((child) => (child as Text).value).join('');
+    const id = first.value;
+    const text = `![[${id}]]${after.replace(/\n/g, ' ')}`;
+    if (after === '') return { id, classes: [], text };
+    const start = after.search(/\S/);
+    if (after[start] !== '{') return null;
+    const lineEnd = after.indexOf('\n', start);
+    const line = (lineEnd < 0 ? after.slice(start) : after.slice(start, lineEnd)).trim();
+    const sign = /^\{(\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*(?: \.[a-z][a-z0-9]*(?:-[a-z0-9]+)*)*)\}$/.exec(line);
+    if (sign && start === 0 && lineEnd < 0) return { id, classes: [...new Set(sign[1]!.split(' ').map((c) => c.slice(1)))], text };
+    return { id, classes: [], invalid: line, text };
   }
 
   /** An `embed` is `![[id]]` alone in a paragraph, with the class sign of §0.15 if any. */
   function standaloneEmbed(node: SourceNode, paragraph: Paragraph): CompositionItem | null {
     const line = embedLine(paragraph);
     if (!line) return null;
-    const { id, rest } = line;
-    if (rest === '') return { type: 'embed', id, classes: [] };
-    const sign = /^\{(\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*(?: \.[a-z][a-z0-9]*(?:-[a-z0-9]+)*)*)\}$/.exec(rest);
-    if (sign) return { type: 'embed', id, classes: [...new Set(sign[1]!.split(' ').map((c) => c.slice(1)))] };
-    const target = rest.slice(rest.indexOf('{')).trim();
-    const words = (target.match(/[A-Za-z][A-Za-z0-9-]*/g) ?? []).map((w) => '.' + w.toLowerCase());
-    report(diagnostics, 'embed-class-invalid', node.file, target, `![[${id}]]{${words.join(' ') || '.nota'}}`);
-    return { type: 'embed', id, classes: [] };
+    if (line.invalid !== undefined) {
+      const words = (line.invalid.match(/[A-Za-z][A-Za-z0-9-]*/g) ?? []).map((w) => '.' + w.toLowerCase());
+      report(diagnostics, 'embed-class-invalid', node.file, line.invalid, `![[${line.id}]]{${words.join(' ') || '.nota'}}`);
+    }
+    return { type: 'embed', id: line.id, classes: line.classes };
   }
 
   // Building content: the node's own body, or a node again inside a root composition.
@@ -565,9 +559,12 @@ export function resolveTree(folder: string): ResolvedTree {
     switch (node.type) {
       case 'paragraph': {
         // Compositions and directives take their embeds out before this; elsewhere one stays text (§0.6).
+        // In a composition the paragraph is nested in another block, already composition-content.
         const embed = embedLine(node);
         if (embed) {
-          report(context.sink, 'embed-outside-composition', context.file, embed.id, `sposta ![[${embed.id}]] in una composition`);
+          if (!context.inComposition) {
+            report(context.sink, 'embed-outside-composition', context.file, embed.id, `sposta ![[${embed.id}]] in una composition`);
+          }
           return [element('paragraph', {}, [embed.text])];
         }
         return [element('paragraph', {}, buildInlines(node.children, context))];
@@ -618,7 +615,15 @@ export function resolveTree(folder: string): ResolvedTree {
 
   function buildInline(node: PhrasingContent, context: BuildContext): Child[] {
     switch (node.type) {
-      case 'text': return buildText(restoreReferences(node.value.replace(/\n/g, ' ')), context);
+      case 'text': return [node.value.replace(/\n/g, ' ')];
+      case 'wikiReference': {
+        if (node.embed) {
+          report(context.sink, 'embed-inline', context.file, node.value, `metti ![[${node.value}]] in un capoverso da solo`);
+          return [`![[${node.value}]]`];
+        }
+        const bar = node.value.indexOf('|');
+        return [bar < 0 ? buildReference(node.value, undefined, context) : buildReference(node.value.slice(0, bar), node.value.slice(bar + 1), context)];
+      }
       case 'emphasis':
       case 'strong':
         return [element(node.type, {}, buildInlines(node.children, context))];
@@ -670,29 +675,9 @@ export function resolveTree(folder: string): ResolvedTree {
     return line;
   }
 
-  /** Finds `[[id]]`, `[[id|text]]` and `![[id]]` in a text string. */
-  function buildText(text: string, context: BuildContext): Child[] {
-    const out: Child[] = [];
-    let last = 0;
-    for (const match of text.matchAll(/(!?)\[\[([^[\]]*)\]\]/g)) {
-      appendChildren(out, [text.slice(last, match.index)]);
-      last = match.index + match[0].length;
-      const [id = '', label] = match[2]!.split(/\|(.*)/s);
-      if (match[1] === '!') {
-        report(context.sink, 'embed-inline', context.file, id, `metti ![[${id}]] in un capoverso da solo`);
-        appendChildren(out, [match[0]]);
-      } else {
-        out.push(buildReference(id, label, context));
-      }
-    }
-    appendChildren(out, [text.slice(last)]);
-    return out;
-  }
-
   /** An inline `id reference` (§10), with its number slot (§0.14). */
   function buildReference(written: string, label: string | undefined, context: BuildContext): Element {
     const resolution = resolveId(written);
-    const removeSlot = (text: string) => text.replaceAll('{n}', '').replace(/^ +| +$/g, '').replace(/ {2,}/g, ' ');
     if (!('node' in resolution)) {
       if (resolution.status === 'unresolved') {
         report(context.sink, 'reference-unresolved', context.file, written, "correggi l'id del collegamento");
@@ -710,8 +695,13 @@ export function resolveTree(folder: string): ResolvedTree {
       if (target.kind !== 'chapter' && target.kind !== 'image') {
         report(context.sink, 'number-slot-kind', context.file, resolution.id);
       }
-      const number = context.root?.firstNumbers.get(resolution.id);
-      shown = number === undefined ? removeSlot(label) : label.replaceAll('{n}', number);
+      if (context.root) {
+        // The number may come later in reading order: the slot is filled once the root is built.
+        const link = element('hyperlink', { ref: resolution.id }, ['']);
+        link.meta = { numberSlot: { label, id: resolution.id, fallback: target.title ?? resolution.id } };
+        return link;
+      }
+      shown = removeSlot(label);
     }
     if (shown === '') {
       if (target.title !== undefined) shown = target.title;
@@ -741,7 +731,8 @@ export function resolveTree(folder: string): ResolvedTree {
         if (embed) out.push(embed);
         continue;
       }
-      if (isComment(item.node)) continue;
+      // A definition [s]: url is not a block (§0.6).
+      if (isComment(item.node) || item.node.type === 'definition') continue;
       if (item.node.type !== 'thematicBreak' && !node.directive) {
         report(context.sink, 'composition-content', node.file, undefined, "sposta il blocco in un text e mettine l'embed");
       }
@@ -757,6 +748,16 @@ export function resolveTree(folder: string): ResolvedTree {
       if (embedClasses.length > 0) attributes.class = embedClasses;
       return element('embed', attributes);
     };
+    // Provisional safety limits, until the spec fixes them: the embed is cut, as past a recursion limit.
+    if (context.expanding.length >= MAX_EMBED_DEPTH || embedCount >= MAX_EMBEDS) {
+      const key = `tree-limit\0${context.file}`;
+      if (!reportedOnce.has(key)) {
+        reportedOnce.add(key);
+        const fix = `riduci l'annidamento sotto ${MAX_EMBED_DEPTH} livelli e gli embed sotto ${MAX_EMBEDS}`;
+        report(diagnostics, 'tree-limit', context.file, undefined, fix);
+      }
+      return null;
+    }
     const resolution = resolveId(written);
     if (resolution.status === 'duplicate') return unresolved(written);
     if (resolution.status === 'unresolved') {
@@ -774,10 +775,10 @@ export function resolveTree(folder: string): ResolvedTree {
     // is expanded again, past it the embed is left out, and without recursion it does not resolve.
     const appearances = context.expanding.filter((id) => id === resolution.id).length;
     if (appearances > 0) {
-      if (target.recursion === Infinity) return element('embed', { id: resolution.id, kind: target.kind, recursion: true });
       if (target.recursion === undefined) return unresolved(resolution.id);
       if (appearances > target.recursion) return null;
     }
+    embedCount++;
 
     const attributes: Record<string, unknown> = { id: resolution.id, kind: target.kind };
     const lang = effectiveLang(target);
@@ -788,6 +789,11 @@ export function resolveTree(folder: string): ResolvedTree {
     if (target.asset !== undefined) attributes.asset = target.asset;
     const embed = element('embed', attributes);
     embed.meta = { classes, embedClasses };
+    // With infinite recursion the embed marks where the chapter comes back, without children.
+    if (appearances > 0 && target.recursion === Infinity) {
+      attributes.recursion = true;
+      return embed;
+    }
     const inner: BuildContext = {
       sink: null,
       file: target.file,
@@ -797,6 +803,7 @@ export function resolveTree(folder: string): ResolvedTree {
       depth: context.depth,
       expanding: [...context.expanding, resolution.id],
       definitions: target.definitions,
+      inComposition: target.items !== undefined,
     };
     if (target.kind === 'chapter') {
       if (context.root && target.title !== undefined) {
@@ -893,6 +900,7 @@ export function resolveTree(folder: string): ResolvedTree {
         depth: 0,
         expanding: node.id === undefined ? [] : [node.id],
         definitions: node.definitions,
+        inComposition: node.items !== undefined,
       };
       if (node.kind === 'text') checkTextBlocks(node);
       let content = buildContent(node, context);
@@ -935,11 +943,10 @@ export function resolveTree(folder: string): ResolvedTree {
       depth: 0,
       expanding: node.id === undefined ? [] : [node.id],
       definitions: node.definitions,
+      inComposition: true,
     });
-    // A first pass finds the number of every embed, so a number slot can point forward.
-    const first: RootState = { chapterCounters: [], images: 0, firstNumbers: new Map() };
-    buildContent(node, contextFor(first));
-    const content = buildContent(node, contextFor({ chapterCounters: [], images: 0, firstNumbers: first.firstNumbers }));
+    const root: RootState = { chapterCounters: [], images: 0, firstNumbers: new Map() };
+    const content = buildContent(node, contextFor(root));
 
     const stylesheetId = attributesOf.get(node)?.stylesheet;
     const resolution = typeof stylesheetId === 'string' ? resolveId(stylesheetId) : null;
@@ -956,13 +963,25 @@ export function resolveTree(folder: string): ResolvedTree {
     const rootFinal = computeStyle({ type: 'root', classes: node.classes, embedClasses: [] }, rootRule, sheet, outOfRange);
     const difference = styleDifference(rootFinal, rootRule);
     if (Object.keys(difference).length > 0) output.computedStyle = difference;
-    applyStyles(content, rootFinal, sheet, outOfRange);
+    applyStyles(content, rootFinal, sheet, outOfRange, root.firstNumbers);
     return content;
   }
 
-  function applyStyles(children: Child[], parent: ComputedStyle, sheet: ParsedStylesheet | null, outOfRange: (property: string) => void): void {
+  /** The computed style pass over a root composition; it also fills the number slots. */
+  function applyStyles(
+    children: Child[],
+    parent: ComputedStyle,
+    sheet: ParsedStylesheet | null,
+    outOfRange: (property: string) => void,
+    firstNumbers: Map<string, string>,
+  ): void {
     for (const child of children) {
       if (typeof child === 'string') continue;
+      const slot = child.meta?.numberSlot;
+      if (slot) {
+        const number = firstNumbers.get(slot.id);
+        child.children = [(number === undefined ? removeSlot(slot.label) : slot.label.replaceAll('{n}', number)) || slot.fallback];
+      }
       const type = child.type === 'title' ? `title-${Math.min(child.meta?.depth ?? 1, 3)}` : child.type;
       const expected = computeStyle({ type, classes: [], embedClasses: [] }, parent, null);
       const final = computeStyle({ type, classes: child.meta?.classes ?? [], embedClasses: child.meta?.embedClasses ?? [] }, parent, sheet, outOfRange);
@@ -971,7 +990,7 @@ export function resolveTree(folder: string): ResolvedTree {
       if (child.type === 'mathLine' && child.meta?.value && numberNotation(final) === 'compact') {
         child.attributes.display = displayString(child.meta.value, child.meta.lang, 'compact');
       }
-      applyStyles(child.children, final, sheet, outOfRange);
+      applyStyles(child.children, final, sheet, outOfRange, firstNumbers);
     }
   }
 
@@ -996,7 +1015,7 @@ function unreadableNode(file: string, extensionKind: string): SourceNode {
   return { file, extensionKind, kind: extensionKind, directive: false, attributes: null, yamlComments: 0, source: '', classes: [], definitions: new Map() };
 }
 
-function readTextNode(file: string, extensionKind: string, text: string, diagnostics: Diagnostic[], references: string[]): SourceNode {
+function readTextNode(file: string, extensionKind: string, text: string, diagnostics: Diagnostic[]): SourceNode {
   const node: SourceNode = {
     file,
     extensionKind,
@@ -1029,8 +1048,7 @@ function readTextNode(file: string, extensionKind: string, text: string, diagnos
   // The body keeps its offsets in the file: the front matter lines are blanked, not cut.
   const bodyStart = text.length - split.body.length;
   node.source = text.slice(0, bodyStart).replace(/[^\n]/g, ' ') + split.body;
-  let markdown = parseMarkdown(node.source);
-  if (nestingDepth(markdown) <= MAX_NESTING) markdown = parseMarkdown(maskReferences(node.source, references));
+  const markdown = parseMarkdown(node.source);
   if (nestingDepth(markdown) > MAX_NESTING) {
     report(diagnostics, 'syntax', file, undefined, `annida meno di ${MAX_NESTING} livelli`);
     return node;
@@ -1042,11 +1060,12 @@ function readTextNode(file: string, extensionKind: string, text: string, diagnos
 
 /** Link reference definitions, for the links written [text][label] (§7.1). */
 function visitDefinitions(root: Root, definitions: Map<string, string>): void {
+  // In reading order, so the first definition of a label wins, as in CommonMark.
   const stack: Nodes[] = [root];
   while (stack.length > 0) {
     const node = stack.pop()!;
     if (node.type === 'definition' && !definitions.has(node.identifier)) definitions.set(node.identifier, node.url);
-    if ('children' in node) stack.push(...node.children);
+    if ('children' in node) stack.push(...[...node.children].reverse());
   }
 }
 

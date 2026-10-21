@@ -30,6 +30,8 @@ const SEVERITY: Record<string, Severity> = {
   'embed-cycle': 'error',
   'embed-outside-composition': 'error',
   'markdown-image': 'error',
+  // Provisional: the limits of the resolved tree are not in the spec yet.
+  'tree-limit': 'error',
   'retired-chain': 'warning',
   'retired-cycle': 'error',
   'retired-successor-missing': 'error',
