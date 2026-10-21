@@ -511,3 +511,6 @@ punta la composizione) hanno avuto risposta: vedi i §1 e §3.
 26. Ok a tutti i tuoi suggerimenti. Unico dubbio: se voglio mettere un oggetto
     in mezzo a un testo, devo spezzare per forza il testo? O esiste un modo in
     linea di inserirlo?
+27. Ok, va bene così: per ora vietati. E forse ancora di più: anche nel caso
+    di un collegamento dentro al testo o di una formula, l'impaginazione finale
+    viene sempre da fuori e non da dentro.
