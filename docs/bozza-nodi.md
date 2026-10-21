@@ -505,3 +505,6 @@ punta la composizione) hanno avuto risposta: vedi i §1 e §3.
     come trattiamo la sua impaginazione? Non rischiamo di avere
     sovrapposizioni?
 24. Ok, confermo anche le proposte nuove.
+25. (Scritto alla sottosessione della specifica, sulla riga `---` che la bozza
+    vietava.) Ammettila come linea, con le righe vuote dal formatter se teniamo
+    md.
