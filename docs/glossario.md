@@ -218,7 +218,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `hyperlink` | collegamento | Tipo in linea del contenuto: un collegamento a un URL o un `id reference` in linea; uno `stylesheet` lo può colpire (deciso il 2026-10-21, nome proposto) | concetto deciso, nome proposto | link, anchor |
 | `emphasis` | enfasi | Tipo in linea del contenuto, scritto con un asterisco o un trattino basso; uno `stylesheet` lo può colpire | concetto deciso, nome proposto | italic |
 | `strong` | forte | Tipo in linea del contenuto, scritto con due asterischi; uno `stylesheet` lo può colpire | concetto deciso, nome proposto | bold |
-| `inline code` | codice in linea | Tipo in linea del contenuto, fra backtick; uno `stylesheet` lo può colpire | concetto deciso, nome proposto | code span, monospace |
+| `inline code` | codice in linea | Tipo in linea del contenuto, fra backtick, tranne quello che comincia con il segno di uguale, che è una `math line` (proposta); uno `stylesheet` lo può colpire | concetto deciso, nome proposto | code span, monospace |
 | `heading` | titolo Markdown | Titolo scritto con il cancelletto nel corpo; ammesso solo nello `scratch`, distinto dal `title` | proposto | title |
 | `deck` | presentazione | `composition` fatta di `slide` | concetto deciso, nome proposto | presentation, slides |
 | `webpage` | pagina web | `composition` pubblicata come pagina HTML | proposto | page, site |
@@ -227,9 +227,9 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `stylesheet` | impaginazione | Regole nel sottoinsieme di CSS della specifica | concetto deciso, nome proposto | layout, style, theme |
 | `class` | aggancio | Nome su un `node` che si vede, a cui si agganciano le regole dello `stylesheet` | concetto deciso, nome proposto | tag, style |
 | `base stylesheet` | foglio di partenza | Foglio fisso della specifica, applicato dal `runtime` prima degli `stylesheet` del documento (deciso il 2026-10-21) | concetto deciso, nome proposto | default style, user agent stylesheet |
-| `embed class` | class sull'embed | `class` data a un oggetto da una `composition`, per come appare lì; vince su quella dell'oggetto (deciso il 2026-10-21); nel `front matter` si scrive embed-class, forma da decidere | concetto deciso, nome proposto | override, local class |
-| `number notation` | notazione dei numeri | Proprietà personalizzata CSS (--number-notation) che sceglie fra la forma piena e la forma breve dei numeri a schermo | proposto | number format, compact |
-| `target id` | id nel canvas | Chiave proposta per scrivere l'`id` in un nodo del `canvas file` (targetId), se si verificherà che JSON Canvas la conserva | proposto | node ref, ref |
+| `embed class` | class sull'embed | `class` data a un oggetto da una `composition`, per come appare lì; vince su quella dell'oggetto (deciso il 2026-10-21); dove e in che forma si scrive è aperto (specifica §0.15) | concetto deciso, nome proposto | override, local class |
+| `number notation` | notazione dei numeri | Proprietà personalizzata CSS (--number-notation) che sceglie fra la forma piena (standard) e la forma breve (compact) dei numeri a schermo; la notazione scientifica è una forma del numero nel file, non un valore della proprietà | proposto | number format, compact |
+| `target id` | id nel canvas | Chiave proposta per scrivere l'`id` in un nodo del `canvas file` (targetId), se JSON Canvas ammette una chiave in più e gli altri programmi la conservano | proposto | node ref, ref |
 | `computed style` | stile calcolato | Valori finali delle proprietà di un `node`, calcolati dal `runtime` e scritti nel `resolved tree` (deciso il 2026-10-21) | concetto deciso, nome proposto | style, styles |
 | `template` | template | Forma riutilizzabile senza contenuto: `composition` o `stylesheet`; orientamento di Alessio: anche il modo di vedere una `collection`, che un `chart` applica a dati diversi; distribuibile come `extension` | proposto | theme, preset |
 | `slide template` | schema di slide | Disposizione predefinita di una `slide`, come titolo e contenuto | proposto | layout, master |
