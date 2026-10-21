@@ -6,7 +6,7 @@ export type RawValue = { type: 'string'; value: string; plain: boolean } | { typ
 
 export interface YamlMap {
   entries: Array<[string, RawValue]>;
-  hasComment: boolean;
+  comments: number;
 }
 
 /** Splits a text file into front matter and body. The front matter is null when the file has none. */
@@ -32,18 +32,21 @@ function rawValue(node: unknown): RawValue {
   return { type: 'invalid' };
 }
 
-/** Parses a YAML mapping of strings and lists of strings; returns an error message for `syntax`. */
+/**
+ * Parses a YAML mapping of strings and lists of strings; returns an error message for `syntax`.
+ * Repeated keys are kept: the caller reports the second as `attribute-invalid`.
+ */
 export function parseYamlMap(source: string): YamlMap | { error: string } {
-  const document = parseDocument(source, { schema: 'failsafe', uniqueKeys: true });
+  const document = parseDocument(source, { schema: 'failsafe', uniqueKeys: false });
   if (document.errors.length > 0) return { error: document.errors[0]!.message };
-  const hasComment = Array.from(new Lexer().lex(source)).some((token) => CST.tokenType(token) === 'comment');
+  const comments = Array.from(new Lexer().lex(source)).filter((token) => CST.tokenType(token) === 'comment').length;
   const contents = document.contents as YamlNode | null;
-  if (contents === null) return { entries: [], hasComment };
+  if (contents === null) return { entries: [], comments };
   if (!isMap(contents)) return { error: 'il front matter non è una mappa' };
   const entries: Array<[string, RawValue]> = [];
   for (const pair of contents.items) {
     if (!isScalar(pair.key)) return { error: 'una chiave non è una stringa' };
     entries.push([String(pair.key.value), rawValue(pair.value)]);
   }
-  return { entries, hasComment };
+  return { entries, comments };
 }

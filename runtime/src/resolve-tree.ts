@@ -1,7 +1,7 @@
 // The resolution of §11.1: from the folder of a document to its resolved tree.
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { lstatSync, readdirSync, readFileSync } from 'node:fs';
 import { join, posix } from 'node:path';
-import type { Root, RootContent, PhrasingContent } from 'mdast';
+import type { Nodes, Paragraph, PhrasingContent, Root, RootContent, Text } from 'mdast';
 import { fromMarkdown } from 'mdast-util-from-markdown';
 import { gfmTableFromMarkdown } from 'mdast-util-gfm-table';
 import { gfmTable } from 'micromark-extension-gfm-table';
@@ -22,6 +22,7 @@ import {
 export const SPEC_VERSION = '0.1';
 
 const ID_FORM = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const LANG_FORM = /^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{1,8})*$/;
 const CLASS_FORM = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
 const RETIRED_IDS_FILE = 'retired-ids.yaml';
 
@@ -41,8 +42,8 @@ function knowsAttribute(kind: string, key: string): boolean {
     case 'lang': return VISIBLE_KINDS.has(kind) || kind === 'document';
     case 'title': return kind === 'chapter' || kind === 'article';
     case 'asset': return kind === 'image' || kind === 'canvas-file';
+    case 'associations': return ['concept', 'text', 'image', 'scratch', 'canvas-file'].includes(kind);
     case 'stylesheet': return kind === 'article' || kind === 'chapter';
-    case 'associations': return ['concept', 'text', 'image', 'scratch'].includes(kind);
     case 'spec-version': return kind === 'document';
     default: return false;
   }
@@ -57,9 +58,11 @@ interface SourceNode {
   directive: boolean;
   /** Attributes as written, without `id` and `kind`; null when the file does not read (`syntax`). */
   attributes: Array<[string, RawValue]> | null;
-  hasYamlComment: boolean;
+  /** How many YAML comments the front matter has: each is `attribute-invalid`. */
+  yamlComments: number;
   source: string;
   markdown?: Root;
+  definitions: Map<string, string>;
   stylesheet?: ParsedStylesheet;
   // Filled while the node is checked.
   classes: string[];
@@ -95,30 +98,66 @@ interface BuildContext {
   root: RootState | null;
   /** The depth of the enclosing titled chapters, inside a root composition. */
   depth: number;
-  /** The chapters being expanded, to stop at an `embed-cycle`. */
-  chapters: string[];
+  /** The nodes being expanded, to stop at an `embed-cycle`. */
+  expanding: string[];
+  definitions: Map<string, string>;
 }
 
 export interface ResolvedTree {
-  nodes: Array<Record<string, unknown>>;
+  nodes?: Array<Record<string, unknown>>;
   associations?: Array<{ ids: [string, string]; declaredIn: string[] }>;
   diagnostics?: Diagnostic[];
   document?: { id?: string; file: string; attributes?: Record<string, unknown> };
 }
 
-function listFiles(folder: string, prefix = ''): string[] {
+const utf8 = new TextDecoder('utf-8', { fatal: true });
+
+/**
+ * Lists the regular files of the folder, without the names that start with a
+ * dot. Symbolic links are not followed, so nothing outside the folder is read
+ * (reading). A name that is not UTF-8 goes in `unreadable`.
+ */
+function listFiles(folder: string, prefix = '', unreadable: string[] = []): { files: string[]; unreadable: string[] } {
   const files: string[] = [];
-  for (const name of readdirSync(join(folder, prefix)).sort(compareCodePoints)) {
+  const names: string[] = [];
+  for (const raw of readdirSync(join(folder, prefix), { encoding: 'buffer' })) {
+    try {
+      names.push(utf8.decode(raw));
+    } catch {
+      unreadable.push(prefix === '' ? raw.toString('utf8') : `${prefix}/${raw.toString('utf8')}`);
+    }
+  }
+  for (const name of names.sort(compareCodePoints)) {
     if (name.startsWith('.')) continue;
     const path = prefix === '' ? name : `${prefix}/${name}`;
-    if (statSync(join(folder, path)).isDirectory()) files.push(...listFiles(folder, path));
-    else files.push(path);
+    const stat = lstatSync(join(folder, path));
+    if (stat.isDirectory()) files.push(...listFiles(folder, path, unreadable).files);
+    else if (stat.isFile()) files.push(path);
   }
-  return files;
+  return { files, unreadable };
 }
 
-function readText(path: string): string {
-  return readFileSync(path, 'utf8').replace(/^﻿/, '').replace(/\r\n?/g, '\n');
+/** Reads a file as UTF-8, also with BOM and CRLF; null when it does not read. */
+function readText(path: string): string | null {
+  try {
+    return utf8.decode(readFileSync(path)).replace(/^﻿/, '').replace(/\r\n?/g, '\n');
+  } catch {
+    return null;
+  }
+}
+
+/** Deeper nesting than this is `syntax`: the tree is built by recursion (reading). */
+const MAX_NESTING = 100;
+
+function nestingDepth(root: Nodes): number {
+  let deepest = 0;
+  const stack: Array<[Nodes, number]> = [[root, 0]];
+  while (stack.length > 0) {
+    const [node, depth] = stack.pop()!;
+    deepest = Math.max(deepest, depth);
+    if ('children' in node) for (const child of node.children) stack.push([child, depth + 1]);
+  }
+  return deepest;
 }
 
 function parseMarkdown(text: string): Root {
@@ -143,7 +182,8 @@ const isComment = (node: RootContent): boolean =>
 
 export function resolveTree(folder: string): ResolvedTree {
   const diagnostics: Diagnostic[] = [];
-  const files = listFiles(folder);
+  const { files, unreadable } = listFiles(folder);
+  for (const file of unreadable) report(diagnostics, 'syntax', file, undefined, 'rinomina il file con un nome in UTF-8');
   const fileSet = new Set(files);
   const nodes: SourceNode[] = [];
   let retiredFileText: string | null = null;
@@ -151,16 +191,18 @@ export function resolveTree(folder: string): ResolvedTree {
   // Steps 1 and 2: list the files, separate source and asset, read each source.
   for (const file of files) {
     const base = posix.basename(file);
-    if (file === RETIRED_IDS_FILE) {
-      retiredFileText = readText(join(folder, file));
-      continue;
-    }
-    if (base.endsWith('.stylesheet.css')) {
-      nodes.push(readStylesheetNode(file, readText(join(folder, file)), diagnostics));
-      continue;
-    }
     const match = /^.+\.([^.]+)\.md$/.exec(base);
-    if (match) nodes.push(readTextNode(file, match[1]!, readText(join(folder, file)), diagnostics));
+    const isStylesheet = base.endsWith('.stylesheet.css');
+    if (file !== RETIRED_IDS_FILE && !isStylesheet && !match) continue;
+    const text = readText(join(folder, file));
+    if (text === null) {
+      report(diagnostics, 'syntax', file, undefined, 'salva il file in UTF-8');
+      if (file !== RETIRED_IDS_FILE) nodes.push(unreadableNode(file, isStylesheet ? 'stylesheet' : match![1]!));
+      continue;
+    }
+    if (file === RETIRED_IDS_FILE) retiredFileText = text;
+    else if (isStylesheet) nodes.push(readStylesheetNode(file, text, diagnostics));
+    else nodes.push(readTextNode(file, match![1]!, text, diagnostics));
   }
 
   const idIndex = new Map<string, SourceNode[]>();
@@ -231,12 +273,11 @@ export function resolveTree(folder: string): ResolvedTree {
       const words = slugify(node.source.trim().split(/\s+/).slice(0, 4).join(' '));
       const proposal = ID_FORM.test(fromName) && !idIndex.has(fromName) && !retired.has(fromName) ? fromName : proposeId(words || 'object');
       report(diagnostics, 'id-missing', node.file, undefined, `id: ${proposal}`);
-    } else if (!ID_FORM.test(node.id)) {
-      report(diagnostics, 'id-invalid', node.file, node.id, proposeId(slugify(node.id) || 'object'));
-    } else if ((idIndex.get(node.id)?.length ?? 0) > 1) {
-      report(diagnostics, 'id-duplicate', node.file, node.id, 'dai un id nuovo a una delle copie');
-    } else if (retired.has(node.id)) {
-      report(diagnostics, 'id-reused', node.file, node.id, 'scegli un id nuovo');
+    } else {
+      // Every code that applies, one per occurrence (§11.2).
+      if (!ID_FORM.test(node.id)) report(diagnostics, 'id-invalid', node.file, node.id, proposeId(slugify(node.id) || 'object'));
+      if ((idIndex.get(node.id)?.length ?? 0) > 1) report(diagnostics, 'id-duplicate', node.file, node.id, 'dai un id nuovo a una delle copie');
+      if (retired.has(node.id)) report(diagnostics, 'id-reused', node.file, node.id, 'scegli un id nuovo');
     }
     if (node.kind !== node.extensionKind) {
       const stem = base.slice(0, base.lastIndexOf(`.${node.extensionKind}.`));
@@ -269,8 +310,9 @@ export function resolveTree(folder: string): ResolvedTree {
 
   /** Checks the attributes of a node and returns them as the tree writes them. */
   function checkAttributes(node: SourceNode): Record<string, unknown> {
-    const out: Record<string, unknown> = {};
-    if (node.hasYamlComment) {
+    // Keys come from the file: no prototype, so `__proto__` is a key like the others.
+    const out: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
+    for (let i = 0; i < node.yamlComments; i++) {
       report(diagnostics, 'attribute-invalid', node.file, undefined, 'togli il commento YAML e usa <!-- -->');
     }
     const seen = new Set<string>();
@@ -281,13 +323,26 @@ export function resolveTree(folder: string): ResolvedTree {
         continue;
       }
       seen.add(name);
-      if (key === 'associations' && !node.directive && knowsAttribute(node.kind, key)) {
-        checkAssociations(node, raw);
+      if (key === 'associations') {
+        // The same rule on both sides: a kind that admits no association gives association-kind.
+        if (ASSOCIATION_FORBIDDEN_KINDS.has(node.kind)) {
+          for (const written of raw.type === 'list' ? raw.value : [key]) {
+            report(diagnostics, 'association-kind', node.file, written, `togli associations da ${node.kind}`);
+          }
+        } else if (node.directive || knowsAttribute(node.kind, key)) {
+          checkAssociations(node, raw);
+        } else {
+          report(diagnostics, 'attribute-unknown', node.file, key);
+        }
         continue;
       }
       if (node.directive) {
-        if (key === 'associations') checkAssociations(node, raw);
-        else out[name] = genericValue(node, key, raw);
+        // The attributes of a directive hold (§10): its title and lang are used too.
+        const value = genericValue(node, key, raw);
+        if (key === 'tags' && Array.isArray(value) && value.length === 0) continue;
+        out[name] = value;
+        if (typeof value === 'string' && key === 'title') node.title = value;
+        if (typeof value === 'string' && key === 'lang' && LANG_FORM.test(value)) node.lang = value;
         continue;
       }
       if (!knowsAttribute(node.kind, key)) {
@@ -333,19 +388,21 @@ export function resolveTree(folder: string): ResolvedTree {
             invalid(`scrivi ${key} come stringa`);
             break;
           }
-          if (key === 'lang' && !/^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{1,8})*$/.test(raw.value)) {
+          // A value written exactly "[[id]]" is an id reference here too (§10).
+          const value = genericValue(node, key, raw) as string;
+          if (key === 'lang' && !LANG_FORM.test(value)) {
             invalid('usa un tag BCP 47, per esempio it');
             break;
           }
-          out[name] = raw.value;
-          if (key === 'lang') node.lang = raw.value;
-          if (key === 'title') node.title = raw.value;
-          if (key === 'asset') node.asset = raw.value;
+          out[name] = value;
+          if (key === 'lang') node.lang = value;
+          if (key === 'title') node.title = value;
+          if (key === 'asset') node.asset = value;
         }
       }
     }
     for (const key of Object.keys(out)) if (out[key] === undefined) delete out[key];
-    return out;
+    return { ...out };
   }
 
   // Step 5: the union of the associations.
@@ -387,18 +444,21 @@ export function resolveTree(folder: string): ResolvedTree {
     }
     if (node.kind !== 'canvas-file') return;
     // JSON Canvas names files by their path within the system: here, the document root (§0.11).
+    const invalid = () => report(diagnostics, 'syntax', node.file, undefined, `correggi il JSON Canvas di ${node.asset}`);
     let canvas: unknown;
     try {
-      canvas = JSON.parse(readText(join(folder, path)));
+      canvas = JSON.parse(readText(join(folder, path)) ?? '');
     } catch {
-      report(diagnostics, 'syntax', node.file, undefined, `correggi il JSON di ${node.asset}`);
-      return;
+      return invalid();
     }
-    const canvasNodes = (canvas as { nodes?: unknown }).nodes;
-    for (const entry of Array.isArray(canvasNodes) ? canvasNodes : []) {
-      const file = (entry as { type?: unknown; file?: unknown }).file;
-      if ((entry as { type?: unknown }).type === 'file' && typeof file === 'string' && !fileSet.has(file)) {
-        report(diagnostics, 'canvas-path-unresolved', node.file, file, 'correggi il percorso o togli il nodo dal canvas');
+    const isObject = (value: unknown): value is Record<string, unknown> =>
+      typeof value === 'object' && value !== null && !Array.isArray(value);
+    if (!isObject(canvas)) return invalid();
+    const canvasNodes = canvas.nodes ?? [];
+    if (!Array.isArray(canvasNodes) || !canvasNodes.every(isObject)) return invalid();
+    for (const entry of canvasNodes) {
+      if (entry.type === 'file' && typeof entry.file === 'string' && !fileSet.has(entry.file)) {
+        report(diagnostics, 'canvas-path-unresolved', node.file, entry.file, 'correggi il percorso o togli il nodo dal canvas');
       }
     }
   }
@@ -415,9 +475,11 @@ export function resolveTree(folder: string): ResolvedTree {
   }
 
   /** An `embed` is `![[id]]` alone in a paragraph, with the class sign of §0.15 if any. */
-  function standaloneEmbed(node: SourceNode, paragraph: RootContent): CompositionItem | null {
-    const text = node.source.slice(paragraph.position!.start.offset, paragraph.position!.end.offset);
-    const match = /^!\[\[([^\]\n]*)\]\](.*)$/.exec(text);
+  function standaloneEmbed(node: SourceNode, paragraph: Paragraph): CompositionItem | null {
+    // The content CommonMark gives: trailing spaces removed, a soft line break is a space.
+    if (!paragraph.children.every((child) => child.type === 'text')) return null;
+    const text = paragraph.children.map((child) => (child as Text).value).join('').replace(/\n/g, ' ');
+    const match = /^!\[\[([^\]]*)\]\](.*)$/.exec(text);
     if (!match) return null;
     const id = match[1]!;
     const rest = match[2]!;
@@ -492,6 +554,11 @@ export function resolveTree(folder: string): ResolvedTree {
         return [value.startsWith('= ') ? buildMathLine(value.slice(2), context) : element('inlineCode', {}, [value])];
       }
       case 'link': return [element('hyperlink', { url: node.url }, buildInlines(node.children, context))];
+      case 'linkReference': {
+        const url = context.definitions.get(node.identifier);
+        if (url !== undefined) return [element('hyperlink', { url }, buildInlines(node.children, context))];
+        return [sourceOf(node, context)];
+      }
       case 'break': return [element('break')];
       case 'html':
         if (/^<!--[\s\S]*-->$/.test(node.value)) return [];
@@ -622,8 +689,8 @@ export function resolveTree(folder: string): ResolvedTree {
       report(context.sink, 'embed-kind', context.file, resolution.id, fix);
       return unresolved(resolution.id);
     }
-    // A chapter already being expanded closes an embed-cycle, reported on the chapter itself.
-    if (context.chapters.includes(resolution.id)) return unresolved(resolution.id);
+    // A node already being expanded closes an embed-cycle, reported on the nodes of the cycle.
+    if (context.expanding.includes(resolution.id)) return unresolved(resolution.id);
 
     const attributes: Record<string, unknown> = { id: resolution.id, kind: target.kind };
     const lang = effectiveLang(target);
@@ -641,10 +708,10 @@ export function resolveTree(folder: string): ResolvedTree {
       lang,
       root: context.root,
       depth: context.depth,
-      chapters: context.chapters,
+      expanding: [...context.expanding, resolution.id],
+      definitions: target.definitions,
     };
     if (target.kind === 'chapter') {
-      inner.chapters = [...context.chapters, resolution.id];
       if (context.root && target.title !== undefined) {
         const depth = context.depth + 1;
         const counters = context.root.chapterCounters.slice(0, depth);
@@ -667,15 +734,16 @@ export function resolveTree(folder: string): ResolvedTree {
     return embed;
   }
 
-  function chapterCycles(): Set<string> {
+  /** The files of the nodes that contain themselves through embeds of any kind (`embed-cycle`). */
+  function embedCycles(): Set<string> {
     const inCycle = new Set<string>();
     const embedsOf = (node: SourceNode): SourceNode[] =>
       (node.items ?? []).flatMap((item) => {
         if (item.type !== 'embed') return [];
         const resolution = resolveId(item.id);
-        return 'node' in resolution && resolution.node.kind === 'chapter' ? [resolution.node] : [];
+        return 'node' in resolution && !EMBED_FORBIDDEN_KINDS.has(resolution.node.kind) ? [resolution.node] : [];
       });
-    for (const start of nodes.filter((node) => node.kind === 'chapter')) {
+    for (const start of nodes.filter((node) => node.items)) {
       const stack = [...embedsOf(start)];
       const seen = new Set<SourceNode>();
       while (stack.length > 0) {
@@ -712,7 +780,7 @@ export function resolveTree(folder: string): ResolvedTree {
     if (node.markdown && (COMPOSITION_KINDS.has(node.kind) || node.directive)) node.items = compositionItems(node);
     checkAsset(node);
   }
-  const cycles = chapterCycles();
+  const cycles = embedCycles();
 
   for (const node of nodes) {
     if (node.kind === 'document') {
@@ -735,7 +803,8 @@ export function resolveTree(folder: string): ResolvedTree {
         lang: effectiveLang(node),
         root: null,
         depth: 0,
-        chapters: node.kind === 'chapter' && node.id !== undefined ? [node.id] : [],
+        expanding: node.id === undefined ? [] : [node.id],
+        definitions: node.definitions,
       };
       if (node.kind === 'text') checkTextBlocks(node);
       let content = buildContent(node, context);
@@ -754,6 +823,7 @@ export function resolveTree(folder: string): ResolvedTree {
   }
 
   function checkDocument(node: SourceNode, isTheDocument: boolean): void {
+    if (node.attributes === null) return;
     if ((node.markdown?.children ?? []).some((child) => !isComment(child))) {
       report(diagnostics, 'document-content', node.file, undefined, 'svuota il corpo del document file');
     }
@@ -775,7 +845,8 @@ export function resolveTree(folder: string): ResolvedTree {
       lang: effectiveLang(node),
       root,
       depth: 0,
-      chapters: [],
+      expanding: node.id === undefined ? [] : [node.id],
+      definitions: node.definitions,
     });
     // A first pass finds the number of every embed, so a number slot can point forward.
     const first: RootState = { chapterCounters: [], images: 0, firstNumbers: new Map() };
@@ -784,38 +855,44 @@ export function resolveTree(folder: string): ResolvedTree {
 
     const stylesheetId = attributesOf.get(node)?.stylesheet;
     const resolution = typeof stylesheetId === 'string' ? resolveId(stylesheetId) : null;
-    const sheet = resolution && 'node' in resolution && resolution.node.kind === 'stylesheet' ? resolution.node.stylesheet ?? null : null;
+    const sheetNode = resolution && 'node' in resolution && resolution.node.kind === 'stylesheet' ? resolution.node : null;
+    const sheet = sheetNode?.stylesheet ?? null;
+    // An em length out of decimal128 shows only once the cascade runs.
+    const outOfRange = (property: string) => {
+      const key = `stylesheet-unsupported\0${sheetNode!.file}\0${property}`;
+      if (reportedOnce.has(key)) return;
+      reportedOnce.add(key);
+      report(diagnostics, 'stylesheet-unsupported', sheetNode!.file, property);
+    };
     const rootRule = computeStyle({ type: 'root', classes: [], embedClasses: [] }, new Map(), null);
-    const rootFinal = computeStyle({ type: 'root', classes: node.classes, embedClasses: [] }, rootRule, sheet);
+    const rootFinal = computeStyle({ type: 'root', classes: node.classes, embedClasses: [] }, rootRule, sheet, outOfRange);
     const difference = styleDifference(rootFinal, rootRule);
     if (Object.keys(difference).length > 0) output.computedStyle = difference;
-    applyStyles(content, rootFinal, sheet);
+    applyStyles(content, rootFinal, sheet, outOfRange);
     return content;
   }
 
-  function applyStyles(children: Child[], parent: ComputedStyle, sheet: ParsedStylesheet | null): void {
+  function applyStyles(children: Child[], parent: ComputedStyle, sheet: ParsedStylesheet | null, outOfRange: (property: string) => void): void {
     for (const child of children) {
       if (typeof child === 'string') continue;
       const type = child.type === 'title' ? `title-${Math.min(child.meta?.depth ?? 1, 3)}` : child.type;
       const expected = computeStyle({ type, classes: [], embedClasses: [] }, parent, null);
-      const final = computeStyle({ type, classes: child.meta?.classes ?? [], embedClasses: child.meta?.embedClasses ?? [] }, parent, sheet);
+      const final = computeStyle({ type, classes: child.meta?.classes ?? [], embedClasses: child.meta?.embedClasses ?? [] }, parent, sheet, outOfRange);
       const difference = styleDifference(final, expected);
       if (Object.keys(difference).length > 0) child.attributes.computedStyle = difference;
       if (child.type === 'mathLine' && child.meta?.value && numberNotation(final) === 'compact') {
         child.attributes.display = displayString(child.meta.value, child.meta.lang, 'compact');
       }
-      applyStyles(child.children, final, sheet);
+      applyStyles(child.children, final, sheet, outOfRange);
     }
   }
 
   return finish();
 
   function finish(): ResolvedTree {
-    const result: ResolvedTree = {
-      nodes: outputs.sort(
-        (a, b) => compareCodePoints(String(a.id ?? ''), String(b.id ?? '')) || compareCodePoints(String(a.file), String(b.file)),
-      ),
-    };
+    const result: ResolvedTree = {};
+    outputs.sort((a, b) => compareCodePoints(String(a.id ?? ''), String(b.id ?? '')) || compareCodePoints(String(a.file), String(b.file)));
+    if (outputs.length > 0) result.nodes = outputs;
     const associations = [...pairs.values()]
       .map((pair) => ({ ids: pair.ids, declaredIn: pair.declaredIn.sort(compareCodePoints) }))
       .sort((a, b) => compareCodePoints(a.ids[0], b.ids[0]) || compareCodePoints(a.ids[1], b.ids[1]));
@@ -826,6 +903,11 @@ export function resolveTree(folder: string): ResolvedTree {
   }
 }
 
+/** A source that does not read: it has only its `syntax` error. */
+function unreadableNode(file: string, extensionKind: string): SourceNode {
+  return { file, extensionKind, kind: extensionKind, directive: false, attributes: null, yamlComments: 0, source: '', classes: [], definitions: new Map() };
+}
+
 function readTextNode(file: string, extensionKind: string, text: string, diagnostics: Diagnostic[]): SourceNode {
   const node: SourceNode = {
     file,
@@ -833,7 +915,8 @@ function readTextNode(file: string, extensionKind: string, text: string, diagnos
     kind: extensionKind,
     directive: false,
     attributes: [],
-    hasYamlComment: false,
+    yamlComments: 0,
+    definitions: new Map(),
     source: text,
     classes: [],
   };
@@ -850,7 +933,7 @@ function readTextNode(file: string, extensionKind: string, text: string, diagnos
       node.attributes = null;
       return node;
     }
-    node.hasYamlComment = map.hasComment;
+    node.yamlComments = map.comments;
     readIdentity(node, map.entries, diagnostics);
   } else {
     readIdentity(node, [], diagnostics);
@@ -858,8 +941,24 @@ function readTextNode(file: string, extensionKind: string, text: string, diagnos
   // The body keeps its offsets in the file: the front matter lines are blanked, not cut.
   const bodyStart = text.length - split.body.length;
   node.source = text.slice(0, bodyStart).replace(/[^\n]/g, ' ') + split.body;
-  node.markdown = parseMarkdown(node.source);
+  const markdown = parseMarkdown(node.source);
+  if (nestingDepth(markdown) > MAX_NESTING) {
+    report(diagnostics, 'syntax', file, undefined, `annida meno di ${MAX_NESTING} livelli`);
+    return node;
+  }
+  node.markdown = markdown;
+  visitDefinitions(markdown, node.definitions);
   return node;
+}
+
+/** Link reference definitions, for the links written [text][label] (§7.1). */
+function visitDefinitions(root: Root, definitions: Map<string, string>): void {
+  const stack: Nodes[] = [root];
+  while (stack.length > 0) {
+    const node = stack.pop()!;
+    if (node.type === 'definition' && !definitions.has(node.identifier)) definitions.set(node.identifier, node.url);
+    if ('children' in node) stack.push(...node.children);
+  }
 }
 
 function readStylesheetNode(file: string, text: string, diagnostics: Diagnostic[]): SourceNode {
@@ -870,7 +969,8 @@ function readStylesheetNode(file: string, text: string, diagnostics: Diagnostic[
     kind: 'stylesheet',
     directive: false,
     attributes: [],
-    hasYamlComment: false,
+    yamlComments: 0,
+    definitions: new Map(),
     source: text,
     stylesheet,
     classes: [],
@@ -885,7 +985,7 @@ function readStylesheetNode(file: string, text: string, diagnostics: Diagnostic[
     node.attributes = null;
     return node;
   }
-  node.hasYamlComment = map.hasComment;
+  node.yamlComments = map.comments;
   readIdentity(node, map.entries, diagnostics);
   return node;
 }
@@ -894,17 +994,21 @@ function readStylesheetNode(file: string, text: string, diagnostics: Diagnostic[
 function readIdentity(node: SourceNode, entries: Array<[string, RawValue]>, diagnostics: Diagnostic[]): void {
   const attributes: Array<[string, RawValue]> = [];
   let kindSeen = false;
+  let idSeen = false;
   for (const [key, value] of entries) {
     if (key === 'id' || key === 'kind') {
+      if (key === 'id' ? idSeen : kindSeen) {
+        report(diagnostics, 'attribute-invalid', node.file, key, `togli ${key}: ripete un'altra chiave`);
+        continue;
+      }
+      if (key === 'id') idSeen = true;
+      else kindSeen = true;
       if (value.type !== 'string') {
         report(diagnostics, 'attribute-invalid', node.file, key, `scrivi ${key} come stringa`);
         continue;
       }
       if (key === 'id') node.id = value.value;
-      else {
-        node.kind = value.value;
-        kindSeen = true;
-      }
+      else node.kind = value.value;
       continue;
     }
     attributes.push([key, value]);

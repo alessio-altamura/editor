@@ -10,6 +10,8 @@ export const BINARY_NAME = 'doc-runtime';
 const EXIT_OK = 0;
 const EXIT_ERRORS = 1;
 const EXIT_USAGE = 2;
+/** Provisional: an internal error of the runtime, with the message on stderr. */
+const EXIT_INTERNAL = 3;
 
 const HELP = `${BINARY_NAME} — runtime del documento, spec-version ${SPEC_VERSION} (bozza)
 
@@ -25,9 +27,11 @@ Codici di uscita:
   0  nessun errore (gli avvisi sono ammessi)
   1  l'albero ha almeno un diagnostic con severity "error"
   2  uso sbagliato o cartella che non si legge; il messaggio va su stderr
+  3  errore interno del runtime, senza albero; il messaggio va su stderr
+     (provvisorio)
 
-Output: un oggetto JSON con "nodes", e se non sono vuoti "associations",
-"diagnostics" e "document" (docs/specifica.md, §11.3). Ogni diagnostic ha
+Output: un oggetto JSON con le liste "nodes", "associations" e "diagnostics",
+ciascuna solo se non è vuota, e "document" (docs/specifica.md, §11.3). Ogni diagnostic ha
 severity, code, file e, secondo il codice, target e fix; ogni errore ha un fix.
 `;
 
@@ -58,4 +62,9 @@ function main(args: string[]): number {
   return tree.diagnostics?.some((d) => d.severity === 'error') ? EXIT_ERRORS : EXIT_OK;
 }
 
-process.exitCode = main(process.argv.slice(2));
+try {
+  process.exitCode = main(process.argv.slice(2));
+} catch (error) {
+  process.stderr.write(`${BINARY_NAME}: errore interno: ${error instanceof Error ? error.stack ?? error.message : String(error)}\n`);
+  process.exitCode = EXIT_INTERNAL;
+}

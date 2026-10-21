@@ -10,6 +10,7 @@ export const Decimal = DecimalJs.clone({
 });
 export type Decimal = InstanceType<typeof Decimal>;
 
+const MAX_PARENTHESES = 100;
 const E_MIN = -6143;
 const E_MAX = 6144;
 
@@ -53,15 +54,15 @@ interface LangFormat {
 }
 
 /** The language table of §0.4, from CLDR 48. Compact suffixes for 1e3, 1e6, 1e9, 1e12. */
-const LANGS: Record<string, LangFormat> = {
-  it: { decimal: ',', group: '.', minimumGroupingDigits: 2, compact: ['K', ' Mln', ' Mld', ' Bln'] },
-  en: { decimal: '.', group: ',', minimumGroupingDigits: 1, compact: ['K', 'M', 'B', 'T'] },
-};
+const LANGS: ReadonlyMap<string, LangFormat> = new Map([
+  ['it', { decimal: ',', group: '.', minimumGroupingDigits: 2, compact: ['K', '\u00a0Mln', '\u00a0Mld', '\u00a0Bln'] }],
+  ['en', { decimal: '.', group: ',', minimumGroupingDigits: 1, compact: ['K', 'M', 'B', 'T'] }],
+]);
 
 /** Looks up a BCP 47 tag: the exact row first, then the language without region. */
 export function langFormat(lang: string): LangFormat | undefined {
   const tag = lang.toLowerCase();
-  return LANGS[tag] ?? LANGS[tag.split('-')[0]!];
+  return LANGS.get(tag) ?? LANGS.get(tag.split('-')[0]!);
 }
 
 function localize(plain: string, format: LangFormat | undefined): string {
@@ -150,6 +151,8 @@ export function evaluateMathLine(expression: string): MathLineResult {
     }
     return value;
   };
+  // Deep parentheses make the line invalid instead of exhausting the stack (reading).
+  let nesting = 0;
   const parseFactor = (): Decimal => {
     let negative = false;
     if (tokens[position]?.text === '-') {
@@ -161,7 +164,9 @@ export function evaluateMathLine(expression: string): MathLineResult {
     if (token?.kind === 'number') {
       value = readDecimal(token.text) ?? fail();
     } else if (token?.text === '(') {
+      if (++nesting > MAX_PARENTHESES) fail();
       value = parseExpression();
+      nesting--;
       if (tokens[position++]?.text !== ')') fail();
     } else {
       return fail();

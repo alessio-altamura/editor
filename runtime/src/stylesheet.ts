@@ -59,15 +59,16 @@ const OTHER_GENERIC_FAMILIES = new Set([
   'ui-serif', 'ui-sans-serif', 'ui-monospace', 'ui-rounded',
 ]);
 /** Type selectors a document stylesheet may use, and the content type each one hits. */
-const DOCUMENT_TYPE_SELECTORS: Record<string, string> = {
-  'hyperlink': 'hyperlink',
-  'emphasis': 'emphasis',
-  'strong': 'strong',
-  'inline-code': 'inlineCode',
-  'title-1': 'title-1',
-  'title-2': 'title-2',
-  'title-3': 'title-3',
-};
+const DOCUMENT_TYPE_SELECTORS: ReadonlyMap<string, string> = new Map([
+  ['hyperlink', 'hyperlink'],
+  ['emphasis', 'emphasis'],
+  ['strong', 'strong'],
+  ['inline-code', 'inlineCode'],
+  ['title-1', 'title-1'],
+  ['title-2', 'title-2'],
+  ['title-3', 'title-3'],
+]);
+const FONT_WEIGHT_KEYWORDS: ReadonlyMap<string, string> = new Map([['normal', '400'], ['bold', '700']]);
 const CLASS_SELECTOR = /^(?:\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*)+$/;
 
 /** Replaces comments with a space, leaving strings alone. */
@@ -201,7 +202,7 @@ function parseValue(property: string, text: string): SpecifiedValue | null {
     case 'margin-left':
       return parseLength(text, true, false);
     case 'font-weight': {
-      const named = { normal: '400', bold: '700' }[text.toLowerCase()];
+      const named = FONT_WEIGHT_KEYWORDS.get(text.toLowerCase());
       if (named !== undefined) return { type: 'number', value: new Decimal(named) };
       if (!/^[+]?(?:\d+\.\d+|\.\d+|\d+)(?:[eE][+-]?\d+)?$/.test(text)) return null;
       const value = readDecimal(text);
@@ -227,7 +228,7 @@ function isSubsetProperty(property: string): boolean {
 
 function parseSelector(text: string, base: boolean): Selector | null {
   if (base) return /^[a-zA-Z][a-zA-Z0-9-]*$/.test(text) ? { classes: [], type: text } : null;
-  const type = DOCUMENT_TYPE_SELECTORS[text];
+  const type = DOCUMENT_TYPE_SELECTORS.get(text);
   if (type !== undefined) return { classes: [], type };
   // A class outside the form of §3, such as .Nota, could never match: it is unsupported (reading).
   if (CLASS_SELECTOR.test(text)) return { classes: text.slice(1).split('.') };
@@ -371,7 +372,12 @@ function lengthValue(pt: DecimalValue): ComputedValue {
  * order, over the values inherited from its parent. Without `document`,
  * only the base stylesheet applies.
  */
-export function computeStyle(target: StyleTarget, parent: ComputedStyle, document: ParsedStylesheet | null): ComputedStyle {
+export function computeStyle(
+  target: StyleTarget,
+  parent: ComputedStyle,
+  document: ParsedStylesheet | null,
+  onOutOfRange?: (property: string) => void,
+): ComputedStyle {
   type Ranked = { key: number[]; declaration: Declaration };
   const ranked: Ranked[] = [];
   const sheets: Array<[ParsedStylesheet, number]> = [[BASE_STYLESHEET, 0]];
@@ -390,9 +396,12 @@ export function computeStyle(target: StyleTarget, parent: ComputedStyle, documen
       rule.declarations.forEach((declaration, index) => ranked.push({ key: [...best!, index], declaration }));
     });
   }
-  ranked.sort((a, b) => compareKeys(a.key, b.key));
-  const winners = new Map<string, SpecifiedValue>();
-  for (const { declaration } of ranked) winners.set(declaration.property, declaration.value);
+  // Highest first: for each property the first declaration whose value resolves wins.
+  ranked.sort((a, b) => compareKeys(b.key, a.key));
+  const candidates = new Map<string, SpecifiedValue[]>();
+  for (const { declaration } of ranked) {
+    candidates.set(declaration.property, [...(candidates.get(declaration.property) ?? []), declaration.value]);
+  }
 
   const style: ComputedStyle = new Map();
   for (const property of [...INHERITED_PROPERTIES, NUMBER_NOTATION]) {
@@ -401,21 +410,31 @@ export function computeStyle(target: StyleTarget, parent: ComputedStyle, documen
   }
   for (const property of MARGIN_PROPERTIES) style.set(property, lengthValue(new Decimal(0)));
 
+  const settle = (property: string, emBase: DecimalValue) => {
+    for (const value of candidates.get(property) ?? []) {
+      const resolved = resolveValue(value, emBase);
+      if (resolved) {
+        style.set(property, resolved);
+        return;
+      }
+      // An em length out of decimal128 is ignored, like an absolute one (§0.5).
+      onOutOfRange?.(property);
+    }
+  };
   // font-size first: `em` in the other properties refers to the node's own font-size.
-  const parentFontSize = parent.get('font-size')?.pt ?? new Decimal(0);
-  const fontSize = winners.get('font-size');
-  if (fontSize) style.set('font-size', resolveValue(fontSize, parentFontSize));
+  settle('font-size', parent.get('font-size')?.pt ?? new Decimal(0));
   const ownFontSize = style.get('font-size')?.pt ?? new Decimal(0);
-  for (const [property, value] of winners) {
-    if (property !== 'font-size') style.set(property, resolveValue(value, ownFontSize));
-  }
+  for (const property of candidates.keys()) if (property !== 'font-size') settle(property, ownFontSize);
   return style;
 }
 
-function resolveValue(value: SpecifiedValue, emBase: DecimalValue): ComputedValue {
+function resolveValue(value: SpecifiedValue, emBase: DecimalValue): ComputedValue | null {
   switch (value.type) {
     case 'length': return lengthValue(value.pt);
-    case 'em': return lengthValue(value.factor.times(emBase));
+    case 'em': {
+      const pt = value.factor.times(emBase);
+      return inDecimal128Range(pt) ? lengthValue(pt) : null;
+    }
     case 'number': return { text: plainString(value.value), number: value.value };
     case 'keyword': return { text: value.text };
   }
