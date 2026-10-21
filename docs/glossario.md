@@ -241,6 +241,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `numbering` | numerazione | Numeri di capitoli e immagini, calcolati dal `runtime` e scritti nel `resolved tree` (deciso il 2026-10-21); tabelle e figure più avanti | concetto deciso, nome proposto | counter |
 | `cross-ref` | riferimento numerato | Collegamento a un `node` numerato che mostra il numero con il `number slot` nel suo testo (deciso il 2026-10-21) | concetto deciso, nome proposto | link |
 | `number slot` | segnaposto del numero | Segnaposto nel testo di un collegamento che il `runtime` sostituisce con il numero del `node` collegato (deciso il 2026-10-21); la forma «{n}» è proposta | concetto deciso, nome proposto | placeholder, field |
+| `recursion` | ricorsione | Attributo opzionale con cui un oggetto si può contenere, o una formula richiamare sé stessa: un limite, infinito o una regola di uscita; senza, non si può (deciso il 2026-10-21) | concetto deciso, nome proposto | loop, self-embed |
 | `size` | dimensione | Larghezza e altezza di una `page` o di una `slide` | proposto | dimension |
 | `constraints` | layout a vincoli | Regole di allineamento e distribuzione al posto delle coordinate assolute; proposta non decisa | proposto | layout |
 
