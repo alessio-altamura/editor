@@ -267,8 +267,10 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
 
 0. **La bozza di specifica**, [specifica.md](specifica.md), del `core` e della
    classe 1 (2026-10-20/21). L'ha scritta una sottosessione su mandato
-   dell'orchestratore, in diciotto giri, controllati da revisori
-   indipendenti; i 35 esempi sono anche i test, e passano. Le decisioni di
+   dell'orchestratore, in diciannove giri, controllati da revisori
+   indipendenti; i 40 esempi sono anche i test. Il diciannovesimo giro ha
+   fissato i punti che il runtime aveva dovuto scegliere, e la ricorsione
+   decisa da Alessio (§0.17). Le decisioni di
    Alessio sono in contesto.md, voce «Sulla bozza di specifica». Non restano
    punti APERTI: il 2026-10-21 Alessio ha chiuso gli ultimi tre, uno per
    volta (il testo di un collegamento lo scrive chi scrive e il numero entra
@@ -284,6 +286,16 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
    rapporti dei revisori non sono nel repository: vanno ripetuti se servono.
    La sottosessione è session_01LJTSfiwiWSRkNwwAHxW4pz, ramo
    claude/spec-draft-level1.
+0b. **Il runtime da riga di comando**, ridotto al `resolved tree` (scelta di
+   Alessio del 2026-10-21, in contesto.md, «Ordine di lavoro»). Lo scrive in
+   TypeScript una sottosessione, session_01JKaTQnokvANPi9qrYbW1p9, sul ramo
+   claude/runtime-level1, con un test di conformità che legge gli esempi da
+   specifica.md. Il primo giro passava i 35 esempi di allora; un controllo
+   indipendente ha trovato crash e regole mancanti, corretti nel secondo
+   giro; poi va riallineato ai 40 esempi della bozza al diciannovesimo
+   giro. Il ramo non è ancora unito. Il nome del binario è provvisorio
+   (`doc-runtime`): il prodotto non ha ancora un nome, e due ricerche di
+   nomi da opere giapponesi poco note sono in corso.
 1. **La bozza dei tipi di nodo** del primo livello è iniziata in
    [bozza-nodi.md](bozza-nodi.md): è di Alessio, scritta insieme. Il
    2026-10-20 è diventata una sintesi del modello: il `concept` come unità di

@@ -279,6 +279,21 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     documento. Non deciso: un titolo diverso per un solo capitolo (il titolo
     prende le `class` del suo capitolo, `title-1.compatto`); l'orchestratore
     ha suggerito di rimandarlo, perché si aggiunge dopo senza rompere niente.
+  - Ricorsione (2026-10-21, Alessio, dopo che il controllo del runtime ha
+    trovato un oggetto che include sé stesso): un oggetto può contenere sé
+    stesso solo se lo abilita, con un limite, infinito, oppure una regola di
+    uscita; vale anche per le formule; se non la abilita, per quell'oggetto la
+    ricorsione non si può fare. Si abilita con «un tag in più opzionale».
+    Lettura dell'orchestratore, da confermare: è un attributo opzionale con
+    un valore nell'intestazione (per esempio `recursion: 3` o `recursion:
+    infinite`), non una voce di `tags`, perché porta un valore. Proposte
+    dell'orchestratore: per un'inclusione infinita il `resolved tree` segna il
+    punto in cui l'oggetto torna e chi disegna sceglie fino a che profondità
+    disegnare, come vuole l'impaginazione da fuori; per una formula infinita
+    il `runtime` tiene comunque un limite di sicurezza, perché il documento
+    deve risolversi in un tempo finito; la regola di uscita richiede le
+    formule, quindi arriva con loro; in un ciclo fra più oggetti ciascuno deve
+    abilitarla.
 
 ## Proposte non decise
 

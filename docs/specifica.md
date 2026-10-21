@@ -23,7 +23,7 @@ parole del glossario con un altro senso (`attributes`, `code`).
 - **APERTO**: un punto che blocca la classe 1, con le opzioni e i loro costi.
   Il 2026-10-21 Alessio ha chiuso quelli della bozza precedente, e i §0.1-
   §0.7 riportano le decisioni e le proposte che ne seguono; lo stesso giorno
-  ha deciso anche i §0.8-§0.16. Non restano punti APERTI.
+  ha deciso anche i §0.8-§0.17. Non restano punti APERTI.
 
 **Sintassi.** I file di testo sono Markdown con una sintassi nostra, come fa
 Obsidian: CommonMark, `[[id]]`, `![[id]]` con le `class` scritte accanto,
@@ -146,7 +146,9 @@ l'estensione e quindi chiede di rinominare insieme il `kind` scritto nel file
   dalle prime parole, mai un `id` vivo o ritirato. Quando il `runtime`
   riconcilia, applica il `fix` e scrive l'`id` nel file. Nel frattempo un
   riferimento a quel nome non si risolve.
-- **Il file.** Sta nella radice. È una mappa
+- **Il file.** Sta nella radice; un `retired-ids.yaml` in una sottocartella
+  è un `asset`. Chiavi e successori seguono la forma degli `id` (§3): uno
+  fuori forma è `id-invalid`, nel file `retired-ids.yaml`. È una mappa
   da ogni `id` ritirato al suo successore, o a `null` per un `id` cancellato,
   una riga per `id`, in ordine alfabetico. Chiavi e valori sono sempre
   stringhe, tranne `null`: in YAML `0123` si legge come un numero, e in
@@ -171,7 +173,9 @@ l'estensione e quindi chiede di rinominare insieme il `kind` scritto nel file
 - **Dopo un merge.** Possono comparire catene (`a: b` e `b: c`), cicli (`a:
   b` e `b: a`) e successori che non esistono. Codici: `retired-chain`
   (avviso, il `fix` riscrive `a: c`), `retired-cycle` (errore),
-  `retired-successor-missing` (errore). Nessuno ha ancora un esempio.
+  `retired-successor-missing` (errore). Un `id` i cui successori finiscono
+  in un ciclo è `retired-cycle`, non `retired-chain`. Nessuno ha ancora un
+  esempio.
 - **Costi.** Il file cresce sempre, e due rami che ritirano `id` vicini
   nell'ordine possono andare in conflitto nel merge: con una riga per `id` il
   conflitto è banale da risolvere.
@@ -232,13 +236,17 @@ punto (stessa voce). È un comportamento dell'`app`, non del formato.
   in notazione scientifica non usa separatori delle migliaia, quindi
   `1.200e3` è 1,2 × 10³, cioè 1200, e il `fix` «1200» lo cambierebbe in
   1200e3. Un
-  numero senza esponente con un punto seguito da esattamente tre cifre,
-  come `1.200`, si legge come decimale (1,2) e dà l'avviso
-  `math-line-ambiguous`, con un `fix` che propone `1200` (esempio 22).
-- **Precisione e arrotondamento.** Ogni operazione si calcola in decimale con
-  34 cifre significative, la precisione del formato decimal128 di IEEE
+  numero senza esponente, con la parte intera diversa da zero e un punto
+  seguito da esattamente tre cifre, come `1.200`, si legge come decimale (1,2) e dà l'avviso
+  `math-line-ambiguous`, con un `fix` che propone `1200` (esempio 22). `0.123`
+  non dà l'avviso: con lo zero davanti non può essere 123.
+- **Precisione e arrotondamento.** Ogni numero letto e ogni operazione si
+  calcolano in decimale con 34 cifre significative, la precisione del formato decimal128 di IEEE
   754-2019, e si arrotonda al pari (half-even). La somma, la differenza e il
-  prodotto di numeri brevi sono quindi esatti: `0.1 + 0.2` dà 0,3.
+  prodotto di numeri brevi sono quindi esatti: `0.1 + 0.2` dà 0,3. Un numero
+  con più di 34 cifre si arrotonda già quando si legge, così `= x` e
+  `= x + 0` danno lo stesso `value`; «letto esatto» vale solo per il
+  controllo dell'intervallo, sopra.
 - **Il valore** si scrive nel `resolved tree` con il punto, senza zeri finali
   dopo il punto e senza esponente: in decimale `1.200 * 2` dà 2.400, che si
   scrive `2.4` (prova con il modulo decimal di Python), e `1.2e6` si scrive
@@ -346,7 +354,8 @@ l'attributo HTML.
 
   Il resto è `stylesheet-unsupported`, con `target` il nome della
   proprietà; anche un valore fuori da decimal128 (§0.4), come
-  `margin-left: 1e6144in`, fa ignorare la dichiarazione. Restano fuori `line-height: normal`, che dipende dal font, le
+  `margin-left: 1e6144in`, o una lunghezza in `em` che, calcolata, ne esce,
+  fa ignorare la dichiarazione. Restano fuori `line-height: normal`, che dipende dal font, le
   parole chiave di `font-size` (`small`, `larger` e simili) e le parole
   chiave CSS-wide (`inherit`, `initial`, `unset`): con il significato di CSS
   darebbero valori che il `runtime` non sa calcolare, come il colore
@@ -487,7 +496,9 @@ specifica»]. Il confronto con le altre strade è nella nota
   `associations`) sono una proposta che estende la decisione «sole
   stringhe». `null` vale solo in `retired-ids.yaml`. Un valore che YAML leggerebbe come numero, booleano o
   data (`0123`, `no`, `2026-10-21`) va fra virgolette, e il `formatter` ce lo
-  mette.
+  mette. Un `front matter` senza la riga di chiusura, o con YAML non valido,
+  dà solo `syntax`: il nodo esce con `kind`, preso dall'estensione, e `file`,
+  e nient'altro.
 - **Il corpo** è CommonMark, più le tabelle di GFM
   ([gfm](https://github.github.com/gfm/)), più le regole del §7.4. In una
   cella di tabella il `|` di `[[id|testo]]` va scritto `\|`, come chiede la
@@ -498,6 +509,20 @@ specifica»]. Il confronto con le altre strade è nella nota
 - **`![[id]]`** da solo in un capoverso, con o senza le `class` accanto
   (§0.15), è un `embed` di blocco; **`[[id]]`**
   e **`[[id|testo]]`** in linea sono un `id reference` (§10).
+- **`[[…]]` prima di CommonMark.** Fuori dal codice in linea, `[[…]]` si
+  riconosce prima delle altre regole in linea: `[[x]]` resta un `id
+  reference` anche se il file definisce `[x]: url`. Il testo dopo `|` è
+  testo semplice, senza enfasi né codice: `[[calo-q3|*il calo*]]` mostra
+  «*il calo*».
+- **`![[id]]` fuori da una `composition`.** In un `text`, uno `scratch`, un
+  `concept` o un `image`, un `![[id]]` da solo in un capoverso è l'errore
+  `embed-outside-composition`, con `target` l'`id` e un `fix` che suggerisce
+  di spostarlo in una `composition`; nel `resolved tree` resta testo, come è
+  scritto (esempio 39). Una `directive` invece può avere `embed` (§10).
+- **Collegamenti per riferimento.** `[t][s]` con `[s]: url` è un
+  `hyperlink` con `url`, come un collegamento in linea. La definizione `[s]:
+  url` non è un blocco: non conta per `text-blocks` e non entra nel
+  `resolved tree`.
 - **Non funziona dentro Obsidian così com'è:** Obsidian risolve `[[...]]` per
   nome della nota, cioè del file, e anche un collegamento a un alias lo
   scrive con il nome: «Obsidian uses the `[[Artificial Intelligence|AI]]` link
@@ -521,7 +546,8 @@ si sposta come un'unità, si annida, e può non avere titolo.
   LaTeX un chapter non si annida.
 - **Il titolo** è l'attributo `title` nell'intestazione. È la forma più
   semplice: il corpo resta fatto solo di `embed`, e un capitolo senza
-  `title` è una sezione senza titolo.
+  `title` è una sezione senza titolo. *(proposta)* Un `title` vuoto
+  (`title: ""`) vale come assente.
 - **Il corpo** di un `chapter` contiene solo `embed`, di `object` o di altri
   `chapter`, in ordine di lettura, e righe di separazione (§7.4). Il grado di un titolo viene
   dall'annidamento, non dal file: lo stesso `chapter` è di grado 1
@@ -535,7 +561,7 @@ si sposta come un'unità, si annida, e può non avere titolo.
   disegna *(proposta)*. Hanno un corpo di soli `embed`,
   di `chapter` o di `object`.
 - **Cicli.** Un `chapter` che contiene sé stesso, anche attraverso altri, è
-  l'errore `embed-cycle`.
+  l'errore `embed-cycle`, se non abilita la ricorsione (§0.17).
 - Le due relazioni di Alessio restano distinte: l'aggregatore di dati della
   bozza (bozza-nodi.md §3) ripete lo stesso `template` su più dati, mentre il
   `chapter` ordina oggetti diversi; Alessio ha paragonato quell'aggregatore
@@ -679,8 +705,9 @@ nella `composition` radice, `article` o `deck` (§0.10).
 - **Dove non c'è**, cioè nel nodo del `text`, nel nodo di un `chapter`, in
   una `composition` che non include il nodo collegato, verso un capitolo
   senza `title` o in un riferimento che non si risolve, il segnaposto si
-  toglie; poi il testo del collegamento perde gli spazi U+0020 ai bordi, e
-  ogni sequenza di spazi dentro diventa uno. `figura {n}` mostra «figura». Se il testo resta vuoto vale come un collegamento senza
+  toglie; poi, e solo in questo caso, il testo del collegamento perde gli
+  spazi U+0020 ai bordi, e ogni sequenza di spazi dentro diventa uno. Un
+  testo senza `{n}` resta come è scritto. `figura {n}` mostra «figura». Se il testo resta vuoto vale come un collegamento senza
   testo, senza avviso.
 - **L'avviso.** Un `{n}` verso un nodo di un `kind` che non si numera mai,
   né `chapter` né `image`, dà l'avviso `number-slot-kind`, con `target`
@@ -756,6 +783,34 @@ capitolo non è deciso (stessa voce).
   (`title-1.compatto`). Si aggiunge dopo senza rompere niente, perché oggi
   quel selettore è `stylesheet-unsupported`.
 
+### 0.17 Deciso: la ricorsione
+
+Un oggetto può contenere sé stesso solo se lo abilita, con un limite,
+infinito oppure una regola di uscita; vale anche per le formule. Se non la
+abilita, per quell'oggetto la ricorsione non si può fare. Si abilita con «un
+tag in più opzionale» [C: «Sulla bozza di specifica»].
+
+*(proposte; la prima è una lettura dell'orchestratore da confermare)*
+- **L'attributo.** È l'attributo opzionale `recursion`, non una voce di
+  `tags`, perché porta un valore: un intero positivo o `infinite`, scritto
+  come stringa (`recursion: "2"`, §0.6). Un altro valore è
+  `attribute-invalid`. Nella classe 1 vale per il `chapter`, l'unico oggetto
+  che contiene altri oggetti.
+- **Senza l'attributo** un ciclo resta `embed-cycle` (§8). In un ciclo fra
+  più `chapter` ciascuno deve abilitarla: `embed-cycle` va nel file di ogni
+  `chapter` del ciclo che non la abilita.
+- **Con un limite n** il `chapter` compare dentro sé stesso fino a n volte
+  lungo il cammino; l'`embed` che sarebbe il successivo non entra nel
+  `resolved tree` (esempio 40). In un ciclo fra più `chapter` ciascuno conta
+  le sue volte con il suo limite.
+- **Con `infinite`** il `resolved tree` segna il punto in cui il `chapter`
+  torna: l'`embed` ha `"recursion": true` e nessun figlio, e chi disegna
+  sceglie fino a che profondità ripeterlo, come vuole l'impaginazione da
+  fuori (§7.4).
+- **La regola di uscita** richiede le formule e arriva con loro (classe 4).
+  Per una formula `infinite` il `runtime` terrà comunque un limite di
+  sicurezza, perché il documento deve risolversi in un tempo finito.
+
 ### Nota: il `deck` per ultimo
 
 Il principio dice che gli stessi mattoni *possono* dare documenti o
@@ -824,11 +879,15 @@ strumento nasce con una riga di comando»].
 *(proposte)*
 - **`bundle`.** La radice dello zip contiene ciò che conterrebbe la cartella, e
   il `resolved tree` è lo stesso.
+- **File che non si leggono.** Un link simbolico non si segue, e un file
+  che non si legge, come un link simbolico o un file che non è UTF-8, dà
+  `syntax`; la risoluzione continua.
 - **File letti.** Tutti, anche nelle sottocartelle, tranne quelli che
   cominciano con un punto. Le sottocartelle non hanno significato.
 - **`source` e `asset`.** Lo decide l'elenco fisso di estensioni del `core`
   (§0.1): tutto ciò che non vi compare è `asset`. Un `asset` si nomina con un
-  percorso relativo al file che lo usa, senza uscire dal documento.
+  percorso relativo al file che lo usa, senza uscire dal documento: un
+  percorso che ne esce è `asset-missing`.
 - **Codifica.** UTF-8. Il `formatter` scrive senza BOM, con LF e un a capo
   finale; il `runtime` legge anche CRLF e BOM.
 - **Nomi.** Il nome è l'`id` più l'estensione. Il nome non conta per
@@ -845,6 +904,10 @@ strumento nasce con una riga di comando»].
   collega i file per percorso («the path to the file within the system»,
   [spec 1.0](https://jsoncanvas.org/spec/1.0/)): il `runtime` controlla quei
   percorsi e li riscrive alle rinomine. Per ora restano i percorsi (§0.11).
+  *(proposte)* Il descrittore nomina il `.canvas` con l'attributo `asset`,
+  come un `image`. I percorsi dentro il `.canvas` si cercano dalla radice
+  del documento, non dal file; uno che non c'è o che esce dal documento è
+  `canvas-path-unresolved`.
 - Gli URL esterni come `asset` sono una domanda aperta (handoff.md, domanda
   6).
 
@@ -885,7 +948,8 @@ sono separati (stessa voce).
 | `lang` | per i nodi che si vedono | tag di lingua BCP 47 | deciso |
 | `title` | `chapter`, `article`, `deck` | stringa | *(proposta)*, §0.7; in `article` e `deck` è un metadato |
 | `spec-version` | `document file` | stringa | §0.8; *(proposta)* la chiave |
-| `asset` | `image` | percorso del file | *(proposta)*, §7.2 |
+| `asset` | `image`, `canvas file` | percorso del file | *(proposta)*, §7.2, §2 |
+| `recursion` | `chapter`; più avanti le formule | un intero positivo o `infinite` | deciso che è opzionale (§0.17); *(proposta)* il nome e i valori |
 | `stylesheet` | `article`, `deck` | `id reference` | *(proposta)*, §8; su un `chapter` dà `stylesheet-ignored` |
 | `origin` | da definire | da definire | *(proposta della bozza)*: scritto da una persona o generato e confermato |
 | `associations` | `concept`, `object` | lista di `id` | *(proposta)*, §6 |
@@ -1084,15 +1148,20 @@ nome (§11.3).
 | Contenuto | Note |
 |---|---|
 | capoverso, elenco puntato e numerato, citazione | |
-| `code block` | i marker per eseguire e per mostrare sono decisi [C: «Il codice nel documento porta un marker»], i nomi `eval` ed `echo` proposti; nella classe 1 un blocco da eseguire non si esegue (`eval-unsupported`) |
+| `code block` | i marker per eseguire e per mostrare sono decisi [C: «Il codice nel documento porta un marker»], i nomi `eval` ed `echo` proposti, scritti come parole dell'info string dopo la prima, che è la lingua (`python eval`); nella classe 1 un blocco da eseguire non si esegue (`eval-unsupported`, esempio 36) |
 | `text table` | la tabella di GFM ([gfm](https://github.github.com/gfm/)), ammessa nella classe 1 *(proposta)*; non ancora `collection` |
 | `math line` | decisa, con il risultato già nella classe 1 (§0.4) |
-| enfasi, forte, codice in linea, collegamento a un URL | in linea |
+| enfasi, forte, codice in linea, collegamento a un URL | in linea; anche il collegamento per riferimento (§0.6) |
 | riferimento in linea | `[[id]]` o `[[id\|testo]]`, un `id reference` (§10); con il `number slot` `{n}` nel testo verso un nodo numerato è un `cross-ref` (§0.14) |
 | interruzione di riga forzata | contenuto |
 | `footnote` | senza sintassi, rimandata (§0.6) |
 
 Un oggetto dentro un capoverso per ora non è ammesso (§0.9, deciso).
+
+*(proposta)* Un'immagine Markdown, `![alt](url)`, è fuori dall'inventario:
+è l'errore `markdown-image`, con `target` l'URL e un `fix` che suggerisce un
+oggetto `image` incluso con `![[id]]` in una `composition`. Nel `resolved
+tree` resta testo, come è scritto (esempio 37).
 
 ### 7.2 `image`
 
@@ -1211,9 +1280,16 @@ una `composition` che si può annidare, e l'`article` è l'indice dei capitoli
   separazione `---` (§7.4); qualunque altro blocco, titoli compresi, è
   `composition-content` (esempio 10).
 - Un `embed` di un `id` inesistente è un errore, e il `resolved tree` lo mostra
-  al suo posto (esempio 9). Un `embed` di un `concept`, di uno `scratch`, di
-  un `article`, di un `deck` o del `document file` è `embed-kind` (esempio 11); un `embed` di un
-  `chapter` è ammesso.
+  al suo posto (esempio 9). *(proposta)* Un `embed` include un `text`, un
+  `image`, un `chapter` o una `directive` di un `kind` che la specifica non
+  nomina; ogni altro `kind` è `embed-kind` (esempio 11): `concept`,
+  `scratch`, `article`, `deck`, `stylesheet`, `canvas-file` e il `document
+  file`, perché non si vedono o sono `composition` radice.
+- *(proposta)* **I cicli.** Un `chapter` che contiene sé stesso senza
+  `recursion` (§0.17) dà `embed-cycle` nel file di ogni `chapter` del ciclo
+  che non la abilita, con `target` il suo
+  `id`. Risolvendo, l'`embed` di un `chapter` che è già fra i suoi antenati
+  diventa `{"id": …, "unresolved": true}`, senza figli (esempio 38).
 - *(proposta)* Nella classe 1 lo `stylesheet` si dà solo alla `composition`
   radice, `article` o `deck`, con l'attributo `stylesheet` scritto come `id
   reference` (§10): la radice decide come appare un capitolo. Il riferimento segue sempre la
@@ -1355,13 +1431,17 @@ partenza [C: «Sulla bozza di specifica»] (§0.5).
 *(proposte)*
 - Uno `stylesheet` è un file `.stylesheet.css`, coerente con la decisione del
   §0.1: il `kind` sta nell'estensione e nel commento d'intestazione, che
-  porta anche l'`id` in righe `chiave: valore` (esempio 8).
+  porta anche l'`id` in righe `chiave: valore` (esempio 8). Uno `stylesheet`
+  senza commento d'intestazione dà `kind-missing` e `id-missing`.
 - Le regole si agganciano ai nodi con `class`; gli `id` non sono selettori.
 - Lo `stylesheet` non cambia il contenuto né il `reading order`.
 - Una dichiarazione o un selettore fuori dal sottoinsieme (una proprietà
   sconosciuta, un valore non ammesso, `!important`) si ignora con un avviso,
   come gli attributi sconosciuti (§1): così uno `stylesheet` scritto per una
-  `spec version` successiva si apre ancora.
+  `spec version` successiva si apre ancora. Una at-rule (`@media`, `@import`
+  e simili) si ignora intera, con `stylesheet-unsupported` e `target` la
+  parola chiave con la chiocciola; una dichiarazione senza «:» ha come
+  `target` il suo testo, senza spazi ai bordi.
 
 ## 10. `directive`: `kind` non noti e riferimenti
 
@@ -1379,6 +1459,13 @@ estensioni e connettori»]).
   `embed` di una `directive` la mostra. Una `static fallback` in immagine, per
   esempio un grafico con i `frozen values`, tocca la domanda aperta sui
   risultati nel pacchetto (handoff.md, domanda 6).
+- **`kind` della specifica letti come `directive`.** *(proposta)* Gli
+  elenchi di `embed-kind` e `association-kind` nominano `kind` della
+  specifica e valgono in ogni classe, anche quando l'implementazione legge
+  quel `kind` come `directive`. In una classe 1 un `deck` dà `kind-unknown`
+  sul suo file, e un `embed` o un'`association` con lui danno anche
+  `embed-kind` o `association-kind`: così la classe 6 non cambia il giudizio
+  su un file valido.
 - **`id reference`.** Il `core` ha una forma generica dei riferimenti per `id`
   [C: «Sulla bozza di specifica»]. *(proposta)* La forma:
   `![[id]]` per un blocco, con le `class` accanto (`{.nota}`, §0.15),
@@ -1463,7 +1550,10 @@ calcolo», proposta]. I passi:
 
 La risoluzione non si ferma a un errore: l'albero esce sempre, con il
 `diagnostic` accanto. Con un errore la `cli` esce con un codice diverso da
-zero e l'`export` si rifiuta. Lo stesso controllo gira dopo ogni merge e ogni
+zero e l'`export` si rifiuta. *(proposta)* I codici di uscita: 0 senza
+errori (gli avvisi sono ammessi), 1 se l'albero ha almeno un errore, 2 per
+un uso sbagliato o una cartella che non si legge, 3 per un errore interno
+del `runtime`, con il messaggio su stderr e senza albero. Lo stesso controllo gira dopo ogni merge e ogni
 modifica esterna: Git non vede che un ramo ha cancellato un oggetto che un
 altro collega (bozza-nodi.md §3). Un riferimento a un `id` doppio non si
 risolve e non dà un secondo errore.
@@ -1484,12 +1574,12 @@ il riferimento non si risolve (§0.3) e il `target` è l'`id` scritto.
 
 | Codice | Gravità | Quando | `target` | Esempio |
 |---|---|---|---|---|
-| `syntax` | error | il file non si legge | — | non coperto |
+| `syntax` | error | il file non si legge: un link simbolico, un file che non è UTF-8, un `front matter` senza chiusura o con YAML non valido | — | non coperto |
 | `id-missing` | error | un file senza `id`; il `fix` propone l'`id`, che il `runtime` scrive quando riconcilia | — | 16 |
 | `id-invalid` | error | `id` fuori forma | l'`id` | 14 |
 | `id-duplicate` | error | due file, stesso `id`; uno per file | l'`id` | 13 |
 | `id-reused` | error | un file vivo con un `id` ritirato | l'`id` | 19 |
-| `kind-missing` | error | un file di testo senza `kind` | — | non coperto |
+| `kind-missing` | error | un file di testo senza `kind`; il nodo prende il `kind` dell'estensione | — | non coperto |
 | `kind-file-extension-mismatch` | error | `kind` diverso dalla `file extension` | il `kind` scritto | 15 |
 | `kind-unknown` | warning | `kind` non noto: `directive` | il `kind` | 12 |
 | `attribute-unknown` | warning | attributo sconosciuto, ignorato | il nome | 12 |
@@ -1498,9 +1588,11 @@ il riferimento non si risolve (§0.3) e il `target` è l'`id` scritto.
 | `association-kind` | error | con una `composition`, uno `stylesheet` o il `document file` | l'`id` | 18 |
 | `association-retired` | warning | bersaglio ritirato, risolto sul successore | l'`id` ritirato | 17 |
 | `embed-unresolved` | error | `id` inesistente | l'`id` | 9 |
-| `embed-kind` | error | `embed` di un `concept`, di uno `scratch`, di un `article`, di un `deck` o del `document file` | l'`id` | 11 |
+| `embed-kind` | error | `embed` di un `concept`, di uno `scratch`, di un `article`, di un `deck`, di uno `stylesheet`, di un `canvas-file` o del `document file` | l'`id` | 11 |
 | `embed-retired` | warning | `embed` di un `id` ritirato, risolto sul successore | l'`id` ritirato | non coperto |
-| `embed-cycle` | error | un `chapter` che contiene sé stesso | l'`id` | non coperto |
+| `embed-cycle` | error | un `chapter` che contiene sé stesso senza `recursion`; uno per `chapter` del ciclo che non la abilita | l'`id` del `chapter` | 38 |
+| `embed-outside-composition` | error | un `![[id]]` da solo in un capoverso di un file che non è una `composition` né una `directive` | l'`id` | 39 |
+| `markdown-image` | error | un'immagine Markdown `![alt](url)` | l'URL | 37 |
 | `retired-chain` | warning | in `retired-ids.yaml` un successore a sua volta ritirato | l'`id` | non coperto |
 | `retired-cycle` | error | un ciclo fra successori | l'`id` | non coperto |
 | `retired-successor-missing` | error | un successore che non esiste | l'`id` | non coperto |
@@ -1524,7 +1616,7 @@ il riferimento non si risolve (§0.3) e il `target` è l'`id` scritto.
 | `math-line-ambiguous` | warning | un numero come `1.200` | il numero | 22 |
 | `eval-unsupported` | warning | blocco da eseguire nella classe 1 | — | non coperto |
 | `asset-missing` | error | `asset` assente | il percorso | 7 |
-| `stylesheet-unsupported` | warning | dichiarazione o selettore fuori dal sottoinsieme, ignorati: proprietà, valore, `!important` | il nome della proprietà; per un selettore, il primo membro fuori dal sottoinsieme, come è scritto e senza spazi ai bordi | non coperto |
+| `stylesheet-unsupported` | warning | dichiarazione, selettore o at-rule fuori dal sottoinsieme, ignorati: proprietà, valore, `!important` | il nome della proprietà; per un selettore, il primo membro fuori dal sottoinsieme, come è scritto e senza spazi ai bordi; per una at-rule, la parola chiave; per una dichiarazione senza «:», il suo testo | non coperto |
 | `reference-unresolved` | error | `id reference` senza bersaglio, in un attributo o in linea | l'`id` | non coperto |
 
 ```````````````````````````````` example 13 conf=0 status=proposal
@@ -2168,6 +2260,123 @@ Le vendite sono calate del 12%.
 }
 ````````````````````````````````
 
+Un blocco da eseguire porta il marcatore e non si esegue (§7.1):
+
+```````````````````````````````` example 36 conf=1 status=proposal
+=== file prova.text.md
+---
+id: prova
+kind: text
+---
+```python eval
+print(1 + 1)
+```
+=== resolved
+{
+  "nodes": [
+    {"id": "prova", "kind": "text", "file": "prova.text.md", "content": [["code", {"lang": "python", "eval": true}, "print(1 + 1)"]]}
+  ],
+  "diagnostics": [
+    {"severity": "warning", "code": "eval-unsupported", "file": "prova.text.md"}
+  ]
+}
+````````````````````````````````
+
+Un'immagine Markdown resta testo, con un errore (§7.1):
+
+```````````````````````````````` example 37 conf=1 status=proposal
+=== file vedi.text.md
+---
+id: vedi
+kind: text
+---
+Vedi ![la lavagna](lavagna.jpg).
+=== resolved
+{
+  "nodes": [
+    {"id": "vedi", "kind": "text", "file": "vedi.text.md", "content": [["paragraph", "Vedi ![la lavagna](lavagna.jpg)."]]}
+  ],
+  "diagnostics": [
+    {"severity": "error", "code": "markdown-image", "file": "vedi.text.md", "target": "lavagna.jpg", "fix": "un image con asset lavagna.jpg, incluso con ![[id]]"}
+  ]
+}
+````````````````````````````````
+
+Due capitoli che si contengono a vicenda (§8):
+
+```````````````````````````````` example 38 conf=1 status=proposal
+=== file cap-a.chapter.md
+---
+id: cap-a
+kind: chapter
+---
+![[cap-b]]
+=== file cap-b.chapter.md
+---
+id: cap-b
+kind: chapter
+---
+![[cap-a]]
+=== resolved
+{
+  "nodes": [
+    {"id": "cap-a", "kind": "chapter", "file": "cap-a.chapter.md", "content": [["embed", {"id": "cap-b", "kind": "chapter"}, ["embed", {"id": "cap-a", "unresolved": true}]]]},
+    {"id": "cap-b", "kind": "chapter", "file": "cap-b.chapter.md", "content": [["embed", {"id": "cap-a", "kind": "chapter"}, ["embed", {"id": "cap-b", "unresolved": true}]]]}
+  ],
+  "diagnostics": [
+    {"severity": "error", "code": "embed-cycle", "file": "cap-a.chapter.md", "target": "cap-a", "fix": "togli l'embed che chiude il ciclo"},
+    {"severity": "error", "code": "embed-cycle", "file": "cap-b.chapter.md", "target": "cap-b", "fix": "togli l'embed che chiude il ciclo"}
+  ]
+}
+````````````````````````````````
+
+Un `![[id]]` in un `text` non include niente (§0.6):
+
+```````````````````````````````` example 39 conf=1 status=proposal
+=== file vedi.text.md
+---
+id: vedi
+kind: text
+---
+![[lavagna]]
+=== resolved
+{
+  "nodes": [
+    {"id": "vedi", "kind": "text", "file": "vedi.text.md", "content": [["paragraph", "![[lavagna]]"]]}
+  ],
+  "diagnostics": [
+    {"severity": "error", "code": "embed-outside-composition", "file": "vedi.text.md", "target": "lavagna", "fix": "sposta ![[lavagna]] in una composition"}
+  ]
+}
+````````````````````````````````
+
+Un capitolo che si contiene due volte (§0.17):
+
+```````````````````````````````` example 40 conf=1 status=proposal
+=== file cap-a.chapter.md
+---
+id: cap-a
+kind: chapter
+recursion: "2"
+---
+![[nota]]
+
+![[cap-a]]
+=== file nota.text.md
+---
+id: nota
+kind: text
+---
+Una nota.
+=== resolved
+{
+  "nodes": [
+    {"id": "cap-a", "kind": "chapter", "file": "cap-a.chapter.md", "attributes": {"recursion": "2"}, "content": [["embed", {"id": "nota", "kind": "text"}, ["paragraph", "Una nota."]], ["embed", {"id": "cap-a", "kind": "chapter"}, ["embed", {"id": "nota", "kind": "text"}, ["paragraph", "Una nota."]], ["embed", {"id": "cap-a", "kind": "chapter"}, ["embed", {"id": "nota", "kind": "text"}, ["paragraph", "Una nota."]]]]]},
+    {"id": "nota", "kind": "text", "file": "nota.text.md", "content": [["paragraph", "Una nota."]]}
+  ]
+}
+````````````````````````````````
+
 ### 11.3 Il `resolved tree` *(proposta)*
 
 È un valore JSON con tre liste, e la chiave `document` con il `document file`
@@ -2211,12 +2420,18 @@ una stringa. Un a capo morbido diventa uno spazio, e stringhe vicine si
 uniscono; l'HTML grezzo diventa testo, tranne i commenti, che non entrano. I
 tipi in linea `hyperlink` (con `ref` per un `id reference` o `url`),
 `emphasis`, `strong` e `inlineCode` sono normativi (§0.5). Gli altri nomi
-sono presi da mdast (`paragraph`, `list`, `listItem`, `blockquote`, `code`,
-`break`, `thematicBreak`), più `embed`, `title` e `mathLine`, con `value` e
+sono presi da mdast (`paragraph`, `heading`, `list`, `listItem`,
+`blockquote`, `code`, `table`, `tableRow`, `tableCell`, `break`,
+`thematicBreak`), con gli attributi di mdast: `depth` per `heading`;
+`"ordered": true` per un elenco numerato, con `start` se è diverso da 1;
+`lang` per `code`, e `"eval": true` o `"echo": true` per i suoi marcatori;
+per `table`, se una colonna è allineata, `align`, una lista con `left`,
+`right`, `center` o `null` per colonna; la prima `tableRow` è
+l'intestazione. Più `embed`, `title` e `mathLine`, con `value` e
 `display`, oppure `invalid`; non sono normativi finché la bozza non fissa i nomi (glossario
 §1.3): alcuni collidono con il glossario, per esempio paragraph è fra i *Da
-non usare* di `text`. Mancano ancora i tipi per `text table` e
-la definizione di una `footnote`; un `cross-ref` è un `hyperlink` con il
+non usare* di `text`. Manca ancora la definizione di una
+`footnote`; un `cross-ref` è un `hyperlink` con il
 numero già nel testo (§0.14).
 
 Nel contenuto di una `composition` un `embed` porta negli attributi `id`,
