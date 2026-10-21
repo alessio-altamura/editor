@@ -259,6 +259,17 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     opzioni B, C e D della bozza e la E proposta dall'orchestratore (forma
     scelta dallo stylesheet). Restano da proporre il nome del segnaposto e
     cosa si mostra quando il numero non c'è, per esempio nel testo da solo.
+  - Dove si scrive la `class` che un documento dà a un oggetto incluso (§0.15
+    della bozza, 2026-10-21, «ok C»): accanto all'inclusione, nel corpo,
+    `![[calo-q3-sintesi]]{.nota}`, più `class` come `{.nota .grande}`; la
+    forma `{.…}`, presa da Pandoc, era nel suggerimento approvato. Quindi la
+    sintassi dei file di testo si allarga di questo solo segno, subito dopo
+    un `![[id]]`, e l'intestazione resta a sole stringhe e liste. Lo stesso
+    oggetto incluso due volte può avere due `class` diverse. Cadono la mappa
+    `embed-class` nell'intestazione e le sue regole (chiavi riscritte alle
+    fusioni, chiavi inutilizzate o ritirate, mappe in conflitto). Costo
+    accettato: il documento non dà una `class` a un oggetto dentro un
+    capitolo annidato, ma la dà al capitolo intero.
 
 ## Proposte non decise
 
