@@ -35,9 +35,9 @@ I collegamenti simbolici non si seguono, così il runtime non legge niente
 fuori dalla cartella: come un file che non è UTF-8 o una sottocartella che non
 si legge, danno `syntax`.
 
-Limiti provvisori, finché la specifica non li fissa: oltre 1000 livelli di
-`embed` o 100000 `embed` in tutto l'albero gli `embed` si tagliano, con
-l'errore `tree-limit`; una riga di calcolo con più di 100 parentesi annidate è
+Limiti di sicurezza (§11.1): oltre 1000 livelli di `embed` o 100000 `embed`
+in tutto l'albero l'`embed` si taglia e non si risolve, con l'errore
+`tree-limit`; una riga di calcolo con più di 100 parentesi annidate è
 `math-line-invalid`.
 
 `[[…]]` e `![[…]]` li riconosce un'estensione micromark scritta qui,

@@ -168,7 +168,7 @@ function readText(path: string): string | null {
   }
 }
 
-/** Provisional limits of the resolved tree, past which embeds are cut with `tree-limit`. */
+/** Limits of the resolved tree (§11.1), past which embeds are cut with `tree-limit`. */
 const MAX_EMBED_DEPTH = 1000;
 const MAX_EMBEDS = 100000;
 
@@ -748,15 +748,16 @@ export function resolveTree(folder: string): ResolvedTree {
       if (embedClasses.length > 0) attributes.class = embedClasses;
       return element('embed', attributes);
     };
-    // Provisional safety limits, until the spec fixes them: the embed is cut, as past a recursion limit.
+    // Safety limits of §11.1: the embed is cut and does not resolve, with one tree-limit per file
+    // whose target is the first embed cut there.
     if (context.expanding.length >= MAX_EMBED_DEPTH || embedCount >= MAX_EMBEDS) {
       const key = `tree-limit\0${context.file}`;
       if (!reportedOnce.has(key)) {
         reportedOnce.add(key);
         const fix = `riduci l'annidamento sotto ${MAX_EMBED_DEPTH} livelli e gli embed sotto ${MAX_EMBEDS}`;
-        report(diagnostics, 'tree-limit', context.file, undefined, fix);
+        report(diagnostics, 'tree-limit', context.file, written, fix);
       }
-      return null;
+      return unresolved(written);
     }
     const resolution = resolveId(written);
     if (resolution.status === 'duplicate') return unresolved(written);

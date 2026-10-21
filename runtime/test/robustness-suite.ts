@@ -295,7 +295,8 @@ check('a canvas path that leaves the document is canvas-path-unresolved', () => 
 // Fourth review: limits, output, the [[…]] construct and the rest.
 check('a chapter that includes itself with recursion 2500 is cut by tree-limit', () => {
   const r = run({ 'c.chapter.md': front('c', 'chapter', 'recursion: "2500"\n') + '![[c]]\n' });
-  return tree(r) ?? (has(r.tree, 'tree-limit', undefined, 'c.chapter.md') && r.status === 1 ? null : json(r.tree.diagnostics));
+  const cut = json(node(r.tree, 'c')?.content).includes('{"id":"c","unresolved":true}');
+  return tree(r) ?? (has(r.tree, 'tree-limit', 'c', 'c.chapter.md') && count(r.tree, 'tree-limit') === 1 && cut && r.status === 1 ? null : json(r.tree.diagnostics));
 });
 check('a chain of 1500 chapters is cut by tree-limit', () => {
   const files: Record<string, string> = {};
@@ -370,6 +371,15 @@ check('a number of 35 nines that rounds past decimal128 is invalid', () => {
   const nines = '9'.repeat(35) + 'e6110';
   const r = run({ 'x.text.md': front('x', 'text') + `\`= ${nines}\` \`= ${nines} + 0\`\n` });
   return tree(r) ?? (count(r.tree, 'math-line-invalid') === 2 ? null : r.stdout);
+});
+
+check('recursion on a directive does not count: its cycle is embed-cycle', () => {
+  const r = run({ 'd.timeline.md': front('d', 'timeline', 'recursion: "3"\n') + '![[d]]\n' });
+  return tree(r) ?? (has(r.tree, 'embed-cycle', 'd') && json(node(r.tree, 'd')?.content) === '[["embed",{"id":"d","unresolved":true}]]' ? null : r.stdout);
+});
+check('a canvas file declares associations and can be their target', () => {
+  const r = run({ 'cv.canvas-file.md': front('cv', 'canvas-file', 'asset: a.canvas\nassociations: [k]\n') + 'Canvas.\n', 'a.canvas': '{}', 'k.concept.md': front('k', 'concept', 'associations: [cv]\n') + 'Idea.\n' });
+  return tree(r) ?? (json(r.tree.associations) === '[{"ids":["cv","k"],"declaredIn":["cv.canvas-file.md","k.concept.md"]}]' && r.tree.diagnostics === undefined ? null : r.stdout);
 });
 
 let failed = 0;
