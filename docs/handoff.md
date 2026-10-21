@@ -267,15 +267,19 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
 
 0. **La bozza di specifica**, [specifica.md](specifica.md), del `core` e della
    classe 1 (2026-10-20/21). L'ha scritta una sottosessione su mandato
-   dell'orchestratore, in sette giri, quasi tutti controllati da revisori
-   indipendenti; i 24 esempi sono anche i test. Marca ogni requisito come
-   deciso, proposta o APERTO. Le decisioni di Alessio sono in contesto.md,
-   voce «Sulla bozza di specifica». Restano APERTI sei punti, §0.8-§0.13: il
-   file di configurazione del documento, l'`embed` dentro un `text`, la
-   `numbering`, i riferimenti nel `canvas file`, `tags` obbligatori o no, i
-   commenti. Le risposte di Alessio vanno integrate con un altro giro della
-   sottosessione (session_01LJTSfiwiWSRkNwwAHxW4pz, ramo
-   claude/spec-draft-level1), poi un controllo indipendente.
+   dell'orchestratore, in otto giri, controllati da revisori indipendenti; i
+   26 esempi sono anche i test. Tutti i punti APERTI sono stati decisi da
+   Alessio (contesto.md, voce «Sulla bozza di specifica»). L'ultimo controllo
+   (ottavo giro) ha trovato conseguenze da chiedere ad Alessio: il testo di
+   un `[[id]]` senza testo, l'aspetto di collegamenti ed enfasi, dove sta la
+   `class` (oggetto o `embed`), `tags` sempre scritto o no, il file
+   `document` obbligatorio o no, quale `lang` per i numeri. E correzioni
+   tecniche: `number` negli `embed` dei `chapter`, il `cross-ref` numerato in
+   più `composition`, i commenti a inizio riga, le regole di stampa per `it`,
+   il `kind` `document` nelle regole dei `kind`, alcune righe del glossario
+   (`tags`, `embed`, `numbering`, `document`). I rapporti dei revisori non
+   sono nel repository: vanno ripetuti se servono. La sottosessione è
+   session_01LJTSfiwiWSRkNwwAHxW4pz, ramo claude/spec-draft-level1.
 1. **La bozza dei tipi di nodo** del primo livello è iniziata in
    [bozza-nodi.md](bozza-nodi.md): è di Alessio, scritta insieme. Il
    2026-10-20 è diventata una sintesi del modello: il `concept` come unità di
