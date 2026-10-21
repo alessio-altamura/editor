@@ -242,7 +242,7 @@ punto (stessa voce). È un comportamento dell'`app`, non del formato.
 - **Il valore** si scrive nel `resolved tree` con il punto, senza zeri finali
   dopo il punto e senza esponente: in decimale `1.200 * 2` dà 2.400, che si
   scrive `2.4` (prova con il modulo decimal di Python), e `1.2e6` si scrive
-  `1200000`.
+  `1200000`. Lo zero negativo (`-0`, `0 * -1`) ha `value` e `display` «0».
 - **La stringa da mostrare.** Il `runtime` scrive accanto al valore la
   stringa da mostrare: arrotondata al pari a 10 decimali al massimo, senza
   zeri finali, con i separatori della lingua dell'oggetto, altrimenti di
@@ -264,7 +264,7 @@ punto (stessa voce). È un comportamento dell'`app`, non del formato.
   piena accanto a `scientific`, `engineering` e `compact`; prima la bozza
   diceva `plain`. Il valore iniziale CSS di una proprietà personalizzata è il
   «guaranteed-invalid value», non `standard`: è la bozza a leggere come
-  `standard` lo stato «non data» (§0.5). È CSS valido, perché una proprietà personalizzata è «any
+  `standard` lo stato «non data». È CSS valido, perché una proprietà personalizzata è «any
   property whose name starts with two dashes», ed è ereditata
   ([CSS Custom Properties](https://www.w3.org/TR/css-variables-1/)). Così si
   può dare per `class`, per esempio solo in un capitolo o in un `deck`. È
@@ -323,29 +323,45 @@ l'attributo HTML.
   Ereditate, come in CSS: tutte tranne i margini.
 - **I valori ammessi**, quelli che il `runtime` sa calcolare senza sapere
   come si disegna:
-  - lunghezze assolute (`pt`, `px`, `mm`, `cm`, `in`) ed `em`, convertite in
-    `pt` (1in = 72pt = 96px, [css-values-4](https://www.w3.org/TR/css-values-4/#absolute-lengths));
-    non `ex`, `ch`, `vw`, `vh` né le percentuali dei margini;
+  - lunghezze assolute (`pt`, `px`, `mm`, `cm`, `in`), `em` e lo zero senza
+    unità (`margin-bottom: 0`), convertite in `pt` (1in = 72pt = 96px,
+    [css-values-4](https://www.w3.org/TR/css-values-4/#absolute-lengths));
+    non `ex`, `ch`, `vw`, `vh` né le percentuali; `font-size` e
+    `line-height` negativi no, come in CSS;
   - colori `#rgb`, `#rrggbb` e i nomi di CSS Color 4
     ([named colors](https://www.w3.org/TR/css-color-4/#named-colors)),
-    scritti `#rrggbb`;
-  - `font-weight` da 100 a 900, `normal` e `bold`; `font-style` `normal` e
-    `italic`; `text-align` `left`, `right`, `center`, `justify`;
-  - `line-height` come numero o lunghezza;
-  - le parole chiave CSS-wide `inherit`, `initial` e `unset`, con il
-    significato di CSS.
+    senza `transparent`;
+  - `font-family` come lista di nomi e famiglie generiche, con ripiego;
+  - `font-weight` come numero da 1 a 1000, come in CSS Fonts 4
+    ([css-fonts-4](https://drafts.csswg.org/css-fonts-4/#font-weight-prop)),
+    `normal` (400) e `bold` (700); `font-style` `normal` e `italic`;
+    `text-align` `left`, `right`, `center`, `justify`;
+  - `line-height` come numero o lunghezza.
 
-  Il resto è `stylesheet-unsupported`, con `target` la dichiarazione. Una
-  lunghezza convertita si arrotonda al pari a 4 decimali, senza zeri finali:
-  `1mm` dà `2.8346pt`. Restano fuori anche `line-height: normal`, che
-  dipende dal font, e le parole chiave di `font-size` (`small`, `larger` e
-  simili).
-- **`--number-notation`** ammette `standard` e `compact`. `initial` dà lo
-  stato «non data», cioè `standard`, come in CSS: «using the keyword initial
-  will do this» ([css-variables-1](https://www.w3.org/TR/css-variables-1/)).
-  Un altro valore (`scientific`, `engineering` e simili) fa ignorare la
-  dichiarazione, con `stylesheet-unsupported`. È una scelta diversa da CSS,
-  dove una proprietà personalizzata accetta qualsiasi valore.
+  Il resto è `stylesheet-unsupported`, con `target` il nome della
+  proprietà. Restano fuori `line-height: normal`, che dipende dal font, le
+  parole chiave di `font-size` (`small`, `larger` e simili) e le parole
+  chiave CSS-wide (`inherit`, `initial`, `unset`): con il significato di CSS
+  darebbero valori che il `runtime` non sa calcolare, come il colore
+  iniziale `CanvasText`.
+- **`em`** si risolve come in CSS: in `font-size` sul `font-size` del
+  genitore, nelle altre proprietà su quello del nodo
+  ([css-values-4](https://www.w3.org/TR/css-values-4/#font-relative-lengths)).
+  Il genitore della radice, per `em` e per l'eredità, è la regola `root` del
+  foglio di partenza: `font-size: 1.2em` sull'`article` dà `13.2pt`.
+- **Calcolo e forma scritta.** I valori si calcolano in decimale esatto,
+  come le righe di calcolo (§0.4), e si arrotondano al pari a 4 decimali
+  solo quando si scrivono; i figli ereditano e risolvono `em` sul valore non
+  arrotondato. Nel `computedStyle` le lunghezze sono in `pt` senza zeri
+  finali (`11pt`, `2.8346pt` per `1mm`); `line-height` è un numero senza
+  zeri finali o una lunghezza in `pt`; `font-weight` è un numero; i colori
+  sono `#rrggbb` in minuscolo; `font-family` è una lista separata da «, »,
+  con fra virgolette doppie i nomi che contengono spazi.
+- **`--number-notation`** ammette solo `standard` e `compact`. Un altro
+  valore, comprese le parole chiave CSS-wide, `scientific` ed
+  `engineering`, fa ignorare la dichiarazione, con `stylesheet-unsupported`.
+  È una scelta diversa da CSS, dove una proprietà personalizzata accetta
+  qualsiasi valore.
 - **Il `base stylesheet`.** Lo applica il `runtime` prima degli
   `stylesheet` del documento. È scritto in una notazione nostra, non in CSS:
   a sinistra c'è un tipo del contenuto del `resolved tree` (§11.3), oppure
@@ -383,11 +399,10 @@ l'attributo HTML.
   radice, come ogni altro nodo (esempio 32). Nel nodo di un
   `chapter` non c'è `computedStyle`, come non c'è `number`. L'alternativa è scrivere ogni valore per
   ogni nodo: nessun foglio da conoscere, ma un `resolved tree` molto più
-  grande. I valori sono i valori calcolati del CSS, scritti come stringhe:
-  per `font-weight` è un numero (CSS Fonts 4, «Computed value: a number»,
-  [css-fonts-4](https://drafts.csswg.org/css-fonts-4/#font-weight-prop)),
-  quindi `bold` diventa `"700"`; lunghezze assolute in `pt`, colori in
-  `#rrggbb` (esempio 8).
+  grande. I valori sono i valori calcolati del CSS, scritti come stringhe
+  nella forma detta sopra: per `font-weight` il valore calcolato è un numero
+  (CSS Fonts 4, «Computed value: a number»), quindi `bold` diventa `"700"`
+  (esempio 8).
 - **I selettori degli `stylesheet`.** Gli `stylesheet` si agganciano alla
   `class` e a quattro tipi in linea con nomi fissati ora: collegamento,
   enfasi, forte, codice [C: «Sulla bozza di specifica»]. *(proposta)* I nomi, normativi: `hyperlink`,
@@ -403,10 +418,11 @@ l'attributo HTML.
   were invalid, the entire selector list would be invalid»,
   [selectors-4](https://www.w3.org/TR/selectors-4/#grouping)). Il resto è
   `stylesheet-unsupported`. Per una regola che cade c'è un solo avviso, con
-  `target` il primo membro fuori dal sottoinsieme, e le sue dichiarazioni
+  `target` il primo membro fuori dal sottoinsieme, come è scritto e senza
+  spazi ai bordi, e le sue dichiarazioni
   non si controllano. Anche `!important` è fuori dal sottoinsieme: la
   dichiarazione intera si ignora, con `stylesheet-unsupported` e la
-  dichiarazione come `target`, perché in CSS Cascade 5 per le dichiarazioni
+  proprietà come `target`, perché in CSS Cascade 5 per le dichiarazioni
   important vince lo strato che viene prima, e la decisione «vince la
   `composition`» cadrebbe.
 - **La `class` sull'`embed`.** La `class` sta sia sull'oggetto (cos'è,
@@ -441,7 +457,7 @@ l'attributo HTML.
   del successore, vale quella e la chiave ritirata cade, con lo stesso avviso
   e un `fix` che la toglie. Due chiavi ritirate con lo stesso successore,
   senza la sua chiave: vale la prima nell'ordine del file, l'altra cade con
-  lo stesso avviso. Nel `resolved tree` compare il successore. Una chiave che
+  lo stesso avviso e un `fix` che la toglie. Nel `resolved tree` compare il successore. Una chiave che
   non corrisponde a nessun `embed`, o che è ritirata senza successore, è
   l'avviso `embed-class-unused`; se è il successore a non avere `embed`,
   l'avviso ha come `target` il successore. Una mappa vale
@@ -658,13 +674,24 @@ sulla numerazione (§0.10) dice che un `cross-ref` porta il numero.
   «L'impaginazione finale viene sempre da fuori»]. Con B lo stesso vale per
   le immagini.
 - **D. Il nome del tipo, il numero e il `title` se c'è**, «capitolo 1 Le
-  vendite», «figura 1»: il `runtime` premette il nome del tipo nella lingua
-  del documento, come `\autoref` di hyperref, che scrive «section 2»
-  invece di «2» ([hyperref](https://mirrors.ctan.org/macros/latex/contrib/hyperref/doc/hyperref-doc.html)), o cleveref,
-  che sceglie la forma «according to the type of reference»
-  ([cleveref](https://ctan.org/pkg/cleveref)). Costo: una tabella di parole
-  per tipo e per lingua accanto a quella dei numeri, e un testo che dipende
-  dalla lingua.
+  vendite», «figura 1»: il `runtime` premette il nome del tipo, come
+  `\autoref` di hyperref, che scrive «section 2» invece di «2»
+  ([hyperref](https://mirrors.ctan.org/macros/latex/contrib/hyperref/doc/hyperref-doc.html)),
+  o cleveref, che sceglie la forma «according to the type of reference»
+  ([cleveref](https://ctan.org/pkg/cleveref)). Fuori dalla `composition`
+  radice il numero non c'è, e D mostra quello che mostra A: il `title`, e
+  per un'immagine l'`id` con `reference-text-missing`. Costi:
+  - quelli di B, un testo più lungo e una regola per separare le parti;
+  - una tabella di parole per tipo e per lingua accanto a quella dei
+    numeri, e un testo che dipende dalla lingua: quella dell'oggetto,
+    altrimenti del documento, come per i numeri; senza lingua nessuna
+    parola, come B; `lang-unsupported` varrebbe anche per i file con
+    `cross-ref`;
+  - a inizio frase servirebbe la maiuscola, e il `runtime` non sa dove
+    comincia una frase: cleveref ha per questo `\Cref`, «at the beginning
+    of a sentence» ([manuale](https://mirrors.ctan.org/macros/latex/contrib/cleveref/cleveref.pdf));
+  - in italiano chi scrive accorda articolo e preposizione con la parola
+    premessa: «nel [[cap-vendite]]», «nella [[lavagna]]».
 
 Le immagini sono numerate ma non hanno `title`. Con A un `[[id]]` verso
 un'immagine mostra l'`id` e dà `reference-text-missing`; con B va definito,
@@ -838,8 +865,8 @@ sono separati (stessa voce).
 | `title` | `chapter`, `article`, `deck` | stringa | *(proposta)*, §0.7; in `article` e `deck` è un metadato |
 | `spec-version` | `document file` | stringa | §0.8; *(proposta)* la chiave |
 | `embed-class` | `composition` | APERTO, §0.15 | §0.5 |
-| `asset` | `image` | percorso del file | §7.2 |
-| `stylesheet` | `article`, `deck` | `id reference` | §8; su un `chapter` dà `stylesheet-ignored` |
+| `asset` | `image` | percorso del file | *(proposta)*, §7.2 |
+| `stylesheet` | `article`, `deck` | `id reference` | *(proposta)*, §8; su un `chapter` dà `stylesheet-ignored` |
 | `origin` | da definire | da definire | *(proposta della bozza)*: scritto da una persona o generato e confermato |
 | `associations` | `concept`, `object` | lista di `id` | *(proposta)*, §6 |
 
@@ -1169,10 +1196,11 @@ una `composition` che si può annidare, e l'`article` è l'indice dei capitoli
   `chapter` è ammesso.
 - *(proposta)* Nella classe 1 lo `stylesheet` si dà solo alla `composition`
   radice, `article` o `deck`, con l'attributo `stylesheet` scritto come `id
-  reference` (§10): la radice decide come appare un capitolo. Un `chapter` con l'attributo
-  `stylesheet` dà l'avviso `stylesheet-ignored`, con `target` l'`id`
-  nominato; se quello `stylesheet` non esiste non c'è altro avviso, perché
-  l'attributo si ignora. L'alternativa, uno
+  reference` (§10): la radice decide come appare un capitolo. Il riferimento segue sempre la
+  forma generica del §10: un `id` che non esiste è `reference-unresolved`,
+  uno ritirato `reference-retired`. Un `chapter` con l'attributo
+  `stylesheet` dà in più l'avviso `stylesheet-ignored`, con `target` l'`id`
+  nominato. L'alternativa, uno
   `stylesheet` per capitolo che si somma a quello della radice, servirebbe a
   riusare un capitolo con il suo aspetto in più documenti, ma chiede un
   ordine fra i due fogli.
@@ -1409,7 +1437,8 @@ calcolo», proposta]. I passi:
 6. risolve gli `embed` e i capitoli annidati, gli `asset` e gli `stylesheet`
    nominati;
 7. calcola le righe di calcolo, e per ogni `composition` radice la
-   `numbering` e il `computed style` dei nodi del suo contenuto.
+   `numbering` e il `computed style` del suo nodo e dei nodi del suo
+   contenuto.
 
 La risoluzione non si ferma a un errore: l'albero esce sempre, con il
 `diagnostic` accanto. Con un errore la `cli` esce con un codice diverso da
@@ -1466,12 +1495,11 @@ tutta la cartella, come `document-missing`, `file` è `.`.
 | `canvas-path-unresolved` | error | un percorso del `canvas file` senza file | il percorso | non coperto |
 | `document-duplicate` | error | due file `document`; uno per file | l'`id` | non coperto |
 | `document-content` | error | un corpo non vuoto in un file `document` | — | non coperto |
-| `math-line-invalid` | warning | riga di calcolo fuori grammatica, divisione per zero, o valore fuori da decimal128 | l'espressione | non coperto |
+| `math-line-invalid` | warning | riga di calcolo fuori grammatica, divisione per zero, o valore fuori da decimal128 | l'espressione come la dà CommonMark, senza «= » iniziale | non coperto |
 | `math-line-ambiguous` | warning | un numero come `1.200` | il numero | 22 |
 | `eval-unsupported` | warning | blocco da eseguire nella classe 1 | — | non coperto |
 | `asset-missing` | error | `asset` assente | il percorso | 7 |
-| `stylesheet-unresolved` | error | `stylesheet` nominato assente | l'`id` | non coperto |
-| `stylesheet-unsupported` | warning | dichiarazione o selettore fuori dal sottoinsieme, ignorati: proprietà, valore, `!important` | la dichiarazione, o il primo membro fuori dal sottoinsieme di una lista di selettori | non coperto |
+| `stylesheet-unsupported` | warning | dichiarazione o selettore fuori dal sottoinsieme, ignorati: proprietà, valore, `!important` | il nome della proprietà; per un selettore, il primo membro fuori dal sottoinsieme, come è scritto e senza spazi ai bordi | non coperto |
 | `reference-unresolved` | error | `id reference` senza bersaglio, in un attributo o in linea | l'`id` | non coperto |
 
 ```````````````````````````````` example 13 conf=0 status=proposal
@@ -1840,7 +1868,7 @@ Nell'esempio `.evidenza.urgente` è più specifica e viene dopo nello
 strato che viene dopo.
 
 Un `[[id]]` senza testo mostra il `title`, altrimenti l'`id` con un avviso
-(§7.4). Con l'opzione B del §0.14 l'albero è lo stesso, perché qui il
+(§7.4). Con le opzioni B e D del §0.14 l'albero è lo stesso, perché qui il
 capitolo non è in una `composition` radice e non ha numero:
 
 ```````````````````````````````` example 28 conf=1 status=open-0.14-A
