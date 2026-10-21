@@ -168,9 +168,13 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     file di testo; un file descrittore per immagini e CSV; un elenco fisso di
     estensioni nel `core`, così un file non cambia natura secondo la classe di
     chi lo legge;
-  - identità (§0.3): l'`id` resta opzionale e il `runtime` lo scrive nel file
-    quando un'operazione collega l'oggetto (1ii); gli `id` ritirati stanno in
-    un file del documento (1d); la `target quote` arriva più avanti (2b);
+  - identità (§0.3): l'`id` è sempre scritto nel file (1i, 2026-10-21; prima
+    era stata scelta la 1ii, sulle opzioni scritte con la lettura sbagliata
+    dei metadati): lo scrive il `runtime` quando crea l'oggetto, e lo
+    aggiunge ai file creati a mano. Gli `id` ritirati stanno in un file del
+    documento (1d); un `id` si ritira solo con un'operazione dell'`app` o
+    della `cli`, non quando un file sparisce per un cambio di ramo
+    (2026-10-21). La `target quote` arriva più avanti (2b);
   - righe di calcolo (§0.4): il risultato c'è già nella classe 1, con
     un'aritmetica minima. Requisito di Alessio per dopo: deve essere possibile
     usare una funzione dichiarata in un altro file, con argomenti numerici,
@@ -182,6 +186,28 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     perché è un posto di lavoro e non un'unità di significato;
   - il CSS lo applica il `runtime` (§0.5, 2026-10-20): calcola la cascata e
     scrive i valori finali nel `resolved tree`; chi disegna li applica soltanto.
+    Per partire un sottoinsieme minimo di solo testo (carattere, colore,
+    allineamento, margini, interlinea); la pagina si aggiunge dopo. Nella
+    specifica c'è un foglio di partenza, così titoli ed enfasi si vedono anche
+    senza uno `stylesheet` (2026-10-21);
+  - numeri delle righe di calcolo (§0.4, 2026-10-21): nel sorgente il punto
+    come separatore decimale e nessun separatore delle migliaia; «1.200» dà un
+    avviso perché è ambiguo; il risultato si mostra secondo la lingua;
+    aritmetica decimale;
+  - `kind` e `id` del `canvas file` (§0.1, 2026-10-21): in un descrittore, come
+    per le immagini;
+  - sintassi dei file di testo (§0.6, 2026-10-21): Markdown con una sintassi
+    nostra, come fa Obsidian: CommonMark, `[[id]]`, `![[id]]` e
+    un'intestazione YAML ristretta a sole stringhe;
+  - capitoli (§0.7, 2026-10-21): l'opzione D di Alessio, il capitolo come
+    composizione che si può annidare; l'`article` è l'indice dei capitoli, e
+    un `deck` usa gli stessi capitoli senza ripetere i titoli.
+
+  Questi ultimi punti Alessio li ha approvati con «ok ai tuoi suggerimenti»,
+  riferito ai sei punti aperti della bozza. Le proposte nuove della bozza
+  (classi di conformità, attributi sconosciuti ignorati, riferimenti generici
+  nel `core`, il nome `retired-ids.yaml`, lo `style` calcolato) restano
+  proposte finché non le conferma.
 
 ## Proposte non decise
 

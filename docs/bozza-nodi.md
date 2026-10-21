@@ -501,3 +501,6 @@ punta la composizione) hanno avuto risposta: vedi i §1 e §3.
 22. Ma perché abbiamo eliminato gli id? No, il fraintendimento era un altro:
     era una divisione fra metadati comuni e metadati opzionali, che dipendono
     dal tipo.
+23. 1i; per gli altri punti ok ai tuoi suggerimenti. Unica cosa: in Markdown
+    come trattiamo la sua impaginazione? Non rischiamo di avere
+    sovrapposizioni?
