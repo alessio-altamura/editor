@@ -267,21 +267,22 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
 
 0. **La bozza di specifica**, [specifica.md](specifica.md), del `core` e della
    classe 1 (2026-10-20/21). L'ha scritta una sottosessione su mandato
-   dell'orchestratore, in dieci giri, controllati da revisori indipendenti; i
-   28 esempi sono anche i test. Le decisioni di Alessio sono in contesto.md,
+   dell'orchestratore, in undici giri, controllati da revisori indipendenti;
+   i 31 esempi sono anche i test. Le decisioni di Alessio sono in contesto.md,
    voce «Sulla bozza di specifica». Restano tre punti APERTI, §0.14-§0.16, in
    attesa di Alessio: il testo di un `[[id]]` verso un nodo numerato, la
    forma di `embed-class`, l'aspetto dei titoli. Le preferenze
    dell'orchestratore, già dette ad Alessio: numero più `title` dove la
    `composition` numera; la mappa a un livello di sole stringhe; i titoli
-   fra i tipi agganciabili. Il controllo del decimo giro (96c62c6) non ha
-   trovato blocchi; le correzioni sono andate nell'undicesimo giro:
-   `computedStyle` confrontato con il valore ereditato dal genitore, un posto
-   per lo stile del titolo nel `resolved tree`, `!important` fuori dal
-   sottoinsieme, la mappa della radice che sostituisce quella del `chapter`,
-   i rimandi agli APERTI dove il testo li anticipava, la `spec version`
-   decisa nel §0.8, i limiti di decimal128 sul valore, le forme brevi con il
-   divisore scelto dopo l'arrotondamento, alcune righe del glossario. I
+   fra i tipi agganciabili, che però senza combinatori colpirebbero tutti i
+   titoli allo stesso modo (costo emerso nel controllo dell'undicesimo
+   giro). Il controllo dell'undicesimo giro (ed2bc7a) non ha trovato
+   blocchi; le correzioni sono andate nel dodicesimo: `--number-notation`
+   nell'elenco del sottoinsieme, lo stile della radice che oggi si perde,
+   lo `stylesheet` di un `chapter` dentro la radice, il titolo solo dove si
+   disegna, le liste di selettori e `!important`, il segno `=` che rende
+   ogni codice in linea una riga di calcolo, i costi mancanti dei §0.14-
+   §0.16, alcune regole di dettaglio sui numeri e sugli avvisi. I
    rapporti dei revisori non sono nel repository: vanno ripetuti se servono.
    La sottosessione è session_01LJTSfiwiWSRkNwwAHxW4pz, ramo
    claude/spec-draft-level1.
