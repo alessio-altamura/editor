@@ -810,6 +810,33 @@ Queste regole le evitano:
 - **GitHub e gli altri programmi** mostrano il Markdown con il loro aspetto:
   è un'anteprima, non l'impaginazione del documento.
 
+**Orientamento di Alessio** [C: «L'impaginazione finale viene sempre da
+fuori»]: l'impaginazione finale viene sempre da fuori, non da dentro il testo,
+forse anche per i collegamenti e le formule scritti dentro il testo. Il testo
+dice cosa è una cosa; come appare lo decidono il `runtime`, gli `stylesheet` e
+la configurazione del documento. Non è una decisione. Confronto con questa
+bozza, senza scegliere:
+- **Il testo di un `[[id]]`.** In `[[id|testo]]` il testo è scritto dentro, ed
+  è contenuto. Per un `[[id]]` senza testo la bozza non dice cosa si mostra:
+  il `title` del bersaglio, l'`id`, la frase del `concept`. Qualunque scelta
+  verrebbe da fuori, e va fatta.
+- **L'aspetto di un `[[id]]`.** Il `base stylesheet` (§0.5) non ha una regola
+  per i collegamenti, e con i soli selettori di `class` uno `stylesheet` non
+  li può colpire. Oggi l'aspetto di un collegamento non viene da nessuna
+  parte: è un buco, non una contraddizione.
+- **Il risultato di una riga di calcolo.** È coerente: la stringa la scrive il
+  `runtime` con il `lang` del file `document` (§0.4, §0.8), cioè da fuori.
+  Dentro il testo resta solo l'espressione.
+- **Nessun aspetto in linea dentro un `text`.** È coerente: niente attributi
+  in linea e niente HTML (§7.4). La conseguenza: enfasi e forte hanno solo
+  l'aspetto del `base stylesheet`, perché con i soli selettori di `class`
+  nessuno `stylesheet` del documento li può cambiare.
+- **La `class` è scritta dentro l'oggetto.** L'aspetto viene da fuori, ma
+  l'aggancio sta nel `front matter` del `text`: l'oggetto sa come vuole
+  essere trattato. Con l'orientamento si potrebbe spostare la `class` nella
+  `composition`, sull'`embed`. Oggi la `class` sui nodi che si vedono è
+  decisa [C: «Attributi e id»].
+
 ## 8. Le `composition` della classe 1: `chapter` e `article`
 
 La `composition` punta l'`object` [C: «La composition punta l'object»]. Lo
