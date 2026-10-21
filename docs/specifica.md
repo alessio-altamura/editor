@@ -15,10 +15,11 @@ parole del glossario con un altro senso (`attributes`, `code`).
   parole della voce di [contesto.md](contesto.md), per esempio [C: «Ogni
   oggetto è un file»].
 - *(proposta)*: viene dalla [bozza dei nodi](bozza-nodi.md), dall'orchestratore
-  o da chi ha scritto questa bozza; resta da confermare. Le proposte di questa
-  bozza che Alessio non ha ancora confermato sono, fra le altre, le classi di
-  conformità, gli attributi sconosciuti ignorati, gli `id reference`, il nome
-  `retired-ids.yaml` e lo `style` calcolato [C: «Sulla bozza di specifica»].
+  o da chi ha scritto questa bozza; resta da confermare. Il 2026-10-21 Alessio
+  ha confermato cinque proposte della bozza: le classi di conformità, gli
+  attributi sconosciuti ignorati con un avviso, gli `id reference` nel
+  `core`, il nome `retired-ids.yaml` e lo `style` calcolato nel `resolved
+  tree` [C: «Sulla bozza di specifica»]. I dettagli intorno restano proposte.
 - **APERTO**: un punto che blocca la classe 1, con le opzioni e i loro costi.
   Il 2026-10-21 Alessio ha chiuso tutti quelli della bozza precedente; i §0.1-
   §0.7 riportano le decisioni e le proposte che ne seguono.
@@ -114,13 +115,15 @@ Alessio ha deciso [C: «Sulla bozza di specifica»]:
   «mai riusato» non scatta;
 - la `target quote` arriva più avanti.
 
+Il file degli `id` ritirati si chiama `retired-ids.yaml` [C: «Sulla bozza di specifica»].
+
 *(proposte)*
 - **L'`id` di un file creato a mano.** Il `runtime` dà l'errore `id-missing`,
   con un `fix` che propone l'`id`: il nome del file fino al primo punto, se è
   valido e libero, altrimenti uno ricavato dalle prime parole. Quando il
   `runtime` riconcilia, applica il `fix` e scrive l'`id` nel file. Non
   propone mai un `id` vivo o ritirato.
-- **Il file.** Si chiama `retired-ids.yaml` e sta nella radice. È una mappa
+- **Il file.** Sta nella radice. È una mappa
   da ogni `id` ritirato al suo successore, o a `null` per un `id` cancellato,
   una riga per `id`, in ordine alfabetico. Chiavi e valori sono sempre
   stringhe, tranne `null`: in YAML `0123` si legge come un numero, e in
@@ -198,7 +201,8 @@ nel `resolved tree`, e chi disegna li applica soltanto [C: «Sulla bozza di
 specifica»]. Per partire, un sottoinsieme minimo di solo testo (carattere,
 colore, allineamento, margini, interlinea); la pagina si aggiunge dopo. Nella
 specifica c'è un foglio di partenza, così titoli ed enfasi si vedono anche
-senza uno `stylesheet` [C: «Sulla bozza di specifica»].
+senza uno `stylesheet` [C: «Sulla bozza di specifica»]. Lo `style` calcolato
+dal `runtime` sta nel `resolved tree` (stessa voce).
 
 *(proposte)*
 - **Il sottoinsieme della classe 1:** `font-family` (le famiglie generiche
@@ -308,11 +312,15 @@ procede in modo incrementale»; C: «Ordine dei livelli»]. L'aspetto
 incrementale è lo spirito di ogni cosa [C: «Principio: l'aspetto
 incrementale»].
 
+Le classi di conformità vanno da 0 a 6: la classe 0 è il `core`, le classi
+da 1 a 6 sono i sei passi dell'ordine deciso, la 1 contenuto e impaginazione,
+la 6 il `deck` [C: «Sulla bozza di specifica»]. Un attributo sconosciuto si ignora con un avviso (stessa
+voce).
+
 *(proposte; le prime quattro dell'orchestratore)*
-- **Classi.** La classe 0 è il `core`. Le classi da 1 a 6 sono i sei passi
-  dell'ordine deciso: la 1 contenuto e impaginazione, la 6 il `deck`. Una
-  classe non è un `part`: la 1 unisce più `part`, e la 6 aggiunge un `kind` di
-  `composition`. Il `canvas file` è assegnato qui alla classe 1.
+- **Classi e `part`.** Una classe non è un `part`: la 1 unisce più `part`, e
+  la 6 aggiunge un `kind` di `composition`. Il `canvas file` è assegnato qui
+  alla classe 1.
 - **Aggiungere soltanto.** Una classe aggiunge `kind`, attributi, ruoli e
   `template`, e non cambia il significato di un file valido per una classe
   precedente. Può riempire ciò che una classe precedente lascia vuoto: un
@@ -327,12 +335,11 @@ incrementale»].
   `composition` [C: «L'oggetto richiamato sul foglio»].
 - **Classe di un documento.** È la più alta fra le classi dei `kind` che usa.
   Il documento dichiara anche la `spec version` (§2).
-- **Compatibilità in avanti.** Un attributo sconosciuto si ignora con un
-  avviso, come le proprietà sconosciute in CSS 2.1
-  ([§4.2](https://www.w3.org/TR/CSS21/syndata.html#parsing-errors)). La bozza
-  proponeva un errore per i `kind` del `core`: così però un documento scritto
-  per una versione successiva non si aprirebbe. Il precedente copre
-  l'ignorare; l'avviso è una proposta nostra, perché CSS 2.1 non ne parla.
+- **Compatibilità in avanti.** L'attributo sconosciuto ignorato con un avviso
+  (deciso, sopra) segue le proprietà sconosciute di CSS 2.1
+  ([§4.2](https://www.w3.org/TR/CSS21/syndata.html#parsing-errors)), che però
+  non parla di avvisi: così un documento scritto per una versione successiva
+  si apre ancora.
 - **Contenuto delle classi.** Il `core` comprende il documento (§2),
   l'identità (§3), gli attributi (§4), il `concept` (§5), l'`association`
   (§6), la `directive` e gli `id reference` (§10) e il `runtime` (§11). La
@@ -393,7 +400,7 @@ di specifica»] (§0.3).
   dall'`app` con lo stesso `id` è un `id` doppio (esempio 13). Quando un
   oggetto si divide, l'`id` resta a una delle parti, e i collegamenti si
   segnalano da rivedere.
-- Il nome del file degli `id` ritirati, `retired-ids.yaml`, è una proposta.
+- Il file degli `id` ritirati si chiama `retired-ids.yaml` (deciso, §0.3).
 
 ## 4. Attributi
 
@@ -854,7 +861,8 @@ estensioni e connettori»]).
   `embed` di una `directive` la mostra. Una `static fallback` in immagine, per
   esempio un grafico con i `frozen values`, tocca la domanda aperta sui
   risultati nel pacchetto (handoff.md, domanda 6).
-- **`id reference`.** Il `core` fissa come si scrive un riferimento per `id`:
+- **`id reference`.** Il `core` ha una forma generica dei riferimenti per `id`
+  [C: «Sulla bozza di specifica»]. *(proposta)* La forma:
   `![[id]]` per un blocco, `[[id]]` o `[[id|testo]]` in linea; negli
   attributi, la lista `associations` e un valore che è esattamente
   `"[[id]]"`, fra virgolette come nelle proprietà di Obsidian
