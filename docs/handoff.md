@@ -267,19 +267,24 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
 
 0. **La bozza di specifica**, [specifica.md](specifica.md), del `core` e della
    classe 1 (2026-10-20/21). L'ha scritta una sottosessione su mandato
-   dell'orchestratore, in otto giri, controllati da revisori indipendenti; i
-   26 esempi sono anche i test. Tutti i punti APERTI sono stati decisi da
-   Alessio (contesto.md, voce «Sulla bozza di specifica»). L'ultimo controllo
-   (ottavo giro) ha trovato conseguenze da chiedere ad Alessio: il testo di
-   un `[[id]]` senza testo, l'aspetto di collegamenti ed enfasi, dove sta la
-   `class` (oggetto o `embed`), `tags` sempre scritto o no, il file
-   `document` obbligatorio o no, quale `lang` per i numeri. E correzioni
-   tecniche: `number` negli `embed` dei `chapter`, il `cross-ref` numerato in
-   più `composition`, i commenti a inizio riga, le regole di stampa per `it`,
-   il `kind` `document` nelle regole dei `kind`, alcune righe del glossario
-   (`tags`, `embed`, `numbering`, `document`). I rapporti dei revisori non
-   sono nel repository: vanno ripetuti se servono. La sottosessione è
-   session_01LJTSfiwiWSRkNwwAHxW4pz, ramo claude/spec-draft-level1.
+   dell'orchestratore, in dieci giri, controllati da revisori indipendenti; i
+   28 esempi sono anche i test. Le decisioni di Alessio sono in contesto.md,
+   voce «Sulla bozza di specifica». Restano tre punti APERTI, §0.14-§0.16, in
+   attesa di Alessio: il testo di un `[[id]]` verso un nodo numerato, la
+   forma di `embed-class`, l'aspetto dei titoli. Le preferenze
+   dell'orchestratore, già dette ad Alessio: numero più `title` dove la
+   `composition` numera; la mappa a un livello di sole stringhe; i titoli
+   fra i tipi agganciabili. Il controllo del decimo giro (96c62c6) non ha
+   trovato blocchi; le correzioni sono andate nell'undicesimo giro:
+   `computedStyle` confrontato con il valore ereditato dal genitore, un posto
+   per lo stile del titolo nel `resolved tree`, `!important` fuori dal
+   sottoinsieme, la mappa della radice che sostituisce quella del `chapter`,
+   i rimandi agli APERTI dove il testo li anticipava, la `spec version`
+   decisa nel §0.8, i limiti di decimal128 sul valore, le forme brevi con il
+   divisore scelto dopo l'arrotondamento, alcune righe del glossario. I
+   rapporti dei revisori non sono nel repository: vanno ripetuti se servono.
+   La sottosessione è session_01LJTSfiwiWSRkNwwAHxW4pz, ramo
+   claude/spec-draft-level1.
 1. **La bozza dei tipi di nodo** del primo livello è iniziata in
    [bozza-nodi.md](bozza-nodi.md): è di Alessio, scritta insieme. Il
    2026-10-20 è diventata una sintesi del modello: il `concept` come unità di
