@@ -244,12 +244,13 @@ punto (stessa voce). È un comportamento dell'`app`, non del formato.
   scrive `2.4` (prova con il modulo decimal di Python), e `1.2e6` si scrive
   `1200000`. Uno zero col segno meno si scrive senza segno: `-0` e `0 * -1`
   hanno `value` e `display` «0», e `= -1e-11`, che nel `display` arrotonda a
-  zero, mostra «0».
+  zero, mostra «0», con o senza lingua.
 - **La stringa da mostrare.** Il `runtime` scrive accanto al valore la
   stringa da mostrare: arrotondata al pari a 10 decimali al massimo, senza
   zeri finali, con i separatori della lingua dell'oggetto, altrimenti di
   quella del documento (§0.8, esempio 25); senza lingua la stringa è il
-  valore. I `renderer` la applicano soltanto (§0.5). Le regole di stampa sono
+  valore arrotondato allo stesso modo, con il punto e senza separatore
+  delle migliaia. I `renderer` la applicano soltanto (§0.5). Le regole di stampa sono
   fissate dalla specifica e non prese dal sistema, perché la stringa sia
   uguale dappertutto. Per `it` e `en`, da CLDR 48 (cldr-json 48.2.3,
   [numbers.json](https://github.com/unicode-org/cldr-json/tree/main/cldr-json/cldr-numbers-full/main)):
@@ -273,7 +274,7 @@ punto (stessa voce). È un comportamento dell'`app`, non del formato.
   l'unica proprietà personalizzata del sottoinsieme, e lo allarga oltre il
   minimo deciso (carattere, colore, allineamento, margini, interlinea).
   Le soglie valgono sul valore assoluto: -1500 dà «-1,5K». Senza lingua,
-  `compact` dà il valore. Il `runtime` la consuma per scrivere `display` e non la mette nel
+  `compact` dà la stringa senza lingua. Il `runtime` la consuma per scrivere `display` e non la mette nel
   `computed style`. Con `compact` il `display` divide il valore per mille, un
   milione, un miliardo o mille miliardi, lo arrotonda al pari a un decimale,
   toglie lo zero finale e usa la forma breve di CLDR 48: in `it` «0K», «0
@@ -298,7 +299,7 @@ punto (stessa voce). È un comportamento dell'`app`, non del formato.
   senza regione. Con la tabella di oggi `it-CH` ricade su `it` e mostra la
   virgola, mentre CLDR 48 gli dà il punto decimale e l'apostrofo U+0027 per
   le migliaia (in CLDR 47 era U+2019): è un ripiego voluto, per ora. Una
-  lingua fuori tabella mostra il valore semplice, con l'avviso
+  lingua fuori tabella mostra la stringa senza lingua, con l'avviso
   `lang-unsupported`, una volta per file e solo se il file ha righe di
   calcolo da mostrare.
 - **Errori.** Una riga che non segue la grammatica, che divide per zero o che
@@ -333,7 +334,10 @@ l'attributo HTML.
   - colori `#rgb`, `#rrggbb` e i nomi di CSS Color 4
     ([named colors](https://www.w3.org/TR/css-color-4/#named-colors)),
     senza `transparent`;
-  - `font-family` come lista di nomi e famiglie generiche, con ripiego;
+  - `font-family` come lista di nomi e delle sole famiglie generiche
+    `serif`, `sans-serif` e `monospace`, con ripiego; le altre famiglie
+    generiche di CSS Fonts 4 (`cursive`, `fantasy`, `system-ui`, `math`,
+    `ui-serif` e simili) e un nome che contiene `"` o `\` sono fuori;
   - `font-weight` come numero da 1 a 1000, come in CSS Fonts 4
     ([css-fonts-4](https://drafts.csswg.org/css-fonts-4/#font-weight-prop)),
     `normal` (400) e `bold` (700); `font-style` `normal` e `italic`;
@@ -341,7 +345,8 @@ l'attributo HTML.
   - `line-height` come numero o lunghezza.
 
   Il resto è `stylesheet-unsupported`, con `target` il nome della
-  proprietà. Restano fuori `line-height: normal`, che dipende dal font, le
+  proprietà; anche un valore fuori da decimal128 (§0.4), come
+  `margin-left: 1e6144in`, fa ignorare la dichiarazione. Restano fuori `line-height: normal`, che dipende dal font, le
   parole chiave di `font-size` (`small`, `larger` e simili) e le parole
   chiave CSS-wide (`inherit`, `initial`, `unset`): con il significato di CSS
   darebbero valori che il `runtime` non sa calcolare, come il colore
@@ -358,7 +363,8 @@ l'attributo HTML.
   decimali, e il valore arrotondato è il valore calcolato: si eredita, è la
   base di `em` ed è quello che si confronta per decidere cosa entra nel
   `computedStyle`. Così confronto e stringa scritta coincidono. Nel
-  `computedStyle` le lunghezze sono in `pt` senza zeri finali (`11pt`,
+  `computedStyle` le lunghezze sono in `pt` senza zeri finali e senza
+  esponente, come il `value` delle righe di calcolo (`11pt`,
   `2.8346pt` per `1mm`); `line-height` è un numero senza zeri finali o una
   lunghezza in `pt`, e `0` è il numero «0», come in CSS, dove uno 0 che può
   essere numero o lunghezza «must parse as a `<number>`»
@@ -679,10 +685,7 @@ sulla numerazione (§0.10) dice che un `cross-ref` porta il numero.
   perde il suo riferimento più corto.
 - **B. Numero e `title`**, «1 Le vendite». Costo: un testo più lungo, e una
   regola per separarli.
-- **C. Solo il numero.** Fuori dalla `composition` radice il numero non c'è,
-  e C mostra quello che mostra A: il `title`, e per un'immagine l'`id` con
-  `reference-text-missing`. Costo: lo stesso collegamento mostra un numero
-  o un `title` secondo dove sta. Capitoli e immagini hanno
+- **C. Solo il numero.** Costo: capitoli e immagini hanno
   sequenze separate e senza prefisso, quindi `[[cap-vendite]]` e
   `[[lavagna]]` mostrano tutti e due «1» (esempio 8); chi scrive dovrebbe
   aggiungere «capitolo» o «figura» nel testo, contro l'orientamento di
@@ -694,9 +697,7 @@ sulla numerazione (§0.10) dice che un `cross-ref` porta il numero.
   `\autoref` di hyperref, che scrive «section 2» invece di «2»
   ([hyperref](https://mirrors.ctan.org/macros/latex/contrib/hyperref/doc/hyperref-doc.html)),
   o cleveref, che sceglie la forma «according to the type of reference»
-  ([cleveref](https://ctan.org/pkg/cleveref)). Fuori dalla `composition`
-  radice il numero non c'è, e D mostra quello che mostra A: il `title`, e
-  per un'immagine l'`id` con `reference-text-missing`. Costi:
+  ([cleveref](https://ctan.org/pkg/cleveref)). Costi:
   - quelli di B, un testo più lungo e una regola per separare le parti;
   - una tabella di parole per tipo e per lingua accanto a quella dei
     numeri, e un testo che dipende dalla lingua: quella dell'oggetto,
@@ -708,6 +709,19 @@ sulla numerazione (§0.10) dice che un `cross-ref` porta il numero.
     of a sentence» ([manuale](https://mirrors.ctan.org/macros/latex/contrib/cleveref/cleveref.pdf));
   - in italiano chi scrive accorda articolo e preposizione con la parola
     premessa: «nel [[cap-vendite]]», «nella [[lavagna]]».
+
+Fuori dalla `composition` radice il numero non c'è: lì B, C e D mostrano
+quello che mostra A, cioè il `title`, e per un'immagine l'`id` con
+`reference-text-missing` (esempio 28). Ne vengono due costi comuni alle tre
+opzioni che mostrano il numero:
+- lo stesso collegamento mostra un numero o un `title` secondo dove sta, e
+  per un'immagine «figura 1» o «1» nella radice e l'`id` fuori;
+- con C e D, e con B se per un'immagine mostra il solo numero, ogni
+  `[[lavagna]]` senza testo dà `reference-text-missing` nel nodo del `text`,
+  che sta fuori dalla radice e non ha numero, anche se il `text` si usa solo
+  nell'`article`; e il `fix` `[[lavagna|testo]]` metterebbe un testo fisso
+  al posto del numero anche nella radice. Variante più semplice: fuori dalla
+  radice un `[[id]]` verso un tipo numerabile non dà l'avviso.
 
 Le immagini sono numerate ma non hanno `title`. Con A un `[[id]]` verso
 un'immagine mostra l'`id` e dà `reference-text-missing`; con B va definito,
@@ -1474,7 +1488,10 @@ nello stesso file); quelli segnati «uno per file» ne danno uno solo.
 Ogni `diagnostic` ha `severity` (`error` o `warning`), `code`, `file`, e
 secondo il codice `target` e `message`. Ogni errore ha anche un `fix` [C:
 «Lo strumento nasce con una riga di comando»]; un avviso può averlo. *(proposta)* Per un `diagnostic` che riguarda
-tutta la cartella, come `document-missing`, `file` è `.`.
+tutta la cartella, come `document-missing`, `file` è `.`. Per un `id`
+ritirato con successore il `target` di `association-kind`, `embed-kind`,
+`stylesheet-kind` e `stylesheet-ignored` è il successore; senza successore
+il riferimento non si risolve (§0.3) e il `target` è l'`id` scritto.
 
 | Codice | Gravità | Quando | `target` | Esempio |
 |---|---|---|---|---|
