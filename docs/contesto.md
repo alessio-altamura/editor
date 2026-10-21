@@ -270,6 +270,15 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     fusioni, chiavi inutilizzate o ritirate, mappe in conflitto). Costo
     accettato: il documento non dà una `class` a un oggetto dentro un
     capitolo annidato, ma la dà al capitolo intero.
+  - Aspetto dei titoli (§0.16 della bozza, 2026-10-21, «A»): lo
+    `stylesheet` di un documento può colpire i titoli dei capitoli, per
+    grado, con tre nomi come h1-h3 in HTML: `title-1`, `title-2`, `title-3`
+    (il grado 3 e quelli sotto), che usa anche il foglio di partenza; i nomi
+    erano nel suggerimento approvato. È il primo tipo di blocco fra quelli
+    agganciabili. La regola vale per tutti i titoli di quel grado nel
+    documento. Non deciso: un titolo diverso per un solo capitolo (il titolo
+    prende le `class` del suo capitolo, `title-1.compatto`); l'orchestratore
+    ha suggerito di rimandarlo, perché si aggiunge dopo senza rompere niente.
 
 ## Proposte non decise
 

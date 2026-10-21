@@ -214,7 +214,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `composition` | vista layout | Composizione ordinata di oggetti per `embed`: `article`, `deck`, `webpage`, e il `chapter` che si annida | deciso | layout, view, template |
 | `article` | documento | `composition` a flusso, per lettura e stampa; è l'indice dei suoi `chapter` | proposto | document |
 | `chapter` | capitolo | `composition` che si può annidare e raccoglie in ordine `object` e altri `chapter`, con un `title` facoltativo; `article` e `deck` la usano con l'`embed` (deciso il 2026-10-21; nome proposto) | concetto deciso, nome proposto | section, part, group |
-| `title` | titolo | Attributo con il titolo di un `chapter` o di una `composition`, nel `front matter`; proposta: anche il nodo del `resolved tree` che porta il titolo di un `chapter` | proposto | name |
+| `title` | titolo | Attributo con il titolo di un `chapter` o di una `composition`, nel `front matter`; uno `stylesheet` colpisce i titoli dei capitoli per grado con title-1, title-2 e title-3 (deciso il 2026-10-21); proposta: anche il nodo del `resolved tree` che porta il titolo di un `chapter` | proposto | name |
 | `hyperlink` | collegamento | Tipo in linea del contenuto: un collegamento a un URL o un `id reference` in linea; uno `stylesheet` lo può colpire (deciso il 2026-10-21, nome proposto) | concetto deciso, nome proposto | link, anchor |
 | `emphasis` | enfasi | Tipo in linea del contenuto, scritto con un asterisco o un trattino basso; uno `stylesheet` lo può colpire | concetto deciso, nome proposto | italic |
 | `strong` | forte | Tipo in linea del contenuto, scritto con due asterischi; uno `stylesheet` lo può colpire | concetto deciso, nome proposto | bold |
