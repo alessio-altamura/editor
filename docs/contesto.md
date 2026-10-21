@@ -100,7 +100,13 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   con un file per oggetto è nella bozza, [bozza-nodi.md](bozza-nodi.md).
 - Attributi e id (2026-10-20, approvati da Alessio sulle proposte di Claude;
   bozza-nodi.md §7, idee 1-4):
-  - i metadati comuni sono opzionali, e gli altri attributi dipendono dal tipo;
+  - i metadati sono di due gruppi: quelli comuni, che valgono per ogni nodo, e
+    quelli opzionali, che dipendono dal tipo. Correzione del 2026-10-21: Claude
+    aveva letto «metadati comuni e opzionali» come «comuni, quindi
+    opzionali», e così è finito nella bozza, in questa voce e nella bozza di
+    specifica. Alessio intendeva due gruppi distinti. La scelta 1ii sull'`id`
+    (voce «Sulla bozza di specifica») è stata presa con le opzioni scritte
+    sulla lettura sbagliata: 1i era descritta in conflitto con questa voce;
   - ogni nodo ha un `kind`;
   - `id` e `tags` valgono per ogni `kind`, `class` e `lang` per i nodi che si
     vedono; `lang` si eredita (dal contenitore, nel modello di allora: da

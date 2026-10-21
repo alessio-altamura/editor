@@ -280,6 +280,11 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
    (quattro opzioni, la D è di Alessio). Le proposte nuove (classi di
    conformità, attributi sconosciuti ignorati, riferimenti generici nel
    `core`, `retired-ids.yaml`, lo `style` calcolato) aspettano conferma.
+   Da correggere nella bozza: il 2026-10-21 Alessio ha chiarito che i
+   metadati comuni e quelli opzionali sono due gruppi, mentre la bozza (§0.3,
+   §3, §4) dice «i metadati comuni sono opzionali» e descrive 1i in conflitto
+   con una decisione che non c'era; va riscritta, e la scelta fra 1i e 1ii va
+   riproposta ad Alessio con le opzioni corrette.
    Residui minori noti: il §1 dice ancora che «una riga di calcolo riceve il
    risultato» da una classe successiva, traccia dell'opzione scartata; un
    capoverso del §0.1 è incollato dentro l'elenco del `canvas file`.

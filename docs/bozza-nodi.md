@@ -430,9 +430,10 @@ punta la composizione) hanno avuto risposta: vedi i §1 e §3.
 
 ## 7. Le idee di Alessio, in ordine (2026-10-20)
 
-1. Prima di tutto i metadati comuni, opzionali: un id, non per forza numerico o
-   incrementale, anche mnemonico; uno o più tag di contesto; il tipo; e forse
-   altro. Il paragrafo potrebbe essere già un contenitore, con dentro i
+1. Prima di tutto i metadati, comuni e opzionali. Comuni: un id, non per forza
+   numerico o incrementale, anche mnemonico; uno o più tag di contesto; il
+   tipo; e forse altro. (Correzione del 2026-10-21: i due gruppi erano stati
+   letti come «comuni, quindi opzionali».) Il paragrafo potrebbe essere già un contenitore, con dentro i
    capoversi, le tabelle, le immagini e così via.
 2. Gli attributi opzionali dipendono dal tipo.
 3. Sì alle proposte di Claude:
@@ -497,3 +498,6 @@ punta la composizione) hanno avuto risposta: vedi i §1 e §3.
     aggregatore di testi, come un indice dettagliato?
 21. 2 ok, un blocco per text. 5 il runtime. 4 un intervallo di valori di un
     campo, o tutta la colonna.
+22. Ma perché abbiamo eliminato gli id? No, il fraintendimento era un altro:
+    era una divisione fra metadati comuni e metadati opzionali, che dipendono
+    dal tipo.
