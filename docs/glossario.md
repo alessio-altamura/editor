@@ -153,7 +153,8 @@ colonne *codice* e *spec*, come in ID-Zero.
 
 | Nome | Italiano | Definizione | Stato | Da non usare |
 |---|---|---|---|---|
-| `document` | documento | Insieme di file di testo più gli asset, in una cartella o in un `bundle`; i suoi attributi, come `lang` e `spec version`, stanno in un file di `kind` document, uno solo (deciso il 2026-10-21) | concetto deciso, nome proposto | project, workbook |
+| `document` | documento | Insieme di file di testo più gli asset, in una cartella o in un `bundle`; i suoi attributi stanno nel `document file` | concetto deciso, nome proposto | project, workbook |
+| `document file` | file del documento | Il file con gli attributi del `document`, come `lang` e `spec version`, con `kind` document; uno e uno solo, e il `runtime` lo crea se manca (deciso il 2026-10-21) | concetto deciso, nome proposto | config, settings |
 | `bundle` | pacchetto | Il documento compresso in un unico zip con `file extension` propria, da scegliere | proposto | package, archive |
 | `part` | livello | Un livello del documento (contenuto, stile, dati, formule, wire, grafici, composizioni, canvas): un gruppo di `kind`, sviluppato per fasi; orientamento: non è né un file né una cartella, gli oggetti stanno insieme e l'`app` li filtra per livello | deciso | layer, level, tier |
 | `source` | sorgente | Il testo dei file del documento, fonte di verità da cui si generano le viste | concetto deciso, nome proposto | code, integration |
@@ -184,7 +185,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `turn into` | promuovere | Trasformare un pezzo in un tipo strutturato, per esempio testo in `collection` o in `chart` | concetto deciso, nome proposto | promote, convert |
 | `revert` | gesto inverso | Riportare un oggetto strutturato a testo libero; da decidere | aperto | demote, downgrade |
 | `hint` | suggerimento | Proposta automatica (classificare, collegare, trasformare) che chi scrive conferma | concetto deciso, nome proposto | suggestion, auto- |
-| `embed` | uso per riferimento | Inclusione di un oggetto in una `composition` o nel contenuto, senza copia | concetto deciso, nome proposto | copy, insert |
+| `embed` | uso per riferimento | Inclusione di un oggetto in una `composition`, senza copia; dentro un capoverso per ora non è ammesso (deciso il 2026-10-21) | concetto deciso, nome proposto | copy, insert |
 | `scratch` | spazio libero | Appunti e `math line` dentro il contenuto, da cui si trasformano oggetti; proposta: un `kind` a sé con più blocchi, posto di lavoro e non unità di significato, che una `composition` non usa | concetto deciso, nome proposto | free space, notes |
 | `math line` | riga di calcolo | Riga con un calcolo e l'`inline result` | concetto deciso, nome proposto | calc line, formula |
 | `inline result` | risultato in linea | Valore mostrato accanto a una `math line` | proposto | output |
@@ -192,7 +193,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `text` | testo | `kind` di `object` fatto di prosa, un blocco solo: un capoverso, un elenco, una citazione (deciso il 2026-10-21) | concetto deciso, nome proposto | paragraph (da fissare con la bozza) |
 | `image` | immagine | `kind` di `object` per un'immagine fatta fuori dal `runtime`: un file descrittore con gli attributi, che nomina il suo `asset` | proposto | picture, figure |
 | `attributes` | metadati | Due gruppi: i comuni, che valgono per ogni nodo (`id`, `tags`, `kind`), e gli opzionali, che dipendono dal `kind`, fra cui `class` e `lang` sui nodi che si vedono; `origin` è da decidere; precedente: gli attributi (Attr) di Pandoc | concetto deciso, nome proposto | metadata, properties |
-| `tags` | tag di contesto | Uno o più tag che dicono a cosa si riferisce un `node`, per organizzare e filtrare nel `navigator` | concetto deciso, nome proposto | labels, categories, class |
+| `tags` | tag di contesto | Tag che dicono a cosa si riferisce un `node`, per organizzare e filtrare nel `navigator`; sempre scritti, la lista può essere vuota (deciso il 2026-10-21) | concetto deciso, nome proposto | labels, categories, class |
 | `lang` | lingua | Lingua del contenuto di un `node` che si vede, per sillabazione, controllo ortografico e screen reader; si eredita, da cosa è da precisare | concetto deciso, nome proposto | language, locale |
 | `concept` | concetto | Unità di significato, un file: un'idea in una o due frasi, i suoi `attributes` e i collegamenti agli `object` che la sviluppano; si scrive prima e se ne fa `develop`, o si ricava dopo con `distill`; può proporlo un LLM come `hint`; i collegamenti con gli `object` si scrivono da una parte, dall'altra o da entrambe | deciso | summary, description, abstract, idea, section |
 | `develop` | sviluppare | Operazione: da un `concept` a uno o più `object` nuovi, anche di `kind` diversi, collegati al `concept` | proposto | expand, generate |
@@ -214,6 +215,10 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `article` | documento | `composition` a flusso, per lettura e stampa; è l'indice dei suoi `chapter` | proposto | document |
 | `chapter` | capitolo | `composition` che si può annidare e raccoglie in ordine `object` e altri `chapter`, con un `title` facoltativo; `article` e `deck` la usano con l'`embed` (deciso il 2026-10-21; nome proposto) | concetto deciso, nome proposto | section, part, group |
 | `title` | titolo | Attributo con il titolo di un `chapter` o di una `composition`, nel `front matter` | proposto | name |
+| `hyperlink` | collegamento | Tipo in linea del contenuto: un collegamento a un URL o un `id reference` in linea; uno `stylesheet` lo può colpire (deciso il 2026-10-21, nome proposto) | concetto deciso, nome proposto | link, anchor |
+| `emphasis` | enfasi | Tipo in linea del contenuto, scritto con un asterisco o un trattino basso; uno `stylesheet` lo può colpire | concetto deciso, nome proposto | italic |
+| `strong` | forte | Tipo in linea del contenuto, scritto con due asterischi; uno `stylesheet` lo può colpire | concetto deciso, nome proposto | bold |
+| `inline code` | codice in linea | Tipo in linea del contenuto, fra backtick; uno `stylesheet` lo può colpire | concetto deciso, nome proposto | code span, monospace |
 | `heading` | titolo Markdown | Titolo scritto con il cancelletto nel corpo; ammesso solo nello `scratch`, distinto dal `title` | proposto | title |
 | `deck` | presentazione | `composition` fatta di `slide` | concetto deciso, nome proposto | presentation, slides |
 | `webpage` | pagina web | `composition` pubblicata come pagina HTML | proposto | page, site |
@@ -230,7 +235,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `page` | pagina | Pagina del PDF o della `paged preview` | proposto | sheet |
 | `running header` | intestazione di pagina | Testo ripetuto in cima alle pagine | proposto | header |
 | `footnote` | nota | Nota a piè di pagina | proposto | note |
-| `numbering` | numerazione | Numeri di figure, tabelle e capitoli calcolati dal `runtime` | proposto | counter |
+| `numbering` | numerazione | Numeri di capitoli e immagini, calcolati dal `runtime` e scritti nel `resolved tree` (deciso il 2026-10-21); tabelle e figure più avanti | concetto deciso, nome proposto | counter |
 | `cross-ref` | riferimento numerato | Riferimento a un `node` numerato | proposto | link |
 | `size` | dimensione | Larghezza e altezza di una `page` o di una `slide` | proposto | dimension |
 | `constraints` | layout a vincoli | Regole di allineamento e distribuzione al posto delle coordinate assolute; proposta non decisa | proposto | layout |
@@ -333,7 +338,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | Nome | Italiano | Definizione | Stato | Da non usare |
 |---|---|---|---|---|
 | `spec` | specifica | Il testo normativo dello standard | proposto | standard, docs |
-| `spec version` | versione della semantica | Versione della specifica scritta in ogni documento | proposto | format version |
+| `spec version` | versione della semantica | Versione della specifica, scritta nel `document file` | concetto deciso, nome proposto | format version |
 | `core` | nucleo | Ciò che ogni implementazione conforme sa leggere: `document`, `id`, `attributes`, `concept`, `association`, `directive`, `id reference`, `diagnostic` e `resolved tree`; è la classe 0 | concetto deciso, nome proposto | base, kernel |
 | `conformance class` | classe di conformità | Insieme di requisiti che un'implementazione dichiara di soddisfare: la classe 0 è il `core`, e ogni classe successiva corrisponde a un passo dell'ordine deciso dei livelli; aggiunge `kind` e attributi senza cambiare il significato di ciò che c'era (classi da 0 a 6, deciso il 2026-10-21) | concetto deciso, nome proposto | conformance level, profile, tier, level |
 | `profile` | profilo | Sottoinsieme del linguaggio delle formule fissato dalla `spec` | proposto | dialect |
