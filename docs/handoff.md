@@ -267,23 +267,20 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
 
 0. **La bozza di specifica**, [specifica.md](specifica.md), del `core` e della
    classe 1 (2026-10-20/21). L'ha scritta una sottosessione su mandato
-   dell'orchestratore, in diciassette giri, controllati da revisori
-   indipendenti; i 34 esempi sono anche i test. Le decisioni di Alessio sono
-   in contesto.md, voce «Sulla bozza di specifica». Il 2026-10-21 Alessio ha
-   chiuso gli ultimi tre punti APERTI, uno per volta: il testo di un
-   collegamento lo scrive chi scrive e il numero entra con un segnaposto
-   (`[[lavagna|figura {n}]]`); la `class` del documento si scrive accanto
-   all'inclusione (`![[id]]{.nota}`); lo `stylesheet` colpisce i titoli per
-   grado (`title-1`, `title-2`, `title-3`). La sottosessione le ha scritte
-   nella bozza nel diciassettesimo giro (c7028a5); il controllo
-   indipendente le ha trovate fedeli e gli esempi passano lo script
-   aggiornato. Le correzioni vanno in un diciottesimo giro breve: la parola
-   «documento» nella frase decisa del §0.14, quale numero se lo stesso
-   oggetto è incluso due volte, il segno `{.…}` riconosciuto anche fuori
-   dalle `composition`, una regola esplicita sugli spazi al posto di «come
-   in HTML», la nota «il `deck` per ultimo» cancellata per errore. Resta
-   non deciso il titolo diverso per un solo capitolo, che l'orchestratore
-   ha suggerito di rimandare. I
+   dell'orchestratore, in diciotto giri, controllati da revisori
+   indipendenti; i 35 esempi sono anche i test, e passano. Le decisioni di
+   Alessio sono in contesto.md, voce «Sulla bozza di specifica». Non restano
+   punti APERTI: il 2026-10-21 Alessio ha chiuso gli ultimi tre, uno per
+   volta (il testo di un collegamento lo scrive chi scrive e il numero entra
+   con un segnaposto, `[[lavagna|figura {n}]]`; la `class` del documento si
+   scrive accanto all'inclusione, `![[id]]{.nota}`; lo `stylesheet`
+   colpisce i titoli per grado, `title-1`…`title-3`). Le conseguenze
+   tecniche sono proposte, marcate nella bozza. Resta non deciso il titolo
+   diverso per un solo capitolo, che l'orchestratore ha suggerito di
+   rimandare. Dal sedicesimo giro le revisioni trovavano solo casi limite:
+   i dettagli che restano li faranno emergere gli esempi quando si scriverà
+   il `runtime`. Gli script di controllo degli esempi usati
+   dall'orchestratore non sono nel repository. I
    rapporti dei revisori non sono nel repository: vanno ripetuti se servono.
    La sottosessione è session_01LJTSfiwiWSRkNwwAHxW4pz, ramo
    claude/spec-draft-level1.
