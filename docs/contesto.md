@@ -208,6 +208,19 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     composizione che si può annidare; l'`article` è l'indice dei capitoli, e
     un `deck` usa gli stessi capitoli senza ripetere i titoli.
 
+  - punti aperti §0.8-§0.13 della bozza (2026-10-21, «ok a tutti i tuoi
+    suggerimenti»): `tags` è sempre presente ma la lista vuota è ammessa; i
+    commenti si scrivono solo come commenti HTML `<!-- -->`, unica eccezione
+    al divieto dell'HTML grezzo; il file di configurazione del documento è un
+    file come gli altri, con `kind` `document` e tutto nell'intestazione, uno
+    solo per documento; un oggetto dentro un capoverso per ora non è ammesso
+    (un `text` resta un blocco solo); la numerazione di capitoli e immagini la
+    calcola il `runtime` e la scrive nel `resolved tree`; nel `canvas file`
+    ogni nodo porta l'`id`, se JSON Canvas ammette una chiave in più e gli
+    altri programmi la conservano, altrimenti restano i percorsi. Dubbio di
+    Alessio sull'oggetto dentro un capoverso: se si deve spezzare per forza il
+    testo, o se esiste un modo in linea;
+
   Questi ultimi punti Alessio li ha approvati con «ok ai tuoi suggerimenti»,
   riferito ai sei punti aperti della bozza.
   - Confermate anche le proposte nuove della bozza (2026-10-21): le classi di

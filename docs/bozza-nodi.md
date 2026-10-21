@@ -508,3 +508,6 @@ punta la composizione) hanno avuto risposta: vedi i §1 e §3.
 25. (Scritto alla sottosessione della specifica, sulla riga `---` che la bozza
     vietava.) Ammettila come linea, con le righe vuote dal formatter se teniamo
     md.
+26. Ok a tutti i tuoi suggerimenti. Unico dubbio: se voglio mettere un oggetto
+    in mezzo a un testo, devo spezzare per forza il testo? O esiste un modo in
+    linea di inserirlo?
