@@ -153,7 +153,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 
 | Nome | Italiano | Definizione | Stato | Da non usare |
 |---|---|---|---|---|
-| `document` | documento | Insieme di file di testo più gli asset, in una cartella o in un `bundle` | concetto deciso, nome proposto | project, workbook |
+| `document` | documento | Insieme di file di testo più gli asset, in una cartella o in un `bundle`; i suoi attributi, come `lang` e `spec version`, stanno in un file di `kind` document, uno solo (deciso il 2026-10-21) | concetto deciso, nome proposto | project, workbook |
 | `bundle` | pacchetto | Il documento compresso in un unico zip con `file extension` propria, da scegliere | proposto | package, archive |
 | `part` | livello | Un livello del documento (contenuto, stile, dati, formule, wire, grafici, composizioni, canvas): un gruppo di `kind`, sviluppato per fasi; orientamento: non è né un file né una cartella, gli oggetti stanno insieme e l'`app` li filtra per livello | deciso | layer, level, tier |
 | `source` | sorgente | Il testo dei file del documento, fonte di verità da cui si generano le viste | concetto deciso, nome proposto | code, integration |
