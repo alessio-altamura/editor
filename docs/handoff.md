@@ -267,8 +267,10 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
 
 0. **La bozza di specifica**, [specifica.md](specifica.md), del `core` e della
    classe 1 (2026-10-20/21). L'ha scritta una sottosessione su mandato
-   dell'orchestratore, in diciannove giri, controllati da revisori
-   indipendenti; i 40 esempi sono anche i test. Il diciannovesimo giro ha
+   dell'orchestratore, in venti giri, controllati da revisori
+   indipendenti; i 42 esempi sono anche i test, e il runtime li passa.
+   Il ventesimo giro ha aggiunto i limiti di sicurezza del resolved tree
+   (tree-limit, §11.1). Il diciannovesimo giro ha
    fissato i punti che il runtime aveva dovuto scegliere, e la ricorsione
    decisa da Alessio (§0.17). Le decisioni di
    Alessio sono in contesto.md, voce «Sulla bozza di specifica». Non restano

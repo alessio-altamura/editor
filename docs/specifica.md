@@ -148,7 +148,8 @@ l'estensione e quindi chiede di rinominare insieme il `kind` scritto nel file
   riferimento a quel nome non si risolve.
 - **Il file.** Sta nella radice; un `retired-ids.yaml` in una sottocartella
   è un `asset`. Chiavi e successori seguono la forma degli `id` (§3): uno
-  fuori forma è `id-invalid`, nel file `retired-ids.yaml`. È una mappa
+  fuori forma è `id-invalid`, nel file `retired-ids.yaml`, ma la riga resta
+  e catene, cicli e successori si controllano lo stesso. È una mappa
   da ogni `id` ritirato al suo successore, o a `null` per un `id` cancellato,
   una riga per `id`, in ordine alfabetico. Chiavi e valori sono sempre
   stringhe, tranne `null`: in YAML `0123` si legge come un numero, e in
@@ -509,20 +510,24 @@ specifica»]. Il confronto con le altre strade è nella nota
 - **`![[id]]`** da solo in un capoverso, con o senza le `class` accanto
   (§0.15), è un `embed` di blocco; **`[[id]]`**
   e **`[[id|testo]]`** in linea sono un `id reference` (§10).
-- **`[[…]]` prima di CommonMark.** Fuori dal codice in linea, `[[…]]` si
-  riconosce prima delle altre regole in linea: `[[x]]` resta un `id
+- **`[[…]]` prima di CommonMark.** Fuori dal codice in linea, dai blocchi di
+  codice e dall'HTML grezzo, `[[…]]` si riconosce prima delle altre regole
+  in linea, e non attraversa un a capo: `[[x]]` resta un `id
   reference` anche se il file definisce `[x]: url`. Il testo dopo `|` è
   testo semplice, senza enfasi né codice: `[[calo-q3|*il calo*]]` mostra
   «*il calo*».
 - **`![[id]]` fuori da una `composition`.** In un `text`, uno `scratch`, un
-  `concept` o un `image`, un `![[id]]` da solo in un capoverso è l'errore
+  `concept`, un `image`, un `canvas-file` o il `document file`, dove si
+  somma a `document-content`, un `![[id]]` da solo in un capoverso è l'errore
   `embed-outside-composition`, con `target` l'`id` e un `fix` che suggerisce
   di spostarlo in una `composition`; nel `resolved tree` resta testo, come è
   scritto (esempio 39). Una `directive` invece può avere `embed` (§10).
 - **Collegamenti per riferimento.** `[t][s]` con `[s]: url` è un
   `hyperlink` con `url`, come un collegamento in linea. La definizione `[s]:
-  url` non è un blocco: non conta per `text-blocks` e non entra nel
-  `resolved tree`.
+  url` non è un blocco: non conta per `text-blocks` né, nel corpo di una
+  `composition`, per `composition-content`, e non entra nel `resolved
+  tree`. Con due definizioni della stessa etichetta vale la prima, come in
+  CommonMark.
 - **Non funziona dentro Obsidian così com'è:** Obsidian risolve `[[...]]` per
   nome della nota, cioè del file, e anche un collegamento a un alias lo
   scrive con il nome: «Obsidian uses the `[[Artificial Intelligence|AI]]` link
@@ -547,7 +552,8 @@ si sposta come un'unità, si annida, e può non avere titolo.
 - **Il titolo** è l'attributo `title` nell'intestazione. È la forma più
   semplice: il corpo resta fatto solo di `embed`, e un capitolo senza
   `title` è una sezione senza titolo. *(proposta)* Un `title` vuoto
-  (`title: ""`) vale come assente.
+  (`title: ""`) vale come assente per la numerazione, il titolo e il testo
+  di un `[[id]]`, ma resta negli `attributes` come è scritto (esempio 42).
 - **Il corpo** di un `chapter` contiene solo `embed`, di `object` o di altri
   `chapter`, in ordine di lettura, e righe di separazione (§7.4). Il grado di un titolo viene
   dall'annidamento, non dal file: lo stesso `chapter` è di grado 1
@@ -798,13 +804,17 @@ tag in più opzionale» [C: «Sulla bozza di specifica»].
   che contiene altri oggetti.
 - **Senza l'attributo** un ciclo resta `embed-cycle` (§8). In un ciclo fra
   più `chapter` ciascuno deve abilitarla: `embed-cycle` va nel file di ogni
-  `chapter` del ciclo che non la abilita.
+  `chapter` del ciclo che non la abilita, e di ogni `directive` del ciclo,
+  che non ha modo di abilitarla.
 - **Con un limite n** il `chapter` compare dentro sé stesso fino a n volte
   lungo il cammino; l'`embed` che sarebbe il successivo non entra nel
   `resolved tree` (esempio 40). In un ciclo fra più `chapter` ciascuno conta
-  le sue volte con il suo limite.
+  le sue volte con il suo limite. Ogni ripetizione con `title` prende un
+  numero nuovo, come un capitolo annidato: `1`, `1.1`, `1.1.1`.
 - **Con `infinite`** il `resolved tree` segna il punto in cui il `chapter`
-  torna: l'`embed` ha `"recursion": true` e nessun figlio, e chi disegna
+  torna: l'`embed` ha `"recursion": true` e nessun figlio, con `lang` e
+  `class` come ogni `embed` ma senza `depth`, `number` né `computedStyle`,
+  perché non si disegna da solo; chi disegna
   sceglie fino a che profondità ripeterlo, come vuole l'impaginazione da
   fuori (§7.4).
 - **La regola di uscita** richiede le formule e arriva con loro (classe 4).
@@ -1009,7 +1019,9 @@ separazione fra associazioni e dipendenze (domanda 3).
 - Un'`association` con un bersaglio inesistente è un errore visibile, e non
   compare fra le `associations` del `resolved tree` (esempio 6).
 - Un'`association` con una `composition` o uno `stylesheet` è un errore: la
-  `composition` usa gli oggetti con l'`embed` (esempio 18).
+  `composition` usa gli oggetti con l'`embed` (esempio 18). Il descrittore
+  di un `canvas file` invece può dichiarare `associations` ed esserne il
+  bersaglio.
 
 ```````````````````````````````` example 2 conf=1 status=proposal
 === file calo-q3-sintesi.text.md
@@ -1158,8 +1170,9 @@ nome (§11.3).
 
 Un oggetto dentro un capoverso per ora non è ammesso (§0.9, deciso).
 
-*(proposta)* Un'immagine Markdown, `![alt](url)`, è fuori dall'inventario:
-è l'errore `markdown-image`, con `target` l'URL e un `fix` che suggerisce un
+*(proposta)* Un'immagine Markdown, `![alt](url)` o `![alt][rif]`, è fuori
+dall'inventario: è l'errore `markdown-image`, con `target` l'URL, per la
+forma con riferimento quello della definizione, e un `fix` che suggerisce un
 oggetto `image` incluso con `![[id]]` in una `composition`. Nel `resolved
 tree` resta testo, come è scritto (esempio 37).
 
@@ -1548,6 +1561,15 @@ calcolo», proposta]. I passi:
    `numbering` e il `computed style` del suo nodo e dei nodi del suo
    contenuto.
 
+*(proposta)* **Limiti di sicurezza**, perché il documento si risolva in un
+tempo finito: il `resolved tree` ha al massimo 1000 livelli di `embed` uno
+dentro l'altro e 100000 `embed` in tutto. Oltre, l'`embed` si taglia:
+diventa `{"id": …, "unresolved": true}`, senza figli, con l'errore
+`tree-limit`. Un `recursion` con un limite alto e due `embed` di sé stesso
+ne avrebbe altrimenti 2^(n+1)-1. Un annidamento Markdown oltre 100 livelli è
+`syntax`, e una riga di calcolo con più di 100 parentesi è
+`math-line-invalid`.
+
 La risoluzione non si ferma a un errore: l'albero esce sempre, con il
 `diagnostic` accanto. Con un errore la `cli` esce con un codice diverso da
 zero e l'`export` si rifiuta. *(proposta)* I codici di uscita: 0 senza
@@ -1590,9 +1612,10 @@ il riferimento non si risolve (§0.3) e il `target` è l'`id` scritto.
 | `embed-unresolved` | error | `id` inesistente | l'`id` | 9 |
 | `embed-kind` | error | `embed` di un `concept`, di uno `scratch`, di un `article`, di un `deck`, di uno `stylesheet`, di un `canvas-file` o del `document file` | l'`id` | 11 |
 | `embed-retired` | warning | `embed` di un `id` ritirato, risolto sul successore | l'`id` ritirato | non coperto |
-| `embed-cycle` | error | un `chapter` che contiene sé stesso senza `recursion`; uno per `chapter` del ciclo che non la abilita | l'`id` del `chapter` | 38 |
+| `embed-cycle` | error | un `chapter` che contiene sé stesso senza `recursion`; uno per `chapter` del ciclo che non la abilita e per `directive` del ciclo | l'`id` del `chapter` | 38 |
 | `embed-outside-composition` | error | un `![[id]]` da solo in un capoverso di un file che non è una `composition` né una `directive` | l'`id` | 39 |
-| `markdown-image` | error | un'immagine Markdown `![alt](url)` | l'URL | 37 |
+| `markdown-image` | error | un'immagine Markdown, `![alt](url)` o `![alt][rif]` | l'URL | 37, 41 |
+| `tree-limit` | error | un `embed` oltre i limiti del `resolved tree` (§11.1); uno per file | l'`id` del primo `embed` tagliato | non coperto |
 | `retired-chain` | warning | in `retired-ids.yaml` un successore a sua volta ritirato | l'`id` | non coperto |
 | `retired-cycle` | error | un ciclo fra successori | l'`id` | non coperto |
 | `retired-successor-missing` | error | un successore che non esiste | l'`id` | non coperto |
@@ -2377,6 +2400,61 @@ Una nota.
 }
 ````````````````````````````````
 
+Un'immagine Markdown per riferimento ha come `target` l'URL della definizione
+(§7.1):
+
+```````````````````````````````` example 41 conf=1 status=proposal
+=== file vedi.text.md
+---
+id: vedi
+kind: text
+---
+Vedi ![la lavagna][l].
+
+[l]: lavagna.jpg
+=== resolved
+{
+  "nodes": [
+    {"id": "vedi", "kind": "text", "file": "vedi.text.md", "content": [["paragraph", "Vedi ![la lavagna][l]."]]}
+  ],
+  "diagnostics": [
+    {"severity": "error", "code": "markdown-image", "file": "vedi.text.md", "target": "lavagna.jpg", "fix": "un image con asset lavagna.jpg, incluso con ![[id]]"}
+  ]
+}
+````````````````````````````````
+
+Un `title` vuoto vale come assente, ma resta negli attributi (§0.7):
+
+```````````````````````````````` example 42 conf=1 status=proposal
+=== file report-q3.article.md
+---
+id: report-q3
+kind: article
+---
+![[cap-vuoto]]
+=== file cap-vuoto.chapter.md
+---
+id: cap-vuoto
+kind: chapter
+title: ""
+---
+![[nota]]
+=== file nota.text.md
+---
+id: nota
+kind: text
+---
+Una nota.
+=== resolved
+{
+  "nodes": [
+    {"id": "cap-vuoto", "kind": "chapter", "file": "cap-vuoto.chapter.md", "attributes": {"title": ""}, "content": [["embed", {"id": "nota", "kind": "text"}, ["paragraph", "Una nota."]]]},
+    {"id": "nota", "kind": "text", "file": "nota.text.md", "content": [["paragraph", "Una nota."]]},
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "content": [["embed", {"id": "cap-vuoto", "kind": "chapter"}, ["embed", {"id": "nota", "kind": "text"}, ["paragraph", "Una nota."]]]]}
+  ]
+}
+````````````````````````````````
+
 ### 11.3 Il `resolved tree` *(proposta)*
 
 È un valore JSON con tre liste, e la chiave `document` con il `document file`
@@ -2409,7 +2487,7 @@ toglie uno.
 
 Gli ordini sono per punti di codice Unicode. Due alberi si confrontano come
 valori JSON: l'ordine delle chiavi di un oggetto non conta, quello degli array
-sì.
+sì, e non conta come si stampa, compatto o indentato.
 
 Il contenuto segue la forma di JsonML, con valori estesi: JsonML ammette
 come valori degli attributi solo stringhe, numeri, `true`, `false` e `null`
