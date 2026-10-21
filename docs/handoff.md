@@ -267,7 +267,7 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
 
 0. **La bozza di specifica**, [specifica.md](specifica.md), del `core` e della
    classe 1 (2026-10-20/21). L'ha scritta una sottosessione su mandato
-   dell'orchestratore, in tredici giri, controllati da revisori
+   dell'orchestratore, in quattordici giri, controllati da revisori
    indipendenti; i 32 esempi sono anche i test. Le decisioni di Alessio sono
    in contesto.md, voce «Sulla bozza di specifica». Restano tre punti
    APERTI, §0.14-§0.16, in attesa di Alessio: il testo di un `[[id]]` verso
@@ -276,12 +276,11 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
    l'opzione D (il nome del tipo nella lingua del documento davanti al
    numero, come \autoref di LaTeX); la mappa a un livello di sole stringhe;
    i titoli fra i tipi agganciabili, con nomi per grado (`title-1`…). Il
-   controllo del tredicesimo giro (e7d2fb3) non ha trovato blocchi: i
-   rilievi ormai sono dettagli dei valori CSS ammessi (parole chiave
-   CSS-wide, `em` sulla radice, arrotondamenti, forma delle stringhe nel
-   `computedStyle`) e i costi mancanti dell'opzione D. Vanno nel
-   quattordicesimo giro, che l'orchestratore ha proposto come ultimo giro di
-   dettaglio prima delle risposte di Alessio. I
+   controllo del quattordicesimo giro (508b005), fatto solo sulle modifiche
+   del giro, ha trovato regole nuove che non determinano l'albero: il
+   «decimale esatto» per gli stili (impossibile per mm e cm), i valori di
+   partenza della radice, la forma scritta di alcuni valori. Le correzioni
+   vanno nel quindicesimo giro, l'ultimo prima delle risposte di Alessio. I
    rapporti dei revisori non sono nel repository: vanno ripetuti se servono.
    La sottosessione è session_01LJTSfiwiWSRkNwwAHxW4pz, ramo
    claude/spec-draft-level1.
