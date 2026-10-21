@@ -23,7 +23,7 @@ parole del glossario con un altro senso (`attributes`, `code`).
 - **APERTO**: un punto che blocca la classe 1, con le opzioni e i loro costi.
   Il 2026-10-21 Alessio ha chiuso quelli della bozza precedente, e i §0.1-
   §0.7 riportano le decisioni e le proposte che ne seguono; lo stesso giorno
-  ha deciso anche i §0.8-§0.16. Non restano punti APERTI.
+  ha deciso anche i §0.8-§0.17. Non restano punti APERTI.
 
 **Sintassi.** I file di testo sono Markdown con una sintassi nostra, come fa
 Obsidian: CommonMark, `[[id]]`, `![[id]]` con le `class` scritte accanto,
@@ -561,7 +561,7 @@ si sposta come un'unità, si annida, e può non avere titolo.
   disegna *(proposta)*. Hanno un corpo di soli `embed`,
   di `chapter` o di `object`.
 - **Cicli.** Un `chapter` che contiene sé stesso, anche attraverso altri, è
-  l'errore `embed-cycle`.
+  l'errore `embed-cycle`, se non abilita la ricorsione (§0.17).
 - Le due relazioni di Alessio restano distinte: l'aggregatore di dati della
   bozza (bozza-nodi.md §3) ripete lo stesso `template` su più dati, mentre il
   `chapter` ordina oggetti diversi; Alessio ha paragonato quell'aggregatore
@@ -783,6 +783,34 @@ capitolo non è deciso (stessa voce).
   (`title-1.compatto`). Si aggiunge dopo senza rompere niente, perché oggi
   quel selettore è `stylesheet-unsupported`.
 
+### 0.17 Deciso: la ricorsione
+
+Un oggetto può contenere sé stesso solo se lo abilita, con un limite,
+infinito oppure una regola di uscita; vale anche per le formule. Se non la
+abilita, per quell'oggetto la ricorsione non si può fare. Si abilita con «un
+tag in più opzionale» [C: «Sulla bozza di specifica»].
+
+*(proposte; la prima è una lettura dell'orchestratore da confermare)*
+- **L'attributo.** È l'attributo opzionale `recursion`, non una voce di
+  `tags`, perché porta un valore: un intero positivo o `infinite`, scritto
+  come stringa (`recursion: "2"`, §0.6). Un altro valore è
+  `attribute-invalid`. Nella classe 1 vale per il `chapter`, l'unico oggetto
+  che contiene altri oggetti.
+- **Senza l'attributo** un ciclo resta `embed-cycle` (§8). In un ciclo fra
+  più `chapter` ciascuno deve abilitarla: `embed-cycle` va nel file di ogni
+  `chapter` del ciclo che non la abilita.
+- **Con un limite n** il `chapter` compare dentro sé stesso fino a n volte
+  lungo il cammino; l'`embed` che sarebbe il successivo non entra nel
+  `resolved tree` (esempio 40). In un ciclo fra più `chapter` ciascuno conta
+  le sue volte con il suo limite.
+- **Con `infinite`** il `resolved tree` segna il punto in cui il `chapter`
+  torna: l'`embed` ha `"recursion": true` e nessun figlio, e chi disegna
+  sceglie fino a che profondità ripeterlo, come vuole l'impaginazione da
+  fuori (§7.4).
+- **La regola di uscita** richiede le formule e arriva con loro (classe 4).
+  Per una formula `infinite` il `runtime` terrà comunque un limite di
+  sicurezza, perché il documento deve risolversi in un tempo finito.
+
 ### Nota: il `deck` per ultimo
 
 Il principio dice che gli stessi mattoni *possono* dare documenti o
@@ -921,6 +949,7 @@ sono separati (stessa voce).
 | `title` | `chapter`, `article`, `deck` | stringa | *(proposta)*, §0.7; in `article` e `deck` è un metadato |
 | `spec-version` | `document file` | stringa | §0.8; *(proposta)* la chiave |
 | `asset` | `image`, `canvas file` | percorso del file | *(proposta)*, §7.2, §2 |
+| `recursion` | `chapter`; più avanti le formule | un intero positivo o `infinite` | deciso che è opzionale (§0.17); *(proposta)* il nome e i valori |
 | `stylesheet` | `article`, `deck` | `id reference` | *(proposta)*, §8; su un `chapter` dà `stylesheet-ignored` |
 | `origin` | da definire | da definire | *(proposta della bozza)*: scritto da una persona o generato e confermato |
 | `associations` | `concept`, `object` | lista di `id` | *(proposta)*, §6 |
@@ -1256,8 +1285,9 @@ una `composition` che si può annidare, e l'`article` è l'indice dei capitoli
   nomina; ogni altro `kind` è `embed-kind` (esempio 11): `concept`,
   `scratch`, `article`, `deck`, `stylesheet`, `canvas-file` e il `document
   file`, perché non si vedono o sono `composition` radice.
-- *(proposta)* **I cicli.** Un `chapter` che contiene sé stesso dà
-  `embed-cycle` nel file di ogni `chapter` del ciclo, con `target` il suo
+- *(proposta)* **I cicli.** Un `chapter` che contiene sé stesso senza
+  `recursion` (§0.17) dà `embed-cycle` nel file di ogni `chapter` del ciclo
+  che non la abilita, con `target` il suo
   `id`. Risolvendo, l'`embed` di un `chapter` che è già fra i suoi antenati
   diventa `{"id": …, "unresolved": true}`, senza figli (esempio 38).
 - *(proposta)* Nella classe 1 lo `stylesheet` si dà solo alla `composition`
@@ -1560,7 +1590,7 @@ il riferimento non si risolve (§0.3) e il `target` è l'`id` scritto.
 | `embed-unresolved` | error | `id` inesistente | l'`id` | 9 |
 | `embed-kind` | error | `embed` di un `concept`, di uno `scratch`, di un `article`, di un `deck`, di uno `stylesheet`, di un `canvas-file` o del `document file` | l'`id` | 11 |
 | `embed-retired` | warning | `embed` di un `id` ritirato, risolto sul successore | l'`id` ritirato | non coperto |
-| `embed-cycle` | error | un `chapter` che contiene sé stesso; uno per `chapter` del ciclo | l'`id` del `chapter` | 38 |
+| `embed-cycle` | error | un `chapter` che contiene sé stesso senza `recursion`; uno per `chapter` del ciclo che non la abilita | l'`id` del `chapter` | 38 |
 | `embed-outside-composition` | error | un `![[id]]` da solo in un capoverso di un file che non è una `composition` né una `directive` | l'`id` | 39 |
 | `markdown-image` | error | un'immagine Markdown `![alt](url)` | l'URL | 37 |
 | `retired-chain` | warning | in `retired-ids.yaml` un successore a sua volta ritirato | l'`id` | non coperto |
@@ -2316,6 +2346,33 @@ kind: text
   ],
   "diagnostics": [
     {"severity": "error", "code": "embed-outside-composition", "file": "vedi.text.md", "target": "lavagna", "fix": "sposta ![[lavagna]] in una composition"}
+  ]
+}
+````````````````````````````````
+
+Un capitolo che si contiene due volte (§0.17):
+
+```````````````````````````````` example 40 conf=1 status=proposal
+=== file cap-a.chapter.md
+---
+id: cap-a
+kind: chapter
+recursion: "2"
+---
+![[nota]]
+
+![[cap-a]]
+=== file nota.text.md
+---
+id: nota
+kind: text
+---
+Una nota.
+=== resolved
+{
+  "nodes": [
+    {"id": "cap-a", "kind": "chapter", "file": "cap-a.chapter.md", "attributes": {"recursion": "2"}, "content": [["embed", {"id": "nota", "kind": "text"}, ["paragraph", "Una nota."]], ["embed", {"id": "cap-a", "kind": "chapter"}, ["embed", {"id": "nota", "kind": "text"}, ["paragraph", "Una nota."]], ["embed", {"id": "cap-a", "kind": "chapter"}, ["embed", {"id": "nota", "kind": "text"}, ["paragraph", "Una nota."]]]]]},
+    {"id": "nota", "kind": "text", "file": "nota.text.md", "content": [["paragraph", "Una nota."]]}
   ]
 }
 ````````````````````````````````
