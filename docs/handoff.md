@@ -267,23 +267,21 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
 
 0. **La bozza di specifica**, [specifica.md](specifica.md), del `core` e della
    classe 1 (2026-10-20/21). L'ha scritta una sottosessione su mandato
-   dell'orchestratore, in dodici giri, controllati da revisori indipendenti;
-   i 32 esempi sono anche i test. Le decisioni di Alessio sono in contesto.md,
-   voce «Sulla bozza di specifica». Restano tre punti APERTI, §0.14-§0.16, in
-   attesa di Alessio: il testo di un `[[id]]` verso un nodo numerato, la
-   forma di `embed-class`, l'aspetto dei titoli. Le preferenze
-   dell'orchestratore, già dette ad Alessio: numero più `title` dove la
-   `composition` numera; la mappa a un livello di sole stringhe; i titoli
-   fra i tipi agganciabili, con nomi per grado (`title-1`…), perché senza
-   combinatori un solo `title` colpirebbe tutti i titoli allo stesso modo.
-   Il controllo del dodicesimo giro (ad0445a) ha trovato un blocco negli
-   esempi: il `document file` creato dallo script non ha `spec-version`, e
-   con la regola nuova ogni esempio darebbe `spec-version-missing`. Le
-   correzioni sono andate nel tredicesimo giro, con queste altre: il segno
-   meno nella tabella delle lingue, i valori ammessi per ogni proprietà, lo
-   stile della radice in una chiave del suo nodo, i casi di
-   `embed-class-retired`, e per il §0.14 il costo di capitoli e immagini che
-   mostrerebbero tutti e due «1». I
+   dell'orchestratore, in tredici giri, controllati da revisori
+   indipendenti; i 32 esempi sono anche i test. Le decisioni di Alessio sono
+   in contesto.md, voce «Sulla bozza di specifica». Restano tre punti
+   APERTI, §0.14-§0.16, in attesa di Alessio: il testo di un `[[id]]` verso
+   un nodo numerato, la forma di `embed-class`, l'aspetto dei titoli. Le
+   preferenze dell'orchestratore, già dette ad Alessio: per il §0.14
+   l'opzione D (il nome del tipo nella lingua del documento davanti al
+   numero, come \autoref di LaTeX); la mappa a un livello di sole stringhe;
+   i titoli fra i tipi agganciabili, con nomi per grado (`title-1`…). Il
+   controllo del tredicesimo giro (e7d2fb3) non ha trovato blocchi: i
+   rilievi ormai sono dettagli dei valori CSS ammessi (parole chiave
+   CSS-wide, `em` sulla radice, arrotondamenti, forma delle stringhe nel
+   `computedStyle`) e i costi mancanti dell'opzione D. Vanno nel
+   quattordicesimo giro, che l'orchestratore ha proposto come ultimo giro di
+   dettaglio prima delle risposte di Alessio. I
    rapporti dei revisori non sono nel repository: vanno ripetuti se servono.
    La sottosessione è session_01LJTSfiwiWSRkNwwAHxW4pz, ramo
    claude/spec-draft-level1.
