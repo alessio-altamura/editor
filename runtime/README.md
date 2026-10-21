@@ -27,7 +27,11 @@ diventa `doc-runtime resolve-tree <cartella>`. Per cambiarlo bastano
 `BINARY_NAME` in `src/cli.ts` e `bin` in `package.json`.
 
 Codici di uscita: 0 senza errori (gli avvisi sono ammessi), 1 se l'albero ha
-almeno un errore, 2 per un uso sbagliato o una cartella che non si legge.
+almeno un errore, 2 per un uso sbagliato o una cartella che non si legge, 3
+per un errore interno del runtime, senza albero (provvisorio).
+
+I collegamenti simbolici non si seguono, così il runtime non legge niente
+fuori dalla cartella; un file che non è UTF-8 dà `syntax`.
 
 ## Test
 
@@ -43,6 +47,10 @@ confronta gli alberi come valori JSON, senza `message` e `fix` ma controllando
 che ogni errore abbia un `fix`. Controlla anche il codice di uscita. Si può
 passare un'altra copia della specifica: `node dist/test/conformance-suite.js
 <file.md>`.
+
+Poi lancia `test/robustness-suite.ts`: casi che gli esempi non coprono, come
+cicli di `embed`, collegamenti simbolici, file non UTF-8, annidamenti profondi
+e chiavi come `__proto__`, ciascuno con il suo controllo sull'albero.
 
 Solo il typecheck: `npm run typecheck`.
 

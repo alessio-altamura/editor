@@ -13,7 +13,7 @@
   "scripts": {
     "build": "tsc -p .",
     "typecheck": "tsc -p . --noEmit",
-    "test": "tsc -p . && node dist/test/conformance-suite.js"
+    "test": "tsc -p . && node dist/test/conformance-suite.js && node dist/test/robustness-suite.js"
   },
   "dependencies": {
     "decimal.js": "10.6.0",
