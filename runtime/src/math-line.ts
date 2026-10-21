@@ -33,7 +33,8 @@ export function readDecimal(literal: string): Decimal | null {
     const adjusted = BigInt(match[4] ?? '0') - BigInt(fracPart.length) + BigInt(digits.length - 1);
     if (adjusted < BigInt(E_MIN) || adjusted > BigInt(E_MAX)) return null;
   }
-  return new Decimal(literal);
+  // More than 34 digits round when read, so `= x` and `= x + 0` agree (§0.4).
+  return new Decimal(literal).toSignificantDigits(34, Decimal.ROUND_HALF_EVEN);
 }
 
 /** Writes a value with the point, without exponent or trailing zeros, and without the sign of a zero. */
@@ -123,7 +124,8 @@ export function evaluateMathLine(expression: string): MathLineResult {
   const tokens = tokenize(expression);
   if (!tokens) return { ambiguous: [] };
   const ambiguous = tokens
-    .filter((t) => t.kind === 'number' && /^\d+\.\d{3}$/.test(t.text))
+    // With a zero integer part, as in 0.123, the number cannot mean 123.
+    .filter((t) => t.kind === 'number' && /^\d*[1-9]\d*\.\d{3}$/.test(t.text))
     .map((t) => t.text);
   let position = 0;
 

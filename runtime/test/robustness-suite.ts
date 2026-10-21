@@ -82,20 +82,20 @@ check('a chapter that contains itself through a directive gives embed-cycle', ()
   const r = run({ 'c.chapter.md': front('c', 'chapter') + '![[d]]\n', 'd.timeline.md': front('d', 'timeline') + '![[c]]\n' });
   return tree(r) ?? (has(r.tree, 'embed-cycle', 'c') ? null : json(r.tree.diagnostics));
 });
-check('a broken symbolic link is not followed', () => {
+check('a broken symbolic link is not followed and gives syntax', () => {
   const r = run({}, { setup: (f) => symlinkSync(join(f, 'missing.text.md'), join(f, 'x.text.md')) });
-  return tree(r) ?? (r.tree.nodes === undefined ? null : json(r.tree));
+  return tree(r) ?? (r.tree.nodes === undefined && has(r.tree, 'syntax', undefined, 'x.text.md') ? null : json(r.tree));
 });
-check('a cycle of symbolic links is not followed', () => {
+check('a cycle of symbolic links is not followed and gives syntax', () => {
   const r = run({}, { setup: (f) => symlinkSync(f, join(f, 'loop')) });
-  return tree(r);
+  return tree(r) ?? (has(r.tree, 'syntax', undefined, 'loop') ? null : json(r.tree));
 });
 check('a symbolic link to a file outside the folder is not read', () => {
   const outside = mkdtempSync(join(tmpdir(), 'outside-'));
   writeFileSync(join(outside, 'secret.text.md'), front('secret', 'text') + 'Fuori.\n');
   try {
     const r = run({}, { setup: (f) => symlinkSync(join(outside, 'secret.text.md'), join(f, 'secret.text.md')) });
-    return tree(r) ?? (node(r.tree, 'secret') === undefined ? null : 'the file outside was read');
+    return tree(r) ?? (node(r.tree, 'secret') === undefined && has(r.tree, 'syntax', undefined, 'secret.text.md') ? null : 'the file outside was read');
   } finally {
     rmSync(outside, { recursive: true, force: true });
   }
@@ -225,6 +225,71 @@ check('an em length out of decimal128 is stylesheet-unsupported', () => {
   });
   const style = json(node(r.tree, 'a')?.computedStyle);
   return tree(r) ?? (has(r.tree, 'stylesheet-unsupported', 'font-size') && style === '{"margin-left":"22pt"}' ? null : r.stdout);
+});
+
+// Rules of the nineteenth pass of the spec and of §0.17.
+check('eval and echo are words after the language; a first word is the language', () => {
+  const r = run({ 'x.scratch.md': front('x', 'scratch') + '```python echo\na\n```\n\n```eval\nb\n```\n' });
+  const content = json(node(r.tree, 'x')?.content);
+  return tree(r) ?? (content.includes('{"lang":"python","echo":true}') && content.includes('{"lang":"eval"}') && !has(r.tree, 'eval-unsupported') ? null : content);
+});
+check('[[x]] is an id reference even with a definition [x]: url', () => {
+  const r = run({ 'x.text.md': front('x', 'text') + 'Vedi [[k]].\n\n[k]: https://example.org\n', 'k.concept.md': front('k', 'concept') + 'Idea.\n' });
+  return tree(r) ?? (json(node(r.tree, 'x')?.content).includes('["hyperlink",{"ref":"k"},"k"]') ? null : r.stdout);
+});
+check('the text after | is plain text', () => {
+  const r = run({ 'x.text.md': front('x', 'text') + 'Vedi [[k|*il calo*]].\n', 'k.concept.md': front('k', 'concept') + 'Idea.\n' });
+  return tree(r) ?? (json(node(r.tree, 'x')?.content).includes('["hyperlink",{"ref":"k"},"*il calo*"]') ? null : r.stdout);
+});
+check('[[a\\|b]] in a table cell is a reference with text', () => {
+  const r = run({ 'x.text.md': front('x', 'text') + '| a | b |\n|:--|---|\n| [[k\\|il calo]] | 2 |\n', 'k.concept.md': front('k', 'concept') + 'Idea.\n' });
+  const content = json(node(r.tree, 'x')?.content);
+  return tree(r) ?? (content.includes('["hyperlink",{"ref":"k"},"il calo"]') && content.includes('{"align":["left",null]}') ? null : content);
+});
+check('[[x]] inside inline code stays code', () => {
+  const r = run({ 'x.text.md': front('x', 'text') + 'Scrivi `[[x]]`.\n' });
+  return tree(r) ?? (json(node(r.tree, 'x')?.content).includes('["inlineCode","[[x]]"]') && r.tree.diagnostics === undefined ? null : r.stdout);
+});
+check('a markdown image by reference is markdown-image', () => {
+  const r = run({ 'x.text.md': front('x', 'text') + 'Vedi ![foto][f].\n\n[f]: foto.jpg\n' });
+  return tree(r) ?? (has(r.tree, 'markdown-image', 'foto.jpg') ? null : json(r.tree.diagnostics));
+});
+check('0.123 gives no warning, and more than 34 digits round when read', () => {
+  const long = '1234567890123456789012345678901234567';
+  const r = run({ 'x.text.md': front('x', 'text') + `\`= 0.123\` \`= ${long}\` \`= ${long} + 0\`\n` });
+  const values = (json(node(r.tree, 'x')?.content).match(/"value":"[^"]*"/g) ?? []);
+  return tree(r) ?? (r.tree.diagnostics === undefined && values[1] === values[2] && values[1]!.length < 50 ? null : r.stdout);
+});
+check('an empty title counts as absent', () => {
+  const r = run({
+    'a.article.md': front('a', 'article') + '![[c]]\n',
+    'c.chapter.md': front('c', 'chapter', 'title: ""\n') + '![[t]]\n',
+    'v.text.md': front('v', 'text') + 'Vedi [[c]].\n',
+    ...text('t'),
+  });
+  const article = json(node(r.tree, 'a')?.content);
+  return tree(r) ?? (!article.includes('"number"') && !article.includes('"title"') && has(r.tree, 'reference-text-missing', 'c') ? null : r.stdout);
+});
+check('spaces stay as written in a link text without {n}', () => {
+  const r = run({ 'x.text.md': front('x', 'text') + 'Vedi [[nessuno| a  b ]].\n' });
+  return tree(r) ?? (json(node(r.tree, 'x')?.content).includes('" a  b "') ? null : r.stdout);
+});
+check('recursion: infinite marks the embed, and a wrong value is attribute-invalid', () => {
+  const r = run({ 'c.chapter.md': front('c', 'chapter', 'recursion: infinite\n') + '![[c]]\n', 'd.chapter.md': front('d', 'chapter', 'recursion: "0"\n') });
+  const content = json(node(r.tree, 'c')?.content);
+  return tree(r) ?? (content === '[["embed",{"id":"c","kind":"chapter","recursion":true}]]' && has(r.tree, 'attribute-invalid', 'recursion') && !has(r.tree, 'embed-cycle') ? null : r.stdout);
+});
+check('in a cycle embed-cycle goes only to the chapters without recursion', () => {
+  const r = run({ 'a.chapter.md': front('a', 'chapter', 'recursion: "1"\n') + '![[b]]\n', 'b.chapter.md': front('b', 'chapter') + '![[a]]\n' });
+  return tree(r) ?? (has(r.tree, 'embed-cycle', 'b') && !has(r.tree, 'embed-cycle', 'a') ? null : json(r.tree.diagnostics));
+});
+check('ids out of form in retired-ids.yaml are id-invalid', () => {
+  const r = run({ 'retired-ids.yaml': 'Vecchio: null\nb: Nuovo_1\n' });
+  return tree(r) ?? (has(r.tree, 'id-invalid', 'Vecchio', 'retired-ids.yaml') && has(r.tree, 'id-invalid', 'Nuovo_1') ? null : json(r.tree.diagnostics));
+});
+check('a canvas path that leaves the document is canvas-path-unresolved', () => {
+  const r = run({ 'cv.canvas-file.md': front('cv', 'canvas-file', 'asset: a.canvas\n') + 'Canvas.\n', 'a.canvas': '{"nodes":[{"id":"1","type":"file","file":"../doc.document.md"}]}' });
+  return tree(r) ?? (has(r.tree, 'canvas-path-unresolved', '../doc.document.md') ? null : json(r.tree.diagnostics));
 });
 
 let failed = 0;

@@ -28,6 +28,8 @@ const SEVERITY: Record<string, Severity> = {
   'embed-kind': 'error',
   'embed-retired': 'warning',
   'embed-cycle': 'error',
+  'embed-outside-composition': 'error',
+  'markdown-image': 'error',
   'retired-chain': 'warning',
   'retired-cycle': 'error',
   'retired-successor-missing': 'error',

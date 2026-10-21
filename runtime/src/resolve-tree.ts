@@ -45,6 +45,7 @@ function knowsAttribute(kind: string, key: string): boolean {
     case 'associations': return ['concept', 'text', 'image', 'scratch', 'canvas-file'].includes(kind);
     case 'stylesheet': return kind === 'article' || kind === 'chapter';
     case 'spec-version': return kind === 'document';
+    case 'recursion': return kind === 'chapter';
     default: return false;
   }
 }
@@ -69,6 +70,8 @@ interface SourceNode {
   lang?: string;
   title?: string;
   asset?: string;
+  /** How many times a chapter may appear inside itself (§0.17); undefined without `recursion`. */
+  recursion?: number;
   items?: CompositionItem[];
 }
 
@@ -114,8 +117,8 @@ const utf8 = new TextDecoder('utf-8', { fatal: true });
 
 /**
  * Lists the regular files of the folder, without the names that start with a
- * dot. Symbolic links are not followed, so nothing outside the folder is read
- * (reading). A name that is not UTF-8 goes in `unreadable`.
+ * dot. A symbolic link is not followed and goes in `unreadable`, with the
+ * names that are not UTF-8: each gives `syntax` (§2).
  */
 function listFiles(folder: string, prefix = '', unreadable: string[] = []): { files: string[]; unreadable: string[] } {
   const files: string[] = [];
@@ -131,7 +134,8 @@ function listFiles(folder: string, prefix = '', unreadable: string[] = []): { fi
     if (name.startsWith('.')) continue;
     const path = prefix === '' ? name : `${prefix}/${name}`;
     const stat = lstatSync(join(folder, path));
-    if (stat.isDirectory()) files.push(...listFiles(folder, path, unreadable).files);
+    if (stat.isSymbolicLink()) unreadable.push(path);
+    else if (stat.isDirectory()) files.push(...listFiles(folder, path, unreadable).files);
     else if (stat.isFile()) files.push(path);
   }
   return { files, unreadable };
@@ -160,6 +164,40 @@ function nestingDepth(root: Nodes): number {
   return deepest;
 }
 
+/*
+ * `[[…]]` is read before CommonMark, outside code (§0.6): each one is masked
+ * with private-use characters of the same length, so offsets stay the same,
+ * and restored in the text nodes. The text after `|` stays plain text.
+ */
+const MASK_START = '\uE000';
+const MASK_END = '\uE001';
+const MASK_PAD = '\uE002';
+const MASK_DIGIT = 0xe100;
+const MASK_BASE = 6000;
+
+function maskReferences(source: string, references: string[]): string {
+  const skip: Array<[number, number]> = [];
+  const stack: Nodes[] = [parseMarkdown(source)];
+  while (stack.length > 0) {
+    const node = stack.pop()!;
+    if ((node.type === 'inlineCode' || node.type === 'code' || node.type === 'html') && node.position) {
+      skip.push([node.position.start.offset!, node.position.end.offset!]);
+    }
+    if ('children' in node) stack.push(...node.children);
+  }
+  return source.replace(/\[\[[^[\]\n]*\]\]/g, (match, offset: number) => {
+    if (skip.some(([start, end]) => offset < end && offset + match.length > start)) return match;
+    let digits = '';
+    for (let n = references.length; ; n = Math.floor(n / MASK_BASE)) {
+      digits = String.fromCharCode(MASK_DIGIT + (n % MASK_BASE)) + digits;
+      if (n < MASK_BASE) break;
+    }
+    if (match.length < digits.length + 2) return match;
+    references.push(match.replace(/\\\|/g, '|'));
+    return MASK_START + digits + MASK_PAD.repeat(match.length - digits.length - 2) + MASK_END;
+  });
+}
+
 function parseMarkdown(text: string): Root {
   return fromMarkdown(text, { extensions: [gfmTable()], mdastExtensions: [gfmTableFromMarkdown()] });
 }
@@ -183,10 +221,17 @@ const isComment = (node: RootContent): boolean =>
 export function resolveTree(folder: string): ResolvedTree {
   const diagnostics: Diagnostic[] = [];
   const { files, unreadable } = listFiles(folder);
-  for (const file of unreadable) report(diagnostics, 'syntax', file, undefined, 'rinomina il file con un nome in UTF-8');
+  for (const file of unreadable) report(diagnostics, 'syntax', file, undefined, 'sostituisci il link simbolico o il nome che non è UTF-8 con un file');
   const fileSet = new Set(files);
   const nodes: SourceNode[] = [];
   let retiredFileText: string | null = null;
+  const references: string[] = [];
+  const restoreReferences = (text: string) =>
+    text.replace(/\uE000([\uE100-\uF8FF]+)\uE002*\uE001/g, (_, digits: string) => {
+      let n = 0;
+      for (const digit of digits) n = n * MASK_BASE + (digit.charCodeAt(0) - MASK_DIGIT);
+      return references[n] ?? '';
+    });
 
   // Steps 1 and 2: list the files, separate source and asset, read each source.
   for (const file of files) {
@@ -202,7 +247,7 @@ export function resolveTree(folder: string): ResolvedTree {
     }
     if (file === RETIRED_IDS_FILE) retiredFileText = text;
     else if (isStylesheet) nodes.push(readStylesheetNode(file, text, diagnostics));
-    else nodes.push(readTextNode(file, match![1]!, text, diagnostics));
+    else nodes.push(readTextNode(file, match![1]!, text, diagnostics, references));
   }
 
   const idIndex = new Map<string, SourceNode[]>();
@@ -341,7 +386,7 @@ export function resolveTree(folder: string): ResolvedTree {
         const value = genericValue(node, key, raw);
         if (key === 'tags' && Array.isArray(value) && value.length === 0) continue;
         out[name] = value;
-        if (typeof value === 'string' && key === 'title') node.title = value;
+        if (typeof value === 'string' && key === 'title' && value !== '') node.title = value;
         if (typeof value === 'string' && key === 'lang' && LANG_FORM.test(value)) node.lang = value;
         continue;
       }
@@ -394,9 +439,17 @@ export function resolveTree(folder: string): ResolvedTree {
             invalid('usa un tag BCP 47, per esempio it');
             break;
           }
+          if (key === 'recursion') {
+            if (!/^[1-9][0-9]*$/.test(value) && value !== 'infinite') {
+              invalid('scrivi recursion come intero positivo fra virgolette, o "infinite"');
+              break;
+            }
+            node.recursion = value === 'infinite' ? Infinity : Number(value);
+          }
           out[name] = value;
           if (key === 'lang') node.lang = value;
-          if (key === 'title') node.title = value;
+          // An empty title counts as absent (§0.7): no number, no text for [[id]].
+          if (key === 'title' && value !== '') node.title = value;
           if (key === 'asset') node.asset = value;
         }
       }
@@ -457,7 +510,7 @@ export function resolveTree(folder: string): ResolvedTree {
     const canvasNodes = canvas.nodes ?? [];
     if (!Array.isArray(canvasNodes) || !canvasNodes.every(isObject)) return invalid();
     for (const entry of canvasNodes) {
-      if (entry.type === 'file' && typeof entry.file === 'string' && !fileSet.has(entry.file)) {
+      if (entry.type === 'file' && typeof entry.file === 'string' && !fileSet.has(posix.normalize(entry.file))) {
         report(diagnostics, 'canvas-path-unresolved', node.file, entry.file, 'correggi il percorso o togli il nodo dal canvas');
       }
     }
@@ -474,17 +527,24 @@ export function resolveTree(folder: string): ResolvedTree {
     return items;
   }
 
+  /**
+   * `![[id]]` alone in a paragraph, followed only by a class sign if any, read on
+   * the content CommonMark gives: trailing spaces removed, a soft line break a space.
+   */
+  function embedLine(paragraph: Paragraph): { id: string; rest: string; text: string } | null {
+    if (!paragraph.children.every((child) => child.type === 'text')) return null;
+    const text = restoreReferences(paragraph.children.map((child) => (child as Text).value).join('').replace(/\n/g, ' '));
+    const match = /^!\[\[([^\]]*)\]\](.*)$/.exec(text);
+    if (!match || !(match[2] === '' || /^\s*\{/.test(match[2]!))) return null;
+    return { id: match[1]!, rest: match[2]!, text };
+  }
+
   /** An `embed` is `![[id]]` alone in a paragraph, with the class sign of §0.15 if any. */
   function standaloneEmbed(node: SourceNode, paragraph: Paragraph): CompositionItem | null {
-    // The content CommonMark gives: trailing spaces removed, a soft line break is a space.
-    if (!paragraph.children.every((child) => child.type === 'text')) return null;
-    const text = paragraph.children.map((child) => (child as Text).value).join('').replace(/\n/g, ' ');
-    const match = /^!\[\[([^\]]*)\]\](.*)$/.exec(text);
-    if (!match) return null;
-    const id = match[1]!;
-    const rest = match[2]!;
+    const line = embedLine(paragraph);
+    if (!line) return null;
+    const { id, rest } = line;
     if (rest === '') return { type: 'embed', id, classes: [] };
-    if (!/^\s*\{/.test(rest)) return null;
     const sign = /^\{(\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*(?: \.[a-z][a-z0-9]*(?:-[a-z0-9]+)*)*)\}$/.exec(rest);
     if (sign) return { type: 'embed', id, classes: [...new Set(sign[1]!.split(' ').map((c) => c.slice(1)))] };
     const target = rest.slice(rest.indexOf('{')).trim();
@@ -503,30 +563,43 @@ export function resolveTree(folder: string): ResolvedTree {
 
   function buildBlock(node: RootContent, context: BuildContext): Child[] {
     switch (node.type) {
-      case 'paragraph': return [element('paragraph', {}, buildInlines(node.children, context))];
+      case 'paragraph': {
+        // Compositions and directives take their embeds out before this; elsewhere one stays text (§0.6).
+        const embed = embedLine(node);
+        if (embed) {
+          report(context.sink, 'embed-outside-composition', context.file, embed.id, `sposta ![[${embed.id}]] in una composition`);
+          return [element('paragraph', {}, [embed.text])];
+        }
+        return [element('paragraph', {}, buildInlines(node.children, context))];
+      }
       case 'heading': return [element('heading', { depth: node.depth }, buildInlines(node.children, context))];
       case 'thematicBreak': return [element('thematicBreak')];
       case 'blockquote': return [element('blockquote', {}, buildBlocks(node.children, context))];
       case 'list': {
-        // mdast attributes of a list, not fixed by the spec (§11.3): ordered, and start when not 1.
         const attributes: Record<string, unknown> = {};
         if (node.ordered) attributes.ordered = true;
         if (node.ordered && node.start != null && node.start !== 1) attributes.start = node.start;
         return [element('list', attributes, node.children.map((item) => element('listItem', {}, buildBlocks(item.children, context))))];
       }
       case 'code': {
-        // The eval marker has no syntax yet (§7.1): read as the word `eval` in the info string.
-        const info = `${node.lang ?? ''} ${node.meta ?? ''}`.split(/\s+/);
-        if (info.includes('eval')) report(context.sink, 'eval-unsupported', context.file);
-        return [element('code', node.lang ? { lang: node.lang } : {}, [node.value])];
+        // The markers are words of the info string after the first, the language (§7.1).
+        const markers = (node.meta ?? '').split(/\s+/);
+        const attributes: Record<string, unknown> = {};
+        if (node.lang) attributes.lang = node.lang;
+        if (markers.includes('eval')) {
+          attributes.eval = true;
+          report(context.sink, 'eval-unsupported', context.file);
+        }
+        if (markers.includes('echo')) attributes.echo = true;
+        return [element('code', attributes, [node.value])];
       }
       case 'html':
         if (isComment(node)) return [];
         reportOnce(context.sink, 'raw-html', context.file, undefined, 'usa **forte** e una class');
         return [element('paragraph', {}, [node.value])];
       case 'table':
-        // No names yet for a text table (§11.3): the mdast ones.
-        return [element('table', {}, node.children.map((row) =>
+        const align = node.align?.some((a) => a) ? { align: node.align.map((a) => a ?? null) } : {};
+        return [element('table', align, node.children.map((row) =>
           element('tableRow', {}, row.children.map((cell) => element('tableCell', {}, buildInlines(cell.children, context))))))];
       case 'definition': return [];
       default: return [element('paragraph', {}, [sourceOf(node, context)])];
@@ -545,7 +618,7 @@ export function resolveTree(folder: string): ResolvedTree {
 
   function buildInline(node: PhrasingContent, context: BuildContext): Child[] {
     switch (node.type) {
-      case 'text': return buildText(node.value.replace(/\n/g, ' '), context);
+      case 'text': return buildText(restoreReferences(node.value.replace(/\n/g, ' ')), context);
       case 'emphasis':
       case 'strong':
         return [element(node.type, {}, buildInlines(node.children, context))];
@@ -554,6 +627,13 @@ export function resolveTree(folder: string): ResolvedTree {
         return [value.startsWith('= ') ? buildMathLine(value.slice(2), context) : element('inlineCode', {}, [value])];
       }
       case 'link': return [element('hyperlink', { url: node.url }, buildInlines(node.children, context))];
+      case 'image':
+      case 'imageReference': {
+        // Outside the inventory of §7.1: an error, and the text as written.
+        const url = node.type === 'image' ? node.url : context.definitions.get(node.identifier) ?? node.identifier;
+        report(context.sink, 'markdown-image', context.file, url, `un image con asset ${url}, incluso con ![[id]]`);
+        return [sourceOf(node, context)];
+      }
       case 'linkReference': {
         const url = context.definitions.get(node.identifier);
         if (url !== undefined) return [element('hyperlink', { url }, buildInlines(node.children, context))];
@@ -565,7 +645,7 @@ export function resolveTree(folder: string): ResolvedTree {
         reportOnce(context.sink, 'raw-html', context.file, undefined, 'usa **forte** e una class');
         return [node.value];
       default:
-        // Images, references and other mdast nodes outside the inventory of §7.1 stay as literal text.
+        // Other mdast nodes outside the inventory of §7.1 stay as literal text.
         return [sourceOf(node as RootContent, context)];
     }
   }
@@ -617,7 +697,7 @@ export function resolveTree(folder: string): ResolvedTree {
       if (resolution.status === 'unresolved') {
         report(context.sink, 'reference-unresolved', context.file, written, "correggi l'id del collegamento");
       }
-      const shown = label === undefined ? '' : removeSlot(label);
+      const shown = label === undefined ? '' : label.includes('{n}') ? removeSlot(label) : label;
       return element('hyperlink', { ref: written, unresolved: true }, [shown || written]);
     }
     const target = resolution.node;
@@ -657,7 +737,8 @@ export function resolveTree(folder: string): ResolvedTree {
     const out: Child[] = [];
     for (const item of items) {
       if (item.type === 'embed') {
-        out.push(buildEmbed(item.id, item.classes, context));
+        const embed = buildEmbed(item.id, item.classes, context);
+        if (embed) out.push(embed);
         continue;
       }
       if (isComment(item.node)) continue;
@@ -670,7 +751,7 @@ export function resolveTree(folder: string): ResolvedTree {
   }
 
   /** An `embed` in a composition: the embedded node resolved in place (§11.3). */
-  function buildEmbed(written: string, embedClasses: string[], context: BuildContext): Element {
+  function buildEmbed(written: string, embedClasses: string[], context: BuildContext): Element | null {
     const unresolved = (id: string) => {
       const attributes: Record<string, unknown> = { id, unresolved: true };
       if (embedClasses.length > 0) attributes.class = embedClasses;
@@ -689,8 +770,14 @@ export function resolveTree(folder: string): ResolvedTree {
       report(context.sink, 'embed-kind', context.file, resolution.id, fix);
       return unresolved(resolution.id);
     }
-    // A node already being expanded closes an embed-cycle, reported on the nodes of the cycle.
-    if (context.expanding.includes(resolution.id)) return unresolved(resolution.id);
+    // A node already being expanded closes a cycle (§0.17): within the recursion limit it
+    // is expanded again, past it the embed is left out, and without recursion it does not resolve.
+    const appearances = context.expanding.filter((id) => id === resolution.id).length;
+    if (appearances > 0) {
+      if (target.recursion === Infinity) return element('embed', { id: resolution.id, kind: target.kind, recursion: true });
+      if (target.recursion === undefined) return unresolved(resolution.id);
+      if (appearances > target.recursion) return null;
+    }
 
     const attributes: Record<string, unknown> = { id: resolution.id, kind: target.kind };
     const lang = effectiveLang(target);
@@ -749,7 +836,8 @@ export function resolveTree(folder: string): ResolvedTree {
       while (stack.length > 0) {
         const next = stack.pop()!;
         if (next === start) {
-          inCycle.add(start.file);
+          // Each chapter of the cycle that does not enable recursion (§0.17).
+          if (start.recursion === undefined) inCycle.add(start.file);
           break;
         }
         if (seen.has(next)) continue;
@@ -908,7 +996,7 @@ function unreadableNode(file: string, extensionKind: string): SourceNode {
   return { file, extensionKind, kind: extensionKind, directive: false, attributes: null, yamlComments: 0, source: '', classes: [], definitions: new Map() };
 }
 
-function readTextNode(file: string, extensionKind: string, text: string, diagnostics: Diagnostic[]): SourceNode {
+function readTextNode(file: string, extensionKind: string, text: string, diagnostics: Diagnostic[], references: string[]): SourceNode {
   const node: SourceNode = {
     file,
     extensionKind,
@@ -941,7 +1029,8 @@ function readTextNode(file: string, extensionKind: string, text: string, diagnos
   // The body keeps its offsets in the file: the front matter lines are blanked, not cut.
   const bodyStart = text.length - split.body.length;
   node.source = text.slice(0, bodyStart).replace(/[^\n]/g, ' ') + split.body;
-  const markdown = parseMarkdown(node.source);
+  let markdown = parseMarkdown(node.source);
+  if (nestingDepth(markdown) <= MAX_NESTING) markdown = parseMarkdown(maskReferences(node.source, references));
   if (nestingDepth(markdown) > MAX_NESTING) {
     report(diagnostics, 'syntax', file, undefined, `annida meno di ${MAX_NESTING} livelli`);
     return node;
@@ -1033,7 +1122,12 @@ function readRetiredIds(text: string | null, idIndex: Map<string, SourceNode[]>,
       continue;
     }
     // Only a plain null means «deleted»; a quoted "null" is an id.
-    retired.set(key, value.plain && value.value === 'null' ? null : value.value);
+    const successor = value.plain && value.value === 'null' ? null : value.value;
+    // Keys and successors have the form of ids (§0.3).
+    for (const id of [key, successor]) {
+      if (id !== null && !ID_FORM.test(id)) report(diagnostics, 'id-invalid', RETIRED_IDS_FILE, id, slugify(id) || 'togli la riga');
+    }
+    retired.set(key, successor);
   }
   for (const [id, successor] of retired) {
     if (successor === null) continue;
