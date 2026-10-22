@@ -294,6 +294,21 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     deve risolversi in un tempo finito; la regola di uscita richiede le
     formule, quindi arriva con loro; in un ciclo fra più oggetti ciascuno deve
     abilitarla.
+  - Nomi del prodotto (2026-10-21/22, Alessio). Il criterio: un nome che
+    entri nel lessico delle persone e si possa riusare nell'app, «dammi un
+    xxxx», al posto dell'oggetto o dell'aggregatore; ispirato a opere
+    giapponesi poco note (ID-Zero condivide il nome con l'anime ID-0).
+    Deciso: l'app si chiama **Kamii** (da *kami*, 紙, carta), e kamii è anche
+    «il primo canvas dove crei gli oggetti prima che diventino dei file a sé
+    stanti», cioè il `canvas` del glossario; **kumi** (組み, assemblare) è la
+    composizione. Per il mattone, cioè l'oggetto, Alessio ha proposto tsumi o
+    zumi, poi seki: da decidere. Lettura dell'orchestratore: tsumi da sola in
+    giapponese si legge quasi sempre 罪, colpa; seki è 積 (lo stesso carattere
+    di tsumi, impilare) e 石 (pietra), e richiama *Tonari no Seki-kun*, dove
+    Seki costruisce mondi sul banco con piccoli pezzi. Da precisare anche se
+    il kamii comprende lo `scratch` della bozza di specifica. Prima di queste
+    scelte erano state cercate e scartate altre proposte (frol, tesso,
+    tarsia, patema e altre), con i controlli su npm, comandi e omonimi.
 
 ## Proposte non decise
 
