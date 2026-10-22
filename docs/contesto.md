@@ -308,6 +308,10 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     si usano. Il comando del runtime resta per ora `doc-runtime`. Prima erano
     state cercate e scartate altre proposte (frol, tesso, tarsia, patema e
     altre), con i controlli su npm, comandi e omonimi.
+    Report: [ricerca/nomi-del-prodotto.md](ricerca/nomi-del-prodotto.md).
+  - Numerazione dei capitoli che si ripetono per ricorsione (2026-10-22,
+    Alessio, «sì va bene 1, 1.1, 1.1.1»): ogni ripetizione con un title prende
+    un numero nuovo, come un capitolo annidato.
 
 ## Proposte non decise
 

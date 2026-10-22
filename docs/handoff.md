@@ -179,7 +179,7 @@ Gli elenchi completi sono in [contesto.md](contesto.md).
 
 ## Ricerca fatta
 
-Ci sono sette note in [ricerca/](ricerca/), con fonti primarie e fatti
+Ci sono otto note in [ricerca/](ricerca/), con fonti primarie e fatti
 ricontrollati da un secondo agente, salvo le parti che ogni nota indica.
 
 - **[ricerca/formule-python.md](ricerca/formule-python.md).** Python non ha
@@ -212,6 +212,9 @@ ricontrollati da un secondo agente, salvo le parti che ogni nota indica.
     un'impronta del bersaglio; la semantica serve a proporre candidati.
   - Gli script delle misure locali sono in
     [ricerca/misure/embedding/](ricerca/misure/embedding/).
+- **[ricerca/nomi-del-prodotto.md](ricerca/nomi-del-prodotto.md).** La
+  ricerca del nome, con i controlli su npm, comandi e omonimi: Kamii è il nome
+  provvisorio del progetto, non ancora confermato.
 - **[ricerca/sintassi-testo.md](ricerca/sintassi-testo.md).** CommonMark con
   un'intestazione contro Djot, per i file di testo. CommonMark non ha né
   attributi né front matter; Djot ha gli attributi ma si dichiara instabile, e
