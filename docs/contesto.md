@@ -366,6 +366,20 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     Il quarto difetto, tabelle, immagini e codice attaccati al blocco sotto,
     l'orchestratore lo ha trattato come tecnico: prendono sotto lo stesso
     spazio di un capoverso.
+  - Due temi per l'HTML (2026-10-22, Alessio, «possiamo prevedere comunque
+    i due temi per HTML?», poi «1C 2C»), dopo che l'HTML esportato non si
+    leggeva in un visore a tema scuro:
+    1. Un solo file HTML con il tema chiaro e quello scuro, che segue il tema
+       di chi lo apre; un'opzione dell'`export` ne fissa uno. Un pulsante
+       nella pagina chiederebbe uno script, che la pagina vieta.
+    2. Uno `stylesheet` può dare colori diversi per il tema scuro, con
+       `@media (prefers-color-scheme: dark)`; dove non li dà, il colore resta
+       quello del tema chiaro, e il `runtime` avvisa quando nel tema scuro un
+       colore ha poco contrasto.
+    Lettura dell'orchestratore, data insieme alla domanda: nel tema scuro
+    cambiano solo i colori (testo, collegamenti, linee, sfondo della pagina),
+    non misure e margini; il foglio di partenza ha una variante scura; il PDF
+    resta chiaro, perché è carta.
 
 ## Proposte non decise
 
@@ -441,13 +455,6 @@ quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
 
-- Due temi per l'HTML, chiaro e scuro (2026-10-22, «possiamo prevedere
-  comunque i due temi per HTML?»), dopo che l'HTML esportato non si leggeva
-  in un visore a tema scuro; intanto la pagina ha uno sfondo bianco fisso.
-  Da precisare: come si sceglie il tema e cosa succede ai colori degli
-  `stylesheet` nel tema scuro. Lettura dell'orchestratore: nel tema scuro
-  cambiano solo i colori (testo, collegamenti, linee, sfondo della pagina),
-  non misure e margini; il PDF resta chiaro, perché è carta.
 
 - Estensibilità: estensioni e connettori distribuiti da un marketplace, per
   ampliare i tipi di oggetti e i template dei layout, coerente con l'approccio
