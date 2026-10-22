@@ -353,6 +353,19 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
        togliere. Il motivo: il blu del foglio di partenza ha un contrasto di
        2,54:1 con il testo nero, sotto il 3:1 che le linee guida WCAG
        chiedono quando un collegamento si distingue solo per il colore.
+  - Il foglio di partenza dopo il primo HTML (2026-10-22, Alessio, «1A 2A
+    3A»), su tre difetti visti nel documento d'esempio esportato:
+    1. L'intestazione di una tabella è in grassetto, e la calcola il
+       `runtime` come l'allineamento delle colonne.
+    2. Un elenco stretto (voci senza riga vuota fra loro, come in CommonMark)
+       non ha spazio fra le voci; uno largo sì.
+    3. Il risultato di una riga di calcolo si mostra con al massimo due
+       decimali; una proprietà dello `stylesheet` cambia il massimo, come
+       `--number-notation` cambia la forma. Il valore esatto resta
+       nell'albero.
+    Il quarto difetto, tabelle, immagini e codice attaccati al blocco sotto,
+    l'orchestratore lo ha trattato come tecnico: prendono sotto lo stesso
+    spazio di un capoverso.
 
 ## Proposte non decise
 

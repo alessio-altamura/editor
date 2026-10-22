@@ -249,7 +249,8 @@ function checkStructure(page: Page, body: DomNode, problems: string[], record?: 
   const walk = (json: Json, dom: DomNode, parent: Style, ctx: Ctx, where: string): void => {
     const it = item(json) as Item;
     const a = it.attributes;
-    const type = it.type === 'title' ? `title-${ctx.depth === 0 ? 0 : Math.min(ctx.depth, 3)}` : it.type;
+    const type = it.type === 'title' ? `title-${ctx.depth === 0 ? 0 : Math.min(ctx.depth, 3)}`
+      : it.type === 'embed' && a.kind === 'image' ? 'image' : it.type;
     const style = expectedStyle(type, parent, a.computedStyle);
     where = `${where} > ${it.type}${typeof a.id === 'string' ? `#${a.id}` : ''}`;
     let tag: string;

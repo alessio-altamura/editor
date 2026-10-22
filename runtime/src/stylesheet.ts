@@ -6,6 +6,9 @@ import { baseStylesheetCss, INHERITED_PROPERTIES, NOT_INHERITED_DEFAULTS, STYLE_
 export { INHERITED_PROPERTIES };
 const TEXT_DECORATION_LINE = 'text-decoration-line';
 const NUMBER_NOTATION = '--number-notation';
+const NUMBER_DECIMALS = '--number-decimals';
+/** The most decimals of `display` when no `--number-decimals` is given (§0.4). */
+export const DEFAULT_DECIMALS = 2;
 
 /** A specified value, before `em` is resolved. Lengths are already in pt. */
 type SpecifiedValue =
@@ -209,12 +212,13 @@ function parseValue(property: string, text: string): SpecifiedValue | null {
     case TEXT_DECORATION_LINE: return keyword(text, ['none', 'underline']);
     // A custom property is case-sensitive, so its value is not lowercased.
     case NUMBER_NOTATION: return text === 'standard' || text === 'compact' ? { type: 'keyword', text } : null;
+    case NUMBER_DECIMALS: return /^(?:[0-9]|10)$/.test(text) ? { type: 'keyword', text } : null;
     default: return null;
   }
 }
 
 function isSubsetProperty(property: string): boolean {
-  return (STYLE_PROPERTIES as readonly string[]).includes(property) || property === NUMBER_NOTATION || property === 'text-decoration';
+  return (STYLE_PROPERTIES as readonly string[]).includes(property) || property === NUMBER_NOTATION || property === NUMBER_DECIMALS || property === 'text-decoration';
 }
 
 function parseSelector(text: string, base: boolean): Selector | null {
@@ -381,7 +385,7 @@ export function computeStyle(
   }
 
   const style: ComputedStyle = new Map();
-  for (const property of [...INHERITED_PROPERTIES, NUMBER_NOTATION]) {
+  for (const property of [...INHERITED_PROPERTIES, NUMBER_NOTATION, NUMBER_DECIMALS]) {
     const inherited = parent.get(property);
     if (inherited) style.set(property, inherited);
   }
@@ -435,6 +439,18 @@ export function styleDifference(final: ComputedStyle, expected: ComputedStyle): 
     if (value !== undefined && value !== expected.get(property)?.text) difference[property] = value;
   }
   return difference;
+}
+
+/** A declaration the runtime adds to a node itself, like the column alignment (§0.5). */
+export function directValue(property: string, text: string): ComputedValue {
+  const value = parseValue(property, text);
+  if (value === null) throw new Error(`not a value of ${property}: ${text}`);
+  return resolveValue(value, new Decimal(0))!;
+}
+
+export function numberDecimals(style: ComputedStyle): number {
+  const text = style.get(NUMBER_DECIMALS)?.text;
+  return text === undefined ? DEFAULT_DECIMALS : Number(text);
 }
 
 export function numberNotation(style: ComputedStyle): 'standard' | 'compact' {

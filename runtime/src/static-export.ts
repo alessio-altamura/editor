@@ -317,7 +317,8 @@ function* pieces(tree: ResolvedTree, rootId: string, assets: ReadonlyMap<string,
     if (element.type === 'code' && attributes.eval === true && attributes.echo !== true) continue;
 
     const type =
-      element.type === 'title' ? `title-${task.context.depth === 0 ? 0 : Math.min(task.context.depth, 3)}` : element.type;
+      element.type === 'title' ? `title-${task.context.depth === 0 ? 0 : Math.min(task.context.depth, 3)}`
+        : element.type === 'embed' && attributes.kind === 'image' ? 'image' : element.type;
     const style = finalStyle(type, task.parent, attributes.computedStyle);
     const styled = ` style="${escapeHtml(styleAttribute(style))}"`;
     let context = task.context;

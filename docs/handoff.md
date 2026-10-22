@@ -336,11 +336,12 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      il ripiego `unreadable` delle immagini non ha un test (qui si gira come
      root); i limiti di Chromium (512 annidamenti, valori enormi) sono solo
      dichiarati. Resta il PDF.
-   - Visti nel prototipo, da portare ad Alessio dopo l'`export`: il foglio di
-     partenza non dà margini a tabelle, immagini e codice; l'intestazione
-     della tabella non è in grassetto; un elenco stretto è spaziato come uno
-     largo; il `display` arriva a dieci decimali e non c'è modo di
-     chiederne meno.
+   - I quattro difetti del foglio di partenza visti nel prototipo sono
+     corretti (2026-10-22, contesto.md «Il foglio di partenza dopo il primo
+     HTML»): spazio sotto tabelle, codice, immagini e righe di separazione;
+     intestazione della tabella in grassetto; elenchi stretti senza spazio
+     fra le voci; `display` a 2 decimali, con `--number-decimals` (esempio
+     48). 48 esempi passano.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);

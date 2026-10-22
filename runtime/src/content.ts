@@ -18,8 +18,8 @@ export interface Element {
     depth?: number;
     /** A link with `{n}` in a root composition, filled once every number is known. */
     numberSlot?: { label: string; id: string; fallback: string };
-    /** A table cell in a column with `align`: the value of its text-align. */
-    textAlign?: string;
+    /** Declarations the runtime adds to the node itself (§0.5): column alignment, table header, tight list. */
+    declarations?: Array<[string, string]>;
   };
 }
 export type Child = Element | string;

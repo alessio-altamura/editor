@@ -259,8 +259,8 @@ punto (stessa voce). È un comportamento dell'`app`, non del formato.
   hanno `value` e `display` «0», e `= -1e-11`, che nel `display` arrotonda a
   zero, mostra «0», con o senza lingua.
 - **La stringa da mostrare.** Il `runtime` scrive accanto al valore la
-  stringa da mostrare: arrotondata al pari a 10 decimali al massimo, senza
-  zeri finali, con i separatori della lingua dell'oggetto, altrimenti di
+  stringa da mostrare: arrotondata al pari a 2 decimali al massimo [C: «Sulla bozza di specifica»],
+  o a quanti ne dice `--number-decimals` (sotto), senza zeri finali, con i separatori della lingua dell'oggetto, altrimenti di
   quella del documento (§0.8, esempio 25); senza lingua la stringa è il
   valore arrotondato allo stesso modo, con il punto e senza separatore
   delle migliaia. I `renderer` la applicano soltanto (§0.5). Le regole di stampa sono
@@ -283,9 +283,10 @@ punto (stessa voce). È un comportamento dell'`app`, non del formato.
   `standard` lo stato «non data». È CSS valido, perché una proprietà personalizzata è «any
   property whose name starts with two dashes», ed è ereditata
   ([CSS Custom Properties](https://www.w3.org/TR/css-variables-1/)). Così si
-  può dare per `class`, per esempio solo in un capitolo o in un `deck`. È
-  l'unica proprietà personalizzata del sottoinsieme, e lo allarga oltre il
-  minimo deciso (carattere, colore, allineamento, margini, interlinea).
+  può dare per `class`, per esempio solo in un capitolo o in un `deck`. Con
+  `--number-decimals` sono le due proprietà personalizzate del sottoinsieme,
+  che lo allargano oltre il minimo deciso (carattere, colore, allineamento,
+  margini, interlinea).
   Le soglie valgono sul valore assoluto: -1500 dà «-1,5K». Senza lingua,
   `compact` dà la stringa senza lingua. Il `runtime` la consuma per scrivere `display` e non la mette nel
   `computed style`. Con `compact` il `display` divide il valore per mille, un
@@ -301,9 +302,16 @@ punto (stessa voce). È un comportamento dell'`app`, non del formato.
   non abbrevia sotto il milione e dà «123.456» (prova). «0K» per `it`
   è nuovo in CLDR 48: in CLDR 47 il modello era «0», quindi una libreria su
   CLDR 47 non coincide (prova su cldr-json 47.0.0 e 48.2.3).
-- **Dove sta il `display` compatto.** Nel contenuto dell'`embed` dentro la
+- **I decimali.** Il numero massimo di decimali del `display` si cambia
+  dallo `stylesheet` [C: «Sulla bozza di specifica»]. *(proposta)* Con la proprietà personalizzata
+  `--number-decimals`, un intero da `0` a `10`, `2` se non è data, ereditata
+  come `--number-notation`. Vale per la forma piena; la forma breve resta a
+  un decimale. Il `value` non cambia: `= 3830 / 3` ha `value`
+  `1276.666666666666666666666666666667` e `display` «1276,67» in `it`.
+- **Dove sta il `display` compatto,** o con un numero di decimali diverso
+  da 2. Nel contenuto dell'`embed` dentro la
   `composition` radice, perché dipende dallo `stylesheet` di quella
-  `composition`; il nodo del `text` resta con la forma piena. Lo stesso
+  `composition`; il nodo del `text` resta con la forma piena e 2 decimali. Lo stesso
   `text` può quindi avere `display` diversi in `composition` diverse, come il
   numero di un `cross-ref`.
 - **Le lingue.** *(proposta)* La specifica ha una tabella delle lingue che
@@ -335,8 +343,8 @@ l'attributo HTML.
 - **Il sottoinsieme della classe 1:** `font-family` (le famiglie generiche
   `serif`, `sans-serif`, `monospace` e nomi di font), `font-size`,
   `font-weight`, `font-style`, `color`, `text-align`, i quattro `margin-*`,
-  `line-height` e `text-decoration-line` [C: «Sulla bozza di specifica»], più la proprietà
-  personalizzata `--number-notation` (sotto). Ereditate, come in CSS: tutte
+  `line-height` e `text-decoration-line` [C: «Sulla bozza di specifica»], più le proprietà
+  personalizzate `--number-notation` e `--number-decimals` (§0.4). Ereditate, come in CSS: tutte
   tranne i margini e `text-decoration-line`.
 - **I valori ammessi**, quelli che il `runtime` sa calcolare senza sapere
   come si disegna:
@@ -403,10 +411,14 @@ l'attributo HTML.
   `engineering`, fa ignorare la dichiarazione, con `stylesheet-unsupported`.
   È una scelta diversa da CSS, dove una proprietà personalizzata accetta
   qualsiasi valore.
+- **`--number-decimals`** *(proposta)* ammette solo un intero da `0` a `10`,
+  scritto con le sole cifre e senza zeri davanti; un altro valore fa
+  ignorare la dichiarazione, con `stylesheet-unsupported`.
 - **Il `base stylesheet`.** Lo applica il `runtime` prima degli
   `stylesheet` del documento. È scritto con la sintassi di CSS: a
   sinistra c'è un tipo del contenuto del `resolved tree` (§11.3), `root` per
-  il nodo della `composition`, `title-0` per il titolo dell'`article`
+  il nodo della `composition`, `image` per l'`embed` di un `image`
+  (*proposta*), `title-0` per il titolo dell'`article`
   (§0.7, *proposta*), oppure `title-1`, `title-2` e `title-3` per il
   titolo di un `chapter` di grado 1, 2, e 3 o più, gli stessi nomi che usa
   uno `stylesheet` (§0.16):
@@ -425,10 +437,13 @@ l'attributo HTML.
   hyperlink     { color: #1a4f8b; text-decoration-line: underline; }
   blockquote    { margin-left: 24pt; }
   list          { margin-left: 18pt; margin-bottom: 6pt; }
+  table, code, image, thematicBreak { margin-bottom: 6pt; }
   ```
 
-  `thematicBreak` non ha regole: la linea la disegna il `renderer` (§7.4,
-  §11.4).
+  La linea di `thematicBreak` la disegna il `renderer` (§7.4, §11.4); il
+  foglio le dà solo lo spazio sotto. Tabelle, blocchi di codice, immagini e
+  righe di separazione hanno sotto lo stesso spazio di un capoverso, perché
+  non tocchino il blocco che segue.
   La regola `root` dà tutte le proprietà ereditate del sottoinsieme; un
   margine senza regola vale `0pt`, e `text-decoration-line` vale `none`.
   La sottolineatura dei collegamenti è decisa [C: «Sulla bozza di specifica»]: il blu da solo ha
@@ -446,6 +461,18 @@ l'attributo HTML.
   genitore; i figli in linea della cella lo ereditano, e una colonna con
   `align` `null` eredita come ogni nodo. L'attributo `align` della `table`
   resta com'è (esempio 45).
+- **L'intestazione della tabella.** La prima riga è in grassetto, e la
+  calcola il `runtime` come l'allineamento delle colonne [C: «Sulla bozza di specifica»].
+  *(proposta)* Vale come una dichiarazione `font-weight: 700` sulle celle
+  della prima `tableRow`, e va nel loro `computedStyle` quando differisce;
+  se la colonna ha anche `align`, valgono tutte e due.
+- **Gli elenchi stretti.** Un elenco stretto, come lo definisce CommonMark
+  ([tight](https://spec.commonmark.org/0.31.2/#tight)), non ha spazio fra
+  le voci; uno largo sì [C: «Sulla bozza di specifica»]. *(proposta)* In un elenco stretto i
+  capoversi e gli elenchi che stanno direttamente in una voce valgono come
+  se avessero `margin-bottom: 0pt`, una dichiarazione del `runtime` come
+  quella dell'allineamento, che va nel loro `computedStyle`. L'elenco
+  intero tiene il suo `margin-bottom`.
 - **La forma dei valori.** Ogni nodo del contenuto della `composition` radice,
   cioè l'`article` o il `deck`, porta negli attributi un oggetto
   `computedStyle` con le proprietà il cui valore finale differisce da quello
@@ -2676,7 +2703,8 @@ hyperlink { text-decoration: none; }
 ````````````````````````````````
 
 L'allineamento delle colonne batte quello che la cella erediterebbe; la
-colonna senza allineamento eredita il centro dell'`embed` (esempio 45):
+colonna senza allineamento eredita il centro dell'`embed`, e le celle della
+prima riga sono in grassetto (esempio 45):
 
 ```````````````````````````````` example 45 conf=1 status=proposal
 === file report-q3.article.md
@@ -2704,7 +2732,7 @@ id: report
 {
   "nodes": [
     {"id": "report", "kind": "stylesheet", "file": "report.stylesheet.css"},
-    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"stylesheet": "report"}, "content": [["embed", {"id": "vendite", "kind": "text", "class": ["centro"], "computedStyle": {"text-align": "center"}}, ["table", {"align": ["left", "right", null]}, ["tableRow", ["tableCell", {"computedStyle": {"text-align": "left"}}, "Mese"], ["tableCell", {"computedStyle": {"text-align": "right"}}, "Vendite"], ["tableCell", "Nota"]], ["tableRow", ["tableCell", {"computedStyle": {"text-align": "left"}}, "luglio"], ["tableCell", {"computedStyle": {"text-align": "right"}}, "120"], ["tableCell", "calo"]]]]]},
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"stylesheet": "report"}, "content": [["embed", {"id": "vendite", "kind": "text", "class": ["centro"], "computedStyle": {"text-align": "center"}}, ["table", {"align": ["left", "right", null]}, ["tableRow", ["tableCell", {"computedStyle": {"text-align": "left", "font-weight": "700"}}, "Mese"], ["tableCell", {"computedStyle": {"text-align": "right", "font-weight": "700"}}, "Vendite"], ["tableCell", {"computedStyle": {"font-weight": "700"}}, "Nota"]], ["tableRow", ["tableCell", {"computedStyle": {"text-align": "left"}}, "luglio"], ["tableCell", {"computedStyle": {"text-align": "right"}}, "120"], ["tableCell", "calo"]]]]]},
     {"id": "vendite", "kind": "text", "file": "vendite.text.md", "content": [["table", {"align": ["left", "right", null]}, ["tableRow", ["tableCell", "Mese"], ["tableCell", "Vendite"], ["tableCell", "Nota"]], ["tableRow", ["tableCell", "luglio"], ["tableCell", "120"], ["tableCell", "calo"]]]]}
   ]
 }
@@ -2780,6 +2808,54 @@ Un'immagine che manca.
   ],
   "diagnostics": [
     {"severity": "error", "code": "asset-missing", "file": "rotta.image.md", "target": "manca.png", "fix": "aggiungi il file o correggi il percorso"}
+  ]
+}
+````````````````````````````````
+
+Due decimali per default, quattro con `--number-decimals` sull'`embed`, e un
+valore fuori dal sottoinsieme; le voci di un elenco stretto non hanno spazio
+sotto (esempio 48):
+
+```````````````````````````````` example 48 conf=1 status=proposal
+=== file conto.article.md
+---
+id: conto
+kind: article
+stylesheet: "[[preciso]]"
+---
+![[media]]{.fine}
+
+![[passi]]
+=== file media.text.md
+---
+id: media
+kind: text
+---
+Media: `= 10 / 3`.
+=== file passi.text.md
+---
+id: passi
+kind: text
+---
+- uno
+- due
+=== file preciso.stylesheet.css
+/*
+kind: stylesheet
+id: preciso
+*/
+.fine { --number-decimals: 4; }
+.troppo { --number-decimals: 11; }
+=== resolved
+{
+  "nodes": [
+    {"id": "conto", "kind": "article", "file": "conto.article.md", "attributes": {"stylesheet": "preciso"}, "content": [["embed", {"id": "media", "kind": "text", "class": ["fine"]}, ["paragraph", "Media: ", ["mathLine", {"value": "3.333333333333333333333333333333333", "display": "3.3333"}, "10 / 3"], "."]], ["embed", {"id": "passi", "kind": "text"}, ["list", ["listItem", ["paragraph", {"computedStyle": {"margin-bottom": "0pt"}}, "uno"]], ["listItem", ["paragraph", {"computedStyle": {"margin-bottom": "0pt"}}, "due"]]]]]},
+    {"id": "media", "kind": "text", "file": "media.text.md", "content": [["paragraph", "Media: ", ["mathLine", {"value": "3.333333333333333333333333333333333", "display": "3.33"}, "10 / 3"], "."]]},
+    {"id": "passi", "kind": "text", "file": "passi.text.md", "content": [["list", ["listItem", ["paragraph", "uno"]], ["listItem", ["paragraph", "due"]]]]},
+    {"id": "preciso", "kind": "stylesheet", "file": "preciso.stylesheet.css"}
+  ],
+  "diagnostics": [
+    {"severity": "warning", "code": "stylesheet-unsupported", "file": "preciso.stylesheet.css", "target": "--number-decimals"}
   ]
 }
 ````````````````````````````````

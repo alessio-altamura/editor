@@ -38,7 +38,7 @@ export const NOT_INHERITED_DEFAULTS: Readonly<Record<string, string>> = {
 };
 
 export interface BaseRule {
-  /** Content types of the resolved tree, plus `root` and `title-0`…`title-3`. */
+  /** Content types of the resolved tree, plus `root`, `title-0`…`title-3` and `image` for the embed of an image. */
   types: readonly string[];
   /** Declarations, with values already in the written form of §0.5. */
   declarations: ReadonlyArray<readonly [StyleProperty, string]>;
@@ -63,6 +63,7 @@ export const BASE_STYLESHEET_RULES: readonly BaseRule[] = [
   { types: ['hyperlink'], declarations: [['color', '#1a4f8b'], ['text-decoration-line', 'underline']] },
   { types: ['blockquote'], declarations: [['margin-left', '24pt']] },
   { types: ['list'], declarations: [['margin-left', '18pt'], ['margin-bottom', '6pt']] },
+  { types: ['table', 'code', 'image', 'thematicBreak'], declarations: [['margin-bottom', '6pt']] },
 ];
 
 /** The base stylesheet written as CSS, as in §0.5. */

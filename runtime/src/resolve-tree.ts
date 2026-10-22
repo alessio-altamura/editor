@@ -12,6 +12,9 @@ import { parseYamlMap, splitFrontMatter, type RawValue } from './front-matter.js
 import { displayString, evaluateMathLine, langFormat, plainString } from './math-line.js';
 import {
   computeStyle,
+  DEFAULT_DECIMALS,
+  directValue,
+  numberDecimals,
   numberNotation,
   parseStylesheet,
   styleDifference,
@@ -599,7 +602,18 @@ export function resolveTree(folder: string): ResolvedTree {
         const attributes: Record<string, unknown> = {};
         if (node.ordered) attributes.ordered = true;
         if (node.ordered && node.start != null && node.start !== 1) attributes.start = node.start;
-        return [element('list', attributes, node.children.map((item) => element('listItem', {}, buildBlocks(item.children, context))))];
+        return [element('list', attributes, node.children.map((item) => {
+          const blocks = buildBlocks(item.children, context);
+          // In a tight list the paragraphs and lists of an item have no space below (§0.5).
+          if (node.spread === false) {
+            for (const block of blocks) {
+              if (typeof block !== 'string' && (block.type === 'paragraph' || block.type === 'list')) {
+                block.meta = { ...block.meta, declarations: [...(block.meta?.declarations ?? []), ['margin-bottom', '0pt']] };
+              }
+            }
+          }
+          return element('listItem', {}, blocks);
+        }))];
       }
       case 'code': {
         // The markers are words of the info string after the first, the language (§7.1).
@@ -619,12 +633,15 @@ export function resolveTree(folder: string): ResolvedTree {
         return [element('paragraph', {}, [node.value])];
       case 'table':
         const align = node.align?.some((a) => a) ? { align: node.align.map((a) => a ?? null) } : {};
-        return [element('table', align, node.children.map((row) =>
+        return [element('table', align, node.children.map((row, rowIndex) =>
           element('tableRow', {}, row.children.map((cell, column) => {
             const tableCell = element('tableCell', {}, buildInlines(cell.children, context));
-            // The column alignment acts as a text-align declaration on the cell (§0.5).
+            // The column alignment and the header row act as declarations on the cell (§0.5).
+            const declarations: Array<[string, string]> = [];
             const textAlign = node.align?.[column];
-            if (textAlign) tableCell.meta = { textAlign };
+            if (textAlign) declarations.push(['text-align', textAlign]);
+            if (rowIndex === 0) declarations.push(['font-weight', '700']);
+            if (declarations.length > 0) tableCell.meta = { declarations };
             return tableCell;
           }))))];
       case 'definition': return [];
@@ -1034,15 +1051,17 @@ export function resolveTree(folder: string): ResolvedTree {
         const number = firstNumbers.get(slot.id);
         child.children = [(number === undefined ? removeSlot(slot.label) : slot.label.replaceAll('{n}', number)) || slot.fallback];
       }
-      const type = child.type === 'title' ? `title-${Math.min(child.meta?.depth ?? 1, 3)}` : child.type;
+      // The embed of an image takes the base rule `image` (§0.5).
+      const type = child.type === 'title' ? `title-${Math.min(child.meta?.depth ?? 1, 3)}`
+        : child.type === 'embed' && child.attributes.kind === 'image' ? 'image' : child.type;
       const expected = computeStyle({ type, classes: [], embedClasses: [] }, parent, null);
       const final = computeStyle({ type, classes: child.meta?.classes ?? [], embedClasses: child.meta?.embedClasses ?? [] }, parent, sheet, outOfRange);
-      if (child.meta?.textAlign) final.set('text-align', { text: child.meta.textAlign });
+      for (const [property, text] of child.meta?.declarations ?? []) final.set(property, directValue(property, text));
       const difference = styleDifference(final, expected);
       // The embed where a chapter comes back has no computed style (§0.17).
       if (Object.keys(difference).length > 0 && child.attributes.recursion !== true) child.attributes.computedStyle = difference;
-      if (child.type === 'mathLine' && child.meta?.value && numberNotation(final) === 'compact') {
-        child.attributes.display = displayString(child.meta.value, child.meta.lang, 'compact');
+      if (child.type === 'mathLine' && child.meta?.value && (numberNotation(final) === 'compact' || numberDecimals(final) !== DEFAULT_DECIMALS)) {
+        child.attributes.display = displayString(child.meta.value, child.meta.lang, numberNotation(final), numberDecimals(final));
       }
       applyStyles(child.children, final, sheet, outOfRange, firstNumbers);
     }

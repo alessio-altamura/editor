@@ -82,7 +82,7 @@ function localize(plain: string, format: LangFormat | undefined): string {
 export type NumberNotation = 'standard' | 'compact';
 
 /** The `display` string: half-even to 10 decimals, or the compact form of §0.4. */
-export function displayString(value: Decimal, lang: string | undefined, notation: NumberNotation): string {
+export function displayString(value: Decimal, lang: string | undefined, notation: NumberNotation, decimals = 2): string {
   const format = lang === undefined ? undefined : langFormat(lang);
   // Without a language, compact gives the string without language: no short form (reading of §0.4).
   if (notation === 'compact' && format && value.abs().gte(1000)) {
@@ -95,7 +95,7 @@ export function displayString(value: Decimal, lang: string | undefined, notation
       }
     }
   }
-  return localize(plainString(roundHalfEven(value, 10)), format);
+  return localize(plainString(roundHalfEven(value, decimals)), format);
 }
 
 export interface MathLineResult {
