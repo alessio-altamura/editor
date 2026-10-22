@@ -8,7 +8,7 @@ import { makeDiagnostic, sortDiagnostics } from './diagnostic.js';
 import { writeAll, writeJson } from './json-output.js';
 import { listDocumentFiles, resolveTree, SPEC_VERSION } from './resolve-tree.js';
 import { staticExport, staticExportSize, type ExportAsset } from './static-export.js';
-import type { JsonML, ResolvedTree } from './tree.js';
+import type { JsonML } from './tree.js';
 
 /** Provisional name of the binary, not decided yet: change it here and in package.json. */
 export const BINARY_NAME = 'doc-runtime';

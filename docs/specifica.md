@@ -427,7 +427,8 @@ l'attributo HTML.
   list          { margin-left: 18pt; margin-bottom: 6pt; }
   ```
 
-  `thematicBreak` non ha regole: la linea la disegna il `renderer` (§7.4).
+  `thematicBreak` non ha regole: la linea la disegna il `renderer` (§7.4,
+  §11.4).
   La regola `root` dà tutte le proprietà ereditate del sottoinsieme; un
   margine senza regola vale `0pt`, e `text-decoration-line` vale `none`.
   La sottolineatura dei collegamenti è decisa [C: «Sulla bozza di specifica»]: il blu da solo ha
@@ -1292,7 +1293,9 @@ Queste regole le evitano:
   `embed` (esempio 24), e in uno `scratch`; in un `text` è un blocco in più,
   quindi `text-blocks`. Nel `resolved tree` è `["thematicBreak"]`; la linea la
   disegna il `renderer` dal tipo, perché spessore e colore non sono nel
-  sottoinsieme della classe 1.
+  sottoinsieme della classe 1. Allo stesso modo, fuori dal sottoinsieme, il
+  `renderer` di riferimento disegna i segni degli elenchi, i bordi delle
+  tabelle e il margine della pagina, in modo non normativo (§11.4).
 - **GitHub e gli altri programmi** mostrano il Markdown con il loro aspetto:
   è un'anteprima, non l'impaginazione del documento.
 
@@ -1629,6 +1632,10 @@ La risoluzione non si ferma a un errore: l'albero esce sempre, con il
 zero e l'`export` si rifiuta; con un'opzione esplicita l'HTML esce lo
 stesso, come anteprima, con i pezzi mancanti segnati [C: «Sulla bozza di specifica»].
 *(proposta)* L'opzione è `--allow-errors`, e il codice di uscita resta 1.
+*(proposta)* L'`export` (§11.4) ha due limiti suoi: un'immagine si
+incorpora fino a 64 MiB, altrimenti resta fuori con `asset-unsupported`, e
+l'HTML intero non supera 256 MiB, altrimenti non si scrive, nemmeno con
+`--allow-errors` (`export-too-large`).
 I codici di uscita: 0 senza
 errori (gli avvisi sono ammessi), 1 se l'albero ha almeno un errore, 2 per
 un uso sbagliato o una cartella che non si legge, 3 per un errore interno
@@ -1698,6 +1705,8 @@ il riferimento non si risolve (§0.3) e il `target` è l'`id` scritto.
 | `asset-missing` | error | `asset` assente | il percorso | 7 |
 | `stylesheet-unsupported` | warning | dichiarazione, selettore o at-rule fuori dal sottoinsieme, ignorati: proprietà, valore, `!important` | il nome della proprietà; per un selettore, il primo membro fuori dal sottoinsieme, come è scritto e senza spazi ai bordi; per una at-rule, la parola chiave; per una dichiarazione senza «:», il suo testo | non coperto |
 | `reference-unresolved` | error | `id reference` senza bersaglio, in un attributo o in linea | l'`id` | non coperto |
+| `asset-unsupported` | warning | solo nell'`export` (§11.4): un'immagine della pagina che non si incorpora, perché il formato non è riconosciuto, il file non si legge o supera 64 MiB; `file` è il descrittore dell'`image`; uno per descrittore | l'`asset` com'è scritto | non coperto |
+| `export-too-large` | error | solo nell'`export`: l'HTML supererebbe 256 MiB, e non si scrive, anche con `--allow-errors`; `file` è quello dell'`article` radice; il `fix` suggerisce di ridurre le immagini o le loro inclusioni | — | non coperto |
 
 ```````````````````````````````` example 13 conf=0 status=proposal
 === file calo-q3.concept.md
@@ -2774,6 +2783,35 @@ Un'immagine che manca.
   ]
 }
 ````````````````````````````````
+
+### 11.4 L'`export` *(proposta)*
+
+Il comando `doc-runtime export <cartella> [--root <id>] [-o <file>]
+[--allow-errors]` scrive l'HTML di un `article`: un solo file, con il CSS e
+le immagini dentro, che si manda e si apre ovunque [C: «L'HTML esportato»].
+`--root` sceglie l'`article` per `id`; senza, la cartella deve averne uno
+solo. L'HTML va su stdout, o nel file di `-o`, che si scrive per intero o
+non si tocca. Con un errore nell'albero l'`export` si rifiuta, e con
+`--allow-errors` scrive un'anteprima con i pezzi mancanti segnati (§11.1).
+Un'immagine si riconosce dai primi byte, fra PNG, JPEG, GIF, WebP e SVG, mai
+dall'estensione, e si incorpora fino a 64 MiB; un'altra resta fuori, con la
+sua descrizione al posto e l'avviso `asset-unsupported`. L'HTML intero non
+supera 256 MiB (`export-too-large`). Gli stessi file danno gli stessi byte.
+
+La pagina non carica niente da fuori: una Content Security Policy ammette
+solo le immagini `data:` e lo stile in linea, e nessuno script. Un
+collegamento a un URL ha `href` solo per `http:`, `https:` e `mailto:`, o
+per `#id` di un oggetto nella pagina; un percorso relativo, come
+`allegato.pdf`, resta testo senza `href`, perché il file HTML viaggia da
+solo.
+
+Ogni elemento che rappresenta un nodo porta nell'attributo `style` le
+dodici proprietà del sottoinsieme con i valori finali, ricavati dal
+`resolved tree` come dice il §0.5, senza cascate. La mappatura dai tipi agli
+elementi HTML è del `renderer` di riferimento, non è normativa, e sta nel
+README del `runtime`. Non normativo è anche quello che il `renderer` disegna
+da sé, fuori dal sottoinsieme: i segni degli elenchi, i bordi delle tabelle,
+la linea di `thematicBreak` e il margine della pagina sullo schermo (§7.4).
 
 ## Appendice A. Classi successive (non normativa)
 
