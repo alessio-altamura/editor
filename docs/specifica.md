@@ -1406,7 +1406,7 @@ id: report
     {"id": "cap-vendite", "kind": "chapter", "file": "cap-vendite.chapter.md", "attributes": {"title": "Le vendite"}, "content": [["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["evidenza"]}, ["paragraph", "Le vendite sono calate del 12%."]], ["embed", {"id": "lavagna", "kind": "image", "asset": "lavagna.jpg"}, ["paragraph", "Foto della lavagna con le vendite mensili."]]]},
     {"id": "lavagna", "kind": "image", "file": "lavagna.image.md", "attributes": {"asset": "lavagna.jpg"}, "content": [["paragraph", "Foto della lavagna con le vendite mensili."]]},
     {"id": "report", "kind": "stylesheet", "file": "report.stylesheet.css"},
-    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"title": "Rapporto del terzo trimestre", "stylesheet": "report"}, "content": [["embed", {"id": "cap-vendite", "kind": "chapter", "depth": 1, "number": "1"}, ["title", "Le vendite"], ["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["evidenza"], "computedStyle": {"font-weight": "700"}}, ["paragraph", "Le vendite sono calate del 12%."]], ["embed", {"id": "lavagna", "kind": "image", "asset": "lavagna.jpg", "number": "1"}, ["paragraph", "Foto della lavagna con le vendite mensili."]]]]}
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"title": "Rapporto del terzo trimestre", "stylesheet": "report"}, "content": [["title", "Rapporto del terzo trimestre"], ["embed", {"id": "cap-vendite", "kind": "chapter", "depth": 1, "number": "1"}, ["title", "Le vendite"], ["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["evidenza"], "computedStyle": {"font-weight": "700"}}, ["paragraph", "Le vendite sono calate del 12%."]], ["embed", {"id": "lavagna", "kind": "image", "asset": "lavagna.jpg", "number": "1"}, ["paragraph", "Foto della lavagna con le vendite mensili."]]]]}
   ]
 }
 ````````````````````````````````
@@ -1834,7 +1834,7 @@ title: Rapporto del terzo trimestre
 {
   "nodes": [
     {"id": "calo-q3", "kind": "concept", "file": "calo-q3.concept.md", "content": [["paragraph", "Nel terzo trimestre le vendite calano."]]},
-    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"title": "Rapporto del terzo trimestre"}}
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"title": "Rapporto del terzo trimestre"}, "content": [["title", "Rapporto del terzo trimestre"]]}
   ],
   "diagnostics": [
     {"severity": "error", "code": "association-kind", "file": "calo-q3.concept.md", "target": "report-q3", "fix": "togli report-q3 da associations"}
@@ -2623,6 +2623,156 @@ l'`embed` da solo non direbbe dove sta il file; con `asset-missing`
 l'`embed` non porta `asset`, e chi disegna mostra la descrizione, che è la
 `static fallback` (§7.2). Nel nodo dell'`image` l'`asset` resta com'è
 scritto.
+
+Gli esempi 44-47 mostrano le ultime proposte di questa sezione e del §0.5.
+Il collegamento è sottolineato dal foglio di partenza, e uno `stylesheet` lo
+toglie (esempio 44):
+
+```````````````````````````````` example 44 conf=1 status=proposal
+=== file uno.article.md
+---
+id: uno
+kind: article
+---
+![[nota-sito]]
+=== file due.article.md
+---
+id: due
+kind: article
+stylesheet: "[[sobrio]]"
+---
+![[nota-sito]]
+=== file nota-sito.text.md
+---
+id: nota-sito
+kind: text
+---
+Vedi [il sito](https://example.com).
+=== file sobrio.stylesheet.css
+/*
+kind: stylesheet
+id: sobrio
+*/
+hyperlink { text-decoration: none; }
+=== resolved
+{
+  "nodes": [
+    {"id": "due", "kind": "article", "file": "due.article.md", "attributes": {"stylesheet": "sobrio"}, "content": [["embed", {"id": "nota-sito", "kind": "text"}, ["paragraph", "Vedi ", ["hyperlink", {"url": "https://example.com", "computedStyle": {"text-decoration-line": "none"}}, "il sito"], "."]]]},
+    {"id": "nota-sito", "kind": "text", "file": "nota-sito.text.md", "content": [["paragraph", "Vedi ", ["hyperlink", {"url": "https://example.com"}, "il sito"], "."]]},
+    {"id": "sobrio", "kind": "stylesheet", "file": "sobrio.stylesheet.css"},
+    {"id": "uno", "kind": "article", "file": "uno.article.md", "content": [["embed", {"id": "nota-sito", "kind": "text"}, ["paragraph", "Vedi ", ["hyperlink", {"url": "https://example.com"}, "il sito"], "."]]]}
+  ]
+}
+````````````````````````````````
+
+L'allineamento delle colonne batte quello che la cella erediterebbe; la
+colonna senza allineamento eredita il centro dell'`embed` (esempio 45):
+
+```````````````````````````````` example 45 conf=1 status=proposal
+=== file report-q3.article.md
+---
+id: report-q3
+kind: article
+stylesheet: "[[report]]"
+---
+![[vendite]]{.centro}
+=== file vendite.text.md
+---
+id: vendite
+kind: text
+---
+| Mese | Vendite | Nota |
+|:--|--:|---|
+| luglio | 120 | calo |
+=== file report.stylesheet.css
+/*
+kind: stylesheet
+id: report
+*/
+.centro { text-align: center; }
+=== resolved
+{
+  "nodes": [
+    {"id": "report", "kind": "stylesheet", "file": "report.stylesheet.css"},
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"stylesheet": "report"}, "content": [["embed", {"id": "vendite", "kind": "text", "class": ["centro"], "computedStyle": {"text-align": "center"}}, ["table", {"align": ["left", "right", null]}, ["tableRow", ["tableCell", {"computedStyle": {"text-align": "left"}}, "Mese"], ["tableCell", {"computedStyle": {"text-align": "right"}}, "Vendite"], ["tableCell", "Nota"]], ["tableRow", ["tableCell", {"computedStyle": {"text-align": "left"}}, "luglio"], ["tableCell", {"computedStyle": {"text-align": "right"}}, "120"], ["tableCell", "calo"]]]]]},
+    {"id": "vendite", "kind": "text", "file": "vendite.text.md", "content": [["table", {"align": ["left", "right", null]}, ["tableRow", ["tableCell", "Mese"], ["tableCell", "Vendite"], ["tableCell", "Nota"]], ["tableRow", ["tableCell", "luglio"], ["tableCell", "120"], ["tableCell", "calo"]]]]}
+  ]
+}
+````````````````````````````````
+
+Il titolo dell'`article` è il primo figlio del suo contenuto, e `title-0` lo
+colpisce; `1em` vale sul suo `font-size` (esempio 46):
+
+```````````````````````````````` example 46 conf=1 status=proposal
+=== file report-q3.article.md
+---
+id: report-q3
+kind: article
+title: Rapporto del terzo trimestre
+stylesheet: "[[report]]"
+---
+![[nota]]
+=== file nota.text.md
+---
+id: nota
+kind: text
+---
+Una nota.
+=== file report.stylesheet.css
+/*
+kind: stylesheet
+id: report
+*/
+title-0 { font-size: 26pt; color: #333333; margin-bottom: 1em; }
+=== resolved
+{
+  "nodes": [
+    {"id": "nota", "kind": "text", "file": "nota.text.md", "content": [["paragraph", "Una nota."]]},
+    {"id": "report", "kind": "stylesheet", "file": "report.stylesheet.css"},
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"title": "Rapporto del terzo trimestre", "stylesheet": "report"}, "content": [["title", {"computedStyle": {"font-size": "26pt", "color": "#333333", "margin-bottom": "26pt"}}, "Rapporto del terzo trimestre"], ["embed", {"id": "nota", "kind": "text"}, ["paragraph", "Una nota."]]]}
+  ]
+}
+````````````````````````````````
+
+L'`asset` dell'`embed` è il percorso dalla cartella del documento; con
+`asset-missing` l'`embed` non lo porta (esempio 47):
+
+```````````````````````````````` example 47 conf=1 status=proposal
+=== file report-q3.article.md
+---
+id: report-q3
+kind: article
+---
+![[lavagna]]
+
+![[rotta]]
+=== file immagini/lavagna.image.md
+---
+id: lavagna
+kind: image
+asset: foto/lavagna.png
+---
+La lavagna.
+=== asset immagini/foto/lavagna.png
+=== file rotta.image.md
+---
+id: rotta
+kind: image
+asset: manca.png
+---
+Un'immagine che manca.
+=== resolved
+{
+  "nodes": [
+    {"id": "lavagna", "kind": "image", "file": "immagini/lavagna.image.md", "attributes": {"asset": "foto/lavagna.png"}, "content": [["paragraph", "La lavagna."]]},
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "content": [["embed", {"id": "lavagna", "kind": "image", "asset": "immagini/foto/lavagna.png", "number": "1"}, ["paragraph", "La lavagna."]], ["embed", {"id": "rotta", "kind": "image", "number": "2"}, ["paragraph", "Un'immagine che manca."]]]},
+    {"id": "rotta", "kind": "image", "file": "rotta.image.md", "attributes": {"asset": "manca.png"}, "content": [["paragraph", "Un'immagine che manca."]]}
+  ],
+  "diagnostics": [
+    {"severity": "error", "code": "asset-missing", "file": "rotta.image.md", "target": "manca.png", "fix": "aggiungi il file o correggi il percorso"}
+  ]
+}
+````````````````````````````````
 
 ## Appendice A. Classi successive (non normativa)
 
