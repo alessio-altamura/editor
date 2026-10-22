@@ -326,6 +326,31 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     classe 1 non ci sono input, quindi l'HTML è statico, con i valori
     fotografati. Non deciso: una didascalia visibile per le immagini, il cui
     numero per ora serve solo ai `cross-ref`.
+  - Le scelte visibili dell'HTML (2026-10-22, Alessio, «1B 2 risultato con
+    formula come tooltip 3B 4B 5A 6B 7B»), poste dall'orchestratore dopo una
+    revisione del mandato del `renderer`:
+    1. Con un errore nel documento l'`export` si rifiuta, come proponeva la
+       bozza; con un'opzione esplicita l'HTML esce lo stesso, come anteprima,
+       con i pezzi mancanti segnati.
+    2. Nell'HTML una riga di calcolo mostra il risultato, e la sua
+       espressione si vede come tooltip.
+    3. L'allineamento delle colonne scritto nella tabella (`|:--|--:|`) conta,
+       come su GitHub, e lo calcola il `runtime` nello stile delle celle.
+    4. Un blocco di codice senza `eval` si vede sempre; uno con `eval` si vede
+       solo se ha anche `echo`. Nella classe 1 `eval` non esegue niente,
+       quindi un blocco con `eval` e senza `echo` non compare.
+    5. Dove un capitolo con `recursion: infinite` torna dentro sé stesso non
+       si disegna niente: il capitolo compare una volta. Il `renderer` non
+       può ripeterlo, perché ogni ripetizione prende un numero nuovo, che
+       calcola il `runtime`.
+    6. Il titolo dell'`article` si vede in cima alla pagina, come nodo del
+       `resolved tree` con una regola nel foglio di partenza; prima era solo
+       un metadato.
+    7. I collegamenti sono sottolineati: la sottolineatura entra nel foglio di
+       partenza come proprietà del sottoinsieme, così uno `stylesheet` la può
+       togliere. Il motivo: il blu del foglio di partenza ha un contrasto di
+       2,54:1 con il testo nero, sotto il 3:1 che le linee guida WCAG
+       chiedono quando un collegamento si distingue solo per il colore.
 
 ## Proposte non decise
 

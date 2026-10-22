@@ -209,6 +209,10 @@ punto (stessa voce). È un comportamento dell'`app`, non del formato.
   non vede un risultato. Il risultato non si scrive nel sorgente: il
   `runtime` lo mette nel `resolved tree` (esempio 20). Una riga senza
   risultato è `["mathLine", {"invalid": true}, "1 / 0"]`.
+- **Come si vede.** Nell'HTML esportato una riga di calcolo mostra il suo
+  `display`, e l'espressione si vede come tooltip [C: «Sulla bozza di specifica»].
+  *(proposta)* Una riga senza risultato mostra l'espressione com'è
+  nell'albero, senza tooltip.
 - **Grammatica.** Spazi ammessi fra i simboli; precedenza solita, da sinistra
   a destra a parità.
 
@@ -330,9 +334,10 @@ l'attributo HTML.
 *(proposte)*
 - **Il sottoinsieme della classe 1:** `font-family` (le famiglie generiche
   `serif`, `sans-serif`, `monospace` e nomi di font), `font-size`,
-  `font-weight`, `font-style`, `color`, `text-align`, i quattro `margin-*` e
-  `line-height`, più la proprietà personalizzata `--number-notation` (sotto).
-  Ereditate, come in CSS: tutte tranne i margini.
+  `font-weight`, `font-style`, `color`, `text-align`, i quattro `margin-*`,
+  `line-height` e `text-decoration-line` [C: «Sulla bozza di specifica»], più la proprietà
+  personalizzata `--number-notation` (sotto). Ereditate, come in CSS: tutte
+  tranne i margini e `text-decoration-line`.
 - **I valori ammessi**, quelli che il `runtime` sa calcolare senza sapere
   come si disegna:
   - lunghezze assolute (`pt`, `px`, `mm`, `cm`, `in`), `em` e lo zero senza
@@ -351,7 +356,15 @@ l'attributo HTML.
     ([css-fonts-4](https://drafts.csswg.org/css-fonts-4/#font-weight-prop)),
     `normal` (400) e `bold` (700); `font-style` `normal` e `italic`;
     `text-align` `left`, `right`, `center`, `justify`;
-  - `line-height` come numero o lunghezza.
+  - `line-height` come numero o lunghezza;
+  - *(proposta)* `text-decoration-line` `none` o `underline`. Si può
+    scrivere anche `text-decoration` con una sola di queste due parole, che
+    vale come `text-decoration-line`; nel `computedStyle` la chiave è sempre
+    `text-decoration-line`. Come in CSS la proprietà non si eredita, ma la
+    sottolineatura di un nodo si disegna anche sul testo dei suoi figli in
+    linea, che pure hanno `none` come valore calcolato
+    ([css-text-decor-3 §2](https://www.w3.org/TR/css-text-decor-3/#line-decoration):
+    «Inherited: no (but see prose, above)»).
 
   Il resto è `stylesheet-unsupported`, con `target` il nome della
   proprietà; anche un valore fuori da decimal128 (§0.4), come
@@ -392,7 +405,8 @@ l'attributo HTML.
 - **Il `base stylesheet`.** Lo applica il `runtime` prima degli
   `stylesheet` del documento. È scritto con la sintassi di CSS: a
   sinistra c'è un tipo del contenuto del `resolved tree` (§11.3), `root` per
-  il nodo della `composition`, oppure `title-1`, `title-2` e `title-3` per il
+  il nodo della `composition`, `title-0` per il titolo dell'`article`
+  (§0.7, *proposta*), oppure `title-1`, `title-2` e `title-3` per il
   titolo di un `chapter` di grado 1, 2, e 3 o più, gli stessi nomi che usa
   uno `stylesheet` (§0.16):
 
@@ -400,20 +414,36 @@ l'attributo HTML.
   root          { font-family: serif; font-size: 11pt; line-height: 1.4; color: #000000;
                   font-weight: 400; font-style: normal; text-align: left; }
   paragraph     { margin-bottom: 6pt; }
+  title-0       { font-size: 22pt; font-weight: 700; margin-bottom: 12pt; }
   title-1       { font-size: 18pt; font-weight: 700; margin-top: 18pt; margin-bottom: 9pt; }
   title-2       { font-size: 14pt; font-weight: 700; margin-top: 12pt; margin-bottom: 6pt; }
   title-3       { font-size: 11pt; font-weight: 700; margin-top: 9pt; margin-bottom: 3pt; }
   emphasis      { font-style: italic; }
   strong        { font-weight: 700; }
   inlineCode, code { font-family: monospace; }
-  hyperlink     { color: #1a4f8b; }
+  hyperlink     { color: #1a4f8b; text-decoration-line: underline; }
   blockquote    { margin-left: 24pt; }
   list          { margin-left: 18pt; margin-bottom: 6pt; }
   ```
 
   `thematicBreak` non ha regole: la linea la disegna il `renderer` (§7.4).
   La regola `root` dà tutte le proprietà ereditate del sottoinsieme; un
-  margine senza regola vale `0pt`.
+  margine senza regola vale `0pt`, e `text-decoration-line` vale `none`.
+  La sottolineatura dei collegamenti è decisa [C: «Sulla bozza di specifica»]: il blu da solo ha
+  un contrasto di 2,54:1 con il testo nero, sotto il 3:1 che WCAG chiede
+  quando un collegamento si distingue solo per il colore
+  ([G183](https://www.w3.org/WAI/WCAG22/Techniques/general/G183)).
+- **L'allineamento delle colonne.** L'allineamento scritto nella riga di
+  separazione di una tabella (`|:--|--:|`) conta, come su GitHub, e lo
+  calcola il `runtime` nello stile delle celle [C: «Sulla bozza di specifica»]. *(proposta)* Vale
+  come una dichiarazione `text-align` sulle celle di quella colonna, con il
+  valore di `align`: batte l'eredità, e nella classe 1 nessuno `stylesheet`
+  colpisce le celle. Quindi il valore finale di una `tableCell` di una
+  colonna con `align` è `align`, e va nel suo `computedStyle` quando
+  differisce da quello che la cella avrebbe dal foglio di partenza e dal
+  genitore; i figli in linea della cella lo ereditano, e una colonna con
+  `align` `null` eredita come ogni nodo. L'attributo `align` della `table`
+  resta com'è.
 - **La forma dei valori.** Ogni nodo del contenuto della `composition` radice,
   cioè l'`article` o il `deck`, porta negli attributi un oggetto
   `computedStyle` con le proprietà il cui valore finale differisce da quello
@@ -439,10 +469,11 @@ l'attributo HTML.
   enfasi, forte, codice [C: «Sulla bozza di specifica»]. *(proposta)* I nomi, normativi: `hyperlink`,
   `emphasis`, `strong`, `inline-code` (nel `resolved tree` `inlineCode`).
   I titoli dei capitoli si colpiscono per grado con `title-1`, `title-2` e
-  `title-3` (deciso [C: «Sulla bozza di specifica»], §0.16). Per gli altri tipi, che hanno nomi provvisori (§11.3),
+  `title-3` (deciso [C: «Sulla bozza di specifica»], §0.16), il titolo
+  dell'`article` con `title-0` (*proposta*, §0.7). Per gli altri tipi, che hanno nomi provvisori (§11.3),
   niente selettori.
 - **Il sottoinsieme dei selettori.** *(proposta)* Selettori di `class`
-  semplici e composti (`.a.b`), i quattro tipi in linea e i tre gradi dei
+  semplici e composti (`.a.b`), i quattro tipi in linea e i quattro gradi dei
   titoli, da soli e senza combinatori: `.nota strong` e `title-1.compatto`
   non sono ammessi. Le liste con la virgola
   (`.nota, .evidenza`) sono ammesse; se un membro è fuori dal sottoinsieme
@@ -562,10 +593,15 @@ si sposta come un'unità, si annida, e può non avere titolo.
   `number` (§0.10, esempio 30). Nel nodo di un `chapter`, gli `embed` dei
   `chapter` annidati non hanno `depth` né `number`: li hanno solo nella
   `composition` radice.
-- **L'`article` e il `deck`** possono avere un `title`, che nella classe 1 è un
-  metadato, il nome del documento e il testo dei riferimenti, e non si
-  disegna *(proposta)*. Hanno un corpo di soli `embed`,
-  di `chapter` o di `object`.
+- **L'`article` e il `deck`** possono avere un `title`, che è il nome del
+  documento e il testo dei riferimenti. Il `title` dell'`article` si vede in
+  cima alla pagina, come nodo del `resolved tree` con una regola nel foglio
+  di partenza [C: «Sulla bozza di specifica»]. *(proposta)* È il primo figlio del contenuto
+  dell'`article`, `["title", "Rapporto del terzo trimestre"]`, con il suo
+  `computedStyle` come ogni nodo, e lo colpisce la regola `title-0`, il
+  grado 0 del documento intero (§0.5); un `title` vuoto non dà il nodo. Il
+  `title` del `deck` si vedrà con le `slide` (classe 6). Hanno un corpo di
+  soli `embed`, di `chapter` o di `object`.
 - **Cicli.** Un `chapter` che contiene sé stesso, anche attraverso altri, è
   l'errore `embed-cycle`, se non abilita la ricorsione (§0.17).
 - Le due relazioni di Alessio restano distinte: l'aggregatore di dati della
@@ -818,10 +854,10 @@ capitolo annidato: `1`, `1.1`, `1.1.1` (stessa voce, esempio 43).
   le sue volte con il suo limite.
 - **Con `infinite`** il `resolved tree` segna il punto in cui il `chapter`
   torna: l'`embed` ha `"recursion": true` e nessun figlio, con `lang` e
-  `class` come ogni `embed` ma senza `depth`, `number` né `computedStyle`,
-  perché non si disegna da solo; chi disegna
-  sceglie fino a che profondità ripeterlo, come vuole l'impaginazione da
-  fuori (§7.4).
+  `class` come ogni `embed` ma senza `depth`, `number` né `computedStyle`.
+  Chi disegna non lo ripete: in quel punto non disegna niente, e il
+  capitolo compare una volta [C: «Sulla bozza di specifica»]. Ripeterlo vorrebbe dire
+  ricalcolare numeri e stili, che calcola solo il `runtime`.
 - **La regola di uscita** richiede le formule e arriva con loro (classe 4).
   Per una formula `infinite` il `runtime` terrà comunque un limite di
   sicurezza, perché il documento deve risolversi in un tempo finito.
@@ -1165,7 +1201,7 @@ nome (§11.3).
 | Contenuto | Note |
 |---|---|
 | capoverso, elenco puntato e numerato, citazione | |
-| `code block` | i marker per eseguire e per mostrare sono decisi [C: «Il codice nel documento porta un marker»], i nomi `eval` ed `echo` proposti, scritti come parole dell'info string dopo la prima, che è la lingua (`python eval`); nella classe 1 un blocco da eseguire non si esegue (`eval-unsupported`, esempio 36) |
+| `code block` | i marker per eseguire e per mostrare sono decisi [C: «Il codice nel documento porta un marker»], i nomi `eval` ed `echo` proposti, scritti come parole dell'info string dopo la prima, che è la lingua (`python eval`); nella classe 1 un blocco da eseguire non si esegue (`eval-unsupported`, esempio 36). Un blocco senza `eval` si vede sempre, uno con `eval` solo se ha anche `echo` [C: «Sulla bozza di specifica»]: nella classe 1 un blocco con `eval` e senza `echo` non compare |
 | `text table` | la tabella di GFM ([gfm](https://github.github.com/gfm/)), ammessa nella classe 1 *(proposta)*; non ancora `collection` |
 | `math line` | decisa, con il risultato già nella classe 1 (§0.4) |
 | enfasi, forte, codice in linea, collegamento a un URL | in linea; anche il collegamento per riferimento (§0.6) |
@@ -1586,7 +1622,10 @@ applica prima: un `embed` che per `recursion` non entra nell'albero non è mai
 
 La risoluzione non si ferma a un errore: l'albero esce sempre, con il
 `diagnostic` accanto. Con un errore la `cli` esce con un codice diverso da
-zero e l'`export` si rifiuta. *(proposta)* I codici di uscita: 0 senza
+zero e l'`export` si rifiuta; con un'opzione esplicita l'HTML esce lo
+stesso, come anteprima, con i pezzi mancanti segnati [C: «Sulla bozza di specifica»].
+*(proposta)* L'opzione è `--allow-errors`, e il codice di uscita resta 1.
+I codici di uscita: 0 senza
 errori (gli avvisi sono ammessi), 1 se l'albero ha almeno un errore, 2 per
 un uso sbagliato o una cartella che non si legge, 3 per un errore interno
 del `runtime`, con il messaggio su stderr e senza albero. Lo stesso controllo gira dopo ogni merge e ogni
@@ -2571,9 +2610,16 @@ primo figlio del suo `embed` nella `composition` radice, `["title", "Le
 vendite"]`, così le regole `title-1`, `title-2`, `title-3` e i valori che
 eredita dal `chapter` hanno dove stare; porta `computedStyle` come gli altri
 nodi (§0.16, esempio 34). Nel nodo del `chapter` il titolo
-resta solo nell'attributo `title`, e `content` è il corpo. Un `embed` che non si risolve ha `"unresolved":
+resta solo nell'attributo `title`, e `content` è il corpo. Allo stesso modo il
+titolo dell'`article` è il primo figlio del suo contenuto (§0.7). Un `embed` che non si risolve ha `"unresolved":
 true`, le `class` del segno se ci sono, e nessun figlio. Così un `renderer` legge la `composition` senza
-cercare altri nodi.
+cercare altri nodi. *(proposta)* Per un `image` l'`asset` dell'`embed` è il
+percorso del file dalla cartella del documento, con le barre `/`, perché il
+percorso scritto nel descrittore vale dalla cartella del descrittore (§2) e
+l'`embed` da solo non direbbe dove sta il file; con `asset-missing`
+l'`embed` non porta `asset`, e chi disegna mostra la descrizione, che è la
+`static fallback` (§7.2). Nel nodo dell'`image` l'`asset` resta com'è
+scritto.
 
 ## Appendice A. Classi successive (non normativa)
 

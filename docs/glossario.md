@@ -188,7 +188,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `embed` | uso per riferimento | Inclusione di un oggetto in una `composition`, senza copia; dentro un capoverso per ora non è ammesso (deciso il 2026-10-21) | concetto deciso, nome proposto | copy, insert |
 | `scratch` | spazio libero | Appunti e `math line` dentro il contenuto, da cui si trasformano oggetti; proposta: un `kind` a sé con più blocchi, posto di lavoro e non unità di significato, che una `composition` non usa | concetto deciso, nome proposto | free space, notes |
 | `math line` | riga di calcolo | Calcolo con l'`inline result`; proposta: anche dentro una frase, fra backtick, comincia con il segno di uguale e uno spazio | concetto deciso, nome proposto | calc line, formula |
-| `inline result` | risultato in linea | Valore mostrato accanto a una `math line` | concetto deciso, nome proposto | output |
+| `inline result` | risultato in linea | Valore calcolato di una `math line`; nell'HTML esportato si vede al posto dell'espressione, che resta come tooltip (deciso il 2026-10-22) | concetto deciso, nome proposto | output |
 | `text table` | tabellina | Tabella scritta nel testo, non ancora `collection` | proposto | table |
 | `text` | testo | `kind` di `object` fatto di prosa, un blocco solo: un capoverso, un elenco, una citazione (deciso il 2026-10-21) | concetto deciso, nome proposto | paragraph (da fissare con la bozza) |
 | `image` | immagine | `kind` di `object` per un'immagine fatta fuori dal `runtime`: un file descrittore con gli attributi, che nomina il suo `asset` | proposto | picture, figure |
@@ -214,7 +214,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `composition` | vista layout | Composizione ordinata di oggetti per `embed`: `article`, `deck`, `webpage`, e il `chapter` che si annida | deciso | layout, view, template |
 | `article` | documento | `composition` a flusso, per lettura e stampa; è l'indice dei suoi `chapter` | proposto | document |
 | `chapter` | capitolo | `composition` che si può annidare e raccoglie in ordine `object` e altri `chapter`, con un `title` facoltativo; `article` e `deck` la usano con l'`embed` (deciso il 2026-10-21; nome proposto) | concetto deciso, nome proposto | section, part, group |
-| `title` | titolo | Attributo con il titolo di un `chapter` o di una `composition`, nel `front matter`; uno `stylesheet` colpisce i titoli dei capitoli per grado con title-1, title-2 e title-3 (deciso il 2026-10-21); proposta: anche il nodo del `resolved tree` che porta il titolo di un `chapter` | proposto | name |
+| `title` | titolo | Attributo con il titolo di un `chapter` o di una `composition`, nel `front matter`; uno `stylesheet` colpisce i titoli dei capitoli per grado con title-1, title-2 e title-3 (deciso il 2026-10-21); il titolo dell'`article` si vede in cima alla pagina (deciso il 2026-10-22), proposta: colpito con title-0, il grado 0; proposta: anche il nodo del `resolved tree` che porta il titolo di un `chapter` o dell'`article` | proposto | name |
 | `hyperlink` | collegamento | Tipo in linea del contenuto: un collegamento a un URL o un `id reference` in linea; uno `stylesheet` lo può colpire (deciso il 2026-10-21, nome proposto) | concetto deciso, nome proposto | link, anchor |
 | `emphasis` | enfasi | Tipo in linea del contenuto, scritto con un asterisco o un trattino basso; uno `stylesheet` lo può colpire | concetto deciso, nome proposto | italic |
 | `strong` | forte | Tipo in linea del contenuto, scritto con due asterischi; uno `stylesheet` lo può colpire | concetto deciso, nome proposto | bold |
@@ -306,7 +306,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `resolved tree` | albero risolto | `model` con calcoli, riferimenti e `numbering` già risolti, letto dai `renderer` | proposto | AST |
 | `frozen values` | valori fotografati | Valori calcolati all'`export` e salvati, visibili senza eseguire (verbo `freeze`) | concetto deciso, nome proposto | snapshot, cache |
 | `static fallback` | forma statica | Forma di un oggetto interattivo o di un'`extension` dove non può essere eseguito | proposto | placeholder |
-| `export` | esportare | Produrre HTML o PDF dal documento | concetto deciso, nome proposto | render, publish |
+| `export` | esportare | Produrre HTML o PDF dal documento; con un errore si rifiuta, e con un'opzione esplicita esce lo stesso come anteprima (deciso il 2026-10-22). Proposta: nella `cli` è il comando `export`, nome da N3, che nella classe 1 produce lo `static export` in un solo file HTML; l'opzione è --allow-errors; nel codice la funzione è staticExport, perché `export` è una parola riservata | concetto deciso, nome proposto | render, publish |
 | `live export` | HTML vivo | HTML esportato che ricalcola nel browser | concetto deciso, nome proposto | live page |
 | `static export` | HTML statico | HTML esportato senza ricalcolo | concetto deciso, nome proposto | snapshot |
 | `print` | stampa | Produzione del PDF dall'HTML con il `print browser` | concetto deciso, nome proposto | export pdf |
