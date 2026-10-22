@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // The command line: one command, `resolve-tree`, that prints the resolved tree as JSON.
 import { existsSync, readdirSync, statSync } from 'node:fs';
+import { writeJson } from './json-output.js';
 import { resolveTree, SPEC_VERSION } from './resolve-tree.js';
 
 /** Provisional name of the binary, not decided yet: change it here and in package.json. */
@@ -67,7 +68,8 @@ function main(args: string[]): number {
     return EXIT_USAGE;
   }
   const tree = resolveTree(folder);
-  process.stdout.write(JSON.stringify(tree, null, pretty ? 2 : undefined) + '\n');
+  // In chunks: a large tree never becomes a single string.
+  writeJson(1, tree, pretty ? 2 : 0);
   return tree.diagnostics?.some((d) => d.severity === 'error') ? EXIT_ERRORS : EXIT_OK;
 }
 

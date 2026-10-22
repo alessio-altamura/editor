@@ -1,7 +1,7 @@
 // The resolution of §11.1: from the folder of a document to its resolved tree.
 import { lstatSync, readdirSync, readFileSync } from 'node:fs';
 import { join, posix } from 'node:path';
-import type { Nodes, Paragraph, PhrasingContent, Root, RootContent, Text } from 'mdast';
+import type { Nodes, Paragraph, PhrasingContent, Root, RootContent } from 'mdast';
 import { fromMarkdown } from 'mdast-util-from-markdown';
 import { gfmTableFromMarkdown } from 'mdast-util-gfm-table';
 import { gfmTable } from 'micromark-extension-gfm-table';
@@ -104,6 +104,8 @@ interface BuildContext {
   depth: number;
   /** The nodes being expanded, to stop at an `embed-cycle`. */
   expanding: string[];
+  /** How many embeds enclose the content being built, for the depth limit. */
+  embedDepth: number;
   definitions: Map<string, string>;
   /** True in a composition or a directive, where `![[id]]` is an embed. */
   inComposition: boolean;
@@ -153,7 +155,7 @@ function listFiles(folder: string, prefix = '', unreadable: string[] = []): { fi
       continue;
     }
     if (stat.isSymbolicLink()) unreadable.push(path);
-    else if (stat.isDirectory()) files.push(...listFiles(folder, path, unreadable).files);
+    else if (stat.isDirectory()) for (const file of listFiles(folder, path, unreadable).files) files.push(file);
     else if (stat.isFile()) files.push(path);
   }
   return { files, unreadable };
@@ -171,6 +173,8 @@ function readText(path: string): string | null {
 /** Limits of the resolved tree (§11.1), past which embeds are cut with `tree-limit`. */
 const MAX_EMBED_DEPTH = 1000;
 const MAX_EMBEDS = 100000;
+/** Provisional, until the spec fixes it: the characters of text in the whole tree. */
+const MAX_TEXT = 50_000_000;
 
 /** Deeper nesting than this is `syntax`: the tree is built by recursion (reading). */
 const MAX_NESTING = 100;
@@ -244,17 +248,14 @@ export function resolveTree(folder: string): ResolvedTree {
   }
 
   // Step 4: the retired ids, and the map from every id to its node.
-  const retired = readRetiredIds(retiredFileText, idIndex, diagnostics);
+  const retired = readRetiredIds(retiredFileText, diagnostics);
+  const retiredFinals = finalSuccessors(retired, idIndex);
+  checkRetiredIds(retired, retiredFinals, idIndex, diagnostics);
 
   function finalSuccessor(id: string): string | null {
-    const seen = new Set<string>();
-    let current: string | null = id;
-    while (current !== null && retired.has(current) && !idIndex.has(current)) {
-      if (seen.has(current)) return null;
-      seen.add(current);
-      current = retired.get(current) ?? null;
-    }
-    return current;
+    if (!retired.has(id) || idIndex.has(id)) return id;
+    const final = retiredFinals.get(id);
+    return final === undefined || final.cycle ? null : final.id;
   }
 
   function resolveId(written: string): Resolution {
@@ -292,6 +293,7 @@ export function resolveTree(folder: string): ResolvedTree {
   const pairs = new Map<string, { ids: [string, string]; declaredIn: string[] }>();
   const reportedOnce = new Set<string>();
   let embedCount = 0;
+  let textSize = 0;
   const reportOnce = (sink: DiagnosticSink, code: string, file: string, target?: string, fix?: string) => {
     if (sink === null || reportedOnce.has(`${code}\0${file}`)) return;
     reportedOnce.add(`${code}\0${file}`);
@@ -516,42 +518,46 @@ export function resolveTree(folder: string): ResolvedTree {
   }
 
   /**
-   * `![[id]]` alone in a paragraph, followed only by a class sign if any, read on the
-   * content CommonMark gives (trailing spaces removed). The sign must be complete on
-   * the line of the `![[id]]` and end it (§0.15); otherwise `invalid` is its first line.
+   * A paragraph that starts with `![[id]]` (§0.6, §0.15). It is an embed only when the
+   * paragraph is that one line, with nothing after the `![[id]]` but a class sign and HTML
+   * comments, which disappear (§0.13). The sign is read on the line as written, so a
+   * `{` that does not follow the grammar is `invalid` even where CommonMark sees emphasis
+   * or code in it, and even when the paragraph goes on and is not an embed.
    */
-  function embedLine(paragraph: Paragraph): { id: string; classes: string[]; invalid?: string; text: string } | null {
-    const [first, ...rest] = paragraph.children;
-    if (first?.type !== 'wikiReference' || !first.embed || !rest.every((child) => child.type === 'text')) return null;
-    const after = rest.map((child) => (child as Text).value).join('');
+  function embedLine(paragraph: Paragraph, source: string): { id: string; classes: string[]; invalid?: string; embed: boolean; text: string } | null {
+    const first = paragraph.children[0];
+    if (first?.type !== 'wikiReference' || !first.embed) return null;
     const id = first.value;
-    const text = `![[${id}]]${after.replace(/\n/g, ' ')}`;
-    if (after === '') return { id, classes: [], text };
-    const start = after.search(/\S/);
-    if (after[start] !== '{') return null;
-    const lineEnd = after.indexOf('\n', start);
-    const line = (lineEnd < 0 ? after.slice(start) : after.slice(start, lineEnd)).trim();
+    const after = source.slice(first.position!.end.offset, paragraph.position!.end.offset);
+    const lineEnd = after.indexOf('\n');
+    const more = lineEnd >= 0;
+    const line = (more ? after.slice(0, lineEnd) : after).replace(/<!--[\s\S]*?-->/g, '').trimEnd();
+    // As written, without the comments, for an embed that stays text.
+    const text = source.slice(paragraph.position!.start.offset, paragraph.position!.end.offset).replace(/<!--[\s\S]*?-->/g, '').trimEnd();
+    if (line.trim() === '') return { id, classes: [], embed: !more, text };
+    if (!/^\s*\{/.test(line)) return null;
     const sign = /^\{(\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*(?: \.[a-z][a-z0-9]*(?:-[a-z0-9]+)*)*)\}$/.exec(line);
-    if (sign && start === 0 && lineEnd < 0) return { id, classes: [...new Set(sign[1]!.split(' ').map((c) => c.slice(1)))], text };
-    return { id, classes: [], invalid: line, text };
+    const classes = sign ? [...new Set(sign[1]!.split(' ').map((c) => c.slice(1)))] : [];
+    const invalid = sign ? undefined : line.slice(line.indexOf('{')).trim();
+    return { id, classes: more ? [] : classes, embed: !more, text, ...(invalid === undefined ? {} : { invalid }) };
   }
 
   /** An `embed` is `![[id]]` alone in a paragraph, with the class sign of §0.15 if any. */
   function standaloneEmbed(node: SourceNode, paragraph: Paragraph): CompositionItem | null {
-    const line = embedLine(paragraph);
+    const line = embedLine(paragraph, node.source);
     if (!line) return null;
     if (line.invalid !== undefined) {
       const words = (line.invalid.match(/[A-Za-z][A-Za-z0-9-]*/g) ?? []).map((w) => '.' + w.toLowerCase());
       report(diagnostics, 'embed-class-invalid', node.file, line.invalid, `![[${line.id}]]{${words.join(' ') || '.nota'}}`);
     }
-    return { type: 'embed', id: line.id, classes: line.classes };
+    return line.embed ? { type: 'embed', id: line.id, classes: line.classes } : null;
   }
 
   // Building content: the node's own body, or a node again inside a root composition.
 
   function buildBlocks(children: RootContent[], context: BuildContext): Child[] {
     const out: Child[] = [];
-    for (const child of children) out.push(...buildBlock(child, context));
+    for (const child of children) for (const block of buildBlock(child, context)) out.push(block);
     return out;
   }
 
@@ -560,8 +566,8 @@ export function resolveTree(folder: string): ResolvedTree {
       case 'paragraph': {
         // Compositions and directives take their embeds out before this; elsewhere one stays text (§0.6).
         // In a composition the paragraph is nested in another block, already composition-content.
-        const embed = embedLine(node);
-        if (embed) {
+        const embed = embedLine(node, context.source);
+        if (embed?.embed) {
           if (!context.inComposition) {
             report(context.sink, 'embed-outside-composition', context.file, embed.id, `sposta ![[${embed.id}]] in una composition`);
           }
@@ -719,8 +725,15 @@ export function resolveTree(folder: string): ResolvedTree {
 
   /** The content of a node's body, in `context`. */
   function buildContent(node: SourceNode, context: BuildContext): Child[] {
-    if (node.items) return buildItems(node, node.items, context);
-    return buildBlocks(node.markdown?.children ?? [], context);
+    const content = node.items ? buildItems(node, node.items, context) : buildBlocks(node.markdown?.children ?? [], context);
+    // Text inside nested embeds was counted when they were built.
+    const stack: Child[] = [...content];
+    while (stack.length > 0) {
+      const child = stack.pop()!;
+      if (typeof child === 'string') textSize += child.length;
+      else if (child.type !== 'embed') for (const grandchild of child.children) stack.push(grandchild);
+    }
+    return content;
   }
 
   function buildItems(node: SourceNode, items: CompositionItem[], context: BuildContext): Child[] {
@@ -736,7 +749,7 @@ export function resolveTree(folder: string): ResolvedTree {
       if (item.node.type !== 'thematicBreak' && !node.directive) {
         report(context.sink, 'composition-content', node.file, undefined, "sposta il blocco in un text e mettine l'embed");
       }
-      out.push(...buildBlock(item.node, context));
+      for (const block of buildBlock(item.node, context)) out.push(block);
     }
     return out;
   }
@@ -748,17 +761,6 @@ export function resolveTree(folder: string): ResolvedTree {
       if (embedClasses.length > 0) attributes.class = embedClasses;
       return element('embed', attributes);
     };
-    // Safety limits of §11.1: the embed is cut and does not resolve, with one tree-limit per file
-    // whose target is the first embed cut there.
-    if (context.expanding.length >= MAX_EMBED_DEPTH || embedCount >= MAX_EMBEDS) {
-      const key = `tree-limit\0${context.file}`;
-      if (!reportedOnce.has(key)) {
-        reportedOnce.add(key);
-        const fix = `riduci l'annidamento sotto ${MAX_EMBED_DEPTH} livelli e gli embed sotto ${MAX_EMBEDS}`;
-        report(diagnostics, 'tree-limit', context.file, written, fix);
-      }
-      return unresolved(written);
-    }
     const resolution = resolveId(written);
     if (resolution.status === 'duplicate') return unresolved(written);
     if (resolution.status === 'unresolved') {
@@ -778,6 +780,17 @@ export function resolveTree(folder: string): ResolvedTree {
     if (appearances > 0) {
       if (target.recursion === undefined) return unresolved(resolution.id);
       if (appearances > target.recursion) return null;
+    }
+    // Safety limits of §11.1, after the rule of §0.17: the embed is cut and does not resolve,
+    // with one tree-limit per file whose target is the first embed cut there.
+    if (context.embedDepth >= MAX_EMBED_DEPTH || embedCount >= MAX_EMBEDS || textSize >= MAX_TEXT) {
+      const key = `tree-limit\0${context.file}`;
+      if (!reportedOnce.has(key)) {
+        reportedOnce.add(key);
+        const fix = `resta sotto ${MAX_EMBED_DEPTH} livelli di embed, ${MAX_EMBEDS} embed e ${MAX_TEXT} caratteri di testo`;
+        report(diagnostics, 'tree-limit', context.file, written, fix);
+      }
+      return unresolved(written);
     }
     embedCount++;
 
@@ -803,6 +816,7 @@ export function resolveTree(folder: string): ResolvedTree {
       root: context.root,
       depth: context.depth,
       expanding: [...context.expanding, resolution.id],
+      embedDepth: context.embedDepth + 1,
       definitions: target.definitions,
       inComposition: target.items !== undefined,
     };
@@ -825,7 +839,7 @@ export function resolveTree(folder: string): ResolvedTree {
     if (context.root && typeof attributes.number === 'string' && !context.root.firstNumbers.has(resolution.id)) {
       context.root.firstNumbers.set(resolution.id, attributes.number);
     }
-    embed.children.push(...buildContent(target, inner));
+    for (const child of buildContent(target, inner)) embed.children.push(child);
     return embed;
   }
 
@@ -850,7 +864,7 @@ export function resolveTree(folder: string): ResolvedTree {
         }
         if (seen.has(next)) continue;
         seen.add(next);
-        stack.push(...embedsOf(next));
+        for (const embedded of embedsOf(next)) stack.push(embedded);
       }
     }
     return inCycle;
@@ -900,13 +914,13 @@ export function resolveTree(folder: string): ResolvedTree {
         root: null,
         depth: 0,
         expanding: node.id === undefined ? [] : [node.id],
+        embedDepth: 0,
         definitions: node.definitions,
         inComposition: node.items !== undefined,
       };
       if (node.kind === 'text') checkTextBlocks(node);
-      let content = buildContent(node, context);
       // In class 1 a deck is a directive, so the only root composition is the article (reading).
-      if (node.kind === 'article') content = buildRoot(node, output);
+      const content = node.kind === 'article' ? buildRoot(node, output) : buildContent(node, context);
       if (content.length > 0) output.content = content.map(toJsonML);
     }
     outputs.push(output);
@@ -924,6 +938,10 @@ export function resolveTree(folder: string): ResolvedTree {
     if ((node.markdown?.children ?? []).some((child) => !isComment(child))) {
       report(diagnostics, 'document-content', node.file, undefined, 'svuota il corpo del document file');
     }
+    for (const child of node.markdown?.children ?? []) {
+      const embed = child.type === 'paragraph' ? embedLine(child, node.source) : null;
+      if (embed?.embed) report(diagnostics, 'embed-outside-composition', node.file, embed.id, `sposta ![[${embed.id}]] in una composition`);
+    }
     if (!(node.attributes ?? []).some(([key]) => key === 'spec-version')) {
       report(diagnostics, 'spec-version-missing', node.file, undefined, `spec-version: "${SPEC_VERSION}"`);
     }
@@ -936,13 +954,14 @@ export function resolveTree(folder: string): ResolvedTree {
   /** The content of a root composition, with numbering and computed style (step 7). */
   function buildRoot(node: SourceNode, output: Record<string, unknown>): Child[] {
     const contextFor = (root: RootState): BuildContext => ({
-      sink: null,
+      sink: diagnostics,
       file: node.file,
       source: node.source,
       lang: effectiveLang(node),
       root,
       depth: 0,
       expanding: node.id === undefined ? [] : [node.id],
+      embedDepth: 0,
       definitions: node.definitions,
       inComposition: true,
     });
@@ -987,7 +1006,8 @@ export function resolveTree(folder: string): ResolvedTree {
       const expected = computeStyle({ type, classes: [], embedClasses: [] }, parent, null);
       const final = computeStyle({ type, classes: child.meta?.classes ?? [], embedClasses: child.meta?.embedClasses ?? [] }, parent, sheet, outOfRange);
       const difference = styleDifference(final, expected);
-      if (Object.keys(difference).length > 0) child.attributes.computedStyle = difference;
+      // The embed where a chapter comes back has no computed style (§0.17).
+      if (Object.keys(difference).length > 0 && child.attributes.recursion !== true) child.attributes.computedStyle = difference;
       if (child.type === 'mathLine' && child.meta?.value && numberNotation(final) === 'compact') {
         child.attributes.display = displayString(child.meta.value, child.meta.lang, 'compact');
       }
@@ -1066,7 +1086,7 @@ function visitDefinitions(root: Root, definitions: Map<string, string>): void {
   while (stack.length > 0) {
     const node = stack.pop()!;
     if (node.type === 'definition' && !definitions.has(node.identifier)) definitions.set(node.identifier, node.url);
-    if ('children' in node) stack.push(...[...node.children].reverse());
+    if ('children' in node) for (let i = node.children.length - 1; i >= 0; i--) stack.push(node.children[i]!);
   }
 }
 
@@ -1128,7 +1148,7 @@ function readIdentity(node: SourceNode, entries: Array<[string, RawValue]>, diag
   node.directive = !KNOWN_KINDS.has(node.kind);
 }
 
-function readRetiredIds(text: string | null, idIndex: Map<string, SourceNode[]>, diagnostics: Diagnostic[]): Map<string, string | null> {
+function readRetiredIds(text: string | null, diagnostics: Diagnostic[]): Map<string, string | null> {
   const retired = new Map<string, string | null>();
   if (text === null) return retired;
   const map = parseYamlMap(text);
@@ -1149,24 +1169,60 @@ function readRetiredIds(text: string | null, idIndex: Map<string, SourceNode[]>,
     }
     retired.set(key, successor);
   }
+  return retired;
+}
+
+type RetiredFinal = { id: string | null; cycle: boolean };
+
+/**
+ * The final successor of every retired id, following chains. Each id is walked
+ * once and its result kept, so a long chain is linear, not quadratic.
+ */
+function finalSuccessors(retired: Map<string, string | null>, idIndex: Map<string, SourceNode[]>): Map<string, RetiredFinal> {
+  const finals = new Map<string, RetiredFinal>();
+  for (const start of retired.keys()) {
+    const path: string[] = [];
+    const onPath = new Set<string>();
+    let current: string | null = start;
+    let result: RetiredFinal;
+    for (;;) {
+      if (current === null || !retired.has(current) || idIndex.has(current)) {
+        result = { id: current, cycle: false };
+        break;
+      }
+      const known = finals.get(current);
+      if (known) {
+        result = known;
+        break;
+      }
+      // An id whose successors run into a cycle is reported as part of it (§0.3).
+      if (onPath.has(current)) {
+        result = { id: null, cycle: true };
+        break;
+      }
+      path.push(current);
+      onPath.add(current);
+      current = retired.get(current) ?? null;
+    }
+    for (const id of path) finals.set(id, result);
+  }
+  return finals;
+}
+
+function checkRetiredIds(
+  retired: Map<string, string | null>,
+  finals: Map<string, RetiredFinal>,
+  idIndex: Map<string, SourceNode[]>,
+  diagnostics: Diagnostic[],
+): void {
   for (const [id, successor] of retired) {
     if (successor === null) continue;
-    if (retired.has(successor) && !idIndex.has(successor)) {
-      const seen = new Set([id]);
-      let current: string | null = successor;
-      while (current !== null && retired.has(current) && !idIndex.has(current) && !seen.has(current)) {
-        seen.add(current);
-        current = retired.get(current) ?? null;
-      }
-      // An id whose successors run into a cycle is reported as part of it (reading).
-      if (current !== null && seen.has(current)) {
-        report(diagnostics, 'retired-cycle', RETIRED_IDS_FILE, id, 'togli una riga del ciclo');
-      } else {
-        report(diagnostics, 'retired-chain', RETIRED_IDS_FILE, id, `${id}: ${current ?? 'null'}`);
-      }
+    const final = finals.get(id)!;
+    if (final.cycle) report(diagnostics, 'retired-cycle', RETIRED_IDS_FILE, id, 'togli una riga del ciclo');
+    else if (retired.has(successor) && !idIndex.has(successor)) {
+      report(diagnostics, 'retired-chain', RETIRED_IDS_FILE, id, `${id}: ${final.id ?? 'null'}`);
     } else if (!idIndex.has(successor)) {
       report(diagnostics, 'retired-successor-missing', RETIRED_IDS_FILE, id, `${id}: null`);
     }
   }
-  return retired;
 }

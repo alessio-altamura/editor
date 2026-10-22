@@ -37,8 +37,13 @@ si legge, danno `syntax`.
 
 Limiti di sicurezza (§11.1): oltre 1000 livelli di `embed` o 100000 `embed`
 in tutto l'albero l'`embed` si taglia e non si risolve, con l'errore
-`tree-limit`; una riga di calcolo con più di 100 parentesi annidate è
+`tree-limit`, e lo stesso oltre 50 milioni di caratteri di testo nell'albero
+(provvisorio, finché la specifica non fissa il limite); il JSON si scrive su
+stdout a pezzi. Una riga di calcolo con più di 100 parentesi annidate è
 `math-line-invalid`.
+
+Limite noto: un capoverso molto lungo con molte enfasi è lento da leggere,
+dentro micromark; non c'è un limite per questo.
 
 `[[…]]` e `![[…]]` li riconosce un'estensione micromark scritta qui,
 `src/wiki-reference.ts`, prima degli altri costrutti in linea (§0.6).
