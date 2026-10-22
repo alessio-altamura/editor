@@ -18,6 +18,10 @@ decisioni, domande aperte e prossimi passi.
 - Ogni decisione di Alessio va in [docs/contesto.md](docs/contesto.md), tenendo
   separate decisioni, orientamenti da precisare e proposte non decise. Poi
   commit e push.
+- Workflow e agenti: al massimo 8 agenti per workflow, verifiche comprese, e il
+  numero si dichiara ad Alessio prima di lanciarlo (Alessio, 2026-10-22). Una
+  verifica che cresce con i rilievi raggruppa i rilievi invece di lanciare un
+  agente per ciascuno.
 - Ricerca solo quando serve a una scelta concreta. Le note vanno in
   [docs/ricerca/](docs/ricerca/), con fonti primarie e fatti verificati.
 - Aggiorna [docs/handoff.md](docs/handoff.md) a fine sessione.
