@@ -294,6 +294,24 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     deve risolversi in un tempo finito; la regola di uscita richiede le
     formule, quindi arriva con loro; in un ciclo fra più oggetti ciascuno deve
     abilitarla.
+  - Nomi del prodotto (2026-10-21/22, Alessio). Il criterio cercato: un
+    nome che entri nel lessico delle persone e si possa riusare nell'app,
+    «dammi un xxxx», al posto dell'oggetto o dell'aggregatore; ispirato a
+    opere giapponesi poco note (ID-Zero condivide il nome con l'anime ID-0).
+    Alessio aveva proposto una famiglia: Kamii (da *kami*, 紙, carta) per
+    l'app e per il primo canvas dove si creano gli oggetti, kumi (組み) per la
+    composizione, tsumi, zumi o seki per il mattone. Poi, temendo nomi troppo
+    giapponesi («id-zero è più internazionale»), ha deciso: «lascia solo
+    Kamii per ora, non so ancora bene se mi piace, tienila solo come nome del
+    progetto». Quindi Kamii è il nome provvisorio del progetto; i concetti
+    restano `object`, `composition` e `canvas`, e kumi, seki, tsumi e zumi non
+    si usano. Il comando del runtime resta per ora `doc-runtime`. Prima erano
+    state cercate e scartate altre proposte (frol, tesso, tarsia, patema e
+    altre), con i controlli su npm, comandi e omonimi.
+    Report: [ricerca/nomi-del-prodotto.md](ricerca/nomi-del-prodotto.md).
+  - Numerazione dei capitoli che si ripetono per ricorsione (2026-10-22,
+    Alessio, «sì va bene 1, 1.1, 1.1.1»): ogni ripetizione con un title prende
+    un numero nuovo, come un capitolo annidato.
 
 ## Proposte non decise
 

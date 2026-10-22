@@ -794,7 +794,9 @@ capitolo non è deciso (stessa voce).
 Un oggetto può contenere sé stesso solo se lo abilita, con un limite,
 infinito oppure una regola di uscita; vale anche per le formule. Se non la
 abilita, per quell'oggetto la ricorsione non si può fare. Si abilita con «un
-tag in più opzionale» [C: «Sulla bozza di specifica»].
+tag in più opzionale» [C: «Sulla bozza di specifica»]. Un `chapter` che si
+ripete prende a ogni ripetizione con un `title` un numero nuovo, come un
+capitolo annidato: `1`, `1.1`, `1.1.1` (stessa voce, esempio 43).
 
 *(proposte; la prima è una lettura dell'orchestratore da confermare)*
 - **L'attributo.** È l'attributo opzionale `recursion`, non una voce di
@@ -809,8 +811,7 @@ tag in più opzionale» [C: «Sulla bozza di specifica»].
 - **Con un limite n** il `chapter` compare dentro sé stesso fino a n volte
   lungo il cammino; l'`embed` che sarebbe il successivo non entra nel
   `resolved tree` (esempio 40). In un ciclo fra più `chapter` ciascuno conta
-  le sue volte con il suo limite. Ogni ripetizione con `title` prende un
-  numero nuovo, come un capitolo annidato: `1`, `1.1`, `1.1.1`.
+  le sue volte con il suo limite.
 - **Con `infinite`** il `resolved tree` segna il punto in cui il `chapter`
   torna: l'`embed` ha `"recursion": true` e nessun figlio, con `lang` e
   `class` come ogni `embed` ma senza `depth`, `number` né `computedStyle`,
@@ -2451,6 +2452,41 @@ Una nota.
     {"id": "cap-vuoto", "kind": "chapter", "file": "cap-vuoto.chapter.md", "attributes": {"title": ""}, "content": [["embed", {"id": "nota", "kind": "text"}, ["paragraph", "Una nota."]]]},
     {"id": "nota", "kind": "text", "file": "nota.text.md", "content": [["paragraph", "Una nota."]]},
     {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "content": [["embed", {"id": "cap-vuoto", "kind": "chapter"}, ["embed", {"id": "nota", "kind": "text"}, ["paragraph", "Una nota."]]]]}
+  ]
+}
+````````````````````````````````
+
+Un capitolo che si ripete prende i numeri di un capitolo annidato (§0.17):
+
+```````````````````````````````` example 43 conf=1 status=proposal
+=== file report-q3.article.md
+---
+id: report-q3
+kind: article
+---
+![[cap-a]]
+=== file cap-a.chapter.md
+---
+id: cap-a
+kind: chapter
+title: Le vendite
+recursion: "2"
+---
+![[nota]]
+
+![[cap-a]]
+=== file nota.text.md
+---
+id: nota
+kind: text
+---
+Una nota.
+=== resolved
+{
+  "nodes": [
+    {"id": "cap-a", "kind": "chapter", "file": "cap-a.chapter.md", "attributes": {"title": "Le vendite", "recursion": "2"}, "content": [["embed", {"id": "nota", "kind": "text"}, ["paragraph", "Una nota."]], ["embed", {"id": "cap-a", "kind": "chapter"}, ["embed", {"id": "nota", "kind": "text"}, ["paragraph", "Una nota."]], ["embed", {"id": "cap-a", "kind": "chapter"}, ["embed", {"id": "nota", "kind": "text"}, ["paragraph", "Una nota."]]]]]},
+    {"id": "nota", "kind": "text", "file": "nota.text.md", "content": [["paragraph", "Una nota."]]},
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "content": [["embed", {"id": "cap-a", "kind": "chapter", "depth": 1, "number": "1"}, ["title", "Le vendite"], ["embed", {"id": "nota", "kind": "text"}, ["paragraph", "Una nota."]], ["embed", {"id": "cap-a", "kind": "chapter", "depth": 2, "number": "1.1"}, ["title", "Le vendite"], ["embed", {"id": "nota", "kind": "text"}, ["paragraph", "Una nota."]], ["embed", {"id": "cap-a", "kind": "chapter", "depth": 3, "number": "1.1.1"}, ["title", "Le vendite"], ["embed", {"id": "nota", "kind": "text"}, ["paragraph", "Una nota."]]]]]]}
   ]
 }
 ````````````````````````````````
