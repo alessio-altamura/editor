@@ -28,6 +28,8 @@ export interface TreeNode {
   file: string;
   attributes?: Record<string, unknown>;
   computedStyle?: Record<string, string>;
+  /** The color of the dark theme, when it differs from the expected one (§0.5). */
+  darkComputedStyle?: { color: string };
   content?: JsonML[];
 }
 

@@ -1,7 +1,7 @@
 // The CSS subset of class 1 (§0.5): a small parser, the values it admits and the cascade.
 import { Decimal, inDecimal128Range, plainString, readDecimal, roundHalfEven, type Decimal as DecimalValue } from './math-line.js';
 import { NAMED_COLORS } from './named-colors.js';
-import { baseStylesheetCss, INHERITED_PROPERTIES, NOT_INHERITED_DEFAULTS, STYLE_PROPERTIES } from './base-stylesheet.js';
+import { baseStylesheetCss, INHERITED_PROPERTIES, NOT_INHERITED_DEFAULTS, PAGE_BACKGROUND, STYLE_PROPERTIES } from './base-stylesheet.js';
 
 export { INHERITED_PROPERTIES };
 const TEXT_DECORATION_LINE = 'text-decoration-line';
@@ -30,7 +30,13 @@ interface Selector {
 interface Rule {
   selectors: Selector[];
   declarations: Declaration[];
+  /** In `@media (prefers-color-scheme: dark)`: the rule holds only in the dark theme (§0.5). */
+  dark: boolean;
 }
+
+export type Theme = 'light' | 'dark';
+/** The one at-rule a stylesheet admits, with free spaces around its parts. */
+const DARK_MEDIA = /^@media\s*\(\s*prefers-color-scheme\s*:\s*dark\s*\)$/i;
 
 export interface ParsedStylesheet {
   /** The text of the header comment, or null when the file has none. */
@@ -230,7 +236,7 @@ function parseSelector(text: string, base: boolean): Selector | null {
   return null;
 }
 
-function parseDeclarations(block: string, unsupported: string[]): Declaration[] {
+function parseDeclarations(block: string, unsupported: string[], dark: boolean): Declaration[] {
   const declarations: Declaration[] = [];
   for (const raw of splitOutside(block, ';')) {
     const text = raw.trim();
@@ -249,6 +255,11 @@ function parseDeclarations(block: string, unsupported: string[]): Declaration[] 
     }
     // `text-decoration` with one word, none or underline, counts as `text-decoration-line` (§0.5).
     const target = property === 'text-decoration' ? TEXT_DECORATION_LINE : property;
+    // In the dark block only colors (§0.5).
+    if (dark && target !== 'color') {
+      unsupported.push(written);
+      continue;
+    }
     const value = parseValue(target, valueText);
     if (value === null) unsupported.push(written);
     else declarations.push({ property: target, value });
@@ -263,9 +274,14 @@ function parseDeclarations(block: string, unsupported: string[]): Declaration[] 
 export function parseStylesheet(css: string, base = false): ParsedStylesheet {
   const headerMatch = /^\s*\/\*([\s\S]*?)\*\//.exec(css);
   const header = headerMatch ? headerMatch[1]! : null;
-  const text = stripComments(css);
   const rules: Rule[] = [];
   const unsupported: string[] = [];
+  parseRules(stripComments(css), base, false, rules, unsupported);
+  return { header, rules, unsupported };
+}
+
+/** The rules of a text, in order; inside the dark block `dark` is true and no at-rule holds. */
+function parseRules(text: string, base: boolean, dark: boolean, rules: Rule[], unsupported: string[]): void {
   let index = 0;
   while (index < text.length) {
     const open = findOutside(text, index, '{;');
@@ -279,9 +295,10 @@ export function parseStylesheet(css: string, base = false): ParsedStylesheet {
     const close = matchingBrace(text, open);
     const block = text.slice(open + 1, close);
     index = close + 1;
-    // At-rules are outside the subset; the target is the at-keyword (reading).
+    // Other at-rules are outside the subset; the target is the at-keyword (reading).
     if (prelude.startsWith('@')) {
-      unsupported.push(prelude.split(/\s/)[0]!);
+      if (!dark && DARK_MEDIA.test(prelude)) parseRules(block, base, true, rules, unsupported);
+      else unsupported.push(prelude.split(/\s/)[0]!);
       continue;
     }
     const selectors: Selector[] = [];
@@ -299,9 +316,8 @@ export function parseStylesheet(css: string, base = false): ParsedStylesheet {
       unsupported.push(rejected);
       continue;
     }
-    rules.push({ selectors, declarations: parseDeclarations(block, unsupported) });
+    rules.push({ selectors, declarations: parseDeclarations(block, unsupported, dark), dark });
   }
-  return { header, rules, unsupported };
 }
 
 function findOutside(text: string, from: number, chars: string): number {
@@ -358,6 +374,7 @@ export function computeStyle(
   parent: ComputedStyle,
   document: ParsedStylesheet | null,
   onOutOfRange?: (property: string) => void,
+  theme: Theme = 'light',
 ): ComputedStyle {
   type Ranked = { key: number[]; declaration: Declaration };
   const ranked: Ranked[] = [];
@@ -365,6 +382,8 @@ export function computeStyle(
   if (document) sheets.push([document, 1]);
   for (const [sheet, origin] of sheets) {
     sheet.rules.forEach((rule, ruleIndex) => {
+      // The light theme ignores the dark blocks; the dark one takes them in their place (§0.5).
+      if (rule.dark && theme === 'light') return;
       let best: number[] | null = null;
       for (const selector of rule.selectors) {
         if (selector.type !== undefined && selector.type !== target.type) continue;
@@ -446,6 +465,19 @@ export function directValue(property: string, text: string): ComputedValue {
   const value = parseValue(property, text);
   if (value === null) throw new Error(`not a value of ${property}: ${text}`);
   return resolveValue(value, new Decimal(0))!;
+}
+
+/** The contrast ratio of a #rrggbb color with the dark page background, as WCAG 2.2 computes it. */
+export function contrastOnDark(color: string, background: string = PAGE_BACKGROUND.dark): number {
+  const luminance = (hex: string) => {
+    const [r, g, b] = [1, 3, 5].map((i) => {
+      const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+      return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    }) as [number, number, number];
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const [dark, light] = [luminance(color), luminance(background)].sort((a, b) => a - b) as [number, number];
+  return (light + 0.05) / (dark + 0.05);
 }
 
 export function numberDecimals(style: ComputedStyle): number {

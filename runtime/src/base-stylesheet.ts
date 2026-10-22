@@ -42,6 +42,8 @@ export interface BaseRule {
   types: readonly string[];
   /** Declarations, with values already in the written form of §0.5. */
   declarations: ReadonlyArray<readonly [StyleProperty, string]>;
+  /** A rule of the block `@media (prefers-color-scheme: dark)`: only `color`, only in the dark theme. */
+  dark?: true;
 }
 
 export const BASE_STYLESHEET_RULES: readonly BaseRule[] = [
@@ -64,11 +66,18 @@ export const BASE_STYLESHEET_RULES: readonly BaseRule[] = [
   { types: ['blockquote'], declarations: [['margin-left', '24pt']] },
   { types: ['list'], declarations: [['margin-left', '18pt'], ['margin-bottom', '6pt']] },
   { types: ['table', 'code', 'image', 'thematicBreak'], declarations: [['margin-bottom', '6pt']] },
+  { types: ['root'], declarations: [['color', '#e6e6e6']], dark: true },
+  { types: ['hyperlink'], declarations: [['color', '#8ab4f8']], dark: true },
 ];
+
+/** The page background, fixed by the spec for each theme (§0.5); the renderer draws it. */
+export const PAGE_BACKGROUND = { light: '#ffffff', dark: '#1e1e1e' } as const;
+export type Theme = keyof typeof PAGE_BACKGROUND;
 
 /** The base stylesheet written as CSS, as in §0.5. */
 export function baseStylesheetCss(): string {
-  return BASE_STYLESHEET_RULES.map(
-    (rule) => `${rule.types.join(', ')} { ${rule.declarations.map(([p, v]) => `${p}: ${v};`).join(' ')} }\n`,
-  ).join('');
+  const css = (rules: readonly BaseRule[]) =>
+    rules.map((rule) => `${rule.types.join(', ')} { ${rule.declarations.map(([p, v]) => `${p}: ${v};`).join(' ')} }\n`).join('');
+  const dark = BASE_STYLESHEET_RULES.filter((rule) => rule.dark);
+  return css(BASE_STYLESHEET_RULES.filter((rule) => !rule.dark)) + `@media (prefers-color-scheme: dark) {\n${css(dark)}}\n`;
 }
