@@ -380,6 +380,21 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     cambiano solo i colori (testo, collegamenti, linee, sfondo della pagina),
     non misure e margini; il foglio di partenza ha una variante scura; il PDF
     resta chiaro, perché è carta.
+  - L'HTML dell'`export` sarà usato anche come anteprima della
+    `composition` nell'`app` (2026-10-22, Alessio, «ma questo export poi sarà
+    usato anche come anteprima del composition»). Coerente con le decisioni
+    sull'anteprima HTML e sull'editing grafico sopra l'anteprima. Proposte
+    dell'orchestratore, non decise: un solo `renderer` con due uscite, il
+    file dell'`export` e la `preview`, con la stessa mappatura e gli stessi
+    stili, così l'anteprima è quello che si esporta. Nella `preview` cambia
+    solo il contorno: gli errori si vedono segnati, come con
+    `--allow-errors`; le immagini sono riferimenti invece che incorporate,
+    per la velocità; ogni elemento porta l'id del suo nodo e la posizione
+    nel sorgente, per l'editing grafico e per tornare al testo; un
+    collegamento a un oggetto fuori dalla pagina lo apre nell'`app`; la
+    sicurezza la decide l'`app`, non una CSP nel file; il tema è quello
+    dell'`app`. Si progetta insieme al `runtime` vivo, che aggiorna l'albero
+    a ogni modifica.
 
 ## Proposte non decise
 
