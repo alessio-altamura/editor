@@ -8,3 +8,6 @@ title-0 { font-size: 24pt; }
 virgola", sans-serif; margin-top: 6pt; }
 .centro { text-align: center; }
 strong { color: #aa0000; }
+@media (prefers-color-scheme: dark) {
+  .scuro { color: #dddddd; }
+}

@@ -49,32 +49,52 @@ function* allElements(node: DomNode): Generator<DomNode> {
 const ORDER = ['font-family', 'font-size', 'font-weight', 'font-style', 'color', 'text-align', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'line-height', 'text-decoration-line'];
 const INHERITED = ['font-family', 'font-size', 'font-weight', 'font-style', 'color', 'text-align', 'line-height'];
 
-function readBaseStylesheet(): Array<{ types: string[]; declarations: Array<[string, string]> }> {
+type Theme = 'light' | 'dark';
+
+/** The rules of the block, with the ones of `@media (prefers-color-scheme: dark)` marked. */
+function readBaseStylesheet(): Array<{ types: string[]; declarations: Array<[string, string]>; dark: boolean }> {
   const spec = readFileSync(specPath, 'utf8');
   const start = spec.indexOf('**Il `base stylesheet`.**');
   const open = spec.indexOf('```\n', start) + 4;
   const block = spec.slice(open, spec.indexOf('```', open));
-  return [...block.matchAll(/([^{}]+)\{([^}]*)\}/g)].map((match) => ({
+  const media = block.indexOf('@media (prefers-color-scheme: dark)');
+  const rules = (text: string, dark: boolean) => [...text.matchAll(/([^{}]+)\{([^}]*)\}/g)].map((match) => ({
     types: match[1]!.split(',').map((t) => t.trim()),
     declarations: match[2]!.split(';').map((d) => d.trim()).filter(Boolean).map((d) => {
       const colon = d.indexOf(':');
       return [d.slice(0, colon).trim(), d.slice(colon + 1).trim()] as [string, string];
     }),
+    dark,
   }));
+  if (media < 0) return rules(block, false);
+  return [...rules(block.slice(0, media), false), ...rules(block.slice(block.indexOf('{', media) + 1, block.lastIndexOf('}')), true)];
 }
 const BASE = readBaseStylesheet();
 
 type Style = Record<string, string>;
-function expectedStyle(type: string, parent: Style, computed: unknown): Style {
+/** The values of the two themes: they differ only in the color. */
+type Styles = Record<Theme, Style>;
+function expectedStyle(type: string, parent: Style, attributes: { computedStyle?: unknown; darkComputedStyle?: unknown }, theme: Theme): Style {
   const style: Style = {};
   for (const p of INHERITED) style[p] = parent[p]!;
   for (const p of ['margin-top', 'margin-right', 'margin-bottom', 'margin-left']) style[p] = '0pt';
   style['text-decoration-line'] = 'none';
-  for (const rule of BASE) if (rule.types.includes(type)) for (const [p, v] of rule.declarations) style[p] = v;
-  for (const [p, v] of Object.entries((computed ?? {}) as Style)) if (ORDER.includes(p)) style[p] = v;
+  for (const rule of BASE) {
+    if (rule.dark && theme === 'light') continue;
+    if (rule.types.includes(type)) for (const [p, v] of rule.declarations) style[p] = v;
+  }
+  for (const [p, v] of Object.entries((attributes.computedStyle ?? {}) as Style)) {
+    if (ORDER.includes(p) && !(p === 'color' && theme === 'dark')) style[p] = v;
+  }
+  if (theme === 'dark') {
+    const dark = (attributes.darkComputedStyle ?? {}) as Style;
+    if (dark.color !== undefined) style.color = dark.color;
+  }
   return style;
 }
-const ROOT_RULE = expectedStyle('root', {}, null);
+const expectedStyles2 = (type: string, parent: Styles, attributes: { computedStyle?: unknown; darkComputedStyle?: unknown }): Styles =>
+  ({ light: expectedStyle(type, parent.light, attributes, 'light'), dark: expectedStyle(type, parent.dark, attributes, 'dark') });
+const ROOT_RULE = expectedStyles2('root', { light: {}, dark: {} }, {});
 
 /** The family names of a tree value («, », "name") or of a CSS value (strings with escapes). */
 function families(value: string, css: boolean): string[] {
@@ -139,6 +159,8 @@ interface Page {
   rootId: string;
   images: Record<string, ImageExpectation>;
   folder: string;
+  /** --theme; undefined for the page with both themes. */
+  theme?: Theme;
 }
 
 // Links: each URL of the fixtures and its href, null for none.
@@ -159,7 +181,7 @@ const URLS: Record<string, string | null> = {
 };
 
 /** Structure, style, text and links: a parallel walk of the tree and the DOM (checks d, e, f). */
-function checkStructure(page: Page, body: DomNode, problems: string[], record?: Map<DomNode, Style>): void {
+function checkStructure(page: Page, body: DomNode, problems: string[], record?: Map<DomNode, Styles>): void {
   const article = page.tree.nodes!.find((n) => n.id === page.rootId && n.kind === 'article')!;
   const ids = new Set<string>();
   const firstEmbeds = new Set<unknown>();
@@ -190,13 +212,18 @@ function checkStructure(page: Page, body: DomNode, problems: string[], record?: 
       fail(where, `attributes ${JSON.stringify(actual)}, expected ${JSON.stringify(expected)}`);
     }
   };
-  const checkStyle = (where: string, dom: DomNode, style: Style) => {
+  // With both themes the color goes through --color, with the two final colors beside it.
+  const order = page.theme === undefined ? ORDER.flatMap((p) => (p === 'color' ? ['color', '--color-light', '--color-dark'] : [p])) : ORDER;
+  const checkStyle = (where: string, dom: DomNode, styles: Styles) => {
     nodeElements++;
-    record?.set(dom, style);
+    record?.set(dom, styles);
+    const style: Style = page.theme === undefined
+      ? { ...styles.light, 'color': 'var(--color)', '--color-light': styles.light.color!, '--color-dark': styles.dark.color! }
+      : styles[page.theme];
     const text = attributesOf(dom).style;
     if (text === undefined) return fail(where, 'no style');
     const declarations = parseStyleAttribute(text);
-    if (declarations.map(([p]) => p).join() !== ORDER.join()) return fail(where, `properties ${declarations.map(([p]) => p).join()}`);
+    if (declarations.map(([p]) => p).join() !== order.join()) return fail(where, `properties ${declarations.map(([p]) => p).join()}`);
     for (const [property, value] of declarations) {
       const same = property === 'font-family'
         ? JSON.stringify(families(value, true)) === JSON.stringify(families(style[property]!, false))
@@ -246,12 +273,12 @@ function checkStructure(page: Page, body: DomNode, problems: string[], record?: 
     return BLOCK_TAGS.has(node.tagName ?? '') ? ` ${inner} ` : inner;
   };
 
-  const walk = (json: Json, dom: DomNode, parent: Style, ctx: Ctx, where: string): void => {
+  const walk = (json: Json, dom: DomNode, parent: Styles, ctx: Ctx, where: string): void => {
     const it = item(json) as Item;
     const a = it.attributes;
     const type = it.type === 'title' ? `title-${ctx.depth === 0 ? 0 : Math.min(ctx.depth, 3)}`
       : it.type === 'embed' && a.kind === 'image' ? 'image' : it.type;
-    const style = expectedStyle(type, parent, a.computedStyle);
+    const style = expectedStyles2(type, parent, a);
     where = `${where} > ${it.type}${typeof a.id === 'string' ? `#${a.id}` : ''}`;
     let tag: string;
     let expected: Record<string, string> = {};
@@ -373,7 +400,7 @@ function checkStructure(page: Page, body: DomNode, problems: string[], record?: 
 
   const articleDom = elements(body)[0];
   if (!articleDom || elements(body).length !== 1 || articleDom.tagName !== 'article') return fail('body', 'no single article');
-  const articleStyle = expectedStyle('root', ROOT_RULE, article.computedStyle);
+  const articleStyle = expectedStyles2('root', ROOT_RULE, article);
   const articleAttributes: Record<string, string> = { 'data-kind': 'article' };
   if (ids.has(article.id!)) articleAttributes.id = article.id!;
   const lang = article.attributes?.lang;
@@ -437,6 +464,12 @@ async function checkPage(page: Page, problems: string[], outside?: Buffer): Prom
   }
   if (!page.html.endsWith('</html>\n')) problems.push(`${page.label}: end`);
   if (page.html.includes('&#')) problems.push(`${page.label}: a numeric character reference`);
+  const themeRules = page.theme === undefined
+    ? ['html { background: #ffffff; color-scheme: light dark; }', '@media (prefers-color-scheme: dark) { html { background: #1e1e1e; } }',
+      '* { --color: var(--color-light); }', '@media (prefers-color-scheme: dark) { * { --color: var(--color-dark); } }']
+    : [`html { background: ${page.theme === 'light' ? '#ffffff' : '#1e1e1e'}; color-scheme: ${page.theme}; }`];
+  for (const rule of themeRules) if (!page.html.includes(`\n${rule}\n`)) problems.push(`${page.label}: no rule ${rule}`);
+  if (page.html.includes('!important')) problems.push(`${page.label}: !important`);
   checkStructure(page, body!, problems);
 }
 
@@ -444,15 +477,15 @@ async function checkPage(page: Page, problems: string[], outside?: Buffer): Prom
  * The expected final values of each node element of a page, with its index among
  * all the elements in document order: the browser suite finds them there.
  */
-export function expectedStyles(label: string, html: string, folder: string, rootId: string, images: Record<string, ImageExpectation>): Array<{ index: number; tag: string; style: Style }> {
+export function expectedStyles(label: string, html: string, folder: string, rootId: string, images: Record<string, ImageExpectation>): Array<{ index: number; tag: string; styles: Styles }> {
   const document = parse(html) as unknown as DomNode;
   const body = elements(elements(document)[0]!)[1]!;
-  const record = new Map<DomNode, Style>();
+  const record = new Map<DomNode, Styles>();
   const problems: string[] = [];
   checkStructure({ label, html, tree: treeOf(folder), rootId, images, folder }, body, problems, record);
   if (problems.length > 0) throw new Error(problems.join('\n'));
   const order = [...allElements(document)];
-  return [...record].map(([dom, style]) => ({ index: order.indexOf(dom), tag: dom.tagName!, style }));
+  return [...record].map(([dom, styles]) => ({ index: order.indexOf(dom), tag: dom.tagName!, styles }));
 }
 
 // Images, real and minimal.
@@ -575,6 +608,9 @@ async function main(): Promise<void> {
       }
       if (runCli(['export', join(folder, 'non-c-e')]).status !== 2) problems.push('missing folder');
       if (runCli(['export', folder, '--root']).status !== 2) problems.push('--root without a value');
+      for (const theme of ['blu', 'Dark', '']) {
+        if (runCli(['export', folder, '--root', 'report', '--theme', theme]).status !== 2) problems.push(`--theme ${theme}`);
+      }
       const unwritable = runCli(['export', folder, '--root', 'report', '-o', join(folder, 'non-c-e/x.html')]);
       if (unwritable.status !== 2 || unwritable.stderr.startsWith('{')) problems.push(`-o that cannot be written: ${unwritable.status}`);
       report('a. exit codes and --root', problems);
@@ -604,7 +640,13 @@ async function main(): Promise<void> {
       const env = { ...process.env, TZ: 'Pacific/Kiritimati', LANG: 'de_DE.UTF-8', LC_ALL: 'de_DE.UTF-8' };
       if (!runCli(['export', elsewhere, '--root', page.root], { cwd: dirname(elsewhere), env }).stdout.equals(run.stdout)) problems.push('copy elsewhere differs');
       await checkPage({ label, html: run.stdout.toString('utf8'), tree, rootId: page.root, images: page.images, folder }, problems);
-      report(`${label}: a-h`, problems);
+      // The two pages with one theme.
+      for (const theme of ['light', 'dark'] as const) {
+        const fixed = runCli(['export', folder, '--root', page.root, '--theme', theme]);
+        if (fixed.status !== 0 || fixed.stderr !== run.stderr) problems.push(`--theme ${theme}: ${fixed.status}`);
+        await checkPage({ label: `${label} --theme ${theme}`, html: fixed.stdout.toString('utf8'), tree, rootId: page.root, images: page.images, folder, theme }, problems);
+      }
+      report(`${label}: a-h, three themes`, problems);
     }
 
     // The error cases: refused without the option, written with it.

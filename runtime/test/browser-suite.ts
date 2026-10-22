@@ -89,59 +89,65 @@ try {
     const folder = prepare(fixture, mkdtempSync(join(base, 'page-')));
     const html = runCli(['export', folder, '--root', root]).stdout.toString('utf8');
     const expected = expectedStyles(label, html, folder, root, images);
-    const context = await browser.newContext();
-    const requests: string[] = [];
-    await context.route('**/*', (route) => {
-      requests.push(route.request().url());
-      return route.abort();
-    });
-    const page = await context.newPage();
-    await page.setContent(html, { waitUntil: 'load' });
-    const properties = ['font-family', 'font-size', 'font-weight', 'font-style', 'color', 'text-align', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'line-height', 'text-decoration-line'];
-    const computed = await page.evaluate(({ indices, properties }) => {
-      const all = document.querySelectorAll('*');
-      return indices.map((index) => {
-        const element = all[index]!;
-        const style = getComputedStyle(element);
-        return { tag: element.localName, values: Object.fromEntries(properties.map((p) => [p, style.getPropertyValue(p)])) };
+    for (const scheme of ['light', 'dark'] as const) {
+      const context = await browser.newContext({ colorScheme: scheme });
+      const requests: string[] = [];
+      await context.route('**/*', (route) => {
+        requests.push(route.request().url());
+        return route.abort();
       });
-    }, { indices: expected.map((e) => e.index), properties });
-    expected.forEach((want, i) => {
-      const got = computed[i]!;
-      if (got.tag !== want.tag) return problems.push(`element ${want.index}: <${got.tag}>, expected <${want.tag}>`);
-      for (const property of properties) {
-        const problem = mismatch(property, got.values[property]!, want.style);
-        if (problem) problems.push(`<${want.tag}> #${want.index} ${property}: ${problem}`);
+      const page = await context.newPage();
+      await page.setContent(html, { waitUntil: 'load' });
+      const properties = ['font-family', 'font-size', 'font-weight', 'font-style', 'color', 'text-align', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'line-height', 'text-decoration-line'];
+      const computed = await page.evaluate(({ indices, properties }) => {
+        const all = document.querySelectorAll('*');
+        return indices.map((index) => {
+          const element = all[index]!;
+          const style = getComputedStyle(element);
+          return { tag: element.localName, values: Object.fromEntries(properties.map((p) => [p, style.getPropertyValue(p)])) };
+        });
+      }, { indices: expected.map((e) => e.index), properties });
+      expected.forEach((want, i) => {
+        const got = computed[i]!;
+        if (got.tag !== want.tag) return problems.push(`${scheme}: element ${want.index}: <${got.tag}>, expected <${want.tag}>`);
+        for (const property of properties) {
+          const problem = mismatch(property, got.values[property]!, want.styles[scheme]);
+          if (problem) problems.push(`${scheme}: <${want.tag}> #${want.index} ${property}: ${problem}`);
+        }
+      });
+      const layout = await page.evaluate(() => {
+        const out: string[] = [];
+        const body = getComputedStyle(document.body);
+        for (const side of ['top', 'right', 'bottom', 'left']) if (body.getPropertyValue(`margin-${side}`) !== '0px') out.push(`body margin-${side}`);
+        if (document.compatMode !== 'CSS1Compat') out.push(document.compatMode);
+        for (const li of document.querySelectorAll('li')) {
+          const list = li.parentElement!;
+          const parent = list.parentElement!;
+          const parentStyle = getComputedStyle(parent);
+          const contentLeft = parent.getBoundingClientRect().left + parseFloat(parentStyle.borderLeftWidth) + parseFloat(parentStyle.paddingLeft);
+          const margin = parseFloat(getComputedStyle(list).marginLeft);
+          if (Math.abs(li.getBoundingClientRect().left - contentLeft - margin) > 0.01) out.push(`li left ${li.getBoundingClientRect().left}, list content at ${contentLeft} + ${margin}`);
+        }
+        return out;
+      });
+      problems.push(...layout);
+      const background = await page.evaluate(() => getComputedStyle(document.documentElement).backgroundColor);
+      const wantBackground = scheme === 'light' ? 'rgb(255, 255, 255)' : 'rgb(30, 30, 30)';
+      if (background !== wantBackground) problems.push(`${scheme}: html background ${background}, expected ${wantBackground}`);
+      // The values by hand are those of the light theme.
+      for (const { selector, values } of scheme === 'light' ? BY_HAND[label] ?? [] : []) {
+        const got = await page.evaluate(({ selector, names }) => {
+          const style = getComputedStyle(document.querySelector(selector)!);
+          return Object.fromEntries(names.map((n) => [n, style.getPropertyValue(n)]));
+        }, { selector, names: Object.keys(values) });
+        for (const [property, value] of Object.entries(values)) {
+          const same = value.endsWith('px') ? close(parseFloat(got[property]!), parseFloat(value)) : got[property] === value;
+          if (!same) problems.push(`by hand ${selector} ${property}: ${got[property]}, expected ${value}`);
+        }
       }
-    });
-    const layout = await page.evaluate(() => {
-      const out: string[] = [];
-      const body = getComputedStyle(document.body);
-      for (const side of ['top', 'right', 'bottom', 'left']) if (body.getPropertyValue(`margin-${side}`) !== '0px') out.push(`body margin-${side}`);
-      if (document.compatMode !== 'CSS1Compat') out.push(document.compatMode);
-      for (const li of document.querySelectorAll('li')) {
-        const list = li.parentElement!;
-        const parent = list.parentElement!;
-        const parentStyle = getComputedStyle(parent);
-        const contentLeft = parent.getBoundingClientRect().left + parseFloat(parentStyle.borderLeftWidth) + parseFloat(parentStyle.paddingLeft);
-        const margin = parseFloat(getComputedStyle(list).marginLeft);
-        if (Math.abs(li.getBoundingClientRect().left - contentLeft - margin) > 0.01) out.push(`li left ${li.getBoundingClientRect().left}, list content at ${contentLeft} + ${margin}`);
-      }
-      return out;
-    });
-    problems.push(...layout);
-    for (const { selector, values } of BY_HAND[label] ?? []) {
-      const got = await page.evaluate(({ selector, names }) => {
-        const style = getComputedStyle(document.querySelector(selector)!);
-        return Object.fromEntries(names.map((n) => [n, style.getPropertyValue(n)]));
-      }, { selector, names: Object.keys(values) });
-      for (const [property, value] of Object.entries(values)) {
-        const same = value.endsWith('px') ? close(parseFloat(got[property]!), parseFloat(value)) : got[property] === value;
-        if (!same) problems.push(`by hand ${selector} ${property}: ${got[property]}, expected ${value}`);
-      }
+      if (requests.length > 0) problems.push(`requests: ${requests.join(', ')}`);
+      await context.close();
     }
-    if (requests.length > 0) problems.push(`requests: ${requests.join(', ')}`);
-    await context.close();
     if (problems.length === 0) console.log(`ok   ${label}: ${expected.length} elements`);
     else {
       failed++;

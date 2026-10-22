@@ -1,7 +1,7 @@
 // The reference renderer: one HTML file for an article of the resolved tree, with
 // the CSS and the images inside (§11.4). It reads the tree and computes nothing
 // but the inheritance of §0.5; the mapping is in the README of the runtime.
-import { BASE_STYLESHEET_RULES, INHERITED_PROPERTIES, NOT_INHERITED_DEFAULTS, STYLE_PROPERTIES } from './base-stylesheet.js';
+import { BASE_STYLESHEET_RULES, INHERITED_PROPERTIES, NOT_INHERITED_DEFAULTS, PAGE_BACKGROUND, STYLE_PROPERTIES, type Theme } from './base-stylesheet.js';
 import { CLASS_FORM, ID_FORM, LANG_FORM, type JsonML, type ResolvedTree, type TreeNode } from './tree.js';
 
 /** An image read by the cli, or why it is not embedded. */
@@ -10,6 +10,8 @@ export type ExportAsset = { mime: string; bytes: Uint8Array } | { fallback: 'for
 export interface ExportOptions {
   /** With --allow-errors the page marks the pieces that do not resolve. */
   allowErrors?: boolean;
+  /** One theme fixed with --theme; without it the page has both and follows the viewer (§11.4). */
+  theme?: Theme;
 }
 
 /** Base64 in blocks of 3·16384 bytes: each block is a whole number of base64 quads. */
@@ -23,11 +25,22 @@ const RESET_ELEMENTS = [
   'li', 'blockquote', 'br', 'hr', 'pre', 'code', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'em', 'strong', 'a', 'span',
 ];
 
-function styleSheet(allowErrors: boolean): string {
+/** The page background of each theme, and with both themes the choice of the node colors. */
+function themeRules(theme: Theme | undefined): string {
+  if (theme !== undefined) return `html { background: ${PAGE_BACKGROUND[theme]}; color-scheme: ${theme}; }\n`;
+  return (
+    `html { background: ${PAGE_BACKGROUND.light}; color-scheme: light dark; }\n` +
+    `@media (prefers-color-scheme: dark) { html { background: ${PAGE_BACKGROUND.dark}; } }\n` +
+    '* { --color: var(--color-light); }\n' +
+    '@media (prefers-color-scheme: dark) { * { --color: var(--color-dark); } }\n'
+  );
+}
+
+function styleSheet(options: ExportOptions): string {
   return (
     `${RESET_ELEMENTS.join(', ')} { margin: 0; padding: 0; border: 0; font: inherit; color: inherit; text-decoration: none; vertical-align: baseline; }\n` +
-    // The page is paper: a white background, whatever the viewer's theme.
-    'html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; background: #ffffff; color-scheme: light; }\n' +
+    'html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }\n' +
+    themeRules(options.theme) +
     '@media screen { body { padding: 18pt; } }\n' +
     'ul { list-style-type: disc; }\n' +
     'ol { list-style-type: decimal; }\n' +
@@ -37,7 +50,7 @@ function styleSheet(allowErrors: boolean): string {
     'th, td { border: 0.75pt solid currentColor; padding: 2pt 6pt; vertical-align: top; }\n' +
     'img { max-width: 100%; height: auto; vertical-align: top; }\n' +
     '[data-number], [data-math-line], [data-math-line-invalid] { unicode-bidi: isolate; }\n' +
-    (allowErrors ? '[data-unresolved] { outline: 0.75pt dashed currentColor; }\n' : '')
+    (options.allowErrors === true ? '[data-unresolved] { outline: 0.75pt dashed currentColor; }\n' : '')
   );
 }
 
@@ -97,31 +110,56 @@ function fontFamilyCss(value: string): string {
   }
 }
 
-function styleAttribute(style: Style): string {
+/** The final values of a node in the two themes; they differ only in the color. */
+interface Styles {
+  light: Style;
+  dark: Style;
+}
+
+function checked(property: string, value: string | undefined): string {
+  if (value === undefined) throw new Error(`no value for ${property}`);
+  if (property === 'font-family') return fontFamilyCss(value);
+  if (!VALUE_FORMS[property]!.test(value)) throw new Error(`${property} out of form: ${value}`);
+  return value;
+}
+
+/** The style attribute: literal colors with one theme, the two colors through --color with both. */
+function styleAttribute(styles: Styles, theme: Theme | undefined): string {
   return STYLE_PROPERTIES.map((property) => {
-    const value = style[property];
-    if (value === undefined) throw new Error(`no value for ${property}`);
-    if (property === 'font-family') return `${property}: ${fontFamilyCss(value)}`;
-    if (!VALUE_FORMS[property]!.test(value)) throw new Error(`${property} out of form: ${value}`);
-    return `${property}: ${value}`;
+    if (property === 'color' && theme === undefined) {
+      return `color: var(--color); --color-light: ${checked(property, styles.light.color)}; --color-dark: ${checked(property, styles.dark.color)}`;
+    }
+    return `${property}: ${checked(property, styles[theme ?? 'light'][property])}`;
   }).join('; ');
 }
 
-/** Final values: inherited from the parent, base rules for the type, then the node's computedStyle (§0.5). */
-function finalStyle(type: string, parent: Style, computed: unknown): Style {
+/**
+ * Final values (§0.5): inherited from the parent, base rules for the type, then the
+ * node's computedStyle; in the dark theme the dark base rules hold too, and the color
+ * comes from darkComputedStyle.
+ */
+function finalStyle(type: string, parent: Style, attributes: { computedStyle?: unknown; darkComputedStyle?: unknown }, theme: Theme): Style {
   const style: Style = {};
   for (const property of INHERITED_PROPERTIES) if (parent[property] !== undefined) style[property] = parent[property];
   Object.assign(style, NOT_INHERITED_DEFAULTS);
   for (const rule of BASE_STYLESHEET_RULES) {
+    if (rule.dark && theme === 'light') continue;
     if (rule.types.includes(type)) for (const [property, value] of rule.declarations) style[property] = value;
   }
-  if (computed !== null && typeof computed === 'object') {
-    for (const property of STYLE_PROPERTIES) {
+  const overlay = (computed: unknown, properties: readonly string[]) => {
+    if (computed === null || typeof computed !== 'object') return;
+    for (const property of properties) {
       const value = (computed as Record<string, unknown>)[property];
       if (typeof value === 'string') style[property] = value;
     }
-  }
+  };
+  overlay(attributes.computedStyle, theme === 'light' ? STYLE_PROPERTIES : STYLE_PROPERTIES.filter((p) => p !== 'color'));
+  if (theme === 'dark') overlay(attributes.darkComputedStyle, ['color']);
   return style;
+}
+
+function finalStyles(type: string, parent: Styles, attributes: { computedStyle?: unknown; darkComputedStyle?: unknown }): Styles {
+  return { light: finalStyle(type, parent.light, attributes, 'light'), dark: finalStyle(type, parent.dark, attributes, 'dark') };
 }
 
 // Text: characters HTML does not want become U+FFFD, then the five escapes.
@@ -238,7 +276,7 @@ export function safeHref(url: string, ids: Set<string>): string | null {
 type Task =
   | { type: 'text'; text: string }
   | { type: 'image'; bytes: Uint8Array }
-  | { type: 'node'; item: JsonML; parent: Style; context: Context };
+  | { type: 'node'; item: JsonML; parent: Styles; context: Context };
 
 interface Context {
   /** 1 when the article title is in the page: chapter titles go one level down. */
@@ -272,13 +310,13 @@ function* pieces(tree: ResolvedTree, rootId: string, assets: ReadonlyMap<string,
     `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">` +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
     `<title>${escapeHtml(pageTitle)}</title>` +
-    `<style>\n${styleSheet(options.allowErrors === true)}</style></head><body>`;
+    `<style>\n${styleSheet(options)}</style></head><body>`;
 
-  const rootRule = finalStyle('root', {}, null);
-  const articleStyle = finalStyle('root', rootRule, article.computedStyle);
+  const rootRule = finalStyles('root', { light: {}, dark: {} }, {});
+  const articleStyle = finalStyles('root', rootRule, article);
   buffer +=
     `<article data-kind="article"${article.id !== undefined && ids.has(article.id) ? ` id="${escapeHtml(article.id)}"` : ''}` +
-    `${langAttribute(article.attributes?.lang)}${classAttribute(article.attributes?.class)} style="${escapeHtml(styleAttribute(articleStyle))}">`;
+    `${langAttribute(article.attributes?.lang)}${classAttribute(article.attributes?.class)} style="${escapeHtml(styleAttribute(articleStyle, options.theme))}">`;
 
   const stack: Task[] = [{ type: 'text', text: '</article></body></html>\n' }];
   const rootContext: Context = { shift: titleInPage ? 1 : 0, depth: 0 };
@@ -320,8 +358,8 @@ function* pieces(tree: ResolvedTree, rootId: string, assets: ReadonlyMap<string,
     const type =
       element.type === 'title' ? `title-${task.context.depth === 0 ? 0 : Math.min(task.context.depth, 3)}`
         : element.type === 'embed' && attributes.kind === 'image' ? 'image' : element.type;
-    const style = finalStyle(type, task.parent, attributes.computedStyle);
-    const styled = ` style="${escapeHtml(styleAttribute(style))}"`;
+    const style = finalStyles(type, task.parent, attributes);
+    const styled = ` style="${escapeHtml(styleAttribute(style, options.theme))}"`;
     let context = task.context;
     let open: string;
     let close: string;

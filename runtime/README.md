@@ -21,7 +21,7 @@ npm run build
 ```
 node dist/src/cli.js resolve-tree <cartella>            # JSON compatto
 node dist/src/cli.js resolve-tree <cartella> --pretty   # JSON indentato
-node dist/src/cli.js export <cartella> [--root <id>] [-o <file>] [--allow-errors]
+node dist/src/cli.js export <cartella> [--root <id>] [-o <file>] [--allow-errors] [--theme light|dark]
 node dist/src/cli.js --help
 ```
 
@@ -81,7 +81,9 @@ dà l'avviso `asset-unsupported` e nella pagina la sua descrizione.
 **I valori.** Ogni elemento di un nodo porta in `style` le dodici proprietà
 del sottoinsieme, nell'ordine del §0.5, con i valori finali: regole del
 foglio di partenza per il tipo (`src/base-stylesheet.ts`, la stessa fonte
-della risoluzione), eredità dal genitore, `computedStyle` sopra. Un valore
+della risoluzione), eredità dal genitore, `computedStyle` sopra; nel tema
+scuro valgono anche le regole scure del foglio di partenza, e il colore viene
+da `darkComputedStyle` invece che da `computedStyle`. Un valore
 fuori dalla forma del §0.5 è un errore interno (3). `font-family` si riscrive
 con le stringhe CSS. Nel testo e negli altri attributi i caratteri di
 controllo (tranne tab e a capo), U+0000, i surrogati isolati e i noncaratteri
@@ -117,13 +119,21 @@ L'alt di un'immagine è il testo della descrizione: `display` di una riga di
 calcolo valida, l'espressione di una invalida, uno spazio per un a capo e fra
 i blocchi.
 
+**I temi.** Senza `--theme` la pagina ha il tema chiaro e quello scuro e
+segue quello di chi la apre: al posto del colore letterale ogni elemento di
+un nodo porta `color: var(--color); --color-light: …; --color-dark: …`, con
+i colori finali dei due temi, e il `<style>` sceglie `--color` con `@media
+(prefers-color-scheme: dark)`. `html` ha `color-scheme: light dark` e lo
+sfondo `#ffffff`, `#1e1e1e` nel tema scuro. Con `--theme light` o `--theme
+dark` i colori sono letterali, quelli del tema, con il suo sfondo e il suo
+`color-scheme`; un altro valore è un uso sbagliato (2). Le altre undici
+proprietà non cambiano con il tema.
+
 **Il disegno fisso**, nel `<style>`, senza valori dal documento, senza
 selettori di `class`, `!important` né `all:`: un azzeramento su tutti gli
 elementi usati (`margin`, `padding`, `border`, `font: inherit`, `color:
 inherit`, `text-decoration: none`, `vertical-align: baseline`) e
-`text-size-adjust: 100%`; la pagina bianca (`background: #ffffff` e
-`color-scheme: light` su `html`), così si legge anche in un visore a tema
-scuro; poi `body { padding: 18pt }` sullo schermo, i segni
+`text-size-adjust: 100%`; lo sfondo e `--color` dei temi, sopra; poi `body { padding: 18pt }` sullo schermo, i segni
 degli elenchi (`disc`, `decimal`), `pre-wrap` per `pre`, la linea di `hr`, i
 bordi di tabelle e celle, `max-width: 100%` per le immagini e `unicode-bidi:
 isolate` per numeri e righe di calcolo. Con `--allow-errors` si aggiunge un
@@ -163,7 +173,8 @@ Infine lancia `test/export-suite.ts`, senza browser, sulle cartelle di
 `--root`, `-o`, determinismo (due esecuzioni e una copia altrove, con un altro
 fuso e un'altra lingua), html-validate e parse5, un cammino parallelo fra
 albero e DOM con tag, attributi, `style` e testo, i collegamenti, la
-sicurezza, le immagini e il limite di 256 MiB. Il foglio di partenza lo legge
+sicurezza, le immagini e il limite di 256 MiB; le pagine valide nelle tre
+forme, con tutti e due i temi, `--theme light` e `--theme dark`. Il foglio di partenza lo legge
 dal blocco del §0.5 della specifica, non da `src/`.
 
 La suite del browser è fuori da `npm test`:
@@ -173,8 +184,9 @@ npm run test:browser
 ```
 
 Apre le pagine valide della suite precedente in Chromium, con
-`playwright-core`, e confronta `getComputedStyle` delle dodici proprietà con
-i valori ricostruiti, più alcuni valori scritti a mano. Il Chromium è quello
+`playwright-core`, nello schema chiaro e in quello scuro, e confronta
+`getComputedStyle` delle dodici proprietà con i valori ricostruiti del tema,
+e lo sfondo di `html`, più alcuni valori scritti a mano. Il Chromium è quello
 di `PLAYWRIGHT_BROWSERS_PATH`; sul Mac si installa con `npx playwright-core
 install chromium`.
 

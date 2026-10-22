@@ -29,10 +29,11 @@ Uso:
   ${BINARY_NAME} resolve-tree <cartella> [--pretty]
                                          stampa il resolved tree in JSON su stdout,
                                          compatto; --pretty lo indenta
-  ${BINARY_NAME} export <cartella> [--root <id>] [-o <file>] [--allow-errors]
+  ${BINARY_NAME} export <cartella> [--root <id>] [-o <file>] [--allow-errors] [--theme light|dark]
                                          scrive l'HTML di un article su stdout, o nel
                                          file di -o; --root sceglie l'article quando
-                                         non è uno solo
+                                         non è uno solo; senza --theme la pagina ha il
+                                         tema chiaro e quello scuro, e segue chi la apre
   ${BINARY_NAME} --help                    questo aiuto
   ${BINARY_NAME} --version                 la spec-version che il runtime implementa
 
@@ -122,18 +123,21 @@ function exportCommand(args: string[]): number {
   let rootId: string | undefined;
   let output: string | undefined;
   let allowErrors = false;
+  let theme: 'light' | 'dark' | undefined;
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;
     if (arg === '--allow-errors') allowErrors = true;
-    else if (arg === '--root' || arg === '-o') {
+    else if (arg === '--root' || arg === '-o' || arg === '--theme') {
       const value = args[++i];
       if (value === undefined) return usage(`${arg} vuole un valore (vedi --help)`);
       if (arg === '--root') rootId = value;
-      else output = value;
-    } else if (arg.startsWith('-') || folder !== undefined) return usage(`uso: ${BINARY_NAME} export <cartella> [--root <id>] [-o <file>] [--allow-errors]`);
+      else if (arg === '-o') output = value;
+      else if (value === 'light' || value === 'dark') theme = value;
+      else return usage(`--theme vuole light o dark, non ${value}`);
+    } else if (arg.startsWith('-') || folder !== undefined) return usage(`uso: ${BINARY_NAME} export <cartella> [--root <id>] [-o <file>] [--allow-errors] [--theme light|dark]`);
     else folder = arg;
   }
-  if (folder === undefined) return usage(`uso: ${BINARY_NAME} export <cartella> [--root <id>] [-o <file>] [--allow-errors]`);
+  if (folder === undefined) return usage(`uso: ${BINARY_NAME} export <cartella> [--root <id>] [-o <file>] [--allow-errors] [--theme light|dark]`);
   if (!readableFolder(folder)) return EXIT_USAGE;
 
   const tree = resolveTree(folder);
@@ -173,7 +177,7 @@ function exportCommand(args: string[]): number {
   };
   if (hasErrors && !allowErrors) return finish(EXIT_ERRORS);
 
-  const options = { allowErrors };
+  const options = theme === undefined ? { allowErrors } : { allowErrors, theme };
   if (staticExportSize(tree, article.id, assets, options) > MAX_EXPORT_BYTES) {
     diagnostics.push(makeDiagnostic('export-too-large', article.file, undefined, 'riduci le immagini o le loro inclusioni'));
     return finish(EXIT_ERRORS);
