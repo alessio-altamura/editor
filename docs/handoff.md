@@ -292,45 +292,23 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
    rapporti dei revisori non sono nel repository: vanno ripetuti se servono.
    La sottosessione è session_01LJTSfiwiWSRkNwwAHxW4pz, ramo
    claude/spec-draft-level1.
-0b. **Il runtime da riga di comando**, ridotto al `resolved tree` (scelta di
-   Alessio del 2026-10-21, in contesto.md, «Ordine di lavoro»). Lo scrive in
-   TypeScript una sottosessione, session_01JKaTQnokvANPi9qrYbW1p9, sul ramo
-   claude/runtime-level1, che riceve le novità del ramo di lavoro ma non vi è
-   ancora unito. Stato al 2026-10-22:
-   - **Cosa fa.** `doc-runtime resolve-tree <cartella>` legge la cartella del
-     documento e stampa il `resolved tree` in JSON, compatto o con
-     `--pretty`. Non scrive file. Codici di uscita: 0 senza errori, 1 con
-     almeno un errore, 2 per un uso sbagliato o una cartella che non si
-     legge, 3 per un errore interno. HTML, PDF, `formatter`, LSP e server MCP
-     non ci sono ancora.
-   - **Test.** `cd runtime && npm ci && npm test` lancia due suite. La prima
-     legge gli esempi da specifica.md a ogni giro: 43 su 43 passano. La
-     seconda ha 71 casi di robustezza che gli esempi non coprono: crash,
-     limiti dell'albero, collegamenti simbolici, file non UTF-8, `[[…]]`
-     dentro il codice e negli URL.
-   - **Com'è fatto.** Node 22, ESM, TypeScript strict. `[[…]]` e `![[…]]` li
-     riconosce un costrutto micromark scritto nel progetto; il CSS lo legge
-     un parser piccolo scritto nel progetto.
-   - **Dipendenze**, a versione fissata e con licenza permissiva:
-     mdast-util-from-markdown, micromark-extension-gfm-table e
-     mdast-util-gfm-table (MIT), yaml con lo schema failsafe (ISC),
-     decimal.js (MIT); per lo sviluppo typescript (Apache-2.0).
-   - **Come si è arrivati qui.** Cinque giri di correzioni, ciascuno dopo
-     un controllo indipendente con revisori e scettici. I punti che la
-     specifica lasciava aperti sono tornati alla sua sessione, che li ha
-     fissati nel diciannovesimo e nel ventesimo giro (i tre limiti del
-     §11.1: 1000 livelli di `embed`, 100000 `embed`, 50 milioni di
-     caratteri).
-   - **Provvisorio.** Restano provvisori due punti: il codice di uscita 3 e
-     il limite di 100 parentesi in una riga di calcolo.
-   - **Da confermare.** Una lettura aspetta la specifica: un capoverso
-     `![[t]]{.nota` che continua a capo dà sia `embed-class-invalid` sia
-     `composition-content`.
-   - **Limite noto.** Un capoverso molto lungo con molte enfasi è lento da
-     leggere, dentro micromark.
-   - **Nome.** Il nome del binario è provvisorio (`doc-runtime`): il nome
-     provvisorio del progetto è Kamii, che Alessio non ha ancora confermato
-     (contesto.md, «Nomi del prodotto»).
+0b. **Il runtime da riga di comando**, in [runtime/](../runtime/), ridotto al
+   `resolved tree` (scelta di Alessio del 2026-10-21, in contesto.md,
+   «Ordine di lavoro»). Lo ha scritto in TypeScript una sottosessione,
+   session_01JKaTQnokvANPi9qrYbW1p9, sul ramo claude/runtime-level1, in
+   cinque giri, ciascuno controllato da revisori indipendenti con prove,
+   fuzz e un confronto con un'implementazione separata in Python. Passa i 43
+   esempi della specifica, letti da specifica.md, e 71 casi di robustezza
+   (`cd runtime && npm ci && npm test`). Il comando è `doc-runtime
+   resolve-tree <cartella>`, con un nome provvisorio. Restano da guardare:
+   - un errore di class su più righe (`![[id]]{.nota` a capo `.grande}`) dà
+     tre diagnostic (embed-class-invalid, composition-content,
+     embed-inline); forse ne basta uno;
+   - ogni nodo di un capitolo ripete nel `resolved tree` il contenuto che
+     include, quindi una catena lunga di capitoli esaurisce presto il limite
+     di 100000 embed; il formato dell'albero potrebbe evitare le copie;
+   - micromark è lento su un capoverso molto lungo con molte enfasi (limite
+     noto, nel README del runtime).
 1. **La bozza dei tipi di nodo** del primo livello è iniziata in
    [bozza-nodi.md](bozza-nodi.md): è di Alessio, scritta insieme. Il
    2026-10-20 è diventata una sintesi del modello: il `concept` come unità di
