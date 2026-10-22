@@ -289,7 +289,9 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     infinite`), non una voce di `tags`, perché porta un valore. Proposte
     dell'orchestratore: per un'inclusione infinita il `resolved tree` segna il
     punto in cui l'oggetto torna e chi disegna sceglie fino a che profondità
-    disegnare, come vuole l'impaginazione da fuori; per una formula infinita
+    disegnare, come vuole l'impaginazione da fuori (superata il 2026-10-22
+    dalla scelta 5 delle scelte visibili dell'HTML: chi disegna non lo
+    ripete); per una formula infinita
     il `runtime` tiene comunque un limite di sicurezza, perché il documento
     deve risolversi in un tempo finito; la regola di uscita richiede le
     formule, quindi arriva con loro; in un ciclo fra più oggetti ciascuno deve

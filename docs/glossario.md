@@ -289,7 +289,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 |---|---|---|---|---|
 | `code block` | blocco di codice | Codice nel documento, con i marker `eval` ed `echo` | concetto deciso, nome proposto | cell, snippet |
 | `eval` | da eseguire | Marker: il blocco viene eseguito | concetto deciso, nome proposto | run, exec |
-| `echo` | da mostrare | Marker: il blocco viene mostrato | concetto deciso, nome proposto | show, display |
+| `echo` | da mostrare | Marker: un blocco con `eval` si vede solo se ha anche `echo`; un blocco senza `eval` si vede sempre (deciso il 2026-10-22) | concetto deciso, nome proposto | show, display |
 | `results` | risultati salvati | Output dei `code block`, una voce per `node` con chiave l'hash degli `inputs` | proposto | output, cache |
 | `import` | codice esterno | Riferimento a codice fuori dal documento, fissato con hash | proposto | include, require |
 | `lock` | versioni fissate | Elenco nel documento di `extension` e codice esterno con versione e hash | proposto | pin file |
@@ -306,7 +306,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `resolved tree` | albero risolto | `model` con calcoli, riferimenti e `numbering` già risolti, letto dai `renderer` | proposto | AST |
 | `frozen values` | valori fotografati | Valori calcolati all'`export` e salvati, visibili senza eseguire (verbo `freeze`) | concetto deciso, nome proposto | snapshot, cache |
 | `static fallback` | forma statica | Forma di un oggetto interattivo o di un'`extension` dove non può essere eseguito | proposto | placeholder |
-| `export` | esportare | Produrre HTML o PDF dal documento; con un errore si rifiuta, e con un'opzione esplicita esce lo stesso come anteprima (deciso il 2026-10-22). Proposta: nella `cli` è il comando `export`, nome da N3, che nella classe 1 produce lo `static export` in un solo file HTML; l'opzione è --allow-errors; nel codice la funzione è staticExport, perché `export` è una parola riservata | concetto deciso, nome proposto | render, publish |
+| `export` | esportare | Produrre HTML o PDF dal documento; con un errore si rifiuta, e con un'opzione esplicita esce lo stesso, con i pezzi mancanti segnati (deciso il 2026-10-22). Proposta: nella `cli` è il comando `export`, nome da N3, che nella classe 1 produce lo `static export` in un solo file HTML; l'opzione è --allow-errors; nel codice la funzione è staticExport, per N3, perché produce lo `static export` | concetto deciso, nome proposto | render, publish |
 | `live export` | HTML vivo | HTML esportato che ricalcola nel browser | concetto deciso, nome proposto | live page |
 | `static export` | HTML statico | HTML esportato senza ricalcolo | concetto deciso, nome proposto | snapshot |
 | `print` | stampa | Produzione del PDF dall'HTML con il `print browser` | concetto deciso, nome proposto | export pdf |

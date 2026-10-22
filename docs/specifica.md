@@ -361,8 +361,9 @@ l'attributo HTML.
     scrivere anche `text-decoration` con una sola di queste due parole, che
     vale come `text-decoration-line`; nel `computedStyle` la chiave è sempre
     `text-decoration-line`. Come in CSS la proprietà non si eredita, ma la
-    sottolineatura di un nodo si disegna anche sul testo dei suoi figli in
-    linea, che pure hanno `none` come valore calcolato
+    sottolineatura di un nodo si disegna anche sul testo dei suoi discendenti
+    nel flusso, in linea e a blocchi, che pure hanno `none` come valore
+    calcolato e non la possono togliere
     ([css-text-decor-3 §2](https://www.w3.org/TR/css-text-decor-3/#line-decoration):
     «Inherited: no (but see prose, above)»).
 
@@ -430,9 +431,9 @@ l'attributo HTML.
   La regola `root` dà tutte le proprietà ereditate del sottoinsieme; un
   margine senza regola vale `0pt`, e `text-decoration-line` vale `none`.
   La sottolineatura dei collegamenti è decisa [C: «Sulla bozza di specifica»]: il blu da solo ha
-  un contrasto di 2,54:1 con il testo nero, sotto il 3:1 che WCAG chiede
-  quando un collegamento si distingue solo per il colore
-  ([G183](https://www.w3.org/WAI/WCAG22/Techniques/general/G183)).
+  un contrasto di 2,54:1 con il testo nero, sotto il 3:1 della tecnica
+  [G183](https://www.w3.org/WAI/WCAG22/Techniques/general/G183), con cui WCAG
+  2.2 ammette un collegamento distinto solo dal colore (criterio 1.4.1).
 - **L'allineamento delle colonne.** L'allineamento scritto nella riga di
   separazione di una tabella (`|:--|--:|`) conta, come su GitHub, e lo
   calcola il `runtime` nello stile delle celle [C: «Sulla bozza di specifica»]. *(proposta)* Vale
@@ -818,8 +819,9 @@ nel documento [C: «Sulla bozza di specifica»]. Un titolo diverso per un solo
 capitolo non è deciso (stessa voce).
 
 *(proposte)*
-- I tre selettori stanno da soli, come i tipi in linea: niente
-  `title-1.compatto` né combinatori (§0.5).
+- Il titolo dell'`article` si colpisce con `title-0`, il grado 0 (§0.7).
+- I quattro selettori, da `title-0` a `title-3`, stanno da soli, come i
+  tipi in linea: niente `title-1.compatto` né combinatori (§0.5).
 - Nel `resolved tree` il titolo è il nodo `["title", …]`, primo figlio
   dell'`embed` del `chapter` nella `composition` radice (§11.3), e porta il
   `computedStyle` con la regola generale del §0.5: il suo tipo è `title-1`,
@@ -997,7 +999,7 @@ sono separati (stessa voce).
 | `tags` | comune | lista di parole | deciso; *(proposta)* se manca vale la lista vuota |
 | `class` | per i nodi che si vedono | lista di nomi in `kebab-case` (§3) | deciso |
 | `lang` | per i nodi che si vedono | tag di lingua BCP 47 | deciso |
-| `title` | `chapter`, `article`, `deck` | stringa | *(proposta)*, §0.7; in `article` e `deck` è un metadato |
+| `title` | `chapter`, `article`, `deck` | stringa | *(proposta)*, §0.7; in `article` e `deck` è il nome del documento e il testo dei riferimenti, e quello dell'`article` si vede in cima alla pagina (deciso) |
 | `spec-version` | `document file` | stringa | §0.8; *(proposta)* la chiave |
 | `asset` | `image`, `canvas file` | percorso del file | *(proposta)*, §7.2, §2 |
 | `recursion` | `chapter`; più avanti le formule | un intero positivo o `infinite` | deciso che è opzionale (§0.17); *(proposta)* il nome e i valori |
@@ -1305,8 +1307,9 @@ regole di questa bozza, punto per punto:
   è `reference-text-missing` (esempio 28). Il numero di un nodo numerato
   si chiede con il `number slot`, `[[lavagna|figura {n}]]` (deciso, §0.14).
 - **L'aspetto di un `[[id]]`** *(proposta)*: è un `hyperlink`, e uno
-  `stylesheet` lo può colpire; il `base stylesheet` gli dà un colore (§0.5).
-  Che i tipi in linea siano agganciabili è deciso; i nomi e il colore no.
+  `stylesheet` lo può colpire; il `base stylesheet` gli dà un colore e la
+  sottolineatura (§0.5). Che i tipi in linea siano agganciabili e che il
+  collegamento sia sottolineato è deciso; i nomi e il colore no.
 - **Il risultato di una riga di calcolo**: è deciso che il numero si mostra
   nella lingua dell'oggetto, altrimenti del documento (§0.4), cioè da fuori;
   che la stringa la scriva il `runtime` e che nel sorgente resti solo
@@ -2558,8 +2561,8 @@ toglie uno.
   per `id` e poi per `file`; un nodo senza `id` (esempio 16) non ha la chiave
   `id` e conta come `id` vuoto. Ogni nodo ha `id`, `kind`, `file` (percorso con
   `/`), `attributes` (quelli dichiarati tranne `id`, `kind` e
-  `associations`; si omette se vuoto), `content` (il corpo; si
-  omette se il `kind` non ne ha o è vuoto) e `"directive": true` per i `kind`
+  `associations`; si omette se vuoto), `content` (il corpo, preceduto dal nodo del titolo nell'`article` con
+  `title`, §0.7; si omette se il `kind` non ne ha o è vuoto) e `"directive": true` per i `kind`
   non noti. Il nodo della `composition` radice ha anche `computedStyle`, se
   non è vuoto (§0.5).
 - **Le chiavi** degli `attributes` sono in `camelCase`, come vuole il
