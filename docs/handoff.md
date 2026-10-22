@@ -341,7 +341,15 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      HTML»): spazio sotto tabelle, codice, immagini e righe di separazione;
      intestazione della tabella in grassetto; elenchi stretti senza spazio
      fra le voci; `display` a 2 decimali, con `--number-decimals` (esempio
-     48). 48 esempi passano.
+     48).
+   - I due temi dell'HTML ci sono (2026-10-22, contesto.md «Due temi per
+     l'HTML»): un file che segue il tema di chi lo apre, `--theme light|dark`
+     per fissarne uno, `@media (prefers-color-scheme: dark)` negli
+     `stylesheet` per i colori scuri, `darkComputedStyle` nell'albero e
+     l'avviso `dark-contrast-low`. 49 esempi passano.
+   - L'HTML dell'`export` sarà anche l'anteprima della `composition`
+     nell'`app` (contesto.md, stessa data): proposte dell'orchestratore da
+     progettare con il `runtime` vivo.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
