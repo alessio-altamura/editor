@@ -18,13 +18,13 @@ import {
   type ComputedStyle,
   type ParsedStylesheet,
 } from './stylesheet.js';
+import { CLASS_FORM, ID_FORM, LANG_FORM, type ResolvedTree } from './tree.js';
+
+export type { ResolvedTree };
 
 /** The `spec version` this runtime implements. */
 export const SPEC_VERSION = '0.1';
 
-const ID_FORM = /^[a-z0-9]+(-[a-z0-9]+)*$/;
-const LANG_FORM = /^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{1,8})*$/;
-const CLASS_FORM = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
 const RETIRED_IDS_FILE = 'retired-ids.yaml';
 
 /** The `kind`s of the `core` and of class 1; any other `kind` is read as a `directive`. */
@@ -71,6 +71,8 @@ interface SourceNode {
   lang?: string;
   title?: string;
   asset?: string;
+  /** The path of the asset from the document folder, with `/`, when the file exists (§11.3). */
+  assetPath?: string;
   /** How many times a chapter may appear inside itself (§0.17); undefined without `recursion`. */
   recursion?: number;
   items?: CompositionItem[];
@@ -109,13 +111,6 @@ interface BuildContext {
   definitions: Map<string, string>;
   /** True in a composition or a directive, where `![[id]]` is an embed. */
   inComposition: boolean;
-}
-
-export interface ResolvedTree {
-  nodes?: Array<Record<string, unknown>>;
-  associations?: Array<{ ids: [string, string]; declaredIn: string[] }>;
-  diagnostics?: Diagnostic[];
-  document?: { id?: string; file: string; attributes?: Record<string, unknown> };
 }
 
 const utf8 = new TextDecoder('utf-8', { fatal: true });
@@ -485,6 +480,7 @@ export function resolveTree(folder: string): ResolvedTree {
       report(diagnostics, 'asset-missing', node.file, node.asset, 'aggiungi il file o correggi il percorso');
       return;
     }
+    node.assetPath = path;
     if (node.kind !== 'canvas-file') return;
     // JSON Canvas names files by their path within the system: here, the document root (§0.11).
     const invalid = () => report(diagnostics, 'syntax', node.file, undefined, `correggi il JSON Canvas di ${node.asset}`);
@@ -603,7 +599,13 @@ export function resolveTree(folder: string): ResolvedTree {
       case 'table':
         const align = node.align?.some((a) => a) ? { align: node.align.map((a) => a ?? null) } : {};
         return [element('table', align, node.children.map((row) =>
-          element('tableRow', {}, row.children.map((cell) => element('tableCell', {}, buildInlines(cell.children, context))))))];
+          element('tableRow', {}, row.children.map((cell, column) => {
+            const tableCell = element('tableCell', {}, buildInlines(cell.children, context));
+            // The column alignment acts as a text-align declaration on the cell (§0.5).
+            const textAlign = node.align?.[column];
+            if (textAlign) tableCell.meta = { textAlign };
+            return tableCell;
+          }))))];
       case 'definition': return [];
       default: return [element('paragraph', {}, [sourceOf(node, context)])];
     }
@@ -800,7 +802,8 @@ export function resolveTree(folder: string): ResolvedTree {
     // A class both on the object and on the embed counts as the embed's, in its position there.
     const classes = [...target.classes.filter((c) => !embedClasses.includes(c)), ...embedClasses];
     if (classes.length > 0) attributes.class = classes;
-    if (target.asset !== undefined) attributes.asset = target.asset;
+    // The path from the document folder; without it, `asset-missing` (§11.3).
+    if (target.kind === 'image' && target.assetPath !== undefined) attributes.asset = target.assetPath;
     const embed = element('embed', attributes);
     embed.meta = { classes, embedClasses };
     // With infinite recursion the embed marks where the chapter comes back, without children.
@@ -968,6 +971,13 @@ export function resolveTree(folder: string): ResolvedTree {
     });
     const root: RootState = { chapterCounters: [], images: 0, firstNumbers: new Map() };
     const content = buildContent(node, contextFor(root));
+    // The title of the article is the first child of its content, of type title-0 (§0.7).
+    if (node.title !== undefined) {
+      const title = element('title', {}, [node.title]);
+      title.meta = { depth: 0 };
+      textSize += node.title.length;
+      content.unshift(title);
+    }
 
     const stylesheetId = attributesOf.get(node)?.stylesheet;
     const resolution = typeof stylesheetId === 'string' ? resolveId(stylesheetId) : null;
@@ -1006,6 +1016,7 @@ export function resolveTree(folder: string): ResolvedTree {
       const type = child.type === 'title' ? `title-${Math.min(child.meta?.depth ?? 1, 3)}` : child.type;
       const expected = computeStyle({ type, classes: [], embedClasses: [] }, parent, null);
       const final = computeStyle({ type, classes: child.meta?.classes ?? [], embedClasses: child.meta?.embedClasses ?? [] }, parent, sheet, outOfRange);
+      if (child.meta?.textAlign) final.set('text-align', { text: child.meta.textAlign });
       const difference = styleDifference(final, expected);
       // The embed where a chapter comes back has no computed style (§0.17).
       if (Object.keys(difference).length > 0 && child.attributes.recursion !== true) child.attributes.computedStyle = difference;
@@ -1021,7 +1032,7 @@ export function resolveTree(folder: string): ResolvedTree {
   function finish(): ResolvedTree {
     const result: ResolvedTree = {};
     outputs.sort((a, b) => compareCodePoints(String(a.id ?? ''), String(b.id ?? '')) || compareCodePoints(String(a.file), String(b.file)));
-    if (outputs.length > 0) result.nodes = outputs;
+    if (outputs.length > 0) result.nodes = outputs as unknown as NonNullable<ResolvedTree['nodes']>;
     const associations = [...pairs.values()]
       .map((pair) => ({ ids: pair.ids, declaredIn: pair.declaredIn.sort(compareCodePoints) }))
       .sort((a, b) => compareCodePoints(a.ids[0], b.ids[0]) || compareCodePoints(a.ids[1], b.ids[1]));

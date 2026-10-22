@@ -365,7 +365,7 @@ l'attributo HTML.
     nel flusso, in linea e a blocchi, che pure hanno `none` come valore
     calcolato e non la possono togliere
     ([css-text-decor-3 §2](https://www.w3.org/TR/css-text-decor-3/#line-decoration):
-    «Inherited: no (but see prose, above)»).
+    «Inherited: no (but see prose, above)»). Esempio 44.
 
   Il resto è `stylesheet-unsupported`, con `target` il nome della
   proprietà; anche un valore fuori da decimal128 (§0.4), come
@@ -444,7 +444,7 @@ l'attributo HTML.
   differisce da quello che la cella avrebbe dal foglio di partenza e dal
   genitore; i figli in linea della cella lo ereditano, e una colonna con
   `align` `null` eredita come ogni nodo. L'attributo `align` della `table`
-  resta com'è.
+  resta com'è (esempio 45).
 - **La forma dei valori.** Ogni nodo del contenuto della `composition` radice,
   cioè l'`article` o il `deck`, porta negli attributi un oggetto
   `computedStyle` con le proprietà il cui valore finale differisce da quello
@@ -600,7 +600,8 @@ si sposta come un'unità, si annida, e può non avere titolo.
   di partenza [C: «Sulla bozza di specifica»]. *(proposta)* È il primo figlio del contenuto
   dell'`article`, `["title", "Rapporto del terzo trimestre"]`, con il suo
   `computedStyle` come ogni nodo, e lo colpisce la regola `title-0`, il
-  grado 0 del documento intero (§0.5); un `title` vuoto non dà il nodo. Il
+  grado 0 del documento intero (§0.5, esempio 46); un `title` vuoto non dà
+  il nodo. Il
   `title` del `deck` si vedrà con le `slide` (classe 6). Hanno un corpo di
   soli `embed`, di `chapter` o di `object`.
 - **Cicli.** Un `chapter` che contiene sé stesso, anche attraverso altri, è
@@ -2621,7 +2622,7 @@ percorso del file dalla cartella del documento, con le barre `/`, perché il
 percorso scritto nel descrittore vale dalla cartella del descrittore (§2) e
 l'`embed` da solo non direbbe dove sta il file; con `asset-missing`
 l'`embed` non porta `asset`, e chi disegna mostra la descrizione, che è la
-`static fallback` (§7.2). Nel nodo dell'`image` l'`asset` resta com'è
+`static fallback` (§7.2, esempio 47). Nel nodo dell'`image` l'`asset` resta com'è
 scritto.
 
 Gli esempi 44-47 mostrano le ultime proposte di questa sezione e del §0.5.

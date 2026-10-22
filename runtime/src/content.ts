@@ -1,5 +1,6 @@
 // The content of the resolved tree (§11.3): JsonML elements built from mdast.
 import type { Decimal } from './math-line.js';
+import type { JsonML } from './tree.js';
 
 export interface Element {
   type: string;
@@ -17,6 +18,8 @@ export interface Element {
     depth?: number;
     /** A link with `{n}` in a root composition, filled once every number is known. */
     numberSlot?: { label: string; id: string; fallback: string };
+    /** A table cell in a column with `align`: the value of its text-align. */
+    textAlign?: string;
   };
 }
 export type Child = Element | string;
@@ -33,8 +36,6 @@ export function appendChildren(target: Child[], children: Child[]): void {
     else if (child !== '') target.push(child);
   }
 }
-
-export type JsonML = string | [string, ...unknown[]];
 
 export function toJsonML(child: Child): JsonML {
   if (typeof child === 'string') return child;

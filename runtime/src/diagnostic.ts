@@ -1,13 +1,6 @@
-export type Severity = 'error' | 'warning';
+import type { Diagnostic, Severity } from './tree.js';
 
-export interface Diagnostic {
-  severity: Severity;
-  code: string;
-  file: string;
-  target?: string;
-  message?: string;
-  fix?: string;
-}
+export type { Diagnostic, Severity };
 
 /** Severity of every code in §11.2 of the spec. */
 const SEVERITY: Record<string, Severity> = {
