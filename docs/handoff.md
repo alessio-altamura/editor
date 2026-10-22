@@ -18,8 +18,8 @@ connettori) si aggiungono uno alla volta; orientamento: sono filtri dell'app,
 non cartelle. Il testo è la base; l'editor grafico, la griglia, i connettori e le
 pagine sono viste generate dal testo. Il motore è l'HTML; il PDF è la sua
 stampa. Si parte dal motore, non dall'interfaccia. Il primo codice è il
-`runtime` da riga di comando, in `runtime/` sul ramo claude/runtime-level1,
-non ancora unito.
+`runtime` da riga di comando, in `runtime/`, unito nel ramo di lavoro il
+2026-10-22.
 
 ## Come lavorare con Alessio
 
