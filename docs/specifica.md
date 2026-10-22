@@ -1563,11 +1563,20 @@ calcolo», proposta]. I passi:
    contenuto.
 
 *(proposta)* **Limiti di sicurezza**, perché il documento si risolva in un
-tempo finito: il `resolved tree` ha al massimo 1000 livelli di `embed` uno
-dentro l'altro e 100000 `embed` in tutto. Oltre, l'`embed` si taglia:
-diventa `{"id": …, "unresolved": true}`, senza figli, con l'errore
-`tree-limit`. Un `recursion` con un limite alto e due `embed` di sé stesso
-ne avrebbe altrimenti 2^(n+1)-1. Un annidamento Markdown oltre 100 livelli è
+tempo finito, con tre limiti del `resolved tree`:
+- 1000 livelli di `embed` uno dentro l'altro, contati sotto il nodo che li
+  contiene, che non conta;
+- 100000 `embed` in tutto;
+- 50 milioni di caratteri nelle stringhe di testo del contenuto, perché ogni
+  `embed` porta il suo contenuto risolto e un documento valido di 25 KB può
+  dare un albero di 800 milioni di caratteri.
+
+Oltre un limite, l'`embed` e quelli che seguono si tagliano: ciascuno diventa
+`{"id": …, "unresolved": true}`, senza figli, con l'errore `tree-limit`, e
+l'albero esce comunque. Un `recursion` con un limite alto e due `embed` di sé
+stesso ne avrebbe altrimenti 2^(n+1)-1. Il limite di `recursion` (§0.17) si
+applica prima: un `embed` che per `recursion` non entra nell'albero non è mai
+`tree-limit`. Un annidamento Markdown oltre 100 livelli è
 `syntax`, e una riga di calcolo con più di 100 parentesi è
 `math-line-invalid`.
 
@@ -1616,7 +1625,7 @@ il riferimento non si risolve (§0.3) e il `target` è l'`id` scritto.
 | `embed-cycle` | error | un `chapter` che contiene sé stesso senza `recursion`; uno per `chapter` del ciclo che non la abilita e per `directive` del ciclo | l'`id` del `chapter` | 38 |
 | `embed-outside-composition` | error | un `![[id]]` da solo in un capoverso di un file che non è una `composition` né una `directive` | l'`id` | 39 |
 | `markdown-image` | error | un'immagine Markdown, `![alt](url)` o `![alt][rif]` | l'URL | 37, 41 |
-| `tree-limit` | error | un `embed` oltre i limiti del `resolved tree` (§11.1); uno per file | l'`id` del primo `embed` tagliato | non coperto |
+| `tree-limit` | error | un `embed` oltre uno dei tre limiti del `resolved tree` (livelli, numero, caratteri; §11.1); uno per file | l'`id` del primo `embed` tagliato | non coperto |
 | `retired-chain` | warning | in `retired-ids.yaml` un successore a sua volta ritirato | l'`id` | non coperto |
 | `retired-cycle` | error | un ciclo fra successori | l'`id` | non coperto |
 | `retired-successor-missing` | error | un successore che non esiste | l'`id` | non coperto |
