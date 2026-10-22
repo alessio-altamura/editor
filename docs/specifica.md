@@ -365,7 +365,7 @@ l'attributo HTML.
     nel flusso, in linea e a blocchi, che pure hanno `none` come valore
     calcolato e non la possono togliere
     ([css-text-decor-3 §2](https://www.w3.org/TR/css-text-decor-3/#line-decoration):
-    «Inherited: no (but see prose, above)»).
+    «Inherited: no (but see prose, above)»). Esempio 44.
 
   Il resto è `stylesheet-unsupported`, con `target` il nome della
   proprietà; anche un valore fuori da decimal128 (§0.4), come
@@ -427,7 +427,8 @@ l'attributo HTML.
   list          { margin-left: 18pt; margin-bottom: 6pt; }
   ```
 
-  `thematicBreak` non ha regole: la linea la disegna il `renderer` (§7.4).
+  `thematicBreak` non ha regole: la linea la disegna il `renderer` (§7.4,
+  §11.4).
   La regola `root` dà tutte le proprietà ereditate del sottoinsieme; un
   margine senza regola vale `0pt`, e `text-decoration-line` vale `none`.
   La sottolineatura dei collegamenti è decisa [C: «Sulla bozza di specifica»]: il blu da solo ha
@@ -444,7 +445,7 @@ l'attributo HTML.
   differisce da quello che la cella avrebbe dal foglio di partenza e dal
   genitore; i figli in linea della cella lo ereditano, e una colonna con
   `align` `null` eredita come ogni nodo. L'attributo `align` della `table`
-  resta com'è.
+  resta com'è (esempio 45).
 - **La forma dei valori.** Ogni nodo del contenuto della `composition` radice,
   cioè l'`article` o il `deck`, porta negli attributi un oggetto
   `computedStyle` con le proprietà il cui valore finale differisce da quello
@@ -600,7 +601,8 @@ si sposta come un'unità, si annida, e può non avere titolo.
   di partenza [C: «Sulla bozza di specifica»]. *(proposta)* È il primo figlio del contenuto
   dell'`article`, `["title", "Rapporto del terzo trimestre"]`, con il suo
   `computedStyle` come ogni nodo, e lo colpisce la regola `title-0`, il
-  grado 0 del documento intero (§0.5); un `title` vuoto non dà il nodo. Il
+  grado 0 del documento intero (§0.5, esempio 46); un `title` vuoto non dà
+  il nodo. Il
   `title` del `deck` si vedrà con le `slide` (classe 6). Hanno un corpo di
   soli `embed`, di `chapter` o di `object`.
 - **Cicli.** Un `chapter` che contiene sé stesso, anche attraverso altri, è
@@ -1291,7 +1293,9 @@ Queste regole le evitano:
   `embed` (esempio 24), e in uno `scratch`; in un `text` è un blocco in più,
   quindi `text-blocks`. Nel `resolved tree` è `["thematicBreak"]`; la linea la
   disegna il `renderer` dal tipo, perché spessore e colore non sono nel
-  sottoinsieme della classe 1.
+  sottoinsieme della classe 1. Allo stesso modo, fuori dal sottoinsieme, il
+  `renderer` di riferimento disegna i segni degli elenchi, i bordi delle
+  tabelle e il margine della pagina, in modo non normativo (§11.4).
 - **GitHub e gli altri programmi** mostrano il Markdown con il loro aspetto:
   è un'anteprima, non l'impaginazione del documento.
 
@@ -1406,7 +1410,7 @@ id: report
     {"id": "cap-vendite", "kind": "chapter", "file": "cap-vendite.chapter.md", "attributes": {"title": "Le vendite"}, "content": [["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["evidenza"]}, ["paragraph", "Le vendite sono calate del 12%."]], ["embed", {"id": "lavagna", "kind": "image", "asset": "lavagna.jpg"}, ["paragraph", "Foto della lavagna con le vendite mensili."]]]},
     {"id": "lavagna", "kind": "image", "file": "lavagna.image.md", "attributes": {"asset": "lavagna.jpg"}, "content": [["paragraph", "Foto della lavagna con le vendite mensili."]]},
     {"id": "report", "kind": "stylesheet", "file": "report.stylesheet.css"},
-    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"title": "Rapporto del terzo trimestre", "stylesheet": "report"}, "content": [["embed", {"id": "cap-vendite", "kind": "chapter", "depth": 1, "number": "1"}, ["title", "Le vendite"], ["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["evidenza"], "computedStyle": {"font-weight": "700"}}, ["paragraph", "Le vendite sono calate del 12%."]], ["embed", {"id": "lavagna", "kind": "image", "asset": "lavagna.jpg", "number": "1"}, ["paragraph", "Foto della lavagna con le vendite mensili."]]]]}
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"title": "Rapporto del terzo trimestre", "stylesheet": "report"}, "content": [["title", "Rapporto del terzo trimestre"], ["embed", {"id": "cap-vendite", "kind": "chapter", "depth": 1, "number": "1"}, ["title", "Le vendite"], ["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["evidenza"], "computedStyle": {"font-weight": "700"}}, ["paragraph", "Le vendite sono calate del 12%."]], ["embed", {"id": "lavagna", "kind": "image", "asset": "lavagna.jpg", "number": "1"}, ["paragraph", "Foto della lavagna con le vendite mensili."]]]]}
   ]
 }
 ````````````````````````````````
@@ -1628,6 +1632,10 @@ La risoluzione non si ferma a un errore: l'albero esce sempre, con il
 zero e l'`export` si rifiuta; con un'opzione esplicita l'HTML esce lo
 stesso, come anteprima, con i pezzi mancanti segnati [C: «Sulla bozza di specifica»].
 *(proposta)* L'opzione è `--allow-errors`, e il codice di uscita resta 1.
+*(proposta)* L'`export` (§11.4) ha due limiti suoi: un'immagine si
+incorpora fino a 64 MiB, altrimenti resta fuori con `asset-unsupported`, e
+l'HTML intero non supera 256 MiB, altrimenti non si scrive, nemmeno con
+`--allow-errors` (`export-too-large`).
 I codici di uscita: 0 senza
 errori (gli avvisi sono ammessi), 1 se l'albero ha almeno un errore, 2 per
 un uso sbagliato o una cartella che non si legge, 3 per un errore interno
@@ -1697,6 +1705,8 @@ il riferimento non si risolve (§0.3) e il `target` è l'`id` scritto.
 | `asset-missing` | error | `asset` assente | il percorso | 7 |
 | `stylesheet-unsupported` | warning | dichiarazione, selettore o at-rule fuori dal sottoinsieme, ignorati: proprietà, valore, `!important` | il nome della proprietà; per un selettore, il primo membro fuori dal sottoinsieme, come è scritto e senza spazi ai bordi; per una at-rule, la parola chiave; per una dichiarazione senza «:», il suo testo | non coperto |
 | `reference-unresolved` | error | `id reference` senza bersaglio, in un attributo o in linea | l'`id` | non coperto |
+| `asset-unsupported` | warning | solo nell'`export` (§11.4): un'immagine della pagina che non si incorpora, perché il formato non è riconosciuto, il file non si legge o supera 64 MiB; `file` è il descrittore dell'`image`; uno per descrittore | l'`asset` com'è scritto | non coperto |
+| `export-too-large` | error | solo nell'`export`: l'HTML supererebbe 256 MiB, e non si scrive, anche con `--allow-errors`; `file` è quello dell'`article` radice; il `fix` suggerisce di ridurre le immagini o le loro inclusioni | — | non coperto |
 
 ```````````````````````````````` example 13 conf=0 status=proposal
 === file calo-q3.concept.md
@@ -1834,7 +1844,7 @@ title: Rapporto del terzo trimestre
 {
   "nodes": [
     {"id": "calo-q3", "kind": "concept", "file": "calo-q3.concept.md", "content": [["paragraph", "Nel terzo trimestre le vendite calano."]]},
-    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"title": "Rapporto del terzo trimestre"}}
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"title": "Rapporto del terzo trimestre"}, "content": [["title", "Rapporto del terzo trimestre"]]}
   ],
   "diagnostics": [
     {"severity": "error", "code": "association-kind", "file": "calo-q3.concept.md", "target": "report-q3", "fix": "togli report-q3 da associations"}
@@ -2621,8 +2631,187 @@ percorso del file dalla cartella del documento, con le barre `/`, perché il
 percorso scritto nel descrittore vale dalla cartella del descrittore (§2) e
 l'`embed` da solo non direbbe dove sta il file; con `asset-missing`
 l'`embed` non porta `asset`, e chi disegna mostra la descrizione, che è la
-`static fallback` (§7.2). Nel nodo dell'`image` l'`asset` resta com'è
+`static fallback` (§7.2, esempio 47). Nel nodo dell'`image` l'`asset` resta com'è
 scritto.
+
+Gli esempi 44-47 mostrano le ultime proposte di questa sezione e del §0.5.
+Il collegamento è sottolineato dal foglio di partenza, e uno `stylesheet` lo
+toglie (esempio 44):
+
+```````````````````````````````` example 44 conf=1 status=proposal
+=== file uno.article.md
+---
+id: uno
+kind: article
+---
+![[nota-sito]]
+=== file due.article.md
+---
+id: due
+kind: article
+stylesheet: "[[sobrio]]"
+---
+![[nota-sito]]
+=== file nota-sito.text.md
+---
+id: nota-sito
+kind: text
+---
+Vedi [il sito](https://example.com).
+=== file sobrio.stylesheet.css
+/*
+kind: stylesheet
+id: sobrio
+*/
+hyperlink { text-decoration: none; }
+=== resolved
+{
+  "nodes": [
+    {"id": "due", "kind": "article", "file": "due.article.md", "attributes": {"stylesheet": "sobrio"}, "content": [["embed", {"id": "nota-sito", "kind": "text"}, ["paragraph", "Vedi ", ["hyperlink", {"url": "https://example.com", "computedStyle": {"text-decoration-line": "none"}}, "il sito"], "."]]]},
+    {"id": "nota-sito", "kind": "text", "file": "nota-sito.text.md", "content": [["paragraph", "Vedi ", ["hyperlink", {"url": "https://example.com"}, "il sito"], "."]]},
+    {"id": "sobrio", "kind": "stylesheet", "file": "sobrio.stylesheet.css"},
+    {"id": "uno", "kind": "article", "file": "uno.article.md", "content": [["embed", {"id": "nota-sito", "kind": "text"}, ["paragraph", "Vedi ", ["hyperlink", {"url": "https://example.com"}, "il sito"], "."]]]}
+  ]
+}
+````````````````````````````````
+
+L'allineamento delle colonne batte quello che la cella erediterebbe; la
+colonna senza allineamento eredita il centro dell'`embed` (esempio 45):
+
+```````````````````````````````` example 45 conf=1 status=proposal
+=== file report-q3.article.md
+---
+id: report-q3
+kind: article
+stylesheet: "[[report]]"
+---
+![[vendite]]{.centro}
+=== file vendite.text.md
+---
+id: vendite
+kind: text
+---
+| Mese | Vendite | Nota |
+|:--|--:|---|
+| luglio | 120 | calo |
+=== file report.stylesheet.css
+/*
+kind: stylesheet
+id: report
+*/
+.centro { text-align: center; }
+=== resolved
+{
+  "nodes": [
+    {"id": "report", "kind": "stylesheet", "file": "report.stylesheet.css"},
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"stylesheet": "report"}, "content": [["embed", {"id": "vendite", "kind": "text", "class": ["centro"], "computedStyle": {"text-align": "center"}}, ["table", {"align": ["left", "right", null]}, ["tableRow", ["tableCell", {"computedStyle": {"text-align": "left"}}, "Mese"], ["tableCell", {"computedStyle": {"text-align": "right"}}, "Vendite"], ["tableCell", "Nota"]], ["tableRow", ["tableCell", {"computedStyle": {"text-align": "left"}}, "luglio"], ["tableCell", {"computedStyle": {"text-align": "right"}}, "120"], ["tableCell", "calo"]]]]]},
+    {"id": "vendite", "kind": "text", "file": "vendite.text.md", "content": [["table", {"align": ["left", "right", null]}, ["tableRow", ["tableCell", "Mese"], ["tableCell", "Vendite"], ["tableCell", "Nota"]], ["tableRow", ["tableCell", "luglio"], ["tableCell", "120"], ["tableCell", "calo"]]]]}
+  ]
+}
+````````````````````````````````
+
+Il titolo dell'`article` è il primo figlio del suo contenuto, e `title-0` lo
+colpisce; `1em` vale sul suo `font-size` (esempio 46):
+
+```````````````````````````````` example 46 conf=1 status=proposal
+=== file report-q3.article.md
+---
+id: report-q3
+kind: article
+title: Rapporto del terzo trimestre
+stylesheet: "[[report]]"
+---
+![[nota]]
+=== file nota.text.md
+---
+id: nota
+kind: text
+---
+Una nota.
+=== file report.stylesheet.css
+/*
+kind: stylesheet
+id: report
+*/
+title-0 { font-size: 26pt; color: #333333; margin-bottom: 1em; }
+=== resolved
+{
+  "nodes": [
+    {"id": "nota", "kind": "text", "file": "nota.text.md", "content": [["paragraph", "Una nota."]]},
+    {"id": "report", "kind": "stylesheet", "file": "report.stylesheet.css"},
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"title": "Rapporto del terzo trimestre", "stylesheet": "report"}, "content": [["title", {"computedStyle": {"font-size": "26pt", "color": "#333333", "margin-bottom": "26pt"}}, "Rapporto del terzo trimestre"], ["embed", {"id": "nota", "kind": "text"}, ["paragraph", "Una nota."]]]}
+  ]
+}
+````````````````````````````````
+
+L'`asset` dell'`embed` è il percorso dalla cartella del documento; con
+`asset-missing` l'`embed` non lo porta (esempio 47):
+
+```````````````````````````````` example 47 conf=1 status=proposal
+=== file report-q3.article.md
+---
+id: report-q3
+kind: article
+---
+![[lavagna]]
+
+![[rotta]]
+=== file immagini/lavagna.image.md
+---
+id: lavagna
+kind: image
+asset: foto/lavagna.png
+---
+La lavagna.
+=== asset immagini/foto/lavagna.png
+=== file rotta.image.md
+---
+id: rotta
+kind: image
+asset: manca.png
+---
+Un'immagine che manca.
+=== resolved
+{
+  "nodes": [
+    {"id": "lavagna", "kind": "image", "file": "immagini/lavagna.image.md", "attributes": {"asset": "foto/lavagna.png"}, "content": [["paragraph", "La lavagna."]]},
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "content": [["embed", {"id": "lavagna", "kind": "image", "asset": "immagini/foto/lavagna.png", "number": "1"}, ["paragraph", "La lavagna."]], ["embed", {"id": "rotta", "kind": "image", "number": "2"}, ["paragraph", "Un'immagine che manca."]]]},
+    {"id": "rotta", "kind": "image", "file": "rotta.image.md", "attributes": {"asset": "manca.png"}, "content": [["paragraph", "Un'immagine che manca."]]}
+  ],
+  "diagnostics": [
+    {"severity": "error", "code": "asset-missing", "file": "rotta.image.md", "target": "manca.png", "fix": "aggiungi il file o correggi il percorso"}
+  ]
+}
+````````````````````````````````
+
+### 11.4 L'`export` *(proposta)*
+
+Il comando `doc-runtime export <cartella> [--root <id>] [-o <file>]
+[--allow-errors]` scrive l'HTML di un `article`: un solo file, con il CSS e
+le immagini dentro, che si manda e si apre ovunque [C: «L'HTML esportato»].
+`--root` sceglie l'`article` per `id`; senza, la cartella deve averne uno
+solo. L'HTML va su stdout, o nel file di `-o`, che si scrive per intero o
+non si tocca. Con un errore nell'albero l'`export` si rifiuta, e con
+`--allow-errors` scrive un'anteprima con i pezzi mancanti segnati (§11.1).
+Un'immagine si riconosce dai primi byte, fra PNG, JPEG, GIF, WebP e SVG, mai
+dall'estensione, e si incorpora fino a 64 MiB; un'altra resta fuori, con la
+sua descrizione al posto e l'avviso `asset-unsupported`. L'HTML intero non
+supera 256 MiB (`export-too-large`). Gli stessi file danno gli stessi byte.
+
+La pagina non carica niente da fuori: una Content Security Policy ammette
+solo le immagini `data:` e lo stile in linea, e nessuno script. Un
+collegamento a un URL ha `href` solo per `http:`, `https:` e `mailto:`, o
+per `#id` di un oggetto nella pagina; un percorso relativo, come
+`allegato.pdf`, resta testo senza `href`, perché il file HTML viaggia da
+solo.
+
+Ogni elemento che rappresenta un nodo porta nell'attributo `style` le
+dodici proprietà del sottoinsieme con i valori finali, ricavati dal
+`resolved tree` come dice il §0.5, senza cascate. La mappatura dai tipi agli
+elementi HTML è del `renderer` di riferimento, non è normativa, e sta nel
+README del `runtime`. Non normativo è anche quello che il `renderer` disegna
+da sé, fuori dal sottoinsieme: i segni degli elenchi, i bordi delle tabelle,
+la linea di `thematicBreak` e il margine della pagina sullo schermo (§7.4).
 
 ## Appendice A. Classi successive (non normativa)
 

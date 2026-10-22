@@ -2,7 +2,7 @@
   "name": "doc-runtime",
   "version": "0.1.0",
   "private": true,
-  "description": "Runtime da riga di comando: legge la cartella di un documento e scrive il resolved tree",
+  "description": "Runtime da riga di comando: legge la cartella di un documento, scrive il resolved tree e l'HTML",
   "type": "module",
   "engines": {
     "node": ">=22"
@@ -13,7 +13,8 @@
   "scripts": {
     "build": "tsc -p .",
     "typecheck": "tsc -p . --noEmit",
-    "test": "tsc -p . && node dist/test/conformance-suite.js && node dist/test/robustness-suite.js"
+    "test": "tsc -p . && node dist/test/conformance-suite.js && node dist/test/robustness-suite.js && node dist/test/export-suite.js",
+    "test:browser": "tsc -p . && node dist/test/browser-suite.js"
   },
   "dependencies": {
     "decimal.js": "10.6.0",
@@ -25,7 +26,10 @@
   "devDependencies": {
     "@types/mdast": "4.0.4",
     "@types/node": "22.20.5",
+    "html-validate": "11.16.2",
     "micromark-util-types": "2.0.3",
+    "parse5": "8.0.1",
+    "playwright-core": "1.56.1",
     "typescript": "5.9.3"
   }
 }

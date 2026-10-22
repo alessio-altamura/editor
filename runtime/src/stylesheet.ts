@@ -1,17 +1,10 @@
 // The CSS subset of class 1 (§0.5): a small parser, the values it admits and the cascade.
 import { Decimal, inDecimal128Range, plainString, readDecimal, roundHalfEven, type Decimal as DecimalValue } from './math-line.js';
 import { NAMED_COLORS } from './named-colors.js';
+import { baseStylesheetCss, INHERITED_PROPERTIES, NOT_INHERITED_DEFAULTS, STYLE_PROPERTIES } from './base-stylesheet.js';
 
-export const INHERITED_PROPERTIES = [
-  'font-family',
-  'font-size',
-  'font-weight',
-  'font-style',
-  'color',
-  'text-align',
-  'line-height',
-] as const;
-export const MARGIN_PROPERTIES = ['margin-top', 'margin-right', 'margin-bottom', 'margin-left'] as const;
+export { INHERITED_PROPERTIES };
+const TEXT_DECORATION_LINE = 'text-decoration-line';
 const NUMBER_NOTATION = '--number-notation';
 
 /** A specified value, before `em` is resolved. Lengths are already in pt. */
@@ -64,6 +57,7 @@ const DOCUMENT_TYPE_SELECTORS: ReadonlyMap<string, string> = new Map([
   ['emphasis', 'emphasis'],
   ['strong', 'strong'],
   ['inline-code', 'inlineCode'],
+  ['title-0', 'title-0'],
   ['title-1', 'title-1'],
   ['title-2', 'title-2'],
   ['title-3', 'title-3'],
@@ -212,6 +206,7 @@ function parseValue(property: string, text: string): SpecifiedValue | null {
     case 'font-style': return keyword(text, ['normal', 'italic']);
     case 'text-align': return keyword(text, ['left', 'right', 'center', 'justify']);
     case 'color': return parseColor(text);
+    case TEXT_DECORATION_LINE: return keyword(text, ['none', 'underline']);
     // A custom property is case-sensitive, so its value is not lowercased.
     case NUMBER_NOTATION: return text === 'standard' || text === 'compact' ? { type: 'keyword', text } : null;
     default: return null;
@@ -219,11 +214,7 @@ function parseValue(property: string, text: string): SpecifiedValue | null {
 }
 
 function isSubsetProperty(property: string): boolean {
-  return (
-    (INHERITED_PROPERTIES as readonly string[]).includes(property) ||
-    (MARGIN_PROPERTIES as readonly string[]).includes(property) ||
-    property === NUMBER_NOTATION
-  );
+  return (STYLE_PROPERTIES as readonly string[]).includes(property) || property === NUMBER_NOTATION || property === 'text-decoration';
 }
 
 function parseSelector(text: string, base: boolean): Selector | null {
@@ -252,9 +243,11 @@ function parseDeclarations(block: string, unsupported: string[]): Declaration[] 
       unsupported.push(written);
       continue;
     }
-    const value = parseValue(property, valueText);
+    // `text-decoration` with one word, none or underline, counts as `text-decoration-line` (§0.5).
+    const target = property === 'text-decoration' ? TEXT_DECORATION_LINE : property;
+    const value = parseValue(target, valueText);
     if (value === null) unsupported.push(written);
-    else declarations.push({ property, value });
+    else declarations.push({ property: target, value });
   }
   return declarations;
 }
@@ -336,23 +329,7 @@ function matchingBrace(text: string, open: number): number {
 }
 
 /** The base stylesheet of §0.5, applied before the document's stylesheets. */
-export const BASE_STYLESHEET = parseStylesheet(
-  `
-root          { font-family: serif; font-size: 11pt; line-height: 1.4; color: #000000;
-                font-weight: 400; font-style: normal; text-align: left; }
-paragraph     { margin-bottom: 6pt; }
-title-1       { font-size: 18pt; font-weight: 700; margin-top: 18pt; margin-bottom: 9pt; }
-title-2       { font-size: 14pt; font-weight: 700; margin-top: 12pt; margin-bottom: 6pt; }
-title-3       { font-size: 11pt; font-weight: 700; margin-top: 9pt; margin-bottom: 3pt; }
-emphasis      { font-style: italic; }
-strong        { font-weight: 700; }
-inlineCode, code { font-family: monospace; }
-hyperlink     { color: #1a4f8b; }
-blockquote    { margin-left: 24pt; }
-list          { margin-left: 18pt; margin-bottom: 6pt; }
-`,
-  true,
-);
+export const BASE_STYLESHEET = parseStylesheet(baseStylesheetCss(), true);
 
 /** What a node shows to the cascade: its type for the base stylesheet and its classes. */
 export interface StyleTarget {
@@ -408,7 +385,9 @@ export function computeStyle(
     const inherited = parent.get(property);
     if (inherited) style.set(property, inherited);
   }
-  for (const property of MARGIN_PROPERTIES) style.set(property, lengthValue(new Decimal(0)));
+  for (const [property, value] of Object.entries(NOT_INHERITED_DEFAULTS)) {
+    style.set(property, property === TEXT_DECORATION_LINE ? { text: value } : lengthValue(new Decimal(0)));
+  }
 
   const settle = (property: string, emBase: DecimalValue) => {
     for (const value of candidates.get(property) ?? []) {
@@ -451,7 +430,7 @@ function compareKeys(a: number[], b: number[]): number {
 /** The properties whose final value differs from the expected one, for `computedStyle`. */
 export function styleDifference(final: ComputedStyle, expected: ComputedStyle): Record<string, string> {
   const difference: Record<string, string> = {};
-  for (const property of [...INHERITED_PROPERTIES, ...MARGIN_PROPERTIES]) {
+  for (const property of STYLE_PROPERTIES) {
     const value = final.get(property)?.text;
     if (value !== undefined && value !== expected.get(property)?.text) difference[property] = value;
   }
