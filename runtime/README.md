@@ -174,8 +174,8 @@ Infine lancia `test/export-suite.ts`, senza browser, sulle cartelle di
 fuso e un'altra lingua), html-validate e parse5, un cammino parallelo fra
 albero e DOM con tag, attributi, `style` e testo, i collegamenti, la
 sicurezza, le immagini e il limite di 256 MiB; le pagine valide nelle tre
-forme, con tutti e due i temi, `--theme light` e `--theme dark`. Il foglio di partenza lo legge
-dal blocco del §0.5 della specifica, non da `src/`.
+forme, con tutti e due i temi, `--theme light` e `--theme dark`. Il foglio
+di partenza lo legge dal blocco del §0.5 della specifica, non da `src/`.
 
 La suite del browser è fuori da `npm test`:
 
