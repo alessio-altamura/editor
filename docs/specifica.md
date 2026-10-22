@@ -623,7 +623,11 @@ in tutte, oppure chiede a chi scrive.
 ### 0.10 Deciso: la numerazione
 
 La numerazione di capitoli e immagini la calcola il `runtime` e la scrive nel
-`resolved tree` [C: «Sulla bozza di specifica»].
+`resolved tree` [C: «Sulla bozza di specifica»]. Il numero di un capitolo si
+vede davanti al suo titolo, «1 Le vendite», «1.1 Il calo» [C: «Sulla bozza
+di specifica»]. Il numero di un'immagine, per ora, serve solo
+ai `cross-ref`: la descrizione dell'`image` è il testo per gli screen reader,
+non una didascalia (§7.2).
 
 *(proposte)*
 - Nel contenuto di una `composition`, l'`embed` di un `chapter` e quello di un

@@ -312,6 +312,20 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
   - Numerazione dei capitoli che si ripetono per ricorsione (2026-10-22,
     Alessio, «sì va bene 1, 1.1, 1.1.1»): ogni ripetizione con un title prende
     un numero nuovo, come un capitolo annidato.
+  - L'HTML esportato (2026-10-22, Alessio, «1A 2A»). Un solo file `.html`
+    per `composition`, con il CSS dentro e le immagini incorporate: si manda
+    e si apre ovunque, ed è lo stesso file che Chromium stampa in PDF. Una
+    cartella con le immagini accanto si aggiunge se servirà, per esempio per
+    un sito. Il numero di un capitolo si vede davanti al suo titolo, «1 Le
+    vendite», «1.1 Il calo», come in LaTeX, coerente con i `cross-ref` che
+    scrivono «capitolo 1». Scartati il numero solo nei `cross-ref`, come in
+    Word, e una proprietà per spegnerlo, che si potrà aggiungere dopo.
+    Conseguenze di decisioni già prese, notate dall'orchestratore: l'HTML
+    legge il `resolved tree` senza ricalcolare; la norma è l'albero, quindi
+    l'HTML del `runtime` è un `renderer` di riferimento, non normativo; nella
+    classe 1 non ci sono input, quindi l'HTML è statico, con i valori
+    fotografati. Non deciso: una didascalia visibile per le immagini, il cui
+    numero per ora serve solo ai `cross-ref`.
 
 ## Proposte non decise
 
