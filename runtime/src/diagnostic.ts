@@ -49,6 +49,8 @@ const SEVERITY: Record<string, Severity> = {
   'asset-missing': 'error',
   'stylesheet-unsupported': 'warning',
   'reference-unresolved': 'error',
+  'asset-unsupported': 'warning',
+  'export-too-large': 'error',
 };
 
 export function makeDiagnostic(code: string, file: string, target?: string, fix?: string): Diagnostic {

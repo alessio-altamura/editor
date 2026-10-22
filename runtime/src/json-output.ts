@@ -3,7 +3,7 @@ import { writeSync } from 'node:fs';
 
 const CHUNK = 1 << 16;
 
-function writeAll(fd: number, text: string): void {
+export function writeAll(fd: number, text: string): void {
   const buffer = Buffer.from(text, 'utf8');
   let offset = 0;
   while (offset < buffer.length) {

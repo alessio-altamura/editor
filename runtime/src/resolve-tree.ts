@@ -120,7 +120,12 @@ const utf8 = new TextDecoder('utf-8', { fatal: true });
  * dot. A symbolic link is not followed and goes in `unreadable`, with the
  * names that are not UTF-8: each gives `syntax` (§2).
  */
-function listFiles(folder: string, prefix = '', unreadable: string[] = []): { files: string[]; unreadable: string[] } {
+function listFiles(
+  folder: string,
+  prefix = '',
+  unreadable: string[] = [],
+  identities?: Map<string, FileIdentity>,
+): { files: string[]; unreadable: string[] } {
   const files: string[] = [];
   const names: string[] = [];
   let entries: Buffer[];
@@ -144,16 +149,32 @@ function listFiles(folder: string, prefix = '', unreadable: string[] = []): { fi
     const path = prefix === '' ? name : `${prefix}/${name}`;
     let stat;
     try {
-      stat = lstatSync(join(folder, path));
+      stat = lstatSync(join(folder, path), { bigint: true });
     } catch {
       unreadable.push(path);
       continue;
     }
     if (stat.isSymbolicLink()) unreadable.push(path);
-    else if (stat.isDirectory()) for (const file of listFiles(folder, path, unreadable).files) files.push(file);
-    else if (stat.isFile()) files.push(path);
+    else if (stat.isDirectory()) for (const file of listFiles(folder, path, unreadable, identities).files) files.push(file);
+    else if (stat.isFile()) {
+      files.push(path);
+      identities?.set(path, { dev: stat.dev, ino: stat.ino });
+    }
   }
   return { files, unreadable };
+}
+
+/** Device and inode of a listed file, so a reader can check it opened the same file. */
+export interface FileIdentity {
+  dev: bigint;
+  ino: bigint;
+}
+
+/** The regular files of the document folder, as the resolution lists them (§2), with their identity. */
+export function listDocumentFiles(folder: string): Map<string, FileIdentity> {
+  const identities = new Map<string, FileIdentity>();
+  listFiles(folder, '', [], identities);
+  return identities;
 }
 
 /** Reads a file as UTF-8, also with BOM and CRLF; null when it does not read. */
