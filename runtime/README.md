@@ -121,7 +121,9 @@ i blocchi.
 selettori di `class`, `!important` né `all:`: un azzeramento su tutti gli
 elementi usati (`margin`, `padding`, `border`, `font: inherit`, `color:
 inherit`, `text-decoration: none`, `vertical-align: baseline`) e
-`text-size-adjust: 100%`; poi `body { padding: 18pt }` sullo schermo, i segni
+`text-size-adjust: 100%`; la pagina bianca (`background: #ffffff` e
+`color-scheme: light` su `html`), così si legge anche in un visore a tema
+scuro; poi `body { padding: 18pt }` sullo schermo, i segni
 degli elenchi (`disc`, `decimal`), `pre-wrap` per `pre`, la linea di `hr`, i
 bordi di tabelle e celle, `max-width: 100%` per le immagini e `unicode-bidi:
 isolate` per numeri e righe di calcolo. Con `--allow-errors` si aggiunge un

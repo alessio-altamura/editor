@@ -2886,8 +2886,10 @@ dodici proprietà del sottoinsieme con i valori finali, ricavati dal
 `resolved tree` come dice il §0.5, senza cascate. La mappatura dai tipi agli
 elementi HTML è del `renderer` di riferimento, non è normativa, e sta nel
 README del `runtime`. Non normativo è anche quello che il `renderer` disegna
-da sé, fuori dal sottoinsieme: i segni degli elenchi, i bordi delle tabelle,
-la linea di `thematicBreak` e il margine della pagina sullo schermo (§7.4).
+da sé, fuori dal sottoinsieme: lo sfondo bianco della pagina, che non cambia
+con il tema scuro di chi la apre, i segni degli elenchi, i bordi delle
+tabelle, la linea di `thematicBreak` e il margine della pagina sullo schermo
+(§7.4).
 
 ## Appendice A. Classi successive (non normativa)
 

@@ -26,7 +26,8 @@ const RESET_ELEMENTS = [
 function styleSheet(allowErrors: boolean): string {
   return (
     `${RESET_ELEMENTS.join(', ')} { margin: 0; padding: 0; border: 0; font: inherit; color: inherit; text-decoration: none; vertical-align: baseline; }\n` +
-    'html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }\n' +
+    // The page is paper: a white background, whatever the viewer's theme.
+    'html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; background: #ffffff; color-scheme: light; }\n' +
     '@media screen { body { padding: 18pt; } }\n' +
     'ul { list-style-type: disc; }\n' +
     'ol { list-style-type: decimal; }\n' +
