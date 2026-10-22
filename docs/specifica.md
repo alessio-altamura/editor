@@ -438,6 +438,10 @@ l'attributo HTML.
   blockquote    { margin-left: 24pt; }
   list          { margin-left: 18pt; margin-bottom: 6pt; }
   table, code, image, thematicBreak { margin-bottom: 6pt; }
+  @media (prefers-color-scheme: dark) {
+    root        { color: #e6e6e6; }
+    hyperlink   { color: #8ab4f8; }
+  }
   ```
 
   La linea di `thematicBreak` la disegna il `renderer` (§7.4, §11.4); il
@@ -450,6 +454,41 @@ l'attributo HTML.
   un contrasto di 2,54:1 con il testo nero, sotto il 3:1 della tecnica
   [G183](https://www.w3.org/WAI/WCAG22/Techniques/general/G183), con cui WCAG
   2.2 ammette un collegamento distinto solo dal colore (criterio 1.4.1).
+- **Il tema scuro.** L'HTML ha un tema chiaro e uno scuro, e cambiano solo i
+  colori; uno `stylesheet` dà i colori del tema scuro con `@media
+  (prefers-color-scheme: dark)`, dove non li dà il colore resta quello
+  chiaro, e il `runtime` avvisa quando nel tema scuro un colore ha poco
+  contrasto [C: «Due temi per l'HTML»]. *(proposte)*
+  - Uno `stylesheet` ammette una sola at-rule, `@media (prefers-color-scheme:
+    dark) { … }`, con spazi liberi intorno alle parti. Dentro valgono gli
+    stessi selettori e solo dichiarazioni `color`: un'altra proprietà è
+    `stylesheet-unsupported`, con `target` la proprietà; una at-rule
+    annidata, o un'altra `@media`, resta fuori come le altre at-rule (§9).
+  - Il foglio di partenza ha la sua variante scura, nel blocco sopra:
+    `#e6e6e6` per il testo e `#8ab4f8` per i collegamenti, con contrasti di
+    13,36:1 e 7,91:1 sullo sfondo scuro. Lo sfondo della pagina non è nel
+    sottoinsieme: lo fissa la specifica, `#ffffff` nel tema chiaro e
+    `#1e1e1e` nel tema scuro, e lo disegna il `renderer` (§11.4).
+  - La cascata si calcola due volte. Il tema chiaro ignora i blocchi scuri.
+    Il tema scuro li considera regole come le altre, nella loro posizione
+    nel foglio, come fa CSS quando la media query vale, con gli stessi
+    strati (foglio di partenza, documento, `class` dell'`embed`). Così un
+    `.nota { color: #0000aa; }` senza variante scura batte nel tema scuro il
+    colore ereditato, e resta quello chiaro (esempio 49).
+  - Nel `resolved tree`, accanto a `computedStyle`, un oggetto
+    `darkComputedStyle` con il solo `color`, sui nodi del contenuto della
+    `composition` radice e sul nodo della radice in `nodes`, quando il colore
+    finale del tema scuro differisce da quello atteso nel tema scuro: le
+    regole del foglio di partenza per il tipo, variante scura compresa, più
+    l'eredità dal colore finale scuro del genitore; per la radice, la regola
+    `root` con la sua variante scura. La forma è quella di `computedStyle`.
+    Chi disegna il tema scuro fa lo stesso conto di quello chiaro, con il
+    colore di `darkComputedStyle` al posto di quello di `computedStyle`.
+  - Un nodo il cui colore finale scuro ha un contrasto sotto 4,5:1 con lo
+    sfondo `#1e1e1e` dà l'avviso `dark-contrast-low`, con la luminanza
+    relativa e il rapporto di contrasto di WCAG 2.2
+    ([criterio 1.4.3](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)).
+    I colori del foglio di partenza lo passano per costruzione.
 - **L'allineamento delle colonne.** L'allineamento scritto nella riga di
   separazione di una tabella (`|:--|--:|`) conta, come su GitHub, e lo
   calcola il `runtime` nello stile delle celle [C: «Sulla bozza di specifica»]. *(proposta)* Vale
@@ -1526,7 +1565,8 @@ partenza [C: «Sulla bozza di specifica»] (§0.5).
 - Una dichiarazione o un selettore fuori dal sottoinsieme (una proprietà
   sconosciuta, un valore non ammesso, `!important`) si ignora con un avviso,
   come gli attributi sconosciuti (§1): così uno `stylesheet` scritto per una
-  `spec version` successiva si apre ancora. Una at-rule (`@media`, `@import`
+  `spec version` successiva si apre ancora. Tranne `@media
+  (prefers-color-scheme: dark)` (§0.5), una at-rule (`@media`, `@import`
   e simili) si ignora intera, con `stylesheet-unsupported` e `target` la
   parola chiave con la chiocciola; una dichiarazione senza «:» ha come
   `target` il suo testo, senza spazi ai bordi.
@@ -1732,6 +1772,7 @@ il riferimento non si risolve (§0.3) e il `target` è l'`id` scritto.
 | `asset-missing` | error | `asset` assente | il percorso | 7 |
 | `stylesheet-unsupported` | warning | dichiarazione, selettore o at-rule fuori dal sottoinsieme, ignorati: proprietà, valore, `!important` | il nome della proprietà; per un selettore, il primo membro fuori dal sottoinsieme, come è scritto e senza spazi ai bordi; per una at-rule, la parola chiave; per una dichiarazione senza «:», il suo testo | non coperto |
 | `reference-unresolved` | error | `id reference` senza bersaglio, in un attributo o in linea | l'`id` | non coperto |
+| `dark-contrast-low` | warning | un nodo del contenuto della `composition` radice, o la radice, il cui colore finale nel tema scuro ha un contrasto sotto 4,5:1 con `#1e1e1e` (§0.5); `file` è lo `stylesheet` della radice; uno per `stylesheet` e colore | il colore, `#rrggbb` | 27 |
 | `asset-unsupported` | warning | solo nell'`export` (§11.4): un'immagine della pagina che non si incorpora, perché il formato non è riconosciuto, il file non si legge o supera 64 MiB; `file` è il descrittore dell'`image`; uno per descrittore | l'`asset` com'è scritto | non coperto |
 | `export-too-large` | error | solo nell'`export`: l'HTML supererebbe 256 MiB, e non si scrive, anche con `--allow-errors`; `file` è quello dell'`article` radice; il `fix` suggerisce di ridurre le immagini o le loro inclusioni | — | non coperto |
 
@@ -2092,7 +2133,11 @@ id: report
   "nodes": [
     {"id": "calo-q3-sintesi", "kind": "text", "file": "calo-q3-sintesi.text.md", "attributes": {"class": ["evidenza", "urgente"]}, "content": [["paragraph", "Le vendite sono calate del 12%."]]},
     {"id": "report", "kind": "stylesheet", "file": "report.stylesheet.css"},
-    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"stylesheet": "report"}, "content": [["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["evidenza", "urgente", "nota"], "computedStyle": {"color": "#0000aa"}}, ["paragraph", "Le vendite sono calate del 12%."]], ["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["evidenza", "urgente"], "computedStyle": {"color": "#aa0000"}}, ["paragraph", "Le vendite sono calate del 12%."]]]}
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"stylesheet": "report"}, "content": [["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["evidenza", "urgente", "nota"], "computedStyle": {"color": "#0000aa"}, "darkComputedStyle": {"color": "#0000aa"}}, ["paragraph", "Le vendite sono calate del 12%."]], ["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["evidenza", "urgente"], "computedStyle": {"color": "#aa0000"}, "darkComputedStyle": {"color": "#aa0000"}}, ["paragraph", "Le vendite sono calate del 12%."]]]}
+  ],
+  "diagnostics": [
+    {"severity": "warning", "code": "dark-contrast-low", "file": "report.stylesheet.css", "target": "#0000aa"},
+    {"severity": "warning", "code": "dark-contrast-low", "file": "report.stylesheet.css", "target": "#aa0000"}
   ]
 }
 ````````````````````````````````
@@ -2166,7 +2211,11 @@ strong { color: #000000; }
   "nodes": [
     {"id": "calo-q3-sintesi", "kind": "text", "file": "calo-q3-sintesi.text.md", "attributes": {"class": ["nota"]}, "content": [["paragraph", "Le vendite sono ", ["strong", "calate"], "."]]},
     {"id": "report", "kind": "stylesheet", "file": "report.stylesheet.css"},
-    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"stylesheet": "report"}, "content": [["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["nota"], "computedStyle": {"color": "#0000aa"}}, ["paragraph", "Le vendite sono ", ["strong", {"computedStyle": {"color": "#000000"}}, "calate"], "."]]]}
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"stylesheet": "report"}, "content": [["embed", {"id": "calo-q3-sintesi", "kind": "text", "class": ["nota"], "computedStyle": {"color": "#0000aa"}, "darkComputedStyle": {"color": "#0000aa"}}, ["paragraph", "Le vendite sono ", ["strong", {"computedStyle": {"color": "#000000"}, "darkComputedStyle": {"color": "#000000"}}, "calate"], "."]]]}
+  ],
+  "diagnostics": [
+    {"severity": "warning", "code": "dark-contrast-low", "file": "report.stylesheet.css", "target": "#000000"},
+    {"severity": "warning", "code": "dark-contrast-low", "file": "report.stylesheet.css", "target": "#0000aa"}
   ]
 }
 ````````````````````````````````
@@ -2260,7 +2309,10 @@ id: report
   "nodes": [
     {"id": "calo-q3-sintesi", "kind": "text", "file": "calo-q3-sintesi.text.md", "content": [["paragraph", "Le vendite sono calate del 12%."]]},
     {"id": "report", "kind": "stylesheet", "file": "report.stylesheet.css"},
-    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"class": ["scuro"], "stylesheet": "report"}, "computedStyle": {"color": "#333333", "margin-left": "12pt"}, "content": [["embed", {"id": "calo-q3-sintesi", "kind": "text"}, ["paragraph", "Le vendite sono calate del 12%."]]]}
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"class": ["scuro"], "stylesheet": "report"}, "computedStyle": {"color": "#333333", "margin-left": "12pt"}, "darkComputedStyle": {"color": "#333333"}, "content": [["embed", {"id": "calo-q3-sintesi", "kind": "text"}, ["paragraph", "Le vendite sono calate del 12%."]]]}
+  ],
+  "diagnostics": [
+    {"severity": "warning", "code": "dark-contrast-low", "file": "report.stylesheet.css", "target": "#333333"}
   ]
 }
 ````````````````````````````````
@@ -2600,8 +2652,8 @@ toglie uno.
   `/`), `attributes` (quelli dichiarati tranne `id`, `kind` e
   `associations`; si omette se vuoto), `content` (il corpo, preceduto dal nodo del titolo nell'`article` con
   `title`, §0.7; si omette se il `kind` non ne ha o è vuoto) e `"directive": true` per i `kind`
-  non noti. Il nodo della `composition` radice ha anche `computedStyle`, se
-  non è vuoto (§0.5).
+  non noti. Il nodo della `composition` radice ha anche `computedStyle` e
+  `darkComputedStyle`, se non sono vuoti (§0.5).
 - **Le chiavi** degli `attributes` sono in `camelCase`, come vuole il
   glossario per il JSON: `spec-version` diventa `specVersion`. Un trattino seguito da una lettera diventa la lettera
   maiuscola; un trattino seguito da una cifra resta (`voce-2`); una chiave
@@ -2644,7 +2696,8 @@ Nel contenuto di una `composition` un `embed` porta negli attributi `id`,
 `kind`, il `lang` effettivo (quello dell'oggetto o, se manca, quello del
 documento), e se ci sono la `class` (quelle dell'oggetto, poi quelle
 dell'`embed`), l'`asset` dell'oggetto, il grado (`depth`) di un `chapter`, il
-`number` di capitoli e immagini (§0.10) e il `computed style` (§0.5); come
+`number` di capitoli e immagini (§0.10), il `computed style` e il
+`darkComputedStyle` (§0.5); come
 figli, il suo contenuto risolto. *(proposta)* Il titolo di un `chapter` è il
 primo figlio del suo `embed` nella `composition` radice, `["title", "Le
 vendite"]`, così le regole `title-1`, `title-2`, `title-3` e i valori che
@@ -2767,7 +2820,10 @@ title-0 { font-size: 26pt; color: #333333; margin-bottom: 1em; }
   "nodes": [
     {"id": "nota", "kind": "text", "file": "nota.text.md", "content": [["paragraph", "Una nota."]]},
     {"id": "report", "kind": "stylesheet", "file": "report.stylesheet.css"},
-    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"title": "Rapporto del terzo trimestre", "stylesheet": "report"}, "content": [["title", {"computedStyle": {"font-size": "26pt", "color": "#333333", "margin-bottom": "26pt"}}, "Rapporto del terzo trimestre"], ["embed", {"id": "nota", "kind": "text"}, ["paragraph", "Una nota."]]]}
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"title": "Rapporto del terzo trimestre", "stylesheet": "report"}, "content": [["title", {"computedStyle": {"font-size": "26pt", "color": "#333333", "margin-bottom": "26pt"}, "darkComputedStyle": {"color": "#333333"}}, "Rapporto del terzo trimestre"], ["embed", {"id": "nota", "kind": "text"}, ["paragraph", "Una nota."]]]}
+  ],
+  "diagnostics": [
+    {"severity": "warning", "code": "dark-contrast-low", "file": "report.stylesheet.css", "target": "#333333"}
   ]
 }
 ````````````````````````````````
@@ -2860,10 +2916,61 @@ id: preciso
 }
 ````````````````````````````````
 
+Un colore con la variante scura e uno senza, che nel tema scuro resta
+quello chiaro e ha poco contrasto; nel blocco scuro vale solo `color`
+(esempio 49):
+
+```````````````````````````````` example 49 conf=1 status=proposal
+=== file report-q3.article.md
+---
+id: report-q3
+kind: article
+stylesheet: "[[report]]"
+---
+![[nota-a]]{.nota}
+
+![[nota-b]]{.grigio}
+=== file nota-a.text.md
+---
+id: nota-a
+kind: text
+---
+Una nota con [un collegamento](https://example.com).
+=== file nota-b.text.md
+---
+id: nota-b
+kind: text
+---
+Una nota grigia.
+=== file report.stylesheet.css
+/*
+kind: stylesheet
+id: report
+*/
+.nota { color: #0000aa; }
+.grigio { color: #333333; }
+@media (prefers-color-scheme: dark) {
+  .nota { color: #9999ff; margin-left: 4pt; }
+}
+=== resolved
+{
+  "nodes": [
+    {"id": "nota-a", "kind": "text", "file": "nota-a.text.md", "content": [["paragraph", "Una nota con ", ["hyperlink", {"url": "https://example.com"}, "un collegamento"], "."]]},
+    {"id": "nota-b", "kind": "text", "file": "nota-b.text.md", "content": [["paragraph", "Una nota grigia."]]},
+    {"id": "report", "kind": "stylesheet", "file": "report.stylesheet.css"},
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "attributes": {"stylesheet": "report"}, "content": [["embed", {"id": "nota-a", "kind": "text", "class": ["nota"], "computedStyle": {"color": "#0000aa"}, "darkComputedStyle": {"color": "#9999ff"}}, ["paragraph", "Una nota con ", ["hyperlink", {"url": "https://example.com"}, "un collegamento"], "."]], ["embed", {"id": "nota-b", "kind": "text", "class": ["grigio"], "computedStyle": {"color": "#333333"}, "darkComputedStyle": {"color": "#333333"}}, ["paragraph", "Una nota grigia."]]]}
+  ],
+  "diagnostics": [
+    {"severity": "warning", "code": "dark-contrast-low", "file": "report.stylesheet.css", "target": "#333333"},
+    {"severity": "warning", "code": "stylesheet-unsupported", "file": "report.stylesheet.css", "target": "margin-left"}
+  ]
+}
+````````````````````````````````
+
 ### 11.4 L'`export` *(proposta)*
 
 Il comando `doc-runtime export <cartella> [--root <id>] [-o <file>]
-[--allow-errors]` scrive l'HTML di un `article`: un solo file, con il CSS e
+[--allow-errors] [--theme light|dark]` scrive l'HTML di un `article`: un solo file, con il CSS e
 le immagini dentro, che si manda e si apre ovunque [C: «Sulla bozza di specifica»].
 `--root` sceglie l'`article` per `id`; senza, la cartella deve averne uno
 solo. L'HTML va su stdout, o nel file di `-o`, che si scrive per intero o
@@ -2873,6 +2980,10 @@ Un'immagine si riconosce dai primi byte, fra PNG, JPEG, GIF, WebP e SVG, mai
 dall'estensione, e si incorpora fino a 64 MiB; un'altra resta fuori, con la
 sua descrizione al posto e l'avviso `asset-unsupported`. L'HTML intero non
 supera 256 MiB (`export-too-large`). Gli stessi file danno gli stessi byte.
+
+Il file ha tutti e due i temi e segue quello di chi lo apre; `--theme light`
+o `--theme dark` ne fissa uno [C: «Due temi per l'HTML»]. Nel tema scuro
+cambiano solo i colori, quelli di `darkComputedStyle` e lo sfondo (§0.5).
 
 La pagina non carica niente da fuori: una Content Security Policy ammette
 solo le immagini `data:` e lo stile in linea, e nessuno script. Un
@@ -2886,8 +2997,7 @@ dodici proprietà del sottoinsieme con i valori finali, ricavati dal
 `resolved tree` come dice il §0.5, senza cascate. La mappatura dai tipi agli
 elementi HTML è del `renderer` di riferimento, non è normativa, e sta nel
 README del `runtime`. Non normativo è anche quello che il `renderer` disegna
-da sé, fuori dal sottoinsieme: lo sfondo bianco della pagina, che non cambia
-con il tema scuro di chi la apre, i segni degli elenchi, i bordi delle
+da sé, fuori dal sottoinsieme: i segni degli elenchi, i bordi delle
 tabelle, la linea di `thematicBreak` e il margine della pagina sullo schermo
 (§7.4).
 
