@@ -829,6 +829,7 @@ export function resolveTree(folder: string): ResolvedTree {
         attributes.depth = depth;
         attributes.number = counters.join('.');
         const title = element('title', {}, [target.title]);
+        textSize += target.title.length;
         title.meta = { depth };
         embed.children.push(title);
         inner.depth = depth;

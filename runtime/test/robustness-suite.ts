@@ -446,6 +446,12 @@ check('a chain of 20000 retired ids resolves in linear time', () => {
   return tree(r) ?? (seconds < 15 && has(r.tree, 'reference-retired', 'r0') && count(r.tree, 'retired-chain') === 20000 ? null : `${seconds}s`);
 });
 
+check('1000 levels under a chapter node fit, the next one is tree-limit', () => {
+  const fits = run({ 'c.chapter.md': front('c', 'chapter', 'recursion: "1000"\n') + '![[c]]\n' });
+  const over = run({ 'c.chapter.md': front('c', 'chapter', 'recursion: "1001"\n') + '![[c]]\n' });
+  return tree(fits) ?? tree(over) ?? (fits.status === 0 && has(over.tree, 'tree-limit', 'c') ? null : json([fits.tree.diagnostics, over.tree.diagnostics]));
+});
+
 let failed = 0;
 for (const [name, body] of cases) {
   let problem: string | null;
