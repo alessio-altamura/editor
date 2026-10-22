@@ -151,9 +151,10 @@ check('a trailing space after a correct class sign keeps the class', () => {
   const content = json(node(r.tree, 'a')?.content);
   return tree(r) ?? (r.tree.diagnostics === undefined && content.includes('"class":["nota"]') ? null : r.stdout);
 });
-check('a class sign on the next line is embed-class-invalid', () => {
+check('a class sign on the next line makes a paragraph that is not an embed', () => {
   const r = run({ 'a.article.md': front('a', 'article') + '![[t]]\n{.nota}\n', ...text('t') });
-  return tree(r) ?? (has(r.tree, 'embed-class-invalid', '{.nota}') ? null : json(r.tree.diagnostics));
+  const ok = has(r.tree, 'composition-content') && has(r.tree, 'embed-inline', 't') && !has(r.tree, 'embed-class-invalid');
+  return tree(r) ?? (ok && json(node(r.tree, 'a')?.content).includes('{.nota}') ? null : r.stdout);
 });
 check('a repeated key gives attribute-invalid on the second, and the first holds', () => {
   const r = run({ 'c.chapter.md': front('c', 'chapter', 'title: Uno\ntitle: Due\n') });
@@ -347,9 +348,10 @@ check('an unreadable document folder exits 2; an unreadable subfolder gives synt
   rmSync(folder, { recursive: true, force: true });
   return result.status === 2 ? null : `exit ${result.status}`;
 });
-check('a class sign that goes on to the next line is embed-class-invalid', () => {
+check('a class sign that goes on to the next line is embed-class-invalid, and no embed', () => {
   const r = run({ 'a.article.md': front('a', 'article') + '![[t]]{.nota\n.grande}\n', ...text('t') });
-  return tree(r) ?? (has(r.tree, 'embed-class-invalid', '{.nota') && !json(node(r.tree, 'a')?.content).includes('grande') ? null : r.stdout);
+  const content = json(node(r.tree, 'a')?.content);
+  return tree(r) ?? (has(r.tree, 'embed-class-invalid', '{.nota') && has(r.tree, 'composition-content') && content.includes('grande') && !content.includes('"kind":"text"') ? null : r.stdout);
 });
 check('![[id]] nested in a quote inside a chapter is composition-content only', () => {
   const r = run({ 'c.chapter.md': front('c', 'chapter') + '> ![[t]]\n', ...text('t') });
@@ -380,6 +382,68 @@ check('recursion on a directive does not count: its cycle is embed-cycle', () =>
 check('a canvas file declares associations and can be their target', () => {
   const r = run({ 'cv.canvas-file.md': front('cv', 'canvas-file', 'asset: a.canvas\nassociations: [k]\n') + 'Canvas.\n', 'a.canvas': '{}', 'k.concept.md': front('k', 'concept', 'associations: [cv]\n') + 'Idea.\n' });
   return tree(r) ?? (json(r.tree.associations) === '[{"ids":["cv","k"],"declaredIn":["cv.canvas-file.md","k.concept.md"]}]' && r.tree.diagnostics === undefined ? null : r.stdout);
+});
+
+// Fifth review.
+check('an article with 60000 embeds is built once and stays under the limit', () => {
+  const embeds = Array.from({ length: 300 }, () => '![[t]]').join('\n\n') + '\n';
+  const article = Array.from({ length: 200 }, () => '![[c]]').join('\n\n') + '\n';
+  const r = run({ 'a.article.md': front('a', 'article') + article, 'c.chapter.md': front('c', 'chapter') + embeds, ...text('t') });
+  return tree(r) ?? (!has(r.tree, 'tree-limit') && r.status === 0 ? null : json(r.tree.diagnostics));
+});
+check('recursion "999" in an article fits in 1000 levels', () => {
+  const r = run({ 'a.article.md': front('a', 'article') + '![[c]]\n', 'c.chapter.md': front('c', 'chapter', 'recursion: "999"\n') + '![[c]]\n' });
+  return tree(r) ?? (r.status === 0 && r.tree.diagnostics === undefined ? null : json(r.tree.diagnostics));
+});
+check('a list of 130000 items does not exhaust the stack', () => {
+  const r = run({ 'x.text.md': front('x', 'text') + '- a\n'.repeat(130000) });
+  return tree(r);
+});
+check('a paragraph with 130000 references does not exhaust the stack', () => {
+  const r = run({ 'x.text.md': front('x', 'text') + '[[k|a]] '.repeat(130000) + '\n', 'k.concept.md': front('k', 'concept') + 'Idea.\n' });
+  return tree(r);
+});
+check('past 50 million characters of text embeds are cut with tree-limit, and the JSON streams out', () => {
+  const r = run({
+    'a.article.md': front('a', 'article') + '![[c2]]\n',
+    'c2.chapter.md': front('c2', 'chapter') + Array.from({ length: 100 }, () => '![[c1]]').join('\n\n') + '\n',
+    'c1.chapter.md': front('c1', 'chapter') + Array.from({ length: 100 }, () => '![[t]]').join('\n\n') + '\n',
+    't.text.md': front('t', 'text') + 'x'.repeat(10000) + '\n',
+  });
+  return tree(r) ?? (has(r.tree, 'tree-limit') ? null : json(r.tree.diagnostics));
+});
+check('a valid class sign on a paragraph that goes on is not an embed', () => {
+  const r = run({ 'a.article.md': front('a', 'article') + '![[t]]{.a}\naltro\n', ...text('t') });
+  const content = json(node(r.tree, 'a')?.content);
+  return tree(r) ?? (has(r.tree, 'composition-content') && !has(r.tree, 'embed-class-invalid') && content.includes('altro') ? null : r.stdout);
+});
+check('a class sign with emphasis inside is embed-class-invalid', () => {
+  const r = run({ 'a.article.md': front('a', 'article') + '![[t]]{.a *b*}\n', ...text('t') });
+  return tree(r) ?? (has(r.tree, 'embed-class-invalid', '{.a *b*}') ? null : json(r.tree.diagnostics));
+});
+check('an HTML comment after ![[id]] disappears and the embed holds', () => {
+  const r = run({ 'a.article.md': front('a', 'article') + '![[t]]{.a} <!-- da rivedere -->\n', ...text('t') });
+  return tree(r) ?? (r.tree.diagnostics === undefined && json(node(r.tree, 'a')?.content).includes('"class":["a"]') ? null : r.stdout);
+});
+check('the recursion embed in an article has no computed style', () => {
+  const r = run({
+    'a.article.md': front('a', 'article', 'stylesheet: "[[s]]"\n') + '![[c]]\n',
+    'c.chapter.md': front('c', 'chapter', 'class: [rossa]\nrecursion: infinite\n') + '![[c]]\n',
+    's.stylesheet.css': '/*\nkind: stylesheet\nid: s\n*/\n.rossa { margin-left: 10pt; }\n',
+  });
+  const content = json(node(r.tree, 'a')?.content);
+  return tree(r) ?? (content.split('computedStyle').length === 2 && content.includes('"recursion":true}]') ? null : content);
+});
+check('![[id]] in the document file is embed-outside-composition too', () => {
+  const r = run({ 'doc.document.md': DOCUMENT + '![[t]]\n', ...text('t') }, { doc: false });
+  return tree(r) ?? (has(r.tree, 'embed-outside-composition', 't') && has(r.tree, 'document-content') ? null : json(r.tree.diagnostics));
+});
+check('a chain of 20000 retired ids resolves in linear time', () => {
+  const lines = Array.from({ length: 20000 }, (_, i) => `r${i}: r${i + 1}\n`).join('') + 'r20000: k\n';
+  const started = Date.now();
+  const r = run({ 'retired-ids.yaml': lines, 'k.concept.md': front('k', 'concept') + 'Idea.\n', 'x.text.md': front('x', 'text') + 'Vedi [[r0|a]].\n' });
+  const seconds = (Date.now() - started) / 1000;
+  return tree(r) ?? (seconds < 15 && has(r.tree, 'reference-retired', 'r0') && count(r.tree, 'retired-chain') === 20000 ? null : `${seconds}s`);
 });
 
 let failed = 0;
