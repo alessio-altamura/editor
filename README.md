@@ -7,8 +7,8 @@ lo stesso sorgente, pensato anche per essere letto e modificato da un'AI.
 Il nome provvisorio del progetto è Kamii. C'è la bozza dei tipi di nodo,
 scritta con Alessio, una bozza di specifica del `core` e della classe 1, i cui
 esempi sono anche i test, e un primo runtime da riga di comando in TypeScript
-che legge la cartella di un documento e scrive il `resolved tree`: passa tutti
-gli esempi della specifica.
+che legge la cartella di un documento e scrive il `resolved tree`, o lo esporta
+in un solo file HTML: passa tutti gli esempi della specifica.
 
 - [docs/handoff.md](docs/handoff.md): passaggio di consegne per le sessioni
   future: stato, decisioni, domande aperte, prossimi passi.

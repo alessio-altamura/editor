@@ -327,11 +327,15 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
    il PDF, stampato con Playwright e un Chromium fissato.
    - HTML: le scelte di Alessio del 2026-10-22 sono in contesto.md («L'HTML
      esportato», «Le scelte visibili dell'HTML») e nella specifica. Il
-     comando `export` lo scrive una sottosessione
-     (session_01ToMUkc2ntsAgupUkrNCYxV, ramo `claude/runtime-export`) con un
-     mandato snello, per contenere i token; la verifica finale la fa
-     l'orchestratore. Il prototipo e il mandato sono nel blocco note
-     dell'orchestratore, fuori dal repository.
+     comando `export` (`doc-runtime export <cartella>`) c'è: l'ha scritto
+     una sottosessione (session_01ToMUkc2ntsAgupUkrNCYxV) con un mandato
+     snello, unito il 2026-10-22; 47 esempi, robustezza, suite dell'export e
+     suite nel browser (`npm run test:browser`) verdi. Il README del runtime
+     ha la mappatura e il disegno fisso; la specifica §11.4. Punti minori
+     rimasti: un nome di font con caratteri di controllo C1 diventa U+FFFD;
+     il ripiego `unreadable` delle immagini non ha un test (qui si gira come
+     root); i limiti di Chromium (512 annidamenti, valori enormi) sono solo
+     dichiarati. Resta il PDF.
    - Visti nel prototipo, da portare ad Alessio dopo l'`export`: il foglio di
      partenza non dà margini a tabelle, immagini e codice; l'intestazione
      della tabella non è in grassetto; un elenco stretto è spaziato come uno

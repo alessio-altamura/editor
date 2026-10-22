@@ -1630,7 +1630,7 @@ applica prima: un `embed` che per `recursion` non entra nell'albero non è mai
 La risoluzione non si ferma a un errore: l'albero esce sempre, con il
 `diagnostic` accanto. Con un errore la `cli` esce con un codice diverso da
 zero e l'`export` si rifiuta; con un'opzione esplicita l'HTML esce lo
-stesso, come anteprima, con i pezzi mancanti segnati [C: «Sulla bozza di specifica»].
+stesso, con i pezzi mancanti segnati [C: «Sulla bozza di specifica»].
 *(proposta)* L'opzione è `--allow-errors`, e il codice di uscita resta 1.
 *(proposta)* L'`export` (§11.4) ha due limiti suoi: un'immagine si
 incorpora fino a 64 MiB, altrimenti resta fuori con `asset-unsupported`, e
@@ -2788,11 +2788,11 @@ Un'immagine che manca.
 
 Il comando `doc-runtime export <cartella> [--root <id>] [-o <file>]
 [--allow-errors]` scrive l'HTML di un `article`: un solo file, con il CSS e
-le immagini dentro, che si manda e si apre ovunque [C: «L'HTML esportato»].
+le immagini dentro, che si manda e si apre ovunque [C: «Sulla bozza di specifica»].
 `--root` sceglie l'`article` per `id`; senza, la cartella deve averne uno
 solo. L'HTML va su stdout, o nel file di `-o`, che si scrive per intero o
 non si tocca. Con un errore nell'albero l'`export` si rifiuta, e con
-`--allow-errors` scrive un'anteprima con i pezzi mancanti segnati (§11.1).
+`--allow-errors` scrive lo stesso l'HTML, con i pezzi mancanti segnati (§11.1).
 Un'immagine si riconosce dai primi byte, fra PNG, JPEG, GIF, WebP e SVG, mai
 dall'estensione, e si incorpora fino a 64 MiB; un'altra resta fuori, con la
 sua descrizione al posto e l'avviso `asset-unsupported`. L'HTML intero non
