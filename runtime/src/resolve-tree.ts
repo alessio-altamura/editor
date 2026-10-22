@@ -12,6 +12,7 @@ import { parseYamlMap, splitFrontMatter, type RawValue } from './front-matter.js
 import { displayString, evaluateMathLine, langFormat, plainString } from './math-line.js';
 import {
   computeStyle,
+  contrastOnDark,
   DEFAULT_DECIMALS,
   directValue,
   numberDecimals,
@@ -79,6 +80,14 @@ interface SourceNode {
   /** How many times a chapter may appear inside itself (§0.17); undefined without `recursion`. */
   recursion?: number;
   items?: CompositionItem[];
+}
+
+/** What the computed style pass of a root composition carries down. */
+interface StylePass {
+  sheet: ParsedStylesheet | null;
+  outOfRange: (property: string) => void;
+  firstNumbers: Map<string, string>;
+  checkDark: (style: ComputedStyle) => void;
 }
 
 type CompositionItem = { type: 'embed'; id: string; classes: string[] } | { type: 'block'; node: RootContent };
@@ -1028,22 +1037,40 @@ export function resolveTree(folder: string): ResolvedTree {
       reportedOnce.add(key);
       report(diagnostics, 'stylesheet-unsupported', sheetNode!.file, property);
     };
+    // A color of the dark theme with little contrast, one warning per stylesheet and color (§0.5).
+    const checkDark = (style: ComputedStyle) => {
+      const color = style.get('color')?.text;
+      if (sheetNode === null || color === undefined || contrastOnDark(color) >= 4.5) return;
+      const key = `dark-contrast-low\0${sheetNode.file}\0${color}`;
+      if (reportedOnce.has(key)) return;
+      reportedOnce.add(key);
+      report(diagnostics, 'dark-contrast-low', sheetNode.file, color);
+    };
+    const pass: StylePass = { sheet, outOfRange, firstNumbers: root.firstNumbers, checkDark };
+    const rootTarget = { type: 'root', classes: node.classes, embedClasses: [] };
     const rootRule = computeStyle({ type: 'root', classes: [], embedClasses: [] }, new Map(), null);
-    const rootFinal = computeStyle({ type: 'root', classes: node.classes, embedClasses: [] }, rootRule, sheet, outOfRange);
+    const rootFinal = computeStyle(rootTarget, rootRule, sheet, outOfRange);
     const difference = styleDifference(rootFinal, rootRule);
     if (Object.keys(difference).length > 0) output.computedStyle = difference;
-    applyStyles(content, rootFinal, sheet, outOfRange, root.firstNumbers);
+    // The dark theme: the same cascade with the dark blocks, compared on the color only.
+    const darkRule = computeStyle({ type: 'root', classes: [], embedClasses: [] }, new Map(), null, undefined, 'dark');
+    const darkFinal = computeStyle(rootTarget, darkRule, sheet, outOfRange, 'dark');
+    const darkDifference = colorDifference(darkFinal, darkRule);
+    if (darkDifference) output.darkComputedStyle = darkDifference;
+    checkDark(darkFinal);
+    applyStyles(content, rootFinal, darkFinal, pass);
     return content;
   }
 
+  /** `darkComputedStyle`: the color alone, when it differs from the expected one (§0.5). */
+  function colorDifference(final: ComputedStyle, expected: ComputedStyle): { color: string } | null {
+    const color = final.get('color')?.text;
+    return color !== undefined && color !== expected.get('color')?.text ? { color } : null;
+  }
+
   /** The computed style pass over a root composition; it also fills the number slots. */
-  function applyStyles(
-    children: Child[],
-    parent: ComputedStyle,
-    sheet: ParsedStylesheet | null,
-    outOfRange: (property: string) => void,
-    firstNumbers: Map<string, string>,
-  ): void {
+  function applyStyles(children: Child[], parent: ComputedStyle, parentDark: ComputedStyle, pass: StylePass): void {
+    const { sheet, outOfRange, firstNumbers } = pass;
     for (const child of children) {
       if (typeof child === 'string') continue;
       const slot = child.meta?.numberSlot;
@@ -1058,12 +1085,21 @@ export function resolveTree(folder: string): ResolvedTree {
       const final = computeStyle({ type, classes: child.meta?.classes ?? [], embedClasses: child.meta?.embedClasses ?? [] }, parent, sheet, outOfRange);
       for (const [property, text] of child.meta?.declarations ?? []) final.set(property, directValue(property, text));
       const difference = styleDifference(final, expected);
+      const target = { type, classes: child.meta?.classes ?? [], embedClasses: child.meta?.embedClasses ?? [] };
+      const expectedDark = computeStyle({ type, classes: [], embedClasses: [] }, parentDark, null, undefined, 'dark');
+      const finalDark = computeStyle(target, parentDark, sheet, outOfRange, 'dark');
+      for (const [property, text] of child.meta?.declarations ?? []) finalDark.set(property, directValue(property, text));
+      const darkDifference = colorDifference(finalDark, expectedDark);
       // The embed where a chapter comes back has no computed style (§0.17).
-      if (Object.keys(difference).length > 0 && child.attributes.recursion !== true) child.attributes.computedStyle = difference;
+      if (child.attributes.recursion !== true) {
+        if (Object.keys(difference).length > 0) child.attributes.computedStyle = difference;
+        if (darkDifference) child.attributes.darkComputedStyle = darkDifference;
+        pass.checkDark(finalDark);
+      }
       if (child.type === 'mathLine' && child.meta?.value && (numberNotation(final) === 'compact' || numberDecimals(final) !== DEFAULT_DECIMALS)) {
         child.attributes.display = displayString(child.meta.value, child.meta.lang, numberNotation(final), numberDecimals(final));
       }
-      applyStyles(child.children, final, sheet, outOfRange, firstNumbers);
+      applyStyles(child.children, final, finalDark, pass);
     }
   }
 

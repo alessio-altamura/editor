@@ -50,6 +50,7 @@ const SEVERITY: Record<string, Severity> = {
   'stylesheet-unsupported': 'warning',
   'reference-unresolved': 'error',
   'asset-unsupported': 'warning',
+  'dark-contrast-low': 'warning',
   'export-too-large': 'error',
 };
 
