@@ -79,6 +79,8 @@ Solo il typecheck: `npm run typecheck`.
 - `src/stylesheet.ts`: il sottoinsieme di CSS, il `base stylesheet` e la
   cascata (§0.5); `src/named-colors.ts` ha i nomi dei colori di CSS Color 4.
 - `src/content.ts`: gli elementi JsonML del contenuto (§11.3).
+- `src/wiki-reference.ts`: il costrutto micromark di `[[…]]` e `![[…]]`.
+- `src/json-output.ts`: il JSON scritto a pezzi, compatto o indentato.
 
 Dipendenze, con versione fissata: `mdast-util-from-markdown` 2.1.0,
 `micromark-extension-gfm-table` 2.1.2 e `mdast-util-gfm-table` 2.0.0 (MIT), per
