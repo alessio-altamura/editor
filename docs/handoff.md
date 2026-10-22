@@ -296,8 +296,8 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
    indipendente ha trovato crash e regole mancanti, corretti nel secondo
    giro; poi va riallineato ai 40 esempi della bozza al diciannovesimo
    giro. Il ramo non è ancora unito. Il nome del binario è provvisorio
-   (`doc-runtime`): il prodotto non ha ancora un nome, e due ricerche di
-   nomi da opere giapponesi poco note sono in corso.
+   (`doc-runtime`): il nome provvisorio del progetto è Kamii, che Alessio
+   non ha ancora confermato (contesto.md, «Nomi del prodotto»).
 1. **La bozza dei tipi di nodo** del primo livello è iniziata in
    [bozza-nodi.md](bozza-nodi.md): è di Alessio, scritta insieme. Il
    2026-10-20 è diventata una sintesi del modello: il `concept` come unità di
