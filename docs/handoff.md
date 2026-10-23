@@ -369,9 +369,9 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      e font come indirizzi; `data-node` e `data-source` (la `source
      position`) su ogni elemento; specifica §11.6. Tempi: documento
      d'esempio 17 ms di ricalcolo, mille text circa 300 ms; dal
-     salvataggio all'anteprima circa 80 ms. Da correggere: nell'anteprima
-     un'immagine di formato sconosciuto appare rotta invece di mostrare la
-     descrizione come nell'`export`. Prossimo passo: LSP.
+     salvataggio all'anteprima circa 80 ms. Un'immagine che non si incorpora
+     ha nell'anteprima lo stesso ripiego dell'`export`. Prossimo passo:
+     LSP.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
