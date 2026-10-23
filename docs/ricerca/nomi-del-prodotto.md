@@ -634,6 +634,35 @@ questo nome. Rischi: è di nuovo un nome giapponese, il dubbio che Alessio
 aveva su Kamii; i tre nomi tecnici sono presi, quindi servirebbe uno scope
 (`@seki/...`); fra i significati ci sono la tosse e lo stallo.
 
+**Il plurale di seki e le parole che lo raccolgono.** In giapponese i nomi
+non hanno numero grammaticale: «seki» vale per uno e per molti, e le parole
+per «tanti» sono collettivi, non plurali (Wikipedia, *Japanese grammar*).
+In italiano e in inglese il plurale si fa come per i prestiti: «i seki»,
+«the sekis» o «the seki». Parole giapponesi con 石 o 積 che raccolgono le
+pietre, da Wiktionary:
+- 宝石, *hōseki*: pietra preziosa, gemma. È la proposta di Alessio, «come
+  pietre preziose». `hoseki` libero su npm (anche `-cli`), PyPI, crates.io,
+  nessun comando; all'USPTO nove risultati, nessuno vivo nelle classi 9 o
+  42; la ricerca web non trova software con questo nome (escono solo app
+  per tubi idraulici, da *hose*). `houseki`, l'altra grafia, è preso su npm
+  da una famiglia di pacchetti. Rischi: in italiano la h non si legge,
+  «òseki»; in inglese si può sentire *hose* all'inizio.
+- 原石, *genseki*: gemma grezza, non lucidata; in senso figurato un talento
+  non ancora sgrezzato. Libero ovunque, nessun marchio USPTO. Si adatta al
+  canvas delle idee alla rinfusa: pietre grezze che diventano pagine.
+- 集積, *shūseki*: accumulo, integrazione (anche quella dei circuiti
+  integrati); 蓄積, *chikuseki*: accumulo, riserva; 石垣, *ishigaki*: muro
+  di pietre, ed è anche un cognome e una città di Okinawa; 書籍, *shoseki*:
+  libro, libri (con 籍, un altro *seki*). `shuseki` e `shoseki` liberi su
+  npm, PyPI e crates.io; `ishigaki` preso su npm.
+- 貴石, *kiseki*, pietra preziosa: Wiktionary non ha la voce giapponese, e
+  *kiseki* si legge soprattutto 奇跡, miracolo; `kiseki` preso su npm e
+  crates.io, e KISEKI ha un marchio vivo in classe 9.
+
+Una famiglia possibile: **seki** il mattone, **genseki** il canvas delle
+idee grezze, **hoseki** l'app, il posto dove le pietre diventano gemme. Resta
+giapponese.
+
 Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
 <https://en.wiktionary.org/wiki/orri>, <https://en.wiktionary.org/wiki/keping>,
 <https://en.wiktionary.org/wiki/lappu>, <https://en.wiktionary.org/wiki/Lapp>,
@@ -661,4 +690,11 @@ Sigil <https://en.wikipedia.org/wiki/Sigil_(application)>;
 <https://en.wiktionary.org/wiki/flet%C3%AB>, <https://en.wiktionary.org/wiki/fleta>,
 <https://en.wiktionary.org/wiki/sivu>, <https://en.wiktionary.org/wiki/dalen>,
 <https://en.wiktionary.org/wiki/lapa>; <https://en.wiktionary.org/wiki/seki>,
-<https://en.wiktionary.org/wiki/%E3%81%9B%E3%81%8D>.
+<https://en.wiktionary.org/wiki/%E3%81%9B%E3%81%8D>;
+<https://en.wikipedia.org/wiki/Japanese_grammar>;
+<https://en.wiktionary.org/wiki/%E5%AE%9D%E7%9F%B3>,
+<https://en.wiktionary.org/wiki/%E5%8E%9F%E7%9F%B3>,
+<https://en.wiktionary.org/wiki/%E9%9B%86%E7%A9%8D>,
+<https://en.wiktionary.org/wiki/%E8%93%84%E7%A9%8D>,
+<https://en.wiktionary.org/wiki/%E7%9F%B3%E5%9E%A3>,
+<https://en.wiktionary.org/wiki/%E6%9B%B8%E7%B1%8D>.
