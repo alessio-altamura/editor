@@ -501,6 +501,16 @@ quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
 
+- Più oggetti in un file (2026-10-23, Alessio, pensando a Git): «unire più
+  oggetti in un file per tipo, come una classe, ha senso? Almeno avere la
+  possibilità di farlo, o va contro il principio? Cambierebbe solo il
+  formato, se non gli diamo altri significati». È una domanda sul formato,
+  accanto alla decisione di un file per oggetto del 2026-10-20. Lettura
+  dell'orchestratore: non va contro il principio, se l'oggetto resta
+  l'unità (identità per `id`, non per file) e il file è solo un
+  contenitore, senza significato né ordine. Da precisare con il `runtime`
+  che scrive e la creazione semplificata.
+
 - Creazione semplificata degli oggetti (2026-10-23): non solo dal foglio
   bianco, ma anche da una pagina mentre si scrive e da una `slide` mentre si
   fa la presentazione. Da precisare con il `runtime` che scrive e con
