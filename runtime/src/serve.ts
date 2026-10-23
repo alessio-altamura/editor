@@ -27,11 +27,15 @@ const CLIENT = `(() => {
   const article = decodeURIComponent(location.pathname.split('/').pop() || '');
   window.previewUpdates = 0;
   // The element at the top of the window, to keep the reading position across an update.
+  // The first node element that starts inside the window; else the last one across its top edge.
   const anchor = () => {
-    for (const element of document.querySelectorAll('article [data-source], article')) {
-      if (element.getBoundingClientRect().bottom > 0) return element;
+    let across = null;
+    for (const element of document.querySelectorAll('article [data-source]')) {
+      const box = element.getBoundingClientRect();
+      if (box.top >= 0) return element;
+      if (box.bottom > 0) across = element;
     }
-    return null;
+    return across;
   };
   const gone = (show) => {
     const banner = document.querySelector('[data-gone]');

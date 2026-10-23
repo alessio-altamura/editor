@@ -13,8 +13,8 @@
   "scripts": {
     "build": "tsc -p .",
     "typecheck": "tsc -p . --noEmit",
-    "test": "tsc -p . && node dist/test/conformance-suite.js && node dist/test/robustness-suite.js && node dist/test/export-suite.js",
-    "test:browser": "tsc -p . && node dist/test/browser-suite.js && node dist/test/print-suite.js"
+    "test": "tsc -p . && node dist/test/conformance-suite.js && node dist/test/robustness-suite.js && node dist/test/export-suite.js && node dist/test/serve-suite.js",
+    "test:browser": "tsc -p . && node dist/test/browser-suite.js && node dist/test/print-suite.js && node dist/test/serve-browser-suite.js"
   },
   "dependencies": {
     "decimal.js": "10.6.0",
