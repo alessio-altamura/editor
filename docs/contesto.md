@@ -441,6 +441,14 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     serve <cartella>` con l'anteprima nel browser che si aggiorna mentre si
     scrive con un editor qualsiasi; gli errori segnati nella pagina e
     elencati in cima, con file, problema e suggerimento.
+  - Il guscio dell'`app` (2026-10-23, Alessio, «1A 2C»): sul desktop
+    Electron, che porta Node, il linguaggio del `runtime`, e Chromium,
+    così l'anteprima coincide con la stampa; il primo guscio ha sorgente e
+    anteprima affiancate, la lista a fianco divisa per tipo, e il clic su un
+    punto dell'anteprima porta alla riga giusta del sorgente. Scelte
+    tecniche dell'orchestratore: CodeMirror 6 per il testo, il codice in
+    `app/`, il tema del sistema, `npm start` per lanciarla; il pacchetto
+    firmato viene dopo.
   - Creazione degli oggetti e file (2026-10-23, Alessio, «1A, 2A, 3A, 4D»):
     1. Un capoverso scritto direttamente in una `composition` resta un
        errore, con una correzione automatica, «estrai in un oggetto», che crea
