@@ -595,6 +595,27 @@ faroese è gergo per l'orgasmo, ed è preso su npm e PyPI. Nessun candidato.
   crates.io; TRINKET è anche un microcontrollore con marchio vivo in classe 9.
 Nessun candidato pieno; cantrip è da tenere come idea, ma non è libero.
 
+**Orri scartato da Alessio**: «no per l'italiano orrido».
+
+**Altre parole per foglio e pagina**, scelte per il suono in italiano:
+- **fleta** (albanese): forma determinata di *fletë*, «il foglio», e anche
+  plurale indeterminato, «fogli»; *fletë* vuol dire foglio, pagina, foglia, e
+  anche ala, pinna, battente di una porta. Libero su npm (anche `-cli`),
+  PyPI, crates.io e come comando; all'USPTO due risultati, nessuno vivo in 9
+  o 42. In italiano e in inglese si legge «flèta», senza intoppi. Rischi: in
+  latino *flēta* è una forma di *flētus*, pianto; in albanese è una forma
+  flessa, non la parola di dizionario. Ricerca web non fatta.
+- **sivu** (finlandese): pagina, lato, faccia. `sivu` preso su npm (una
+  libreria di paginazione), liberi `sivu-cli`, PyPI e crates.io, nessun
+  comando, nessun marchio USPTO. Rischi: in inglese si legge «see-voo», come
+  il francese *s'il vous*; in serbo-croato è una forma di *siv*, grigio.
+- **dalen**: marchi vivi in 9 e in 42 (Dalen Inc., Jiangsu Dalen); in
+  olandese vuol dire scendere, calare. Scartato.
+- **lapa**: in cebuano anche fare a pezzi, mutilare; preso su npm e PyPI.
+  Scartato.
+- **mindset** (proposta di Alessio): preso su npm, PyPI e crates.io, molti
+  marchi vivi nelle classi 9 e 42 (Mindset Care, Magicave e altri). Scartato.
+
 Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
 <https://en.wiktionary.org/wiki/orri>, <https://en.wiktionary.org/wiki/keping>,
 <https://en.wiktionary.org/wiki/lappu>, <https://en.wiktionary.org/wiki/Lapp>,
@@ -618,4 +639,7 @@ Arcane <https://en.wikipedia.org/wiki/Arcane_(TV_series)>;
 <https://en.wiktionary.org/wiki/koma>, <https://en.wiktionary.org/wiki/%E9%A7%92>;
 <https://en.wiktionary.org/wiki/cantrip>, <https://en.wiktionary.org/wiki/meeple>,
 <https://en.wiktionary.org/wiki/sigil>, <https://en.wiktionary.org/wiki/chit>;
-Sigil <https://en.wikipedia.org/wiki/Sigil_(application)>.
+Sigil <https://en.wikipedia.org/wiki/Sigil_(application)>;
+<https://en.wiktionary.org/wiki/flet%C3%AB>, <https://en.wiktionary.org/wiki/fleta>,
+<https://en.wiktionary.org/wiki/sivu>, <https://en.wiktionary.org/wiki/dalen>,
+<https://en.wiktionary.org/wiki/lapa>.
