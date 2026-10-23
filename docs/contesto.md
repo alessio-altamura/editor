@@ -426,6 +426,21 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     serve <cartella>` con l'anteprima nel browser che si aggiorna mentre si
     scrive con un editor qualsiasi; gli errori segnati nella pagina e
     elencati in cima, con file, problema e suggerimento.
+  - Creazione degli oggetti e file (2026-10-23, Alessio, «1A, 2A, 3A, 4D»):
+    1. Un capoverso scritto direttamente in una `composition` resta un
+       errore, con una correzione automatica, «estrai in un oggetto», che crea
+       l'oggetto; si lancia dalla `cli`, dal `language server` e dall'`app`.
+    2. L'`id` di un oggetto nuovo si ricava dalle prime parole
+       («le-vendite-sono-calate») e si può cambiare.
+    3. Un file può contenere più oggetti dello stesso tipo; un file per
+       oggetto resta valido, e il `runtime` sposta un oggetto da un file
+       all'altro senza cambiarne l'identità. Il file è solo un contenitore,
+       senza significato né ordine.
+    4. I testi nati scrivendo una pagina vanno in un file solo accanto alla
+       `composition` (per esempio `report-q3.texts.md`), le immagini nella
+       cartella della `composition`.
+    Aperto: la sintassi per separare gli oggetti in un file, e se i loro
+    metadati si vedono su GitHub (domanda di Alessio).
 
 ## Proposte non decise
 
@@ -500,16 +515,6 @@ definite; layout a vincoli solo accennato; nessuna regola per assegnare gli ID
 quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
-
-- Più oggetti in un file (2026-10-23, Alessio, pensando a Git): «unire più
-  oggetti in un file per tipo, come una classe, ha senso? Almeno avere la
-  possibilità di farlo, o va contro il principio? Cambierebbe solo il
-  formato, se non gli diamo altri significati». È una domanda sul formato,
-  accanto alla decisione di un file per oggetto del 2026-10-20. Lettura
-  dell'orchestratore: non va contro il principio, se l'oggetto resta
-  l'unità (identità per `id`, non per file) e il file è solo un
-  contenitore, senza significato né ordine. Da precisare con il `runtime`
-  che scrive e la creazione semplificata.
 
 - Creazione semplificata degli oggetti (2026-10-23): non solo dal foglio
   bianco, ma anche da una pagina mentre si scrive e da una `slide` mentre si
