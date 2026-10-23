@@ -326,3 +326,100 @@ TMview.
 - Pacchetti: <https://www.npmjs.com/package/tassello>,
   <https://www.npmjs.com/package/teca>, <https://pypi.org/project/plico/>,
   <https://pypi.org/project/trama/>
+
+### Nomi con jot (2026-10-23)
+
+Alessio ha scelto jot come parola dell'app per i mattoni e ha scartato brano
+(«non lo capisco»). Domanda: «jot per l'app? o qualcosa di composto con
+jot», nel rapporto che c'è fra Twitter e tweet, cioè il posto dove si fanno i
+jot. Controlli come sopra, lo stesso giorno: npm e `-cli`, comando, PyPI,
+crates.io, USPTO (corrispondenza esatta, solo marchi vivi, scritti attaccati
+e staccati, «JOTKIT» e «JOT KIT»), una ricerca web per i migliori. Marchi UE e
+italiani non controllati, per lo stesso motivo di prima.
+
+**Jot da solo come nome del prodotto: sconsigliato.** Su npm `jot` è preso
+(plugin JWT per hapi), come su PyPI e crates.io; `jot-cli` è libero e non c'è
+un comando. Ma all'USPTO, nei primi cinquanta risultati, ci sono tredici marchi JOT
+vivi, e otto sono nelle classi 9 o 42: tre di First American Financial per software online,
+uno dei quali per la notarizzazione elettronica e la gestione di documenti
+(classi 9, 42 e 45); Kent Displays per tavolette di scrittura elettroniche
+(classe 9; una tavoletta Boogie Board si chiama Jot 8.5); ArtemX per app
+di comunicazione (9, 35, 38, 42); e altri per software assicurativo, per
+vendite e per giochi scaricabili. Nel campo ci sono poi
+molte app di note chiamate Jot (Jot di Espresso per note e annotazioni su
+Mac e Windows, Jot - Fast Notes su iOS con un canvas infinito, Jot su
+Capterra per note e collaborazione). È la parola giusta per il mattone
+proprio perché è comune, e per lo stesso motivo non può essere un nome
+distintivo.
+
+**Candidati esaminati** (quindici): jotter, jotboard, jotbook, jotspace,
+jotfield, jotkit, jotly, jotto, jotpad, jotdesk, jottery, jotwise, jotland,
+jotsy, jotbox.
+
+**I migliori, in ordine:**
+
+1. **jotkit.** Il kit dei jot: un insieme di mattoni con cui si fanno
+   documenti, fogli e presentazioni diversi, «stessi mattoni». Due sillabe,
+   «jot» e «kit» si leggono uguali in italiano e in inglese («giòt-kit»).
+   Controlli: `jotkit` e `jotkit-cli` liberi su npm, liberi PyPI e
+   crates.io, nessun comando; nessun marchio vivo JOTKIT o JOT KIT
+   all'USPTO; la ricerca web non trova un software con questo nome. Rischi:
+   «kit» fa pensare a uno strumento per sviluppatori (SDK, toolkit) più che a
+   un'app per tutti; e il campo è affollato di nomi in jot, soprattutto
+   Jotform, il diffuso costruttore di moduli online, che a voce è vicino.
+2. **jotfield.** Il campo dei jot: richiama il canvas dove le idee stanno
+   alla rinfusa. Controlli: tutto libero (npm, `-cli`, PyPI, crates.io,
+   comando), nessun marchio USPTO, nessun omonimo trovato. Rischi: per un
+   italiano «field» si pronuncia male e la grafia è lunga; in inglese «field»
+   è anche il campo di un modulo, che rimanda di nuovo a Jotform.
+3. **jotdesk.** La scrivania dei jot. Tutto libero, nessun marchio USPTO
+   JOTDESK o JOT DESK, nessun omonimo trovato. Rischi: «-desk» è il suffisso
+   dei software di assistenza clienti (Zendesk, Freshdesk) e suona da
+   ufficio.
+4. **jotland.** La terra dei jot, il posto dove si fanno, come chiede la
+   domanda. Tutto libero su npm, PyPI, crates.io, nessun comando, nessun
+   marchio USPTO JOTLAND o JOT LAND. Rischi: suona come un luogo o un parco
+   giochi più che come uno strumento, e a voce è vicino a Jutland e Gotland.
+   Non l'ho cercato sul web.
+
+Non metto un quinto: gli altri cadono per i motivi sotto.
+
+**Scartati:**
+- **jotter**: in inglese è il quaderno per appunti o di esercizi, «uno che
+  annota»; il significato è perfetto, ma `jotter` è preso su npm (un'app
+  per note da terminale, del 2015), su PyPI e crates.io; all'USPTO JOTTER è
+  un marchio vivo della Parker per penne, la Parker Jotter; e JotterPad è un
+  editor di testo Markdown e Fountain, nello stesso campo.
+- **jotboard**: libero su npm, PyPI e crates.io, ma Jotboard esiste già come
+  lavagna collaborativa, alternativa a Google Jamboard, con un corso su
+  Udemy: è il nostro canvas.
+- **jotspace**: libero, ma ricorda JotSpot, il wiki comprato da Google nel
+  2006 e diventato Google Sites; all'USPTO nessun marchio JOTSPACE vivo.
+- **jotbook**: `jotbook` su npm è nato nel 2026, una memoria di progetto in
+  Markdown per Claude Code.
+- **jotto**: `jotto` preso su npm; Jotto è un gioco di parole.
+- **jotly**, **jotsy**: presi su npm, e jotly anche su PyPI.
+- **jotpad**, **jotbox**: presi su PyPI, e «-pad» è già in JotterPad.
+- **jottery**: libero, ma si sente «lottery».
+- **jotwise**: libero, ma è un avverbio e non dice un posto.
+
+**Raccomandazione.** Nessuno dei composti è forte come jot, e il campo è
+affollato (Jotform, JotterPad, JotSpot, molte app Jot). Se Alessio vuole un
+nome con jot, **jotkit**: corto, libero ovunque si è potuto guardare, e dice
+l'idea dei mattoni ricombinabili; jotfield se preferisce l'immagine del
+canvas. Jot da solo no, per i marchi vivi nelle classi 9 e 42. Resta
+possibile un nome del prodotto senza jot, con jot solo per i mattoni, come
+Instagram e post: il rapporto Twitter e tweet non è necessario perché jot
+entri nel lessico.
+
+Fonti: banca dati USPTO <https://tmsearch.uspto.gov/>; Wiktionary
+<https://en.wiktionary.org/wiki/jotter>; Jotform
+<https://en.wikipedia.org/wiki/Jotform>; JotterPad
+<https://blog.jotterpad.app/jotterpad-reinvent-your-writing-process>;
+JotSpot <https://www.networkworld.com/article/811632/data-center-google-takes-aim-at-microsoft-sharepoint-ibm-lotus-notes.html>;
+Jotboard <https://www.udemy.com/course/learning-jotboard-from-scratch/>;
+Jot di Espresso <https://eu.espres.so/jot>; Jot su Capterra
+<https://www.capterra.ca/software/1110180/Jot>; Boogie Board Jot
+<https://techcrunch.com/2015/08/20/the-jot-8-5-is-a-better-and-brighter-boogie-board/>;
+pacchetti <https://www.npmjs.com/package/jotter>,
+<https://www.npmjs.com/package/jotbook>.
