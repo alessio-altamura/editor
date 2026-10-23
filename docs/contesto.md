@@ -408,6 +408,24 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     Fissati dall'orchestratore: il comando `print`, il PDF sempre nel tema
     chiaro, il rifiuto con errori come per l'`export`, un Chromium di
     versione fissata.
+  - La strada verso l'app (2026-10-23, Alessio, «tutto perfetto, bene»,
+    sulla visione proposta dall'orchestratore). Un solo `runtime` al
+    centro, con quattro client che trovano le stesse operazioni: la `cli`,
+    l'`app`, gli editor di testo via LSP, gli agenti via MCP. L'`app` in
+    HTML e TypeScript, con due involucri: sul desktop e nel browser, con il
+    `runtime` su un server; per il desktop l'orchestratore consiglia
+    Electron, che porta lo stesso Chromium della stampa, ed è da decidere
+    quando si farà il guscio dell'`app`. Dentro l'`app` quattro viste sugli
+    stessi oggetti: il sorgente, l'anteprima, l'editing grafico sopra
+    l'anteprima, il foglio bianco. Ordine dei passi: `serve` con
+    l'anteprima che si aggiorna; LSP; il `runtime` che scrive (operazioni e
+    `formatter`); il guscio dell'`app` con sorgente e anteprima; editing
+    grafico e foglio bianco; le classi successive intrecciate con questi
+    ultimi due. Per il primo passo valgono le due raccomandazioni date con
+    la visione, lette come approvate da «tutto perfetto»: `doc-runtime
+    serve <cartella>` con l'anteprima nel browser che si aggiorna mentre si
+    scrive con un editor qualsiasi; gli errori segnati nella pagina e
+    elencati in cima, con file, problema e suggerimento.
 
 ## Proposte non decise
 
@@ -482,6 +500,11 @@ definite; layout a vincoli solo accennato; nessuna regola per assegnare gli ID
 quando due rami lavorano in parallelo.
 
 ## Orientamenti di Alessio (da precisare)
+
+- Creazione semplificata degli oggetti (2026-10-23): non solo dal foglio
+  bianco, ma anche da una pagina mentre si scrive e da una `slide` mentre si
+  fa la presentazione. Da precisare con il `runtime` che scrive e con
+  l'`app`.
 
 
 - Estensibilità: estensioni e connettori distribuiti da un marketplace, per
