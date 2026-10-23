@@ -22,13 +22,9 @@ import {
   type Position,
 } from 'vscode-languageserver/node';
 import { LiveFolder } from './live.js';
+import { completions, definitionOf, hoverAt, referenceAt as referenceInLine, REFERENCE } from './language-services.js';
 import { evaluate, OperationError, planExtract, planRename, type Outcome, type Plan, type Workspace } from './operations.js';
 import type { JsonML, ResolvedTree, TreeNode } from './tree.js';
-
-/** The kinds an `![[id]]` cannot include (§8): no point in proposing them there. */
-const NOT_EMBEDDABLE = new Set(['concept', 'scratch', 'article', 'deck', 'document', 'stylesheet', 'canvas-file']);
-/** An id reference on a line: `[[id]]`, `[[id|text]]` or `![[id]]`. */
-const REFERENCE = /(!?)\[\[([^[\]|\n]*)(\|[^[\]\n]*)?\]\]/g;
 
 /** The folder of the document: the nearest one, from `start` up, with a document file. */
 function documentFolder(start: string): string | null {
@@ -41,27 +37,6 @@ function documentFolder(start: string): string | null {
     if (dirname(folder) === folder) return null;
   }
 }
-
-/** The text of the first strings of a content, for details and hovers. */
-function firstWords(content: JsonML[] | undefined, words = 24): string {
-  const parts: string[] = [];
-  const visit = (item: JsonML) => {
-    if (typeof item === 'string') parts.push(item);
-    else for (const child of item.slice(1)) if (typeof child === 'string' || Array.isArray(child)) visit(child as JsonML);
-  };
-  (content ?? []).forEach(visit);
-  const all = parts.join(' ').split(/\s+/).filter(Boolean);
-  return all.slice(0, words).join(' ') + (all.length > words ? ' …' : '');
-}
-
-const describe = (node: TreeNode): string => {
-  const title = node.attributes?.title;
-  return typeof title === 'string' && title !== '' ? title : firstWords(node.content);
-};
-
-const within = (range: { start: Position; end: Position }, position: Position) =>
-  (range.start.line < position.line || (range.start.line === position.line && range.start.character <= position.character)) &&
-  (range.end.line > position.line || (range.end.line === position.line && range.end.character >= position.character));
 
 export function startLanguageServer(): void {
   const connection = createConnection(new StreamMessageReader(process.stdin), new StreamMessageWriter(process.stdout));
@@ -134,13 +109,7 @@ export function startLanguageServer(): void {
     const document = documents.get(uri);
     const file = pathOf(uri);
     const text = document?.getText() ?? (file === null ? '' : textOf(file));
-    const line = text.split('\n')[position.line] ?? '';
-    for (const match of line.matchAll(REFERENCE)) {
-      if (match.index! <= position.character && position.character <= match.index! + match[0].length) {
-        return { id: match[2]!.trim(), embed: match[1] === '!' };
-      }
-    }
-    return null;
+    return referenceInLine(text.split('\n')[position.line] ?? '', position.character);
   };
 
   connection.onInitialize((params) => {
@@ -178,68 +147,30 @@ export function startLanguageServer(): void {
   connection.onCompletion(({ textDocument, position }): CompletionItem[] => {
     const document = documents.get(textDocument.uri);
     if (live === null || document === undefined) return [];
-    const line = document.getText({ start: { line: position.line, character: 0 }, end: position });
-    const open = /(!?)\[\[([^[\]|\n]*)$/.exec(line);
-    if (!open) return [];
-    const embed = open[1] === '!';
+    const before = document.getText({ start: { line: position.line, character: 0 }, end: position });
     const after = document.getText({ start: position, end: { line: position.line, character: position.character + 2 } });
-    const range = { start: { line: position.line, character: position.character - open[2]!.length }, end: position };
-    const self = pathOf(textDocument.uri);
-    const seen = new Set<string>();
-    const items: CompletionItem[] = [];
-    for (const node of live.tree.nodes ?? []) {
-      if (node.id === undefined || seen.has(node.id)) continue;
-      // After ![[ only what an embed can include, and not the file itself.
-      if (embed && (NOT_EMBEDDABLE.has(node.kind) || node.file === self)) continue;
-      seen.add(node.id);
-      items.push({
-        label: node.id,
-        kind: CompletionItemKind.Reference,
-        detail: node.kind,
-        documentation: describe(node),
-        textEdit: { range, newText: after === ']]' ? node.id : `${node.id}]]` },
-      });
-    }
-    return items;
+    return completions(live.tree, pathOf(textDocument.uri), before, after, position).map((item) => ({
+      label: item.label,
+      kind: CompletionItemKind.Reference,
+      detail: item.detail,
+      documentation: item.documentation,
+      textEdit: { range: item.range, newText: item.newText },
+    }));
   });
 
   connection.onDefinition(({ textDocument, position }): Location[] => {
     const reference = referenceAt(textDocument.uri, position);
     if (live === null || reference === null) return [];
     const start = { line: 0, character: 0 };
-    return nodeById(live.tree, reference.id).map((node) => ({ uri: uriOf(node.file), range: { start, end: start } }));
+    return definitionOf(live.tree, reference.id).map((file) => ({ uri: uriOf(file), range: { start, end: start } }));
   });
 
   connection.onHover(({ textDocument, position }) => {
     if (live === null) return null;
-    const reference = referenceAt(textDocument.uri, position);
-    if (reference !== null) {
-      const nodes = nodeById(live.tree, reference.id);
-      const value = nodes.length === 0
-        ? `\`${reference.id}\`: nessun oggetto con questo id`
-        : nodes.map((node) => `**${node.kind}** \`${reference.id}\`\n\n${describe(node)}`).join('\n\n---\n\n');
-      return { contents: { kind: MarkupKind.Markdown, value } };
-    }
-    // A math line of this file: its value, as the tree computed it.
     const file = pathOf(textDocument.uri);
-    for (const node of live.tree.nodes ?? []) {
-      if (node.file !== file) continue;
-      const stack: JsonML[] = [...(node.content ?? [])];
-      while (stack.length > 0) {
-        const item = stack.pop()!;
-        if (typeof item === 'string') continue;
-        const attributes = item[1] !== null && typeof item[1] === 'object' && !Array.isArray(item[1]) ? (item[1] as Record<string, unknown>) : {};
-        const at = attributes.sourcePosition as { range: { start: Position; end: Position } } | undefined;
-        if (item[0] === 'mathLine' && at && within(at.range, position)) {
-          const value = attributes.invalid === true
-            ? `riga di calcolo non valida: \`${String(item[2] ?? item[1])}\``
-            : `= **${String(attributes.display)}**\n\nvalore: \`${String(attributes.value)}\``;
-          return { contents: { kind: MarkupKind.Markdown, value }, range: at.range };
-        }
-        for (const child of item.slice(1)) if (typeof child === 'string' || Array.isArray(child)) stack.push(child as JsonML);
-      }
-    }
-    return null;
+    const text = documents.get(textDocument.uri)?.getText() ?? (file === null ? '' : textOf(file));
+    const hover = hoverAt(live.tree, file, text.split('\n')[position.line] ?? '', position);
+    return hover === null ? null : { contents: { kind: MarkupKind.Markdown, value: hover.markdown }, ...(hover.range ? { range: hover.range } : {}) };
   });
 
   connection.onReferences(({ textDocument, position, context }): Location[] => {

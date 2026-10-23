@@ -16,12 +16,15 @@ export class LiveFolder {
   ms = 0;
   private timer: NodeJS.Timeout | undefined;
   private readonly watcher: FSWatcher;
+  /** Who wants to know of each recomputation: serve, the language server, the app. */
+  private readonly listeners = new Set<() => void>();
 
   constructor(
     readonly folder: string,
-    private readonly onUpdate: () => void,
+    onUpdate: () => void,
     private readonly log: (line: string) => void,
   ) {
+    this.listeners.add(onUpdate);
     this.recompute();
     this.watcher = watch(folder, { recursive: true }, () => this.schedule());
   }
@@ -45,8 +48,14 @@ export class LiveFolder {
   schedule(): void {
     clearTimeout(this.timer);
     this.timer = setTimeout(() => {
-      if (this.recompute()) this.onUpdate();
+      if (this.recompute()) for (const listener of this.listeners) listener();
     }, SETTLE_MS);
+  }
+
+  /** Adds a listener; the returned function removes it. */
+  listen(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
   }
 
   close(): void {

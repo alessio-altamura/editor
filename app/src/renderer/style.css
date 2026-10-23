@@ -1,0 +1,17 @@
+/* The theme of the system: light or dark, with the same three columns. */
+:root { color-scheme: light dark; --line: #d0d0d0; --muted: #666666; --hover: #eef2f7; --accent: #1a4f8b; }
+@media (prefers-color-scheme: dark) { :root { --line: #3a3a3a; --muted: #a0a0a0; --hover: #2a2f36; --accent: #8ab4f8; } }
+html, body { margin: 0; height: 100%; font-family: system-ui, sans-serif; font-size: 13px; }
+body { display: grid; grid-template-columns: 260px minmax(0, 1fr) minmax(0, 1fr); }
+#navigator { border-right: 1px solid var(--line); overflow: auto; padding: 8px; }
+#search { width: 100%; box-sizing: border-box; margin-bottom: 8px; }
+.shelf h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 12px 0 4px; }
+.shelf button { display: block; width: 100%; text-align: left; border: 0; background: none; color: inherit; padding: 3px 4px; border-radius: 3px; font: inherit; cursor: pointer; }
+.shelf button:hover, .shelf button[aria-current="true"] { background: var(--hover); }
+.shelf .id { color: var(--muted); font-size: 11px; display: block; }
+#source { display: flex; flex-direction: column; min-width: 0; border-right: 1px solid var(--line); }
+#bar { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-bottom: 1px solid var(--line); color: var(--muted); }
+#bar button { margin-left: auto; }
+#editor { flex: 1; min-height: 0; }
+#editor .cm-editor { height: 100%; }
+#preview { min-width: 0; }

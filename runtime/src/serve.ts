@@ -59,6 +59,15 @@ const CLIENT = `(() => {
     if (top && top.isConnected) window.scrollBy(0, top.getBoundingClientRect().top - before);
     window.previewUpdates++;
   };
+  // In the app (app=1), a click on an element puts its source position in the fragment,
+  // where the app reads it; a click on a link is left to the link.
+  if (new URLSearchParams(location.search).get('app') === '1') {
+    document.addEventListener('click', (event) => {
+      if (event.target.closest('a[href]')) return;
+      const element = event.target.closest('[data-source]');
+      if (element) location.hash = 'source=' + encodeURIComponent(element.getAttribute('data-source'));
+    });
+  }
   const connect = () => {
     const socket = new WebSocket('ws://' + location.host + '/ws?token=' + encodeURIComponent(token) + '&article=' + encodeURIComponent(article));
     socket.onmessage = (event) => {
@@ -89,6 +98,8 @@ export interface ServeOptions {
   port: number;
   /** Where the line with the address goes, and the times of each recomputation. */
   log: (line: string) => void;
+  /** The runtime already on over the folder, as in the app; without it serve starts its own. */
+  live?: LiveFolder;
 }
 
 const articlesOf = (tree: ResolvedTree): TreeNode[] =>
@@ -145,7 +156,9 @@ export function serve(options: ServeOptions): Promise<{ url: string; close: () =
     const diagnostics = sortDiagnostics([...(tree.diagnostics ?? []), ...unsupported.values()]);
     return { tree, listed, assets, diagnostics, ms };
   };
-  const live = new LiveFolder(folder, () => update(), options.log);
+  const own = options.live === undefined;
+  const live = options.live ?? new LiveFolder(folder, () => update(), options.log);
+  const unlisten = own ? () => undefined : live.listen(() => update());
   let state = derive();
 
   const withToken = (path: string) => `${path}?token=${encodeURIComponent(token)}`;
@@ -256,7 +269,8 @@ export function serve(options: ServeOptions): Promise<{ url: string; close: () =
       port = typeof address === 'object' && address !== null ? address.port : options.port;
       const close = () =>
         new Promise<void>((done) => {
-          live.close();
+          if (own) live.close();
+          else unlisten();
           for (const ws of clients.keys()) ws.terminate();
           sockets.close();
           server.close(() => done());

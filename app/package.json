@@ -1,0 +1,38 @@
+{
+  "name": "doc-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Il guscio dell'app: sorgente e anteprima affiancate, sul runtime acceso",
+  "type": "module",
+  "main": "dist/main.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "runtime": "npm --prefix ../runtime install --no-audit --no-fund && npm --prefix ../runtime run build",
+    "build": "tsc -p . --noEmit && node build.mjs",
+    "prestart": "npm run runtime && npm run build",
+    "start": "electron .",
+    "test": "npm run runtime && npm run build && node dist-test/unit.js",
+    "test:e2e": "npm run runtime && npm run build && node dist-test/e2e.js"
+  },
+  "dependencies": {
+    "@codemirror/autocomplete": "6.20.3",
+    "@codemirror/commands": "6.11.1",
+    "@codemirror/lang-markdown": "6.5.2",
+    "@codemirror/language": "6.13.1",
+    "@codemirror/lint": "6.9.7",
+    "@codemirror/search": "6.7.2",
+    "@codemirror/state": "6.7.6",
+    "@codemirror/theme-one-dark": "6.1.3",
+    "@codemirror/view": "6.43.14",
+    "doc-runtime": "file:../runtime"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "electron": "39.8.10",
+    "esbuild": "0.28.2",
+    "playwright-core": "1.56.1",
+    "typescript": "5.9.3"
+  }
+}
