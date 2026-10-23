@@ -17,14 +17,23 @@ export const NOT_EMBEDDABLE = new Set(['concept', 'scratch', 'article', 'deck', 
 export const REFERENCE = /(!?)\[\[([^[\]|\n]*)(\|[^[\]\n]*)?\]\]/g;
 
 /** The text of the first strings of a content, for details and hovers. */
+/** Blocks are separated by a space; the pieces of a line join as they are written. */
+const BLOCKS = new Set(['paragraph', 'heading', 'list', 'listItem', 'blockquote', 'code', 'table', 'tableRow', 'tableCell', 'thematicBreak', 'embed', 'title']);
+
 export function firstWords(content: JsonML[] | undefined, words = 24): string {
-  const parts: string[] = [];
+  let text = '';
   const visit = (item: JsonML) => {
-    if (typeof item === 'string') parts.push(item);
-    else for (const child of item.slice(1)) if (typeof child === 'string' || Array.isArray(child)) visit(child as JsonML);
+    if (typeof item === 'string') {
+      text += item;
+      return;
+    }
+    const block = BLOCKS.has(item[0]);
+    if (block) text += ' ';
+    for (const child of item.slice(1)) if (typeof child === 'string' || Array.isArray(child)) visit(child as JsonML);
+    if (block) text += ' ';
   };
   (content ?? []).forEach(visit);
-  const all = parts.join(' ').split(/\s+/).filter(Boolean);
+  const all = text.split(/\s+/).filter(Boolean);
   return all.slice(0, words).join(' ') + (all.length > words ? ' …' : '');
 }
 

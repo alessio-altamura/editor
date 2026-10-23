@@ -9,7 +9,7 @@ import { pageAssets, readAsset } from './assets.js';
 import { makeDiagnostic, sortDiagnostics } from './diagnostic.js';
 import { writeAll, writeJson } from './json-output.js';
 import { listDocumentFiles, resolveTree, SPEC_VERSION } from './resolve-tree.js';
-import { CHROMIUM_VERSION, printPdf } from './print.js';
+import { ELECTRON_VERSION, printPdf } from './print.js';
 import { startLanguageServer } from './language-server.js';
 import { serve } from './serve.js';
 import { formatFolder } from './format.js';
@@ -47,7 +47,7 @@ Uso:
   ${BINARY_NAME} print <cartella> [--root <id>] [-o <file>] [--allow-errors]
                                          stampa in PDF l'HTML del tema chiaro: A4,
                                          margini di 2 cm, numero di pagina in basso;
-                                         serve Chromium ${CHROMIUM_VERSION}
+                                         serve Electron ${ELECTRON_VERSION}, che npm ci installa
   ${BINARY_NAME} serve <cartella> [--port <n>]
                                          tiene acceso il runtime e mostra l'anteprima
                                          nel browser, su 127.0.0.1, aggiornata a ogni

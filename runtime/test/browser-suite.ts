@@ -4,7 +4,7 @@
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { chromium } from 'playwright-core';
+import { launchBrowser } from './electron-browser.js';
 import { expectedStyles, prepare, runCli, VALID_PAGES } from './export-suite.js';
 
 const PX_PER_PT = 4 / 3;
@@ -83,7 +83,13 @@ const BY_HAND: Record<string, Array<{ selector: string; values: Record<string, s
   ],
 };
 
-const browser = await chromium.launch();
+const browser = await launchBrowser();
+console.log(`     Electron ${browser.versions.electron}, Chromium ${browser.versions.chrome}`);
+let requests: string[] = [];
+await browser.route((route) => {
+  requests.push(route.request().url());
+  return route.abort();
+});
 let failed = 0;
 const base = mkdtempSync(join(tmpdir(), 'browser-'));
 try {
@@ -94,13 +100,10 @@ try {
     const html = runCli(['export', folder, '--root', root]).stdout.toString('utf8');
     const expected = expectedStyles(label, html, folder, root, images);
     for (const scheme of ['light', 'dark'] as const) {
-      const context = await browser.newContext({ colorScheme: scheme });
-      const requests: string[] = [];
-      await context.route('**/*', (route) => {
-        requests.push(route.request().url());
-        return route.abort();
-      });
-      const page = await context.newPage();
+      requests = [];
+      const page = await browser.newPage({ colorScheme: scheme });
+      const context = browser.app.context();
+
       await page.setContent(html, { waitUntil: 'load' });
       const properties = ['font-family', 'font-size', 'font-weight', 'font-style', 'color', 'text-align', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'line-height', 'text-decoration-line'];
       const computed = await page.evaluate(({ indices, properties }) => {
@@ -177,7 +180,7 @@ try {
         }
       }
       if (requests.length > 0) problems.push(`requests: ${requests.join(', ')}`);
-      await context.close();
+      await page.close();
     }
     if (problems.length === 0) console.log(`ok   ${label}: ${expected.length} elements`);
     else {

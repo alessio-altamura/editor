@@ -14,15 +14,16 @@
     "build": "tsc -p .",
     "typecheck": "tsc -p . --noEmit",
     "test": "tsc -p . && node dist/test/conformance-suite.js && node dist/test/robustness-suite.js && node dist/test/export-suite.js && node dist/test/format-suite.js && node dist/test/operations-suite.js && node dist/test/serve-suite.js && node dist/test/language-server-suite.js",
-    "test:browser": "tsc -p . && node dist/test/browser-suite.js && node dist/test/print-suite.js && node dist/test/serve-browser-suite.js"
+    "test:browser": "tsc -p . && node dist/test/browser-suite.js && node dist/test/print-suite.js && node dist/test/serve-browser-suite.js",
+    "postinstall": "install-electron"
   },
   "dependencies": {
     "decimal.js": "10.6.0",
+    "electron": "44.9.3",
     "mdast-util-from-markdown": "2.1.0",
     "mdast-util-gfm-table": "2.0.0",
     "micromark-extension-gfm-table": "2.1.2",
     "morphdom": "2.7.8",
-    "playwright-core": "1.56.1",
     "vscode-languageserver": "10.1.2",
     "vscode-languageserver-textdocument": "1.0.15",
     "ws": "8.22.0",
@@ -35,6 +36,7 @@
     "html-validate": "11.16.2",
     "micromark-util-types": "2.0.3",
     "parse5": "8.0.1",
+    "playwright-core": "1.56.1",
     "typescript": "5.9.3"
   }
 }
