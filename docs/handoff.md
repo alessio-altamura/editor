@@ -396,13 +396,13 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      aggiorna dal buffer non salvato, clic sull'anteprima che porta alla
      riga del sorgente, salvataggio dal `formatter`, «Estrai in un oggetto».
      Si lancia con `cd app && npm ci && npm start`; test di unità e un
-     end-to-end (qui con `xvfb-run -a npm run test:e2e`). Aperto: Electron
-     39 (Chromium 142) non è più supportato e ha avvisi di sicurezza, e non
-     esiste un Electron con il Chromium 141 della stampa: domanda ad Alessio
-     su come allineare app e stampa. Mancano: la richiesta di salvare quando
-     si cambia file, più file aperti, la rinomina dall'interfaccia; nel
-     navigator il primo testo ha spazi prima della punteggiatura («risultati
-     .»).
+     end-to-end (qui con `xvfb-run -a npm run test:e2e`). Un motore solo
+     (2026-10-24): Electron 44.9.3 (Chromium 152, Node 24) per l'`app`, per
+     la stampa (`print` lancia Electron, headless su Linux) e per i test;
+     npm audit senza vulnerabilità. La 44.9.3 ha meno di due settimane, ma
+     corregge un avviso grave della 44.7.0. L'`app` chiede di salvare
+     quando si cambia file o si chiude. Mancano: più file aperti, la
+     rinomina dall'interfaccia, il pacchetto firmato.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
