@@ -335,7 +335,7 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      rimasti: un nome di font con caratteri di controllo C1 diventa U+FFFD;
      il ripiego `unreadable` delle immagini non ha un test (qui si gira come
      root); i limiti di Chromium (512 annidamenti, valori enormi) sono solo
-     dichiarati. Resta il PDF.
+     dichiarati.
    - I quattro difetti del foglio di partenza visti nel prototipo sono
      corretti (2026-10-22, contesto.md «Il foglio di partenza dopo il primo
      HTML»): spazio sotto tabelle, codice, immagini e righe di separazione;
@@ -350,6 +350,18 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
    - L'HTML dell'`export` sarà anche l'anteprima della `composition`
      nell'`app` (contesto.md, stessa data): proposte dell'orchestratore da
      progettare con il `runtime` vivo.
+   - Il PDF c'è (2026-10-23, contesto.md «Il PDF»): `doc-runtime print`, A4,
+     margini di 2 cm, numero di pagina in basso al centro, tema chiaro,
+     Chromium 141 fissato (playwright-core 1.56.1, dipendenza di
+     produzione). I font di partenza (Source Serif 4, Source Sans 3, Source
+     Code Pro, OFL, in `runtime/fonts/` con versioni e sha256) sono
+     incorporati nel PDF e nell'HTML; l'HTML del documento d'esempio pesa
+     ora circa 1,4 MB. Con questo il primo prodotto (albero, HTML, PDF senza
+     app) è completo. Da sapere: il peso dei font va da 200 a 900; Chromium
+     li mette nel PDF come Type 3, senza hinting; U+FFFD non è nei tre font e
+     lo disegna un font del sistema; «Source» è un Reserved Font Name
+     dell'OFL, quindi ridurre i font ai caratteri usati li rinomina, da
+     decidere quando si farà.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
