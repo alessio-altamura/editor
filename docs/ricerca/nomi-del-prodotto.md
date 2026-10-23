@@ -726,6 +726,34 @@ Candidati in questa forma:
   su npm, PyPI e crates.io, molti marchi; **coil** (*Dennou Coil*) e **magi**
   (i calcolatori MAGI di Evangelion), presi dappertutto.
 
+**Orichalt.** Alessio chiede il nome della sostanza aliena di *ID-0*: è
+l'Orichalt (オリハルト, *Oriharuto*), il minerale che ha permesso
+all'umanità di uscire dal sistema solare, usato per i viaggi più veloci
+della luce e per far funzionare le I-Machines (Wikipedia, *ID-0*).
+`orichalt` è libero su npm (anche `-cli`), PyPI e crates.io, nessun
+comando, nessun marchio USPTO. Ricerca web non fatta.
+
+**Il filone delle monadi** (proposta di Alessio). In filosofia la monade è
+l'unità ultima e indivisibile; in Leibniz (*Monadologia*) una «sostanza
+semplice», di cui sono fatte tutte le cose composte. È esattamente il
+mattone, e vale per qualunque contenuto. Ma:
+- **monad**: in programmazione funzionale (Haskell) è un concetto famoso,
+  un tipo di dato che rappresenta una forma di calcolo, quindi per gli
+  sviluppatori ha già un significato forte e diverso; preso su npm, PyPI e
+  crates.io; all'USPTO MONAD è vivo nelle classi 9 e 42 per la Monad
+  Foundation (una blockchain) e in 42 per Monad, Inc. Scartato come nome
+  dell'app.
+- **monade** (italiano e francese): preso su npm (agosto 2025), liberi
+  `monade-cli`, PyPI e crates.io; all'USPTO tre risultati, nessuno vivo in 9
+  o 42. Come parola del mattone in italiano è naturale: «una monade», «le
+  monadi»; in inglese diventa *monad*, con il problema di Haskell.
+- **henad**: in Proclo le enadi sono le unità individuali fra l'Uno e
+  l'intelligibile, identificate con gli dèi greci (Wikipedia, *Proclus*).
+  `henad` libero su npm e PyPI, preso su crates.io, nessun marchio USPTO; ma
+  è una parola oscura e in italiano si legge male.
+- **monas**, **dyad**, **tetrad**: presi su npm, e quasi tutti su PyPI o
+  crates.io.
+
 Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
 <https://en.wiktionary.org/wiki/orri>, <https://en.wiktionary.org/wiki/keping>,
 <https://en.wiktionary.org/wiki/lappu>, <https://en.wiktionary.org/wiki/Lapp>,
@@ -765,4 +793,8 @@ Sigil <https://en.wikipedia.org/wiki/Sigil_(application)>;
 <https://en.wikipedia.org/wiki/Cyberpunk:_Edgerunners>; Evangelion Unit-00
 <https://en.wikipedia.org/wiki/Rei_Ayanami>; Planetes
 <https://en.wikipedia.org/wiki/Planetes>; <https://en.wiktionary.org/wiki/planetes>;
-UnitZ <https://videogamegeek.com/videogame/180372/unitz>.
+UnitZ <https://videogamegeek.com/videogame/180372/unitz>; ID-0
+<https://en.wikipedia.org/wiki/ID-0>; <https://en.wiktionary.org/wiki/monad>,
+<https://en.wiktionary.org/wiki/monade>; Monadologia
+<https://en.wikipedia.org/wiki/Monadology>; Proclo
+<https://en.wikipedia.org/wiki/Proclus>.
