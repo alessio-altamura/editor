@@ -3,7 +3,8 @@
 Il `runtime` da riga di comando, ridotto all'essenziale: legge la cartella di
 un documento e stampa il `resolved tree` in JSON, come dice la bozza di
 [specifica](../docs/specifica.md) per il `core` e la classe 1, e ne scrive
-l'HTML di un `article` (§11.4) e il suo PDF (§11.5). Non fa `format`.
+l'HTML di un `article` (§11.4) e il suo PDF (§11.5); `serve` lo tiene acceso
+con l'anteprima nel browser (§11.6). Non fa `format`.
 
 ## Installare
 
@@ -30,8 +31,10 @@ Se l'ambiente ne ha già uno, `PLAYWRIGHT_BROWSERS_PATH` dice dove sta.
 ```
 node dist/src/cli.js resolve-tree <cartella>            # JSON compatto
 node dist/src/cli.js resolve-tree <cartella> --pretty   # JSON indentato
+node dist/src/cli.js resolve-tree <cartella> --positions   # con la sourcePosition di ogni elemento
 node dist/src/cli.js export <cartella> [--root <id>] [-o <file>] [--allow-errors] [--theme light|dark]
 node dist/src/cli.js print <cartella> [--root <id>] [-o <file>] [--allow-errors]
+node dist/src/cli.js serve <cartella> [--port <n>]
 node dist/src/cli.js --help
 ```
 
@@ -183,6 +186,54 @@ Chromium scrive i font variabili come font Type 3: incorporati, ridotti ai
 caratteri usati e con il testo che si copia, ma senza le istruzioni di
 hinting di un TrueType.
 
+## L'anteprima
+
+`serve` tiene acceso il `runtime` su una cartella (`src/serve.ts`). Ascolta
+solo su 127.0.0.1, su una porta libera o su quella di `--port`, e stampa su
+stdout l'indirizzo con un codice d'accesso casuale, `?token=…`: ogni
+richiesta HTTP e WebSocket lo deve portare, e un'intestazione `Host` che non
+sia `127.0.0.1` o `localhost` con quella porta è rifiutata, contro il DNS
+rebinding; altrimenti 403. Si ferma con Ctrl-C. Su stderr scrive il tempo di
+ogni ricalcolo.
+
+Guarda la cartella con `fs.watch` ricorsivo; dopo l'ultima modifica di una
+raffica aspetta 60 ms e ricalcola tutta la cartella, con le `source
+position`. A ogni pagina aperta manda sul WebSocket il nuovo HTML, se è
+cambiato; lo script della pagina lo applica con morphdom, che cambia solo gli
+elementi diversi, e poi riporta al suo posto il primo elemento di nodo che
+comincia nella finestra: la pagina non si ricarica e il punto che si legge
+non salta. Se l'`article` non c'è più, la pagina lo dice in cima, e lo toglie
+quando torna.
+
+Gli indirizzi: `/` l'indice, con titolo, `id` ed errori e avvisi dei file di
+ogni `article`; `/article/<id>` la `preview`; `/asset/<percorso>` un file
+della lista del `runtime`, letto come lo legge l'`export` (niente link
+simbolici, niente `..`, il formato dai primi byte), altrimenti 404;
+`/font/<file>` i font di partenza; `/client.js` e `/morphdom.js` gli script.
+Le pagine hanno nell'intestazione HTTP la Content Security Policy
+`default-src 'none'; script-src 'self'; connect-src 'self'; img-src 'self';
+font-src 'self'; style-src 'unsafe-inline'; base-uri 'none'; form-action
+'none'; frame-ancestors 'none'`, e `Referrer-Policy: no-referrer`, perché il
+codice sta negli indirizzi.
+
+La `preview` è l'HTML dell'`export` in modalità anteprima: due temi, gli
+errori segnati come con `--allow-errors`, in cima un `<section
+data-diagnostics>` con tutti i `diagnostic` della cartella, immagini e font
+come indirizzi, gli script del `runtime` e niente CSP nel file. Ogni elemento
+di nodo porta `data-node`, l'`id` dell'oggetto a cui appartiene (per un
+`embed` quello dell'oggetto incluso), e `data-source`,
+`file:riga:colonna-riga:colonna`, contate come in LSP: righe da 0, colonne
+in unità UTF-16, sul file senza BOM. Per un `embed` è la riga `![[id]]`, per
+un titolo la riga `title:`. `resolve-tree --positions` scrive le stesse
+posizioni nel JSON, come `sourcePosition` negli attributi di ogni elemento.
+
+Tempi misurati qui, Node 22, con le `source position`: il documento
+`test/fixtures/export/completo` si ricalcola in 17 ms e la `preview` si
+scrive in 5 ms (67 e 12 ms la prima volta); un documento con mille `text`
+in 234 ms e 64 ms (576 e 76 ms la prima volta). Dal salvataggio
+all'arrivo sul WebSocket passano circa 80 ms per un documento piccolo, 60 di
+attesa compresi.
+
 `[[…]]` e `![[…]]` li riconosce un'estensione micromark scritta qui,
 `src/wiki-reference.ts`, prima degli altri costrutti in linea (§0.6).
 
@@ -232,6 +283,16 @@ c'è), il rifiuto con un errore e il codice 2 senza browser. Il Chromium è
 quello di `PLAYWRIGHT_BROWSERS_PATH`; sul Mac si installa con `npx
 playwright-core install chromium`.
 
+`npm test` lancia anche `test/serve-suite.ts`: avvia `serve` su una cartella
+temporanea e controlla il 403 senza codice e con un altro `Host`, l'indice e
+la `preview`, l'ascolto solo su 127.0.0.1, il 404 per un file fuori dalla
+lista (collegato, nascosto, con `..`), che `data-source` indichi davvero il
+testo nel file, e gli aggiornamenti sul WebSocket: una modifica, un errore
+che compare nell'elenco e nella pagina e poi sparisce, l'`article` che
+sparisce. `npm run test:browser` lancia anche `test/serve-browser-suite.ts`:
+nel browser la pagina si aggiorna senza ricaricarsi, e il capoverso che si
+legge resta al suo posto anche se il testo sopra cresce.
+
 Solo il typecheck: `npm run typecheck`.
 
 ## Com'è fatto
@@ -254,13 +315,15 @@ Solo il typecheck: `npm run typecheck`.
   dei pezzi dell'HTML; importa solo i due moduli precedenti.
 - `src/assets.ts`: la lettura delle immagini e il riconoscimento del formato.
 - `src/print.ts`: la stampa in PDF con Chromium.
+- `src/serve.ts`: il server dell'anteprima, con lo script della pagina.
 - `fonts/`: i font di partenza e le loro licenze.
 
 Dipendenze, con versione fissata: `mdast-util-from-markdown` 2.1.0,
 `micromark-extension-gfm-table` 2.1.2 e `mdast-util-gfm-table` 2.0.0 (MIT), per
 CommonMark con le tabelle di GFM; `yaml` 2.9.1 (ISC); `decimal.js` 10.6.0
-(MIT); `playwright-core` 1.56.1 (Apache-2.0) per la stampa. Per lo sviluppo
+(MIT); `playwright-core` 1.56.1 (Apache-2.0) per la stampa; `ws` 8.22.0 e
+`morphdom` 2.7.8 (MIT) per l'anteprima. Per lo sviluppo
 `typescript` 5.9.3 (Apache-2.0) e `@types/node`, `@types/mdast`,
-`micromark-util-types` (MIT); per i test dell'`export` `parse5` 8.0.1 (MIT) e
+`@types/ws`, `micromark-util-types` (MIT); per i test dell'`export` `parse5` 8.0.1 (MIT) e
 `html-validate` 11.16.2 (MIT), con dipendenze MIT, ISC, BSD e Apache-2.0. Il parser del CSS è scritto qui: il sottoinsieme è
 piccolo.

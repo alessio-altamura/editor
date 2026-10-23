@@ -18,6 +18,8 @@ export interface Element {
     depth?: number;
     /** A link with `{n}` in a root composition, filled once every number is known. */
     numberSlot?: { label: string; id: string; fallback: string };
+    /** Where the node is written (§11.6), for `resolve-tree --positions` and the preview. */
+    position?: SourcePosition;
     /** Declarations the runtime adds to the node itself (§0.5): column alignment, table header, tight list. */
     declarations?: Array<[string, string]>;
   };
@@ -37,10 +39,18 @@ export function appendChildren(target: Child[], children: Child[]): void {
   }
 }
 
-export function toJsonML(child: Child): JsonML {
+/** A source position, counted as in LSP: lines from 0, characters in UTF-16 units. */
+export interface SourcePosition {
+  file: string;
+  range: { start: { line: number; character: number }; end: { line: number; character: number } };
+}
+
+/** The JsonML of an element; with `positions`, each element has `sourcePosition` in its attributes. */
+export function toJsonML(child: Child, positions = false): JsonML {
   if (typeof child === 'string') return child;
   const out: [string, ...unknown[]] = [child.type];
-  if (Object.keys(child.attributes).length > 0) out.push(child.attributes);
-  for (const c of child.children) out.push(toJsonML(c));
+  const attributes = positions && child.meta?.position ? { ...child.attributes, sourcePosition: child.meta.position } : child.attributes;
+  if (Object.keys(attributes).length > 0) out.push(attributes);
+  for (const c of child.children) out.push(toJsonML(c, positions));
   return out;
 }

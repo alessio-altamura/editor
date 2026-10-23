@@ -10,6 +10,7 @@ import { makeDiagnostic, sortDiagnostics } from './diagnostic.js';
 import { writeAll, writeJson } from './json-output.js';
 import { listDocumentFiles, resolveTree, SPEC_VERSION } from './resolve-tree.js';
 import { CHROMIUM_VERSION, printPdf } from './print.js';
+import { serve } from './serve.js';
 import { baseFontFace, staticExport, staticExportSize, type ExportAsset } from './static-export.js';
 import type { JsonML } from './tree.js';
 
@@ -29,9 +30,10 @@ const MAX_EXPORT_BYTES = 256 * 1024 * 1024;
 const HELP = `${BINARY_NAME} — runtime del documento, spec-version ${SPEC_VERSION} (bozza)
 
 Uso:
-  ${BINARY_NAME} resolve-tree <cartella> [--pretty]
+  ${BINARY_NAME} resolve-tree <cartella> [--pretty] [--positions]
                                          stampa il resolved tree in JSON su stdout,
-                                         compatto; --pretty lo indenta
+                                         compatto; --pretty lo indenta; --positions
+                                         aggiunge a ogni elemento la sourcePosition
   ${BINARY_NAME} export <cartella> [--root <id>] [-o <file>] [--allow-errors] [--theme light|dark]
                                          scrive l'HTML di un article su stdout, o nel
                                          file di -o; --root sceglie l'article quando
@@ -41,6 +43,11 @@ Uso:
                                          stampa in PDF l'HTML del tema chiaro: A4,
                                          margini di 2 cm, numero di pagina in basso;
                                          serve Chromium ${CHROMIUM_VERSION}
+  ${BINARY_NAME} serve <cartella> [--port <n>]
+                                         tiene acceso il runtime e mostra l'anteprima
+                                         nel browser, su 127.0.0.1, aggiornata a ogni
+                                         modifica; l'indirizzo, con il codice
+                                         d'accesso, va su stdout; si ferma con Ctrl-C
   ${BINARY_NAME} --help                    questo aiuto
   ${BINARY_NAME} --version                 la spec-version che il runtime implementa
 
@@ -79,14 +86,16 @@ function main(args: string[]): number | Promise<number> {
   }
   if (args[0] === 'export') return exportCommand(args.slice(1), 'export');
   if (args[0] === 'print') return exportCommand(args.slice(1), 'print');
+  if (args[0] === 'serve') return serveCommand(args.slice(1));
   const pretty = args.includes('--pretty');
-  const [command, folder, ...rest] = args.filter((arg) => arg !== '--pretty');
+  const positions = args.includes('--positions');
+  const [command, folder, ...rest] = args.filter((arg) => arg !== '--pretty' && arg !== '--positions');
   if (command !== 'resolve-tree' || folder === undefined || rest.length > 0) {
     process.stderr.write(`${BINARY_NAME}: uso: ${BINARY_NAME} resolve-tree <cartella> (vedi --help)\n`);
     return EXIT_USAGE;
   }
   if (!readableFolder(folder)) return EXIT_USAGE;
-  const tree = resolveTree(folder);
+  const tree = resolveTree(folder, { positions });
   // In chunks: a large tree never becomes a single string.
   writeJson(1, tree, pretty ? 2 : 0);
   return tree.diagnostics?.some((d) => d.severity === 'error') ? EXIT_ERRORS : EXIT_OK;
@@ -124,6 +133,35 @@ function imageEmbeds(content: JsonML[]): Array<Record<string, unknown>> {
     for (let i = children.length - 1; i >= 0; i--) stack.push(children[i]!);
   }
   return found;
+}
+
+/** `serve`: on until Ctrl-C; the address with its access code goes on stdout, the times on stderr. */
+function serveCommand(args: string[]): number | Promise<number> {
+  const syntax = `uso: ${BINARY_NAME} serve <cartella> [--port <n>]`;
+  let folder: string | undefined;
+  let port = 0;
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i]!;
+    if (arg === '--port') {
+      const value = args[++i] ?? '';
+      if (!/^[0-9]{1,5}$/.test(value) || Number(value) > 65535) return usage(`--port vuole un numero da 0 a 65535 (vedi --help)`);
+      port = Number(value);
+    } else if (arg.startsWith('-') || folder !== undefined) return usage(syntax);
+    else folder = arg;
+  }
+  if (folder === undefined) return usage(syntax);
+  if (!readableFolder(folder)) return EXIT_USAGE;
+  return new Promise<number>((resolve) => {
+    serve({ folder: folder!, port, log: (line) => process.stderr.write(`${BINARY_NAME}: ${line}\n`) }).then(
+      ({ url, close }) => {
+        process.stdout.write(`${url}\n`);
+        const stop = () => void close().then(() => resolve(EXIT_OK));
+        process.once('SIGINT', stop);
+        process.once('SIGTERM', stop);
+      },
+      (error: NodeJS.ErrnoException) => resolve(usage(`non posso ascoltare sulla porta ${port}: ${error.code ?? error.message}`)),
+    );
+  });
 }
 
 /** The files of the base fonts, next to the package (fonts/). */
