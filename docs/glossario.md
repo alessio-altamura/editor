@@ -227,6 +227,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `stylesheet` | impaginazione | Regole nel sottoinsieme di CSS della specifica | concetto deciso, nome proposto | layout, style, theme |
 | `class` | aggancio | Nome su un `node` che si vede, a cui si agganciano le regole dello `stylesheet` | concetto deciso, nome proposto | tag, style |
 | `base stylesheet` | foglio di partenza | Foglio fisso della specifica, applicato dal `runtime` prima degli `stylesheet` del documento (deciso il 2026-10-21) | concetto deciso, nome proposto | default style, user agent stylesheet |
+| `base fonts` | font di partenza | I tre font aperti, con licenza OFL, che il `runtime` porta per le famiglie generiche serif, sans-serif e monospace, usati nell'HTML e nel PDF (concetto deciso il 2026-10-22) | concetto deciso, nome proposto | bundled fonts, default fonts |
 | `embed class` | class sull'embed | `class` data a un oggetto da una `composition`, per come appare lì; vince su quella dell'oggetto; si scrive accanto all'inclusione, «![[id]]{.nota}» (deciso il 2026-10-21) | concetto deciso, nome proposto | override, local class |
 | `number notation` | notazione dei numeri | Proprietà personalizzata CSS (--number-notation) che sceglie fra la forma piena (standard) e la forma breve (compact) dei numeri a schermo; la notazione scientifica è una forma del numero nel file, non un valore della proprietà | proposto | number format, compact |
 | `target id` | id nel canvas | Chiave proposta per scrivere l'`id` in un nodo del `canvas file` (targetId), se JSON Canvas ammette una chiave in più e gli altri programmi la conservano | proposto | node ref, ref |
@@ -310,7 +311,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `export` | esportare | Produrre HTML o PDF dal documento; con un errore si rifiuta, e con un'opzione esplicita esce lo stesso, con i pezzi mancanti segnati (deciso il 2026-10-22). Proposta: nella `cli` è il comando `export`, nome da N3, che nella classe 1 produce lo `static export` in un solo file HTML; l'opzione è --allow-errors; nel codice la funzione è staticExport, per N3, perché produce lo `static export` | concetto deciso, nome proposto | render, publish |
 | `live export` | HTML vivo | HTML esportato che ricalcola nel browser | concetto deciso, nome proposto | live page |
 | `static export` | HTML statico | HTML esportato senza ricalcolo | concetto deciso, nome proposto | snapshot |
-| `print` | stampa | Produzione del PDF dall'HTML con il `print browser` | concetto deciso, nome proposto | export pdf |
+| `print` | stampa | Produzione del PDF dall'HTML con il `print browser`: A4, margini di 2 cm, numero di pagina in basso al centro, tema chiaro (deciso il 2026-10-22). Proposta: nella `cli` è il comando `print`, nome da N3 | concetto deciso, nome proposto | export pdf |
 | `input` | input del lettore | Controllo dell'HTML esportato con cui il lettore cambia un valore | concetto deciso, nome proposto | widget, control |
 | `environment` | ambiente | Orologio, seme e fuso passati come `inputs` espliciti | proposto | context |
 | `service` | servizio | Processo locale o in cloud che dà all'HTML file locali, codice pesante, fonti esterne e salvataggio | concetto deciso, nome proposto | server, backend |
