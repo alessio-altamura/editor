@@ -9,7 +9,7 @@ export const SETTLE_MS = 60;
 
 export class LiveFolder {
   /** Texts that hold in place of the files on disk: the buffers open in an editor. */
-  readonly overlay = new Map<string, string>();
+  readonly overlay = new Map<string, string | null>();
   tree: ResolvedTree = {};
   listed = new Map<string, FileIdentity>();
   /** Milliseconds of the last recomputation. */

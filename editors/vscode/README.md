@@ -5,7 +5,9 @@ Il client del language server di `doc-runtime` (specifica §11.7): avvia
 cartella del documento. Mostra i diagnostic mentre si scrive, completa gli
 `id` dopo `[[` e `![[`, porta alla definizione di un `[[id]]`, ne mostra il
 `kind` e il titolo al passaggio del mouse, con il valore delle righe di
-calcolo, e trova chi include o collega un oggetto. Non scrive file.
+calcolo, e trova chi include o collega un oggetto. Rinomina un `id` in tutti
+i file e, su un capoverso scritto in una `composition`, offre «Estrai in un
+oggetto»: le modifiche le applica l'editor, e si possono annullare.
 
 Si attiva in una cartella che contiene un `document file` (`*.document.md`).
 

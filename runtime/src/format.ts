@@ -54,6 +54,11 @@ function canonicalHeader(frontMatter: string, multiObject: boolean): string | nu
   const entries = [...map.entries];
   // tags is always written (§0.12), but not in the header of a multi-object file, which has only kind (§0.18).
   if (!multiObject && !keys.includes('tags')) entries.push(['tags', { type: 'list', value: [] }]);
+  return writeHeader(entries);
+}
+
+/** The lines of a front matter for these attributes, in canonical order. */
+export function writeHeader(entries: Array<[string, RawValue]>): string {
   return ordered(entries)
     .map(([key, value]) => `${key}: ${value.type === 'list' ? yamlList(value.value) : yamlString((value as { value: string }).value)}`)
     .join('\n');
@@ -67,6 +72,11 @@ function canonicalAttributeLine(line: string): string {
   if (entries === null) return line;
   const keys = entries.map(([key]) => key);
   if (new Set(keys).size !== keys.length) return line;
+  return writeAttributeLine(entries);
+}
+
+/** The attribute line for these attributes, in canonical form (§0.18). */
+export function writeAttributeLine(entries: Array<[string, RawValue]>): string {
   const parts: string[] = [];
   for (const [key, value] of ordered(entries, LINE_ORDER)) {
     const items = value.type === 'list' ? value.value : null;

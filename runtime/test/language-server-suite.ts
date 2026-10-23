@@ -126,6 +126,36 @@ try {
     report('definition, hover (id and math line), references', problems);
   }
 
+  // Rename and «Estrai in un oggetto» as WorkspaceEdits, computed by the operations.
+  {
+    const problems: string[] = [];
+    type Change = { kind?: string; uri?: string; textDocument?: { uri: string }; edits?: Array<{ newText: string }> };
+    const name = (u: string | undefined) => u?.split('/').pop();
+    const rename = (await call('textDocument/rename', { textDocument: { uri: uri('nota.text.md') }, position: { line: 4, character: 38 }, newName: 'capitolo' })) as { documentChanges: Change[] };
+    const edited = rename.documentChanges.filter((c) => c.textDocument).map((c) => name(c.textDocument!.uri)).sort().join();
+    if (edited !== 'cap.chapter.md,nota.text.md,report.article.md,retired-ids.yaml') problems.push(`rename edits ${edited}`);
+    if (!rename.documentChanges.some((c) => c.kind === 'create' && name(c.uri) === 'retired-ids.yaml')) problems.push('rename does not create retired-ids.yaml');
+    const textOf = (file: string) => rename.documentChanges.find((c) => name(c.textDocument?.uri) === file)?.edits?.[0]?.newText ?? '';
+    if (!textOf('report.article.md').includes('![[capitolo]]') || !textOf('nota.text.md').includes('[[capitolo]]') || !textOf('cap.chapter.md').includes('id: capitolo') || textOf('retired-ids.yaml') !== 'cap: capitolo\n') problems.push('rename texts');
+    // A paragraph written in the chapter: composition-content, and its quick fix.
+    const mark = received.length;
+    send({ method: 'textDocument/didChange', params: { textDocument: { uri: uri('cap.chapter.md'), version: 4 }, contentChanges: [{ text: chapter + '\nUn capoverso scritto qui.\n' }] } });
+    const diagnostics = await until(() => received.slice(mark).map((m) => m.method === 'textDocument/publishDiagnostics' && m.params?.uri === uri('cap.chapter.md') ? m.params.diagnostics as Array<{ code: string }> : undefined)
+      .find((list) => list?.some((d) => d.code === 'composition-content')));
+    const actions = (await call('textDocument/codeAction', { textDocument: { uri: uri('cap.chapter.md') }, range: { start: { line: 7, character: 0 }, end: { line: 7, character: 5 } }, context: { diagnostics: diagnostics?.filter((d) => d.code === 'composition-content') ?? [] } })) as Array<{ title: string; edit: { documentChanges: Change[] } }>;
+    const action = actions.find((a) => a.title === 'Estrai in un oggetto');
+    if (!action) problems.push(`no quick fix: ${JSON.stringify(actions)}`);
+    else {
+      const created = action.edit.documentChanges.find((c) => c.kind === 'create');
+      const texts = action.edit.documentChanges.find((c) => name(c.textDocument?.uri) === 'cap-texts.text.md')?.edits?.[0]?.newText;
+      const chapterText = action.edit.documentChanges.find((c) => name(c.textDocument?.uri) === 'cap.chapter.md')?.edits?.[0]?.newText;
+      if (name(created?.uri) !== 'cap-texts.text.md' || texts !== '---\nkind: text\n---\n{#un-capoverso-scritto-qui}\n\nUn capoverso scritto qui.\n' || !chapterText?.endsWith('![[nota]]\n\n![[un-capoverso-scritto-qui]]\n')) {
+        problems.push(`quick fix ${JSON.stringify(action.edit)}`);
+      }
+    }
+    report('rename and «Estrai in un oggetto» as WorkspaceEdits', problems);
+  }
+
   await call('shutdown', {});
   send({ method: 'exit' });
   const code = await new Promise<number | null>((done) => server.once('exit', done));
