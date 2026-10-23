@@ -390,7 +390,19 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      «tags è sempre scritto»: domanda ad Alessio); il nome del file dei
      testi (oggi `<nome>-texts.text.md`); l'id dalle prime parole può
      finire con una parola corta («il-prossimo-incontro-sara-a»).
-     Prossimo passo del piano: il guscio dell'`app`.
+     Il guscio dell'`app` c'è (2026-10-23, contesto.md «Il guscio
+     dell'app»): `app/`, Electron, navigator per shelf con ricerca, editor
+     CodeMirror 6 con i servizi del `language server`, anteprima che si
+     aggiorna dal buffer non salvato, clic sull'anteprima che porta alla
+     riga del sorgente, salvataggio dal `formatter`, «Estrai in un oggetto».
+     Si lancia con `cd app && npm ci && npm start`; test di unità e un
+     end-to-end (qui con `xvfb-run -a npm run test:e2e`). Aperto: Electron
+     39 (Chromium 142) non è più supportato e ha avvisi di sicurezza, e non
+     esiste un Electron con il Chromium 141 della stampa: domanda ad Alessio
+     su come allineare app e stampa. Mancano: la richiesta di salvare quando
+     si cambia file, più file aperti, la rinomina dall'interfaccia; nel
+     navigator il primo testo ha spazi prima della punteggiatura («risultati
+     .»).
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
