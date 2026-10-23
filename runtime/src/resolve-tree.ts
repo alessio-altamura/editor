@@ -1,4 +1,5 @@
 // The resolution of §11.1: from the folder of a document to its resolved tree.
+import { idWords } from './id-words.js';
 import { lstatSync, readdirSync, readFileSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import type { Nodes, Paragraph, PhrasingContent, Root, RootContent } from 'mdast';
@@ -406,7 +407,7 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
       const own = node.attributeLine
         ? (node.markdown?.children ?? []).map((child) => node.source.slice(child.position?.start.offset ?? 0, child.position?.end.offset ?? 0)).join(' ')
         : node.source;
-      const words = slugify(own.trim().split(/\s+/).slice(0, 4).join(' '));
+      const words = idWords(own);
       const proposal = ID_FORM.test(fromName) && !idIndex.has(fromName) && !retired.has(fromName) ? fromName : proposeId(words || 'object');
       report(diagnostics, 'id-missing', node.file, undefined, `id: ${proposal}`);
     } else {

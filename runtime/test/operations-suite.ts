@@ -78,9 +78,9 @@ try {
     const problems: string[] = [];
     const summary = operate(problems, 'extract', join(folder, 'cap.chapter.md'));
     const t = tree();
-    if (JSON.stringify(summary?.extracted) !== '["le-vendite-sono-calate-del","e-un-altro-capoverso-con"]') problems.push(`extracted ${JSON.stringify(summary?.extracted)}`);
-    if (JSON.stringify(embeds(t, 'cap')) !== '["nota","le-vendite-sono-calate-del","e-un-altro-capoverso-con"]') problems.push(`embeds ${JSON.stringify(embeds(t, 'cap'))}`);
-    if (node(t, 'le-vendite-sono-calate-del')?.file !== 'cap-texts.text.md') problems.push('the texts file');
+    if (JSON.stringify(summary?.extracted) !== '["le-vendite-sono-calate","e-un-altro-capoverso"]') problems.push(`extracted ${JSON.stringify(summary?.extracted)}`);
+    if (JSON.stringify(embeds(t, 'cap')) !== '["nota","le-vendite-sono-calate","e-un-altro-capoverso"]') problems.push(`embeds ${JSON.stringify(embeds(t, 'cap'))}`);
+    if (node(t, 'le-vendite-sono-calate')?.file !== 'cap-texts.text.md') problems.push('the texts file');
     if (errors(t).length !== 0) problems.push(`errors after: ${JSON.stringify(errors(t))}`);
     report('extract', problems);
   }
@@ -91,7 +91,7 @@ try {
     operate(problems, 'create', 'text', '--in', 'cap', '--after', 'nota', '--text', 'I ritardi di agosto pesano.');
     operate(problems, 'create', 'text', '--in', 'cap', '--before', 'nota', '--text', 'I ritardi di agosto pesano.');
     const t = tree();
-    if (JSON.stringify(embeds(t, 'cap')) !== '["i-ritardi-di-agosto-pesano-2","nota","i-ritardi-di-agosto-pesano","le-vendite-sono-calate-del","e-un-altro-capoverso-con"]') problems.push(`embeds ${JSON.stringify(embeds(t, 'cap'))}`);
+    if (JSON.stringify(embeds(t, 'cap')) !== '["i-ritardi-di-agosto-pesano-2","nota","i-ritardi-di-agosto-pesano","le-vendite-sono-calate","e-un-altro-capoverso"]') problems.push(`embeds ${JSON.stringify(embeds(t, 'cap'))}`);
     const before = snapshot();
     const refused = cli('create', 'concept', '--in', 'cap', '--text', 'Un concetto incluso');
     if (refused.status !== 1 || !refused.stderr.includes('embed-kind') || !isDeepStrictEqual(snapshot(), before)) problems.push(`concept: ${refused.status} ${refused.stderr}`);
@@ -125,16 +125,16 @@ try {
   {
     const problems: string[] = [];
     const before = tree();
-    operate(problems, 'move', 'e-un-altro-capoverso-con', '--to', 'e-un-altro-capoverso-con.text.md');
+    operate(problems, 'move', 'e-un-altro-capoverso', '--to', 'e-un-altro-capoverso.text.md');
     const out = tree();
-    if (node(out, 'e-un-altro-capoverso-con')?.file !== 'e-un-altro-capoverso-con.text.md') problems.push('not moved out');
+    if (node(out, 'e-un-altro-capoverso')?.file !== 'e-un-altro-capoverso.text.md') problems.push('not moved out');
     if (!isDeepStrictEqual(withoutFiles(out), withoutFiles(before))) problems.push('the tree changed moving out');
-    const back = operate(problems, 'move', 'e-un-altro-capoverso-con', '--to', 'cap-texts.text.md');
-    if (JSON.stringify(back?.deleted) !== '["e-un-altro-capoverso-con.text.md"]') problems.push(`deleted ${JSON.stringify(back?.deleted)}`);
+    const back = operate(problems, 'move', 'e-un-altro-capoverso', '--to', 'cap-texts.text.md');
+    if (JSON.stringify(back?.deleted) !== '["e-un-altro-capoverso.text.md"]') problems.push(`deleted ${JSON.stringify(back?.deleted)}`);
     if (!isDeepStrictEqual(tree(), before)) problems.push('the tree changed moving back');
     // The last text of a multi-object file: the file goes away.
-    operate(problems, 'move', 'le-vendite-sono-calate-del', '--to', 'altri.text.md');
-    const last = operate(problems, 'move', 'le-vendite-sono-calate-del', '--to', 'cap-texts.text.md');
+    operate(problems, 'move', 'le-vendite-sono-calate', '--to', 'altri.text.md');
+    const last = operate(problems, 'move', 'le-vendite-sono-calate', '--to', 'cap-texts.text.md');
     if (JSON.stringify(last?.deleted) !== '["altri.text.md"]' || existsSync(join(folder, 'altri.text.md'))) problems.push(`emptied file: ${JSON.stringify(last)}`);
     if (cli('move', 'nota-breve', '--to', 'nota.concept.md').status !== 2) problems.push('a move to another kind is accepted');
     report('move', problems);

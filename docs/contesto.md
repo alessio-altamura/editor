@@ -449,6 +449,13 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     con un'intestazione con il solo `kind`, senza `id`. Dentro le graffe `#`
     per l'`id`, `.` per la `class`, `chiave=valore` per gli altri
     attributi; la forma di `tags`, che è una lista, è da fissare.
+    Poi, dopo il runtime che scrive (2026-10-23, Alessio, «1B, 2 il primo, 3
+    ok»): nella `attribute line` `tags` si scrive solo quando non è vuota,
+    un'eccezione a «`tags` è sempre scritto», che resta per i file con un
+    oggetto solo; il file dei testi di una `composition` si chiama
+    `<nome>-texts.text.md` (per esempio `report-q3-texts.text.md`); l'`id`
+    ricavato dalle prime parole perde in fondo articoli e preposizioni
+    («il-prossimo-incontro-sara», non «il-prossimo-incontro-sara-a»).
 
 ## Proposte non decise
 

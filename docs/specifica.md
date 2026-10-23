@@ -790,7 +790,8 @@ percorso del `canvas file` che non si risolve è l'errore
 e il `formatter` scrive `tags: []` quando manca (stessa voce). *(proposta)*
 Il `runtime`, se manca, lo legge come lista vuota senza avviso, perché lo
 corregge il `formatter`. Nel `resolved tree` una lista `tags` vuota si
-omette.
+omette. In una `attribute line` di un `multi-object file` invece `tags` si
+scrive solo quando non è vuota [C: «Sulla bozza di specifica»] (§0.18).
 
 ### 0.13 Deciso: i commenti
 
@@ -3279,10 +3280,16 @@ la più vicina, risalendo, con un `document file`, o quella di `--folder`.
   [--id <id>] [--asset <file>]` crea un oggetto e ne mette l'`embed` nella
   `composition`, dopo o prima di un altro `embed` o in fondo. L'`id` viene
   dalle prime parole del testo, al più cinque, in minuscolo e senza accenti,
-  e non è mai un `id` vivo o ritirato: con un conflitto prende `-2`, `-3`
-  (deciso che viene dalle prime parole e che si può cambiare). Un `text` va
+  senza articoli e preposizioni in fondo, e non è mai un `id` vivo o
+  ritirato: con un conflitto prende `-2`, `-3` (deciso che viene dalle prime
+  parole, che si può cambiare e che perde in fondo articoli e preposizioni
+  [C: «Sulla bozza di specifica»]). Le parole tolte in fondo sono, per l'italiano, `il lo la
+  i gli le l un uno una di a da in con su per tra fra e o del dello della
+  dei degli delle al allo alla ai agli alle dal dalla dai dalle nel nello
+  nella nei negli nelle sul sullo sulla sui sugli sulle`, e per l'inglese
+  `the a an of to in on at by for from with and or`. Un `text` va
   nel `multi-object file` dei testi della `composition`, accanto al suo
-  file: `<nome>-texts.text.md`, dove `<nome>` è il nome del file della
+  file: `<nome>-texts.text.md` (deciso [C: «Sulla bozza di specifica»]), dove `<nome>` è il nome del file della
   `composition` fino al primo punto, creato se non c'è. Un `image` copia
   `--asset` nella cartella della `composition` e mette accanto il
   descrittore; ogni altro `kind` ha un file suo, `<id>.<kind>.md`.

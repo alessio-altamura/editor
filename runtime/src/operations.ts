@@ -1,6 +1,7 @@
 // The operations (§11.9): create, extract, rename and move. Each computes a plan, the
 // new text of every file it touches; the plan passes through the formatter, the tree
 // is recomputed with it, and a plan that brings new errors is refused before writing.
+import { idWords } from './id-words.js';
 import { copyFileSync, existsSync, readFileSync, unlinkSync } from 'node:fs';
 import { basename, posix } from 'node:path';
 import type { Nodes, RootContent } from 'mdast';
@@ -125,18 +126,9 @@ function takenIds(workspace: Workspace, tree: ResolvedTree): Set<string> {
   return taken;
 }
 
-/** An id from the first words (§0.3, C: «Sulla bozza di specifica»): lowercase, no accents, up to five words; -2, -3 on a conflict. */
+/** An id from the first words (§0.3, C: «Sulla bozza di specifica»), see id-words.ts; -2, -3 on a conflict. */
 export function idFromWords(text: string, taken: Set<string>, fallback: string): string {
-  const words = text
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim()
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 5);
-  const base = words.length > 0 ? words.join('-') : fallback;
+  const base = idWords(text) || fallback;
   let id = base;
   for (let n = 2; taken.has(id); n++) id = `${base}-${n}`;
   taken.add(id);
