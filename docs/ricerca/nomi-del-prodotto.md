@@ -696,6 +696,36 @@ trattino), `-cli`, PyPI, crates.io e come comando, salvo dove detto:
 - **fixer**: preso dappertutto.
 Nessun candidato.
 
+**Il criterio di ID-Zero, detto da Alessio.** ID-Zero è l'altro suo
+progetto, e gli piace perché è diretto e ha un legame con il Giappone e con
+i manga che chi non li conosce non vede e a cui non pensa. Quindi: un nome
+che sembri internazionale e tecnico, con un riferimento nascosto.
+
+Candidati in questa forma:
+- **unit-zero** (o unitzero): in *Neon Genesis Evangelion* l'Evangelion
+  Unit-00, il prototipo pilotato da Rei Ayanami, è chiamato anche «Zero». Per
+  chi non lo sa è una sigla tecnica, «l'unità zero», e «unit» richiama il
+  mattone. Controlli: `unitzero`, `unit-zero` e `unit00` liberi su npm,
+  `-cli` liberi, liberi PyPI e crates.io, nessun comando; all'USPTO nessun
+  marchio vivo UNITZERO o UNIT ZERO; la ricerca web non trova software con
+  questo nome (solo *UnitZ*, un videogioco indipendente del 2015). Rischi:
+  «unit» in programmazione fa pensare ai test unitari (*unit test*); il
+  legame con Evangelion è molto noto fra gli appassionati, meno nascosto di
+  ID-0.
+- **planetes**: il manga di Makoto Yukimura (Kodansha, anime 2003); per chi
+  non lo conosce è il plurale di «pianeta» in catalano e asturiano, e
+  ricorda il greco *planḗtēs*, il viandante. Controlli: libero su npm (anche
+  `-cli`), PyPI, crates.io, nessun comando; all'USPTO solo LES PLANETES, vini
+  (classe 33); la ricerca web trova solo app di astronomia chiamate
+  *Planets*. Rischi: si confonde con «planets», in inglese, e non è diretto
+  come ID-Zero; tre sillabe.
+- Scartati: **domu** (il manga di Otomo; in polacco «di casa»), marchio
+  vivo in classe 9 per app di social network e preso su npm; **nerv** (la
+  NERV di Evangelion), marchi vivi della Khara e preso dappertutto;
+  **seele**, marchi vivi in 42; **haro** (la palla robot di Gundam), preso
+  su npm, PyPI e crates.io, molti marchi; **coil** (*Dennou Coil*) e **magi**
+  (i calcolatori MAGI di Evangelion), presi dappertutto.
+
 Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
 <https://en.wiktionary.org/wiki/orri>, <https://en.wiktionary.org/wiki/keping>,
 <https://en.wiktionary.org/wiki/lappu>, <https://en.wiktionary.org/wiki/Lapp>,
@@ -732,4 +762,7 @@ Sigil <https://en.wikipedia.org/wiki/Sigil_(application)>;
 <https://en.wiktionary.org/wiki/%E7%9F%B3%E5%9E%A3>,
 <https://en.wiktionary.org/wiki/%E6%9B%B8%E7%B1%8D>; Zerowriter Ink
 <https://liliputing.com/?p=170724>; Cyberpunk: Edgerunners
-<https://en.wikipedia.org/wiki/Cyberpunk:_Edgerunners>.
+<https://en.wikipedia.org/wiki/Cyberpunk:_Edgerunners>; Evangelion Unit-00
+<https://en.wikipedia.org/wiki/Rei_Ayanami>; Planetes
+<https://en.wikipedia.org/wiki/Planetes>; <https://en.wiktionary.org/wiki/planetes>;
+UnitZ <https://videogamegeek.com/videogame/180372/unitz>.
