@@ -441,9 +441,8 @@ gami e i loro composti, altre lingue e culture, la cultura cyberpunk, il
 coreano.
 
 Controlli come sopra: npm e `-cli`, comando, PyPI, crates.io, marchi USPTO,
-significati da Wiktionary (e Wikipedia per hanji). **Le ricerche web di
-questo giro non sono state fatte**: Alessio le ha interrotte, quindi gli
-omonimi nel campo restano da cercare. Marchi UE e italiani non controllati.
+significati da Wiktionary (e Wikipedia per hanji e simstim), una ricerca
+web per orri, keping, lappu e shard. Marchi UE e italiani non controllati.
 
 **Kami e gami: bloccati.**
 - **gami** (in giapponese è la forma di *kami* nei composti, come in
@@ -473,17 +472,18 @@ omonimi nel campo restano da cercare. Marchi UE e italiani non controllati.
    agrumi (classe 31). Altri significati: in catalano, antico o dialettale,
    un granaio e la capanna di pietra dei Pirenei per mungere le pecore; in
    faroese e norreno il fagiano di monte; in italiano una forma rara di
-   *orrare*. Rischi: in italiano richiama «orrore» e «orrido»; il verbo
+   *orrare*. La ricerca web non trova app o software chiamati Orri. Rischi: in italiano richiama «orrore» e «orrido»; il verbo
    («orrare questa idea») non viene naturale.
 2. **keping** (indonesiano): scheggia, pezzo, frammento, foglio, fetta; anche
    moneta, e il classificatore delle cose sottili e piatte (in malese solo il
    classificatore). Un pezzo qualunque, quindi va bene per testo, dati o
    funzioni. Controlli: tutto libero (npm, `-cli`, PyPI, crates.io, comando),
-   nessun marchio USPTO. Rischi: in inglese si sente «keeping», che può
+   nessun marchio USPTO, nessun software omonimo trovato sul web. Rischi: in inglese si sente «keeping», che può
    essere un gioco di parole o una confusione; come nome dell'app è debole,
    meglio per il mattone.
 3. **lappu** (finlandese): pezzetto di carta o di stoffa; etichetta;
-   foglietto. Tutto libero, nessun marchio USPTO. Rischi: è vicino a
+   foglietto. Tutto libero, nessun marchio USPTO, nessun software omonimo
+   trovato sul web (escono solo app della LAPP Group, cavi). Rischi: è vicino a
    *Lapp*, che in inglese indica i Sami ed è datato e a volte offensivo; in
    italiano *lappare* vuol dire leccare, come fanno i gatti.
 4. **jogak** e **madang** (coreano). 조각, *jogak*: pezzo, frammento,
@@ -496,18 +496,36 @@ omonimi nel campo restano da cercare. Marchi UE e italiani non controllati.
    carta coreana, parallelo di *kami*, ha `hanji` preso su npm (2026).
    Anche 칸, *kan*, la casella o lo scompartimento, sarebbe bello per una
    cella, ma `kan` è preso su npm, PyPI e crates.io.
-5. **shard** (cultura cyberpunk). In *Cyberpunk 2077* lo shard è il chip
-   che contiene dati, testi o registrazioni, un mattone di qualunque tipo
-   (questo viene da conoscenza generale, non l'ho verificato). In inglese
+5. **shard** (cultura cyberpunk). In *Cyberpunk 2077* gli shard sono
+   oggetti che si leggono, divisi in categorie come tecnologia, note e
+   letteratura, e alcuni contengono codici o posizioni: pezzi di contenuto
+   di tipo diverso, come i nostri mattoni (guida di Prima Games). In inglese
    vuol dire coccio, scheggia; nei giochi online è un'istanza di un mondo.
    Come mattone: «crea uno shard», «gli shard», «shardare». Rischi: `shard`
    preso su npm, PyPI e crates.io; nei database *sharding* vuol dire
-   partizionare i dati, proprio il campo dei dataset, quindi confonde. Per
-   il resto del filone cyberpunk (holo, cyberdeck, i nomi di *Neuromancer*)
-   i controlli non sono finiti: HOLO ha marchi vivi in 9 e 42.
+   partizionare i dati, proprio il campo dei dataset, quindi confonde.
+   Il resto del filone cyberpunk: **holo** preso su npm, PyPI e crates.io,
+   con marchi vivi in 9 e 42; **cyberdeck** preso su npm e crates.io, con
+   un marchio vivo in classe 9; **simstim** (nella trilogia dello Sprawl di
+   Gibson, i film sensoriali virtuali) libero ovunque e senza marchi USPTO,
+   ma descrive tutt'altro e si pronuncia male in italiano.
 
 **Raccomandazione.** **Orri** come nome dell'app e del mattone insieme, sul
 modello di *kami*: carta, foglio, pagina, in una lingua europea, libero su
-tutti i registri controllati e senza marchi nelle classi 9 e 42. Il rischio
-da pesare a voce è «orrore». Se non convince, **keping** per il mattone. Prima
-di decidere vanno fatte le ricerche web sugli omonimi e i marchi europei.
+tutti i registri controllati, senza marchi USPTO nelle classi 9 e 42 e
+senza omonimi trovati sul web. Il rischio da pesare a voce è «orrore». Se non
+convince, **keping** per il mattone. Prima di un uso pubblico restano i marchi
+europei e italiani.
+
+Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
+<https://en.wiktionary.org/wiki/orri>, <https://en.wiktionary.org/wiki/keping>,
+<https://en.wiktionary.org/wiki/lappu>, <https://en.wiktionary.org/wiki/Lapp>,
+<https://en.wiktionary.org/wiki/gami>, <https://en.wiktionary.org/wiki/gamey>,
+<https://en.wiktionary.org/wiki/%CE%B3%CE%B1%CE%BC%CE%AC%CF%89>,
+<https://en.wiktionary.org/wiki/%EC%A1%B0%EA%B0%81>,
+<https://en.wiktionary.org/wiki/%EB%A7%88%EB%8B%B9>,
+<https://en.wiktionary.org/wiki/%EC%B9%B8>, <https://en.wiktionary.org/wiki/shard>;
+Gami App <https://apps.apple.com/co/app/gami-app/id6698846527?l=en-GB>;
+Hanji <https://en.wikipedia.org/wiki/Hanji>; Sprawl
+<https://en.wikipedia.org/wiki/Sprawl_trilogy>; shard in Cyberpunk 2077
+<https://primagames.com/tips/how-to-read-shards-in-cyberpunk-2077>.
