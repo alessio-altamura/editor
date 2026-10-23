@@ -449,6 +449,12 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     tecniche dell'orchestratore: CodeMirror 6 per il testo, il codice in
     `app/`, il tema del sistema, `npm start` per lanciarla; il pacchetto
     firmato viene dopo.
+    Poi (2026-10-24, Alessio, «ok» sulla strada A): non esiste un Electron
+    con il Chromium 141 della stampa, e l'Electron più vicino (39) non è più
+    supportato e ha avvisi di sicurezza; quindi un Electron supportato, e la
+    stampa la fa Electron stesso invece del Chromium di Playwright. Un
+    motore solo, quello di Electron, per anteprima, `app`, PDF e test, e il
+    `print browser` è il suo Chromium.
   - Creazione degli oggetti e file (2026-10-23, Alessio, «1A, 2A, 3A, 4D»):
     1. Un capoverso scritto direttamente in una `composition` resta un
        errore, con una correzione automatica, «estrai in un oggetto», che crea

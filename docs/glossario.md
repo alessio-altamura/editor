@@ -304,7 +304,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `runtime` | runtime | Processo separato che possiede i file, calcola e produce gli output | concetto deciso, nome proposto | engine, server, daemon |
 | `evaluator` | motore di calcolo | Parte che valuta `formula` e dipendenze, nel `runtime` e nell'HTML esportato | proposto | engine, calc |
 | `renderer` | motore di rendering | Componente che disegna un output: HTML ora, Typst più avanti | concetto deciso, nome proposto | engine, backend |
-| `print browser` | browser di stampa | Browser di versione fissata che produce il PDF dall'HTML | concetto deciso, nome proposto | engine |
+| `print browser` | browser di stampa | Browser di versione fissata che produce il PDF dall'HTML: il Chromium di Electron, lo stesso dell'`app` (deciso il 2026-10-24) | concetto deciso, nome proposto | engine |
 | `mode` | modalità | Scelta fra vista interattiva HTML e vista di scrittura per la stampa | concetto deciso, nome proposto | view |
 | `model` | modello | Albero di `node` tipizzati con ID stabili, ricavato dal `source` | proposto | AST, graph |
 | `node` | nodo | Unità tipizzata del `model` | proposto | element, block |
