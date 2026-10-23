@@ -6,6 +6,7 @@ import { fromMarkdown } from 'mdast-util-from-markdown';
 import { gfmTableFromMarkdown } from 'mdast-util-gfm-table';
 import { gfmTable } from 'micromark-extension-gfm-table';
 import { wikiReference, wikiReferenceFromMarkdown } from './wiki-reference.js';
+import { isAttributeLine, parseAttributeLine } from './attribute-line.js';
 import { appendChildren, element, toJsonML, type Child, type Element, type SourcePosition } from './content.js';
 import { compareCodePoints, report, sortDiagnostics, type Diagnostic, type DiagnosticSink } from './diagnostic.js';
 import { parseYamlMap, splitFrontMatter, type RawValue } from './front-matter.js';
@@ -77,6 +78,10 @@ interface SourceNode {
   asset?: string;
   /** Where the `title` line of the front matter is, for its source position. */
   titleOffsets?: Offsets;
+  /** In a multi-object file (§0.18): the object's attribute line, and whether it was out of form. */
+  attributeLine?: { offsets: Offsets; invalid: boolean };
+  /** The front matter has only `kind`: the file may be a multi-object file. */
+  onlyKind?: boolean;
   /** The path of the asset from the document folder, with `/`, when the file exists (§11.3). */
   assetPath?: string;
   /** How many times a chapter may appear inside itself (§0.17); undefined without `recursion`. */
@@ -325,7 +330,7 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
     }
     if (file === RETIRED_IDS_FILE) retiredFileText = text;
     else if (isStylesheet) nodes.push(readStylesheetNode(file, text, diagnostics));
-    else nodes.push(readTextNode(file, match![1]!, text, diagnostics));
+    else nodes.push(...readTextNodes(file, match![1]!, text, diagnostics));
   }
 
   const idIndex = new Map<string, SourceNode[]>();
@@ -391,16 +396,33 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
   function checkIdentity(node: SourceNode): void {
     const base = posix.basename(node.file);
     if (node.id === undefined) {
-      const fromName = base.slice(0, base.indexOf('.'));
-      const words = slugify(node.source.trim().split(/\s+/).slice(0, 4).join(' '));
+      // An attribute line out of form has its own error: no id-missing too (§0.18).
+      if (node.attributeLine?.invalid) return checkKind(node, base);
+      // In a multi-object file the name of the file is not the object's.
+      const fromName = node.attributeLine ? '' : base.slice(0, base.indexOf('.'));
+      const own = node.attributeLine
+        ? (node.markdown?.children ?? []).map((child) => node.source.slice(child.position?.start.offset ?? 0, child.position?.end.offset ?? 0)).join(' ')
+        : node.source;
+      const words = slugify(own.trim().split(/\s+/).slice(0, 4).join(' '));
       const proposal = ID_FORM.test(fromName) && !idIndex.has(fromName) && !retired.has(fromName) ? fromName : proposeId(words || 'object');
       report(diagnostics, 'id-missing', node.file, undefined, `id: ${proposal}`);
     } else {
       // Every code that applies, one per occurrence (§11.2).
       if (!ID_FORM.test(node.id)) report(diagnostics, 'id-invalid', node.file, node.id, proposeId(slugify(node.id) || 'object'));
-      if ((idIndex.get(node.id)?.length ?? 0) > 1) report(diagnostics, 'id-duplicate', node.file, node.id, 'dai un id nuovo a una delle copie');
+      // One per file, also when two objects of one file share the id (§11.2).
+      if ((idIndex.get(node.id)?.length ?? 0) > 1 && !duplicateReported.has(`${node.file}\0${node.id}`)) {
+        duplicateReported.add(`${node.file}\0${node.id}`);
+        report(diagnostics, 'id-duplicate', node.file, node.id, 'dai un id nuovo a una delle copie');
+      }
       if (retired.has(node.id)) report(diagnostics, 'id-reused', node.file, node.id, 'scegli un id nuovo');
     }
+    checkKind(node, base);
+  }
+
+  /** The kind against the extension; in a multi-object file once for the file. */
+  function checkKind(node: SourceNode, base: string): void {
+    if (node.attributeLine && kindChecked.has(node.file)) return;
+    kindChecked.add(node.file);
     if (node.kind !== node.extensionKind) {
       const stem = base.slice(0, base.lastIndexOf(`.${node.extensionKind}.`));
       const extension = node.kind === 'stylesheet' ? 'stylesheet.css' : `${node.kind}.md`;
@@ -408,6 +430,8 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
     }
     if (node.directive) report(diagnostics, 'kind-unknown', node.file, node.kind);
   }
+  const duplicateReported = new Set<string>();
+  const kindChecked = new Set<string>();
 
   /** Resolves an attribute value written exactly "[[id]]" (§10). */
   function resolveAttributeReference(node: SourceNode, written: string): { id: string; resolution: Resolution } {
@@ -1246,6 +1270,51 @@ function unreadableNode(file: string, extensionKind: string): SourceNode {
   return { file, extensionKind, kind: extensionKind, directive: false, attributes: null, yamlComments: 0, source: '', classes: [], definitions: new Map() };
 }
 
+/**
+ * The objects of a text file: one, or those of a multi-object file (§0.18), whose
+ * front matter has only `kind` and whose body has attribute lines.
+ */
+function readTextNodes(file: string, extensionKind: string, text: string, diagnostics: Diagnostic[]): SourceNode[] {
+  const node = readTextNode(file, extensionKind, text, diagnostics);
+  const children = node.markdown?.children ?? [];
+  const lineOf = (child: RootContent) => node.source.slice(child.position!.start.offset, child.position!.end.offset);
+  const isLine = (child: RootContent) => child.type === 'paragraph' && isAttributeLine(lineOf(child));
+  if (!node.onlyKind || node.kind === 'document' || !children.some(isLine)) return [node];
+  const objects: SourceNode[] = [];
+  let preamble = false;
+  for (const child of children) {
+    if (isLine(child)) {
+      const line = lineOf(child);
+      const entries = parseAttributeLine(line);
+      if (entries === null) report(diagnostics, 'attribute-line-invalid', file, line, 'scrivi {#id .class chiave=valore}, con i valori con spazi fra virgolette');
+      const object: SourceNode = {
+        file,
+        extensionKind,
+        kind: extensionKind,
+        directive: false,
+        attributes: [],
+        // The comments of the header count once, on the first object.
+        yamlComments: objects.length === 0 ? node.yamlComments : 0,
+        definitions: node.definitions,
+        source: node.source,
+        classes: [],
+        markdown: { type: 'root', children: [] },
+        attributeLine: { offsets: { start: child.position!.start.offset!, end: child.position!.end.offset! }, invalid: entries === null },
+      };
+      object.titleOffsets = object.attributeLine!.offsets;
+      readIdentity(object, [['kind', { type: 'string', value: node.kind, plain: true }], ...(entries ?? [])], diagnostics);
+      objects.push(object);
+    } else if (objects.length > 0) {
+      objects[objects.length - 1]!.markdown!.children.push(child);
+    } else if (!isComment(child) && child.type !== 'definition') {
+      preamble = true;
+    }
+  }
+  // The blocks before the first attribute line belong to no object (§0.18).
+  if (preamble) report(diagnostics, 'attribute-line-missing', file, undefined, 'metti una riga {#id} prima del blocco, o spostalo in un altro oggetto');
+  return objects;
+}
+
 function readTextNode(file: string, extensionKind: string, text: string, diagnostics: Diagnostic[]): SourceNode {
   const node: SourceNode = {
     file,
@@ -1272,6 +1341,7 @@ function readTextNode(file: string, extensionKind: string, text: string, diagnos
       return node;
     }
     node.yamlComments = map.comments;
+    node.onlyKind = map.entries.length === 1 && map.entries[0]![0] === 'kind';
     readIdentity(node, map.entries, diagnostics);
   } else {
     readIdentity(node, [], diagnostics);

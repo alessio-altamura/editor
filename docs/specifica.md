@@ -942,6 +942,48 @@ capitolo annidato: `1`, `1.1`, `1.1.1` (stessa voce, esempio 43).
   Per una formula `infinite` il `runtime` terrà comunque un limite di
   sicurezza, perché il documento deve risolversi in un tempo finito.
 
+### 0.18 Deciso: più oggetti in un file
+
+Un file può contenere più oggetti dello stesso tipo; un file per oggetto
+resta valido, e il `runtime` sposta un oggetto da un file all'altro senza
+cambiarne l'identità. Il file è solo un contenitore, senza significato né
+ordine. I metadati di ogni oggetto si vedono, anche su GitHub: una riga fra
+graffe prima di ogni oggetto, per esempio `{#calo-q3-sintesi .evidenza}`,
+una riga vuota, poi il contenuto, con la stessa regola per capoversi,
+elenchi, tabelle e codice. Il file comincia con un'intestazione con il solo
+`kind`, senza `id`. Nelle graffe `#` per l'`id`, `.` per la `class`,
+`chiave=valore` per gli altri attributi [C: «Sulla bozza di specifica»].
+
+*(proposte)*
+- **I nomi**: `multi-object file` per il file, `attribute line` per la riga.
+- **Quando un file lo è.** Un file di testo con un `front matter` che ha la
+  sola chiave `kind`, e almeno una `attribute line` nel corpo. Senza
+  `attribute line` è un file di un oggetto senza `id`, con `id-missing`
+  (esempio 16). Il `document file` non lo è mai.
+- **La `attribute line`** è un capoverso fatto solo di `{…}`, su una riga.
+  Il contenuto di un oggetto sono i blocchi che seguono, fino alla
+  `attribute line` successiva o alla fine del file.
+- **Dentro le graffe** elementi separati da spazi: `#id`; `.class`, anche più
+  d'una, nell'ordine scritto; `chiave=valore`. Un valore senza spazi,
+  virgolette, graffe né `=` si scrive com'è; altrimenti fra `"…"`, con `\"` e
+  `\\`. Le chiavi che hanno per valore una lista (`tags`, `class`,
+  `associations`) prendono un valore fra virgolette con gli elementi
+  separati da spazi: `tags="vendite q3"`.
+- **Gli attributi** valgono come nell'intestazione di un file con un oggetto
+  solo, con le stesse regole e gli stessi `diagnostic`: una chiave ripetuta,
+  `kind` compreso, è `attribute-invalid`. Il `kind` è quello
+  dell'intestazione, e l'estensione resta la regola (§0.1). Vale per ogni
+  `kind` di testo, le `composition` comprese.
+- **Gli errori.** Blocchi prima della prima `attribute line` sono
+  `attribute-line-missing`, uno per file, e non entrano nel `resolved tree`.
+  Una riga fra graffe fuori da questa forma è `attribute-line-invalid`, con
+  `target` la riga com'è scritta: comincia comunque un oggetto, senza
+  attributi né `id`, e non dà anche `id-missing`. Un `text` resta un blocco
+  solo (`text-blocks`).
+- **Nel `resolved tree`** ogni oggetto è un nodo come gli altri, e il suo
+  `file` è il file che lo contiene (esempi 50 e 51). La `source position` di
+  un titolo è la sua `attribute line`.
+
 ### Nota: il `deck` per ultimo
 
 Il principio dice che gli stessi mattoni *possono* dare documenti o
@@ -1782,6 +1824,8 @@ il riferimento non si risolve (§0.3) e il `target` è l'`id` scritto.
 | `asset-missing` | error | `asset` assente | il percorso | 7 |
 | `stylesheet-unsupported` | warning | dichiarazione, selettore o at-rule fuori dal sottoinsieme, ignorati: proprietà, valore, `!important` | il nome della proprietà; per un selettore, il primo membro fuori dal sottoinsieme, come è scritto e senza spazi ai bordi; per una at-rule, la parola chiave; per una dichiarazione senza «:», il suo testo | non coperto |
 | `reference-unresolved` | error | `id reference` senza bersaglio, in un attributo o in linea | l'`id` | non coperto |
+| `attribute-line-missing` | error | blocchi prima della prima `attribute line` di un `multi-object file` (§0.18); uno per file | — | 51 |
+| `attribute-line-invalid` | error | una riga fra graffe di un `multi-object file` fuori dalla forma del §0.18 | la riga | 51 |
 | `dark-contrast-low` | warning | un nodo del contenuto della `composition` radice, o la radice, il cui colore finale nel tema scuro ha un contrasto sotto 4,5:1 con `#1e1e1e` (§0.5); `file` è lo `stylesheet` della radice; uno per `stylesheet` e colore | il colore, `#rrggbb` | 27 |
 | `asset-unsupported` | warning | solo nell'`export` (§11.4): un'immagine della pagina che non si incorpora, perché il formato non è riconosciuto, il file non si legge o supera 64 MiB; `file` è il descrittore dell'`image`; uno per descrittore | l'`asset` com'è scritto | non coperto |
 | `export-too-large` | error | solo nell'`export`: l'HTML supererebbe 256 MiB, e non si scrive, anche con `--allow-errors`; `file` è quello dell'`article` radice; il `fix` suggerisce di ridurre le immagini o le loro inclusioni | — | non coperto |
@@ -2973,6 +3017,91 @@ id: report
   "diagnostics": [
     {"severity": "warning", "code": "dark-contrast-low", "file": "report.stylesheet.css", "target": "#333333"},
     {"severity": "warning", "code": "stylesheet-unsupported", "file": "report.stylesheet.css", "target": "margin-left"}
+  ]
+}
+````````````````````````````````
+
+Un `multi-object file` di testi e uno di capitoli (§0.18):
+
+```````````````````````````````` example 50 conf=1 status=proposal
+=== file report-q3.article.md
+---
+id: report-q3
+kind: article
+---
+![[cap-a]]
+
+![[cap-b]]
+=== file capitoli.chapter.md
+---
+kind: chapter
+---
+{#cap-a title="Le \"vendite\" del 2026"}
+
+![[calo-q3]]
+
+{#cap-b title="I ritardi"}
+
+![[ritardi]]
+=== file report-q3-texts.text.md
+---
+kind: text
+---
+{#calo-q3 .evidenza}
+
+Le vendite sono calate del 12%.
+
+{#ritardi tags="vendite q3" lang=en}
+
+Two suppliers were three weeks late.
+=== resolved
+{
+  "nodes": [
+    {"id": "calo-q3", "kind": "text", "file": "report-q3-texts.text.md", "attributes": {"class": ["evidenza"]}, "content": [["paragraph", "Le vendite sono calate del 12%."]]},
+    {"id": "cap-a", "kind": "chapter", "file": "capitoli.chapter.md", "attributes": {"title": "Le \"vendite\" del 2026"}, "content": [["embed", {"id": "calo-q3", "kind": "text", "class": ["evidenza"]}, ["paragraph", "Le vendite sono calate del 12%."]]]},
+    {"id": "cap-b", "kind": "chapter", "file": "capitoli.chapter.md", "attributes": {"title": "I ritardi"}, "content": [["embed", {"id": "ritardi", "kind": "text", "lang": "en"}, ["paragraph", "Two suppliers were three weeks late."]]]},
+    {"id": "report-q3", "kind": "article", "file": "report-q3.article.md", "content": [["embed", {"id": "cap-a", "kind": "chapter", "depth": 1, "number": "1"}, ["title", "Le \"vendite\" del 2026"], ["embed", {"id": "calo-q3", "kind": "text", "class": ["evidenza"]}, ["paragraph", "Le vendite sono calate del 12%."]]], ["embed", {"id": "cap-b", "kind": "chapter", "depth": 1, "number": "2"}, ["title", "I ritardi"], ["embed", {"id": "ritardi", "kind": "text", "lang": "en"}, ["paragraph", "Two suppliers were three weeks late."]]]]},
+    {"id": "ritardi", "kind": "text", "file": "report-q3-texts.text.md", "attributes": {"tags": ["vendite", "q3"], "lang": "en"}, "content": [["paragraph", "Two suppliers were three weeks late."]]}
+  ]
+}
+````````````````````````````````
+
+Gli errori di un `multi-object file`: un blocco prima della prima `attribute
+line`, un `text` di due blocchi, una `class` fuori forma e una riga fra
+graffe che non segue la forma:
+
+```````````````````````````````` example 51 conf=1 status=proposal
+=== file note.text.md
+---
+kind: text
+---
+Una riga prima di ogni oggetto.
+
+{#prima}
+
+Il primo testo.
+
+Un secondo capoverso.
+
+{#seconda .Brutta}
+
+Il secondo testo.
+
+{#terza "x}
+
+Il terzo testo.
+=== resolved
+{
+  "nodes": [
+    {"kind": "text", "file": "note.text.md", "content": [["paragraph", "Il terzo testo."]]},
+    {"id": "prima", "kind": "text", "file": "note.text.md", "content": [["paragraph", "Il primo testo."], ["paragraph", "Un secondo capoverso."]]},
+    {"id": "seconda", "kind": "text", "file": "note.text.md", "attributes": {"class": ["Brutta"]}, "content": [["paragraph", "Il secondo testo."]]}
+  ],
+  "diagnostics": [
+    {"severity": "error", "code": "attribute-invalid", "file": "note.text.md", "target": "class", "fix": "usa minuscole, cifre e trattini, cominciando con una lettera"},
+    {"severity": "error", "code": "attribute-line-invalid", "file": "note.text.md", "target": "{#terza \"x}", "fix": "scrivi {#id .class chiave=valore}, con i valori con spazi fra virgolette"},
+    {"severity": "error", "code": "attribute-line-missing", "file": "note.text.md", "fix": "metti una riga {#id} prima del blocco, o spostalo in un altro oggetto"},
+    {"severity": "error", "code": "text-blocks", "file": "note.text.md", "fix": "dividi in 2 text"}
   ]
 }
 ````````````````````````````````
