@@ -517,6 +517,26 @@ senza omonimi trovati sul web. Il rischio da pesare a voce è «orrore». Se non
 convince, **keping** per il mattone. Prima di un uso pubblico restano i marchi
 europei e italiani.
 
+**Da Steins;Gate** (proposta di Alessio, a giro quasi chiuso):
+- **stein**: in norvegese (bokmål) pietra, roccia, e in muratura anche
+  mattone; in tedesco *Stein* è la pietra; in inglese *stein* è il boccale
+  da birra. Come parola del mattone tiene: «crea uno stein», «gli stein»,
+  ed è neutra rispetto al contenuto. Ma `stein` è preso su npm e PyPI, e
+  all'USPTO ci sono marchi vivi con STEIN nelle classi 9 e 42 (STEIN LINK,
+  KONNEK STEIN). **steins**, come nome dell'app, è libero su npm, PyPI e
+  crates.io, ma ha un marchio vivo in classe 9 (strumenti industriali) e
+  richiama subito il titolo della serie, che è di altri.
+- **upa**: nella serie è la mascotte di *RaiNet Kakeru*, il franchise dentro
+  la storia, venduta nei distributori di capsule e amata da Mayuri. Corta e
+  facile: «crea un upa», «gli upa». Altri significati: in finlandese
+  dialettale feccia, sedimento; in varie lingue delle Filippine gallina; in
+  hiligaynon la pula del riso e il cibo masticato per un bambino. `upa`
+  preso su npm e crates.io, libero PyPI; all'USPTO UPA è vivo in classe 42
+  (Routehappy, software per le compagnie aeree). Suona da giocattolo.
+- **D-mail** (i messaggi mandati nel passato) e **labmem** (membro del
+  laboratorio) dicono una mail e una persona, non un mattone; `dmail` è
+  preso su npm e PyPI, `labmem` è libero ovunque e senza marchi USPTO.
+
 Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
 <https://en.wiktionary.org/wiki/orri>, <https://en.wiktionary.org/wiki/keping>,
 <https://en.wiktionary.org/wiki/lappu>, <https://en.wiktionary.org/wiki/Lapp>,
@@ -528,4 +548,8 @@ Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
 Gami App <https://apps.apple.com/co/app/gami-app/id6698846527?l=en-GB>;
 Hanji <https://en.wikipedia.org/wiki/Hanji>; Sprawl
 <https://en.wikipedia.org/wiki/Sprawl_trilogy>; shard in Cyberpunk 2077
-<https://primagames.com/tips/how-to-read-shards-in-cyberpunk-2077>.
+<https://primagames.com/tips/how-to-read-shards-in-cyberpunk-2077>;
+Steins;Gate <https://en.wikipedia.org/wiki/Steins;Gate_(video_game)>, Upa e
+D-Mail sul wiki della serie <https://steins-gate.fandom.com/wiki/Upa>,
+<https://steins-gate.fandom.com/wiki/D-Mail>; Wiktionary
+<https://en.wiktionary.org/wiki/stein>, <https://en.wiktionary.org/wiki/upa>.
