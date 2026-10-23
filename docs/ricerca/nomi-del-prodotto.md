@@ -875,6 +875,14 @@ documenti libero molto usato per scrivere, nello stesso campo.
 Qualunque «pan-doc» stretto (pandocs e simili) si confonderebbe con
 Pandoc.
 
+**Correzione di Alessio sullo «zero».** ID-Zero è un protocollo per
+l'identità con prove a conoscenza zero (ZKP): lo «zero» viene da lì e non
+c'entra con questo prodotto. I nomi costruiti con «zero» (id-zero,
+dotzero, inkzero, bitzero, unitzero, plainzero, panzero) nascono da una mia
+lettura sbagliata del criterio e vanno messi da parte. Di ID-Zero conta
+altro: è diretto, e ha un legame con il Giappone e i manga che chi non li
+conosce non vede.
+
 Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
 <https://en.wiktionary.org/wiki/orri>, <https://en.wiktionary.org/wiki/keping>,
 <https://en.wiktionary.org/wiki/lappu>, <https://en.wiktionary.org/wiki/Lapp>,
