@@ -6,7 +6,7 @@ import { fromMarkdown } from 'mdast-util-from-markdown';
 import { gfmTableFromMarkdown } from 'mdast-util-gfm-table';
 import { gfmTable } from 'micromark-extension-gfm-table';
 import { wikiReference, wikiReferenceFromMarkdown } from './wiki-reference.js';
-import { appendChildren, element, toJsonML, type Child, type Element } from './content.js';
+import { appendChildren, element, toJsonML, type Child, type Element, type SourcePosition } from './content.js';
 import { compareCodePoints, report, sortDiagnostics, type Diagnostic, type DiagnosticSink } from './diagnostic.js';
 import { parseYamlMap, splitFrontMatter, type RawValue } from './front-matter.js';
 import { displayString, evaluateMathLine, langFormat, plainString } from './math-line.js';
@@ -75,6 +75,8 @@ interface SourceNode {
   lang?: string;
   title?: string;
   asset?: string;
+  /** Where the `title` line of the front matter is, for its source position. */
+  titleOffsets?: Offsets;
   /** The path of the asset from the document folder, with `/`, when the file exists (§11.3). */
   assetPath?: string;
   /** How many times a chapter may appear inside itself (§0.17); undefined without `recursion`. */
@@ -90,7 +92,8 @@ interface StylePass {
   checkDark: (style: ComputedStyle) => void;
 }
 
-type CompositionItem = { type: 'embed'; id: string; classes: string[] } | { type: 'block'; node: RootContent };
+type Offsets = { start: number; end: number };
+type CompositionItem = { type: 'embed'; id: string; classes: string[]; position?: Offsets } | { type: 'block'; node: RootContent };
 
 type Resolution =
   | { status: 'ok'; node: SourceNode; id: string }
@@ -246,7 +249,43 @@ function slugify(text: string): string {
 const isComment = (node: RootContent): boolean =>
   node.type === 'html' && /^(\s*<!--[\s\S]*?-->)+\s*$/.test(node.value);
 
-export function resolveTree(folder: string): ResolvedTree {
+/** Options of the resolution: `positions` writes the source position of each element (§11.6). */
+export interface ResolveOptions {
+  positions?: boolean;
+}
+
+/** The start of each line of a text, for positions counted as in LSP. */
+function lineStarts(text: string): number[] {
+  const starts = [0];
+  for (let i = 0; i < text.length; i++) if (text[i] === '\n') starts.push(i + 1);
+  return starts;
+}
+
+function lspPoint(starts: number[], offset: number): { line: number; character: number } {
+  let low = 0;
+  let high = starts.length - 1;
+  while (low < high) {
+    const middle = (low + high + 1) >> 1;
+    if (starts[middle]! <= offset) low = middle;
+    else high = middle - 1;
+  }
+  return { line: low, character: offset - starts[low]! };
+}
+
+export function resolveTree(folder: string, options: ResolveOptions = {}): ResolvedTree {
+  const lineIndex = new Map<string, number[]>();
+  /** Marks an element with where it is written in the file of `context`. */
+  const mark = (target: Child, offsets: Offsets | undefined, context: { file: string; source: string }): void => {
+    if (!options.positions || typeof target === 'string' || offsets === undefined) return;
+    let starts = lineIndex.get(context.file);
+    if (starts === undefined) lineIndex.set(context.file, (starts = lineStarts(context.source)));
+    const position: SourcePosition = { file: context.file, range: { start: lspPoint(starts, offsets.start), end: lspPoint(starts, offsets.end) } };
+    target.meta = { ...target.meta, position };
+  };
+  const offsetsOf = (node: { position?: { start: { offset?: number }; end: { offset?: number } } }): Offsets | undefined =>
+    node.position?.start.offset === undefined || node.position.end.offset === undefined
+      ? undefined
+      : { start: node.position.start.offset, end: node.position.end.offset };
   const diagnostics: Diagnostic[] = [];
   const { files, unreadable } = listFiles(folder);
   for (const file of unreadable) report(diagnostics, 'syntax', file, undefined, 'rendilo un file o una cartella leggibile, con un nome in UTF-8 e senza link simbolici');
@@ -579,14 +618,20 @@ export function resolveTree(folder: string): ResolvedTree {
       const words = (line.invalid.match(/[A-Za-z][A-Za-z0-9-]*/g) ?? []).map((w) => '.' + w.toLowerCase());
       report(diagnostics, 'embed-class-invalid', node.file, line.invalid, `![[${line.id}]]{${words.join(' ') || '.nota'}}`);
     }
-    return line.embed ? { type: 'embed', id: line.id, classes: line.classes } : null;
+    const position = offsetsOf(paragraph);
+    return line.embed ? { type: 'embed', id: line.id, classes: line.classes, ...(position ? { position } : {}) } : null;
   }
 
   // Building content: the node's own body, or a node again inside a root composition.
 
   function buildBlocks(children: RootContent[], context: BuildContext): Child[] {
     const out: Child[] = [];
-    for (const child of children) for (const block of buildBlock(child, context)) out.push(block);
+    for (const child of children) {
+      for (const block of buildBlock(child, context)) {
+        mark(block, offsetsOf(child), context);
+        out.push(block);
+      }
+    }
     return out;
   }
 
@@ -621,7 +666,9 @@ export function resolveTree(folder: string): ResolvedTree {
               }
             }
           }
-          return element('listItem', {}, blocks);
+          const listItem = element('listItem', {}, blocks);
+          mark(listItem, offsetsOf(item), context);
+          return listItem;
         }))];
       }
       case 'code': {
@@ -642,8 +689,8 @@ export function resolveTree(folder: string): ResolvedTree {
         return [element('paragraph', {}, [node.value])];
       case 'table':
         const align = node.align?.some((a) => a) ? { align: node.align.map((a) => a ?? null) } : {};
-        return [element('table', align, node.children.map((row, rowIndex) =>
-          element('tableRow', {}, row.children.map((cell, column) => {
+        return [element('table', align, node.children.map((row, rowIndex) => {
+          const tableRow = element('tableRow', {}, row.children.map((cell, column) => {
             const tableCell = element('tableCell', {}, buildInlines(cell.children, context));
             // The column alignment and the header row act as declarations on the cell (§0.5).
             const declarations: Array<[string, string]> = [];
@@ -651,8 +698,12 @@ export function resolveTree(folder: string): ResolvedTree {
             if (textAlign) declarations.push(['text-align', textAlign]);
             if (rowIndex === 0) declarations.push(['font-weight', '700']);
             if (declarations.length > 0) tableCell.meta = { declarations };
+            mark(tableCell, offsetsOf(cell), context);
             return tableCell;
-          }))))];
+          }));
+          mark(tableRow, offsetsOf(row), context);
+          return tableRow;
+        }))];
       case 'definition': return [];
       default: return [element('paragraph', {}, [sourceOf(node, context)])];
     }
@@ -664,7 +715,11 @@ export function resolveTree(folder: string): ResolvedTree {
 
   function buildInlines(children: PhrasingContent[], context: BuildContext): Child[] {
     const out: Child[] = [];
-    for (const child of children) appendChildren(out, buildInline(child, context));
+    for (const child of children) {
+      const built = buildInline(child, context);
+      for (const piece of built) mark(piece, offsetsOf(child), context);
+      appendChildren(out, built);
+    }
     return out;
   }
 
@@ -790,7 +845,10 @@ export function resolveTree(folder: string): ResolvedTree {
     for (const item of items) {
       if (item.type === 'embed') {
         const embed = buildEmbed(item.id, item.classes, context);
-        if (embed) out.push(embed);
+        if (embed) {
+          mark(embed, item.position, context);
+          out.push(embed);
+        }
         continue;
       }
       // A definition [s]: url is not a block (§0.6).
@@ -798,7 +856,10 @@ export function resolveTree(folder: string): ResolvedTree {
       if (item.node.type !== 'thematicBreak' && !node.directive) {
         report(context.sink, 'composition-content', node.file, undefined, "sposta il blocco in un text e mettine l'embed");
       }
-      for (const block of buildBlock(item.node, context)) out.push(block);
+      for (const block of buildBlock(item.node, context)) {
+        mark(block, offsetsOf(item.node), context);
+        out.push(block);
+      }
     }
     return out;
   }
@@ -881,6 +942,7 @@ export function resolveTree(folder: string): ResolvedTree {
         const title = element('title', {}, [target.title]);
         textSize += target.title.length;
         title.meta = { depth };
+        mark(title, target.titleOffsets, target);
         embed.children.push(title);
         inner.depth = depth;
       }
@@ -972,7 +1034,7 @@ export function resolveTree(folder: string): ResolvedTree {
       if (node.kind === 'text') checkTextBlocks(node);
       // In class 1 a deck is a directive, so the only root composition is the article (reading).
       const content = node.kind === 'article' ? buildRoot(node, output) : buildContent(node, context);
-      if (content.length > 0) output.content = content.map(toJsonML);
+      if (content.length > 0) output.content = content.map((child) => toJsonML(child, options.positions));
     }
     outputs.push(output);
   }
@@ -1022,6 +1084,7 @@ export function resolveTree(folder: string): ResolvedTree {
     if (node.title !== undefined) {
       const title = element('title', {}, [node.title]);
       title.meta = { depth: 0 };
+      mark(title, node.titleOffsets, node);
       textSize += node.title.length;
       content.unshift(title);
     }
@@ -1156,6 +1219,9 @@ function readTextNode(file: string, extensionKind: string, text: string, diagnos
   }
   // The body keeps its offsets in the file: the front matter lines are blanked, not cut.
   const bodyStart = text.length - split.body.length;
+  // The title line of the front matter, for the source position of the title.
+  const titleLine = /^title:.*$/m.exec(text.slice(0, bodyStart));
+  if (titleLine) node.titleOffsets = { start: titleLine.index, end: titleLine.index + titleLine[0].length };
   node.source = text.slice(0, bodyStart).replace(/[^\n]/g, ' ') + split.body;
   const markdown = parseMarkdown(node.source);
   if (nestingDepth(markdown) > MAX_NESTING) {

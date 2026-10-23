@@ -29,9 +29,10 @@ const MAX_EXPORT_BYTES = 256 * 1024 * 1024;
 const HELP = `${BINARY_NAME} — runtime del documento, spec-version ${SPEC_VERSION} (bozza)
 
 Uso:
-  ${BINARY_NAME} resolve-tree <cartella> [--pretty]
+  ${BINARY_NAME} resolve-tree <cartella> [--pretty] [--positions]
                                          stampa il resolved tree in JSON su stdout,
-                                         compatto; --pretty lo indenta
+                                         compatto; --pretty lo indenta; --positions
+                                         aggiunge a ogni elemento la sourcePosition
   ${BINARY_NAME} export <cartella> [--root <id>] [-o <file>] [--allow-errors] [--theme light|dark]
                                          scrive l'HTML di un article su stdout, o nel
                                          file di -o; --root sceglie l'article quando
@@ -80,13 +81,14 @@ function main(args: string[]): number | Promise<number> {
   if (args[0] === 'export') return exportCommand(args.slice(1), 'export');
   if (args[0] === 'print') return exportCommand(args.slice(1), 'print');
   const pretty = args.includes('--pretty');
-  const [command, folder, ...rest] = args.filter((arg) => arg !== '--pretty');
+  const positions = args.includes('--positions');
+  const [command, folder, ...rest] = args.filter((arg) => arg !== '--pretty' && arg !== '--positions');
   if (command !== 'resolve-tree' || folder === undefined || rest.length > 0) {
     process.stderr.write(`${BINARY_NAME}: uso: ${BINARY_NAME} resolve-tree <cartella> (vedi --help)\n`);
     return EXIT_USAGE;
   }
   if (!readableFolder(folder)) return EXIT_USAGE;
-  const tree = resolveTree(folder);
+  const tree = resolveTree(folder, { positions });
   // In chunks: a large tree never becomes a single string.
   writeJson(1, tree, pretty ? 2 : 0);
   return tree.diagnostics?.some((d) => d.severity === 'error') ? EXIT_ERRORS : EXIT_OK;
