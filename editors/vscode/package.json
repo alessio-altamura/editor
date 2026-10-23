@@ -1,0 +1,43 @@
+{
+  "name": "doc-runtime-client",
+  "displayName": "doc-runtime",
+  "description": "Client del language server di doc-runtime: diagnostic, completamento degli id, definizione, hover e riferimenti",
+  "version": "0.1.0",
+  "private": true,
+  "publisher": "doc-runtime",
+  "engines": {
+    "vscode": "^1.91.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "workspaceContains:**/*.document.md"
+  ],
+  "main": "./out/client.js",
+  "contributes": {
+    "configuration": {
+      "title": "doc-runtime",
+      "properties": {
+        "docRuntime.path": {
+          "type": "string",
+          "default": "doc-runtime",
+          "description": "Il comando doc-runtime, o il percorso di runtime/dist/src/cli.js (si lancia con node)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "package": "tsc -p . && vsce package --skip-license --allow-missing-repository --out doc-runtime-client.vsix"
+  },
+  "dependencies": {
+    "vscode-languageclient": "10.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@types/vscode": "1.91.0",
+    "@vscode/vsce": "4.0.0",
+    "typescript": "5.9.3"
+  }
+}

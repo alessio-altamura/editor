@@ -3076,6 +3076,36 @@ di ogni elemento, `{"file": …, "range": {"start": {"line": …, "character":
 …}, "end": {…}}}`, la forma di LSP. In `data-source` si scrive
 `file:riga:colonna-riga:colonna`.
 
+### 11.7 Il language server *(proposta)*
+
+Il comando `doc-runtime language-server` parla LSP su stdin e stdout, per gli
+editor di testo [C: «La strada verso l'app»]. Usa lo stesso `runtime` acceso
+di `serve` (§11.6): la cartella del documento è la workspace folder, o la
+cartella del primo file aperto che contiene un `document file`; il testo di
+un file aperto nell'editor vale al posto di quello su disco, e ogni
+modifica ricalcola la cartella dopo una breve attesa. Legge e non scrive
+file.
+
+- **Diagnostic**: quelli del `resolved tree`, per file, con un range: la
+  prima occorrenza del `target` nel file, dentro `[[…]]` se c'è, e per più
+  `diagnostic` con lo stesso `target` le occorrenze successive; senza
+  `target`, o se non si trova, l'intestazione, o l'inizio del file. Lo
+  stesso range lo scrive `resolve-tree --positions`, come `range` del
+  `diagnostic`; nel `resolved tree` degli esempi non c'è.
+- **Completamento** degli `id` dopo `[[` e `![[`, con il `kind` e il titolo
+  o le prime parole; dopo `![[` solo gli oggetti che un `embed` può
+  includere (§8), e non il file stesso.
+- **Definizione** di un `[[id]]` o `![[id]]`: l'inizio del file
+  dell'oggetto.
+- **Hover** sullo stesso: `kind`, titolo o primo testo; su una riga di
+  calcolo, il valore calcolato e il `display`.
+- **Riferimenti**: chi include o collega un `id`, quello sotto il cursore o
+  quello del file.
+
+I range sono contati come in LSP, righe da 0 e colonne in unità UTF-16,
+come la `source position` (§11.6). Il client per VS Code sta in
+`editors/vscode`.
+
 ## Appendice A. Classi successive (non normativa)
 
 Dove si aggancerà ciascuna al `core`.
