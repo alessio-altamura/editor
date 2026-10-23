@@ -219,7 +219,12 @@ codice sta negli indirizzi.
 La `preview` è l'HTML dell'`export` in modalità anteprima: due temi, gli
 errori segnati come con `--allow-errors`, in cima un `<section
 data-diagnostics>` con tutti i `diagnostic` della cartella, immagini e font
-come indirizzi, gli script del `runtime` e niente CSP nel file. Ogni elemento
+come indirizzi, gli script del `runtime` e niente CSP nel file. Un'immagine
+che l'`export` non incorporerebbe (formato sconosciuto, illeggibile, oltre
+64 MiB) dà la stessa `figure` di ripiego e `asset-unsupported` nell'elenco:
+il server la riconosce dai primi byte a ogni ricalcolo, con una cache per
+percorso, inode, data di modifica e grandezza, e serve per indirizzo solo le
+immagini riconosciute. Ogni elemento
 di nodo porta `data-node`, l'`id` dell'oggetto a cui appartiene (per un
 `embed` quello dell'oggetto incluso), e `data-source`,
 `file:riga:colonna-riga:colonna`, contate come in LSP: righe da 0, colonne

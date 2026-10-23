@@ -517,8 +517,8 @@ function* pieces(
           }
         } else if (kind === 'image') {
           const asset = typeof attributes.asset === 'string' ? assets.get(attributes.asset) : undefined;
-          if (preview && typeof attributes.asset === 'string') {
-            // In the preview the image is an address the runtime serves.
+          if (preview && typeof attributes.asset === 'string' && asset !== undefined && !('fallback' in asset)) {
+            // In the preview a recognised image is an address the runtime serves.
             open = `<figure data-kind="image"${common}><img src="${escapeHtml(preview.assetUrl(attributes.asset))}" alt="${escapeHtml(plainText(children))}">`;
             children = [];
           } else if (asset && 'bytes' in asset) {

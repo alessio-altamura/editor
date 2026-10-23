@@ -2,7 +2,7 @@
 // the index and the preview, the updates over the WebSocket, the errors listed and
 // marked, the assets outside the list, the address and the source positions.
 import { spawn, type ChildProcess } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, truncateSync, unlinkSync, writeFileSync } from 'node:fs';
 import { request } from 'node:http';
 import { networkInterfaces, tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -124,6 +124,13 @@ async function main(): Promise<void> {
   writeFileSync(join(base, 'fuori.png'), PNG);
   symlinkSync(join(base, 'fuori.png'), join(folder, 'foto/collegata.png'));
   writeFileSync(join(folder, '.nascosta.png'), PNG);
+  // Two images the export would not embed: an unknown format and one past 64 MiB (sparse).
+  writeFileSync(join(folder, 'finta.image.md'), front('finta', 'image', 'asset: foto/finta.png\n') + 'Non è una foto.\n');
+  writeFileSync(join(folder, 'foto/finta.png'), 'solo testo\n');
+  writeFileSync(join(folder, 'grande.image.md'), front('grande', 'image', 'asset: foto/grande.png\n') + 'Troppo grande.\n');
+  writeFileSync(join(folder, 'foto/grande.png'), PNG);
+  truncateSync(join(folder, 'foto/grande.png'), 64 * 1024 * 1024 + 1);
+  writeFileSync(join(folder, 'cap.chapter.md'), front('cap', 'chapter', 'title: Le vendite\n') + '![[nota]]\n\n![[lavagna]]\n\n![[finta]]\n\n![[grande]]\n');
   const server = await startServe(folder);
   try {
     // The access code, the address, the index and the preview.
@@ -144,7 +151,7 @@ async function main(): Promise<void> {
       });
       if (refused !== 403) problems.push(`WebSocket without the code: ${refused}`);
       const index = await get(server.url);
-      if (index.status !== 200 || !index.body.includes('Il rapporto') || !index.body.includes('<code>report</code>') || !index.body.includes('0 errori, 0 avvisi')) problems.push('index');
+      if (index.status !== 200 || !index.body.includes('Il rapporto') || !index.body.includes('<code>report</code>') || !index.body.includes('0 errori, 2 avvisi')) problems.push('index');
       const page = await get(`${server.base}/article/report?token=${server.token}`);
       const csp = String(page.headers['content-security-policy'] ?? '');
       if (page.status !== 200 || !csp.includes("script-src 'self'") || !csp.includes("connect-src 'self'") || page.body.includes('http-equiv')) problems.push(`preview headers ${page.status} ${csp}`);
@@ -168,7 +175,18 @@ async function main(): Promise<void> {
         const response = await get(`${server.base}/asset/${path}?token=${server.token}`);
         if (response.status !== 404) problems.push(`${path}: ${response.status}`);
       }
-      report('assets outside the list give 404', problems);
+      // As in the export: the same fallback figures, and asset-unsupported in the list.
+      const page = await get(`${server.base}/article/report?token=${server.token}`);
+      for (const [id, fallback, description] of [['finta', 'format', 'Non è una foto.'], ['grande', 'size', 'Troppo grande.']]) {
+        const figure = new RegExp(`<figure data-kind="image" data-image-fallback="${fallback}" id="${id}"[^>]*><p[^>]*>${description}</p></figure>`);
+        if (!figure.test(Buffer.from(page.body, 'latin1').toString('utf8'))) problems.push(`no fallback figure for ${id}`);
+      }
+      for (const target of ['foto/finta.png', 'foto/grande.png']) {
+        if (!page.body.includes(`<code>asset-unsupported</code> ${target === 'foto/finta.png' ? 'finta' : 'grande'}.image.md <code>${target}</code>`)) problems.push(`no asset-unsupported for ${target}`);
+        const served = await get(`${server.base}/asset/${target}?token=${server.token}`);
+        if (served.status !== 404) problems.push(`${target} served: ${served.status}`);
+      }
+      report('assets outside the list give 404; images not embedded fall back as in the export', problems);
     }
 
     // data-source points at the text that wrote each node.

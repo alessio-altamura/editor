@@ -5,7 +5,7 @@ import { closeSync, existsSync, openSync, readdirSync, readFileSync, renameSync,
 import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BASE_FONTS } from './base-stylesheet.js';
-import { readAsset } from './assets.js';
+import { pageAssets, readAsset } from './assets.js';
 import { makeDiagnostic, sortDiagnostics } from './diagnostic.js';
 import { writeAll, writeJson } from './json-output.js';
 import { listDocumentFiles, resolveTree, SPEC_VERSION } from './resolve-tree.js';
@@ -120,21 +120,6 @@ function usage(message: string): number {
   return EXIT_USAGE;
 }
 
-/** The embeds of images in a content, in reading order. */
-function imageEmbeds(content: JsonML[]): Array<Record<string, unknown>> {
-  const found: Array<Record<string, unknown>> = [];
-  const stack = [...content].reverse();
-  while (stack.length > 0) {
-    const item = stack.pop()!;
-    if (typeof item === 'string') continue;
-    const attributes = item[1] !== null && typeof item[1] === 'object' && !Array.isArray(item[1]) ? (item[1] as Record<string, unknown>) : null;
-    if (item[0] === 'embed' && attributes?.kind === 'image' && attributes.unresolved !== true) found.push(attributes);
-    const children = item.slice(attributes ? 2 : 1) as JsonML[];
-    for (let i = children.length - 1; i >= 0; i--) stack.push(children[i]!);
-  }
-  return found;
-}
-
 /** `serve`: on until Ctrl-C; the address with its access code goes on stdout, the times on stderr. */
 function serveCommand(args: string[]): number | Promise<number> {
   const syntax = `uso: ${BINARY_NAME} serve <cartella> [--port <n>]`;
@@ -212,24 +197,10 @@ function exportCommand(args: string[], command: 'export' | 'print'): number | Pr
   if (article.id === undefined) return usage(`l'article ${article.file} non ha un id`);
 
   // Every image of the page, read once per path.
-  const diagnostics = [...(tree.diagnostics ?? [])];
   const listed = listDocumentFiles(folder);
-  const assets = new Map<string, ExportAsset>();
-  const reported = new Set<string>();
-  for (const embed of imageEmbeds(article.content ?? [])) {
-    if (typeof embed.asset !== 'string') continue;
-    let asset = assets.get(embed.asset);
-    if (asset === undefined) {
-      asset = readAsset(folder, embed.asset, listed);
-      assets.set(embed.asset, asset);
-    }
-    if (!('fallback' in asset)) continue;
-    const image = tree.nodes?.find((node) => node.id === embed.id && node.kind === 'image');
-    if (image && !reported.has(image.file)) {
-      reported.add(image.file);
-      diagnostics.push(makeDiagnostic('asset-unsupported', image.file, String(image.attributes?.asset ?? embed.asset)));
-    }
-  }
+  const page = pageAssets(tree, article, (path) => readAsset(folder, path, listed));
+  const assets = page.assets;
+  const diagnostics = [...(tree.diagnostics ?? []), ...page.diagnostics];
   const hasErrors = diagnostics.some((d) => d.severity === 'error');
   const finish = (code: number) => {
     writeAll(2, JSON.stringify({ diagnostics: sortDiagnostics(diagnostics) }) + '\n');

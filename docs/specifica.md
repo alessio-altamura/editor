@@ -3053,7 +3053,10 @@ dell'`export` sarà usato anche come anteprima»]:
   in cima, fuori dall'`article`, un elenco dei `diagnostic` della cartella,
   con gravità, codice, file, `target` e suggerimento;
 - immagini e font sono indirizzi che il `runtime` serve, non incorporati,
-  e il `runtime` serve solo i file della sua lista, come l'`export`;
+  e il `runtime` serve solo i file della sua lista, come l'`export`; un
+  formato non riconosciuto, un file che non si legge o oltre 64 MiB danno
+  la stessa `figure` di ripiego dell'`export`, con la descrizione, e
+  `asset-unsupported` nell'elenco;
 - le regole di sicurezza non sono nel file ma nell'intestazione HTTP della
   risposta: script, connessioni, immagini e font solo dal `runtime`;
 - uno script del `runtime` riceve dal WebSocket il nuovo HTML a ogni
