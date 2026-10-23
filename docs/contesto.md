@@ -395,6 +395,19 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     sicurezza la decide l'`app`, non una CSP nel file; il tema è quello
     dell'`app`. Si progetta insieme al `runtime` vivo, che aggiorna l'albero
     a ogni modifica.
+  - Il PDF (2026-10-22, Alessio, «ok come raccomandato» sulle tre scelte
+    poste dall'orchestratore):
+    1. Pagina A4 con margini di 2 cm su tutti i lati, fissi nella stampa,
+       finché la pagina non entra nella specifica (con `@page`, insieme alla
+       vista per pagina).
+    2. Il numero di pagina in basso al centro: «1», «2»…
+    3. Il `runtime` porta tre font aperti, con licenza OFL, per `serif`,
+       `sans-serif` e `monospace`, e li usa sia nel PDF sia nell'HTML: stesso
+       aspetto ovunque, e anteprima uguale alla stampa. Costo accettato: un
+       HTML più pesante, da ridurre poi incorporando solo i caratteri usati.
+    Fissati dall'orchestratore: il comando `print`, il PDF sempre nel tema
+    chiaro, il rifiuto con errori come per l'`export`, un Chromium di
+    versione fissata.
 
 ## Proposte non decise
 
