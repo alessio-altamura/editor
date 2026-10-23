@@ -128,3 +128,201 @@ valutazione e non ci sono entrati.
 - TamaGo: <https://github.com/usbarmory/tamago>
 - goyo.vim: <https://github.com/junegunn/goyo.vim>
 - Shijing: <https://github.com/cfsghost/Shijing>
+
+## Seconda ricerca (2026-10-23)
+
+Due domande di Alessio: un nome del prodotto al posto di Kamii, che sia meno
+giapponese e più internazionale, e la parola dell'app per i mattoni, al posto
+di «oggetto», da usare come «tweet»: sostantivo, se possibile verbo, al
+singolare e al plurale, in italiano e in inglese. Nel glossario il concetto
+resta `object`; la parola dell'app è un nome di interfaccia. I criteri sono
+quelli della prima ricerca, più lo spagnolo, il francese e il tedesco per i
+significati, e i marchi registrati per i nomi arrivati in fondo. I nomi già
+scartati nella prima ricerca non sono stati riproposti.
+
+### Come sono stati fatti i controlli
+
+Il 2026-10-23, dall'orchestratore, senza agenti:
+- `npm view <nome>` e `npm view <nome>-cli`; `command -v <nome>`;
+- PyPI (`https://pypi.org/pypi/<nome>/json`, 404 vuol dire libero) e
+  crates.io (`https://crates.io/api/v1/crates/<nome>`, idem);
+- una ricerca web per nome, mirata a software per documenti, note e scrittura;
+- i significati da Wiktionary (voce in inglese, sezioni per lingua). Dove
+  scrivo «nessuna voce in spagnolo, francese o tedesco» vuol dire che
+  Wiktionary non ne ha: è un indizio, non una prova che la parola non esista;
+- i marchi sulla banca dati USPTO (la ricerca di tmsearch.uspto.gov,
+  interrogata direttamente), corrispondenza esatta del nome, con stato e
+  classi. **Non sono riuscito a controllare i marchi europei e italiani**:
+  TMview (tmdn.org) risponde alla pagina ma non alla ricerca (503 o timeout
+  attraverso il proxy), e eSearch dell'EUIPO non risponde. Va fatto prima di
+  un uso pubblico, a mano, su TMview, che copre anche l'UIBM.
+
+Per la parola del mattone npm e i marchi contano poco, perché non è un
+comando né un marchio; contano il suono, il verbo e le collisioni nel campo.
+
+### Nomi del prodotto, in ordine
+
+1. **brano.** Italiano: pezzo, frammento; passo di un testo o di una musica;
+   canzone. Il legame con il prodotto: un documento fatto di pezzi, e il
+   testo semplice come base. Controlli: `brano` e `brano-cli` liberi su npm,
+   liberi su PyPI e crates.io, nessun comando; la ricerca web non trova
+   software per documenti con questo nome. USPTO: sei marchi BRANO, nessuno
+   nelle classi 9 o 42 (filtri per aspirapolvere della BRANOfilter, classe
+   16; serrature della ceca Brano a.s., cancellati; elettrodomestici, classe
+   11). Lingue: in polacco è una forma impersonale di *brać* («fu preso»), in
+   serbo-croato e sloveno forme di *brana* (diga, erpice); nessuna voce in
+   spagnolo, francese o tedesco; nessun significato sgradevole trovato. In
+   inglese si legge «BRAH-no», due sillabe facili. Rischi: in italiano oggi
+   «brano» si sente soprattutto come canzone, quindi richiama la musica; il
+   nome è italiano, non neutro come id-zero, ma si pronuncia ovunque.
+2. **plico.** Italiano: involto di carte, pacco di documenti; dal latino
+   *plicare*, piegare (in italiano antico *plica* era anche la piega del
+   documento dove si metteva il sigillo). Il legame: un pacco di fogli, e le
+   pagine ordinate. Controlli: `plico` e `plico-cli` liberi su npm, libero su
+   crates.io, nessun comando; **preso su PyPI** (controllo di strumenti di
+   laboratorio). La ricerca web trova un prodotto «plico» elencato da OMR
+   Reviews nella categoria *Intelligent Document Processing*, senza
+   descrizione né sito: non sono riuscito a capire cosa sia, ma è nel campo
+   dei documenti. USPTO: dieci marchi PLICO; vivi solo uno per materiali
+   refrattari (classi 17 e 19, con la 42 cancellata) e uno, di una persona
+   coreana, per penne, pennarelli e album da disegno (classe 16, cancelleria:
+   vicino al campo, fuori dalle classi 9 e 42). Lingue: nessuna voce in
+   spagnolo, francese o tedesco. Rischi: il prodotto OMR non identificato e
+   il marchio per cancelleria; in inglese la pronuncia oscilla tra «PLEE-ko»
+   e «PLY-ko».
+3. **kalamo.** Dal greco *kálamos*, canna, e poi penna di canna; in greco
+   moderno, formale, anche l'arte dello scrittore. È il più internazionale
+   dei cinque: non è una parola italiana né inglese, e la k lo rende neutro.
+   Controlli: libero su npm (`kalamo` e `kalamo-cli`), PyPI e crates.io,
+   nessun comando; nessun marchio KALAMO all'USPTO; la ricerca web non trova
+   software con questo nome. Rischi: a voce è vicino a Calaméo, piattaforma
+   francese che trasforma documenti in pubblicazioni digitali, nello stesso
+   campo; tre sillabe, e il legame con il prodotto (la penna) va spiegato.
+4. **teca.** Italiano: piccola custodia, reliquiario; è la radice di
+   biblioteca e pinacoteca. Corto e facile.
+   Controlli: **preso su npm** (un framework di front-end fermo dal 2019, una
+   sola versione), su PyPI e su crates.io; `teca-cli` libero; nessun comando.
+   USPTO: molti TECA, vivi in classi mediche, di raffreddamento, finanziarie
+   e altre, nessuno vivo in 9 o 42. Lingue: in spagnolo, portoghese e
+   catalano è il tek (il legno), in biologia la teca; in catalano
+   colloquiale vuol dire cibo; in nahuatl classico è un verbo che ha anche un
+   senso sessuale, lingua che non riguarda il pubblico del prodotto. Rischio
+   principale: i nomi tecnici sono presi, quindi servirebbe uno scope
+   (`@teca/...`).
+
+Non metto un quinto nome: gli altri controllati sono caduti per motivi
+precisi, elencati sotto.
+
+### Parole per il mattone, in ordine
+
+1. **jot.** Inglese: un appunto breve scritto in fretta; come verbo, annotare
+   in fretta (*jot down*); e la lettera più piccola, la iota. È già
+   sostantivo e verbo in inglese, come «tweet»: «a jot», «jots», «jot this
+   idea». In italiano entra come prestito: «un jot», «i jot», «jottare»,
+   «jotta questa idea», come «twittare» e «postare»; si pronuncia «giot».
+   In tedesco *Jot* è il nome della lettera J. Si adatta al canvas delle
+   idee alla rinfusa più che alle pagine ordinate. Rischi: diverse app di
+   note si chiamano Jot sull'App Store, una con un canvas infinito; è una
+   parola comune, nessuno la possiede, ma non distingue. `jot` su npm è un
+   plugin JWT per hapi, irrilevante per una parola d'interfaccia.
+2. **tassello.** Italiano: tessera di un mosaico, ma anche zeppa e tassello
+   di legno; il verbo esiste, *tassellare*; e c'è il modo di dire «aggiungere
+   un tassello». È la parola italiana più vicina a «mattone che si combina»,
+   e fa famiglia con brano o plico. Rischi: in inglese non vuol dire nulla e
+   tre sillabe con la doppia sono scomode; il verbo *tassellare* oggi si sente
+   tecnico (edilizia, tassellatura). Su npm `tassello` è nato il
+   2026-10-19: una dashboard web per robot ROS 2 fatta di pannelli di widget,
+   un'idea vicina, che conviene sapere.
+3. **blip.** Inglese: il punto luminoso sul radar, un breve suono; come
+   verbo, fare un bip. In Google Wave «blip» era il nome di ogni singolo
+   messaggio o documento della conversazione: un precedente nello stesso
+   campo, oggi spento. In italiano «un blip», «blippare». Rischi: in inglese
+   vuol dire anche un intoppo breve e trascurabile («just a blip»), e il
+   ricordo di Google Wave, che è fallito.
+4. **brano**, se il prodotto non si chiama così. In italiano è naturale per
+   un pezzo di testo, «crea un brano», «i brani», ma non ha un verbo, e in
+   inglese non dice nulla.
+5. **scheda.** Italiano: scheda, cartoncino da schedario, e in informatica la
+   linguetta (*tab*); il verbo *schedare* esiste. Naturalissima in italiano
+   («crea una scheda»), ma in inglese è illeggibile («skeda») e *schedare*
+   ha un sapore poliziesco.
+
+### Raccomandazione
+
+Per il prodotto **brano**: è l'unico libero su tutti i registri e senza
+marchi nelle classi 9 e 42 negli Stati Uniti, è corto, si pronuncia uguale
+in italiano e in inglese, e dice ciò che il prodotto fa, documenti fatti di
+pezzi. Il suo limite è che è italiano e richiama la musica; se Alessio vuole
+un nome davvero neutro, l'alternativa è **kalamo**, libero quanto brano, con
+il rischio Calaméo da pesare. Plico è il terzo, frenato da PyPI e dal
+prodotto OMR non identificato.
+
+Per il mattone **jot**: è l'unico che è già, in inglese, sostantivo e verbo
+per esattamente questa cosa, un appunto veloce, e che in italiano si piega
+come «tweet»; «un brano fatto di jot» tiene insieme le due parole senza
+forzarle in una famiglia. Se Alessio preferisce una parola italiana,
+**tassello**, che però non funziona in inglese.
+
+Prima di un uso pubblico restano da fare i marchi europei e italiani su
+TMview.
+
+### Scartati
+
+- **trama** (ordito, intreccio; la trama di un racconto): libero su npm, ma
+  preso su PyPI e crates.io, e all'USPTO è vivo un marchio TRAMA della
+  slovacca TramaTM s.r.o. anche in classe 42, per sviluppo di software; in
+  inglese è vicino a *trauma* e *drama*.
+- **ploma** (catalano: piuma, penna): libero su npm, PyPI e crates.io, ma
+  all'USPTO è vivo un marchio PLOMA in classi 9 e 42 per app per cellulari.
+- **rigo** (il rigo musicale; una riga): preso su npm, PyPI, e all'USPTO
+  molti RIGO, uno abbandonato in classe 42 per software; significato debole.
+- **tela** (canvas, in italiano e spagnolo): `tela` e `tela-cli` presi su
+  npm, presi PyPI e crates.io.
+- **ordo**, **pila**, **ilo**, **lipi**, **sheaf**, **tilo**, **tessel**:
+  presi su npm.
+- **lato**: Lato è un carattere di Google Fonts molto diffuso, e `lato-cli`
+  su npm è un agente di programmazione.
+- **opla** (oplà): `opla` preso su npm (pacchetto del 2017); significato
+  lontano dal prodotto.
+- **bozza**, **sfoglia**, **spunto**: liberi ovunque, ma bozza dice «non
+  finito», sfoglia richiama la pasta, e spunto come verbo (*spuntare*) vuol
+  dire anche segnare come fatto o tagliare le punte.
+- **talea** (ramo da trapiantare, la crescita): preso su PyPI, significato
+  troppo oscuro.
+- **cera**, **dado**, **mote**, **nib**, **brik**: presi su npm o con
+  significati sbagliati; «brik» in italiano è il cartone del latte.
+- Scartati per il significato senza controlli tecnici: **fiche** (in
+  italiano è anche il plurale di una parola volgare), **tessa** (rima con una
+  parola volgare dialettale, come tesso con cesso), **orto** (volgare nello
+  spagnolo del Río de la Plata), **seme** (anche sperma, in italiano),
+  **slip** (in italiano è la mutanda), **pip** (il gestore di pacchetti di
+  Python), **pluma** (Pluma è l'editor di testo di MATE), **stilo** (Stylo è
+  un editor di testi accademici), **jotta** (Jottacloud, archiviazione
+  online), **rasa**, **tabula**, **strato**, **gemma**, **lumo** (nomi di
+  software o servizi noti: Rasa, Tabula, Strato, Gemma, Lumo). Questi ultimi
+  motivi vengono da conoscenza generale e non sono stati verificati alla
+  fonte in questa ricerca.
+
+### Fonti della seconda ricerca
+
+- Banca dati marchi USPTO: <https://tmsearch.uspto.gov/>
+- TMview: <https://www.tmdn.org/tmview/>
+- Wiktionary: <https://en.wiktionary.org/wiki/brano>,
+  <https://en.wiktionary.org/wiki/plico>,
+  <https://en.wiktionary.org/wiki/plica>,
+  <https://en.wiktionary.org/wiki/%CE%BA%CE%AC%CE%BB%CE%B1%CE%BC%CE%BF%CF%82>,
+  <https://en.wiktionary.org/wiki/teca>,
+  <https://en.wiktionary.org/wiki/trama>,
+  <https://en.wiktionary.org/wiki/ploma>,
+  <https://en.wiktionary.org/wiki/jot>,
+  <https://en.wiktionary.org/wiki/tassello>,
+  <https://en.wiktionary.org/wiki/blip>,
+  <https://en.wiktionary.org/wiki/scheda>,
+  <https://en.wiktionary.org/wiki/spunto>
+- plico su OMR Reviews: <https://omr.com/en/reviews/product/plico/alternatives>
+- Calaméo: <https://www.calameo.com/>
+- App Jot sull'App Store: <https://apps.apple.com/ng/app/jot-fast-notes/id1536814240>
+- Lato su Google Fonts: <https://fonts.google.com/specimen/Lato>
+- Pacchetti: <https://www.npmjs.com/package/tassello>,
+  <https://www.npmjs.com/package/teca>, <https://pypi.org/project/plico/>,
+  <https://pypi.org/project/trama/>
