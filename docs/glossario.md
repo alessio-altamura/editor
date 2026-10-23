@@ -338,7 +338,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `resolve-tree` | risolvi l'albero | Comando della `cli` che legge la cartella di un `document` e stampa il `resolved tree` in JSON, con i `diagnostic`; nome da N3. Il binario che lo offre si chiama per ora doc-runtime, nome provvisorio da scegliere | proposto | resolve, build, compile |
 | `serve` | servire | Comando della `cli` che tiene acceso il `runtime` su una cartella e mostra la `preview` nel browser, aggiornata a ogni modifica dei file; nome da N3 sul verbo, come un server di sviluppo | proposto | watch, live, dev |
 | `source position` | posizione nel sorgente | File, riga e colonna di inizio e di fine di un `node` nel suo file, contate come in LSP; non sta nel `resolved tree` che confrontano i test. Nel JSON la chiave è sourcePosition, scritta da resolve-tree con --positions; nella `preview` è l'attributo data-source | proposto | location, span, range |
-| `language server` | server LSP | Parte del `runtime` che parla LSP | concetto deciso, nome proposto | lsp |
+| `language server` | server LSP | Parte del `runtime` che parla LSP. Proposta: nella `cli` è il comando language-server, nome da N3, su stdin e stdout; il client per VS Code sta in editors/vscode e si chiama client, non estensione, perché extension è un altro concetto | concetto deciso, nome proposto | lsp |
 | `runtime protocol` | protocollo proprio | Protocollo fra `runtime` e client per `operation` e `preview` | concetto deciso, nome proposto | api |
 | `mcp server` | server MCP | Espone le `operation` agli agenti AI | proposto | plugin, bot |
 | `format schema` | schema dei formati | Schema JSON dei file e dell'output della `cli` | proposto | schema |
