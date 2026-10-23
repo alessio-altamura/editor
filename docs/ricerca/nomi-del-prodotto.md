@@ -402,6 +402,11 @@ Non metto un quinto: gli altri cadono per i motivi sotto.
 - **jotpad**, **jotbox**: presi su PyPI, e «-pad» è già in JotterPad.
 - **jottery**: libero, ma si sente «lottery».
 - **jotwise**: libero, ma è un avverbio e non dice un posto.
+- **rensei** (proposto da Alessio; 錬成, allenare, perfezionare, e nella
+  fantasy la sintesi alchemica; 連星, stella doppia): `rensei` preso su npm
+  (rendering 3D per agenti, 2026), liberi `rensei-cli`, PyPI, crates.io e il
+  comando, nessun marchio USPTO nelle classi 9 o 42. Scartato da Alessio:
+  «mi sa del politico italiano Renzi», ed è di nuovo giapponese.
 
 **Raccomandazione.** Nessuno dei composti è forte come jot, e il campo è
 affollato (Jotform, JotterPad, JotSpot, molte app Jot). Se Alessio vuole un
@@ -423,3 +428,86 @@ Jot di Espresso <https://eu.espres.so/jot>; Jot su Capterra
 <https://techcrunch.com/2015/08/20/the-jot-8-5-is-a-better-and-brighter-boogie-board/>;
 pacchetti <https://www.npmjs.com/package/jotter>,
 <https://www.npmjs.com/package/jotbook>.
+
+### Terzo giro: parole senza significato per chi le usa (2026-10-23)
+
+Alessio scarta anche jot: «che cosa c'entra con un dataset o con una
+funzione». La parola del mattone deve valere per ogni tipo di mattone, non
+solo per il testo. Si sceglie la seconda strada: una parola corta che non
+descrive il contenuto e prende senso con l'uso, come «tweet», che era solo il
+verso di un uccellino. Il nome dell'app, per Alessio, deve accordarsi con
+quello del mattone o del canvas, o essere lo stesso. Da esplorare: kami,
+gami e i loro composti, altre lingue e culture, la cultura cyberpunk, il
+coreano.
+
+Controlli come sopra: npm e `-cli`, comando, PyPI, crates.io, marchi USPTO,
+significati da Wiktionary (e Wikipedia per hanji). **Le ricerche web di
+questo giro non sono state fatte**: Alessio le ha interrotte, quindi gli
+omonimi nel campo restano da cercare. Marchi UE e italiani non controllati.
+
+**Kami e gami: bloccati.**
+- **gami** (in giapponese è la forma di *kami* nei composti, come in
+  *origami*). `gami` libero su npm e crates.io, preso su PyPI. Ma all'USPTO è
+  vivo GÄMI di Gami Technologies, depositato il 2025-09-22 nelle classi 9 e
+  42 per «software per caricare, archiviare, organizzare, modificare e
+  condividere file, media e documenti»: è la Gami App per iPad. In più, in
+  inglese «gami» si sente vicino a *gamey* (che sa di selvaggina, e anche
+  osé), e in greco *gam-* è la radice del verbo volgare *γαμάω*.
+- **kami**: preso su npm, PyPI e crates.io; all'USPTO KAMI è vivo in classe
+  42 e in 9 e 42 per Kami Limited, la società neozelandese dell'app per
+  documenti già citata.
+- **kamii**: libero su npm, PyPI e crates.io, ma all'USPTO c'è un marchio
+  KAMII vivo in classe 9 (custodie per calcolatrici e cellulari). Vale anche
+  per il nome provvisorio del progetto.
+- I composti **gamii**, **gamio**, **gamiko**, **gamibox**, **kamibox** sono
+  liberi su tutti i registri e all'USPTO, ma starebbero accanto a GÄMI e a
+  Kami: li sconsiglio.
+
+**Candidati da altre lingue, in ordine:**
+
+1. **orri** (basco): foglia; foglio di carta; pagina. È l'equivalente di
+   *kami*, carta, in una lingua europea poco conosciuta. Funziona come nome
+   dell'app e del mattone insieme: «Orri», «crea un orri», «gli orri»; in
+   inglese «an orri», «orris». Controlli: `orri` e `orri-cli` liberi su npm,
+   liberi PyPI e crates.io, nessun comando; all'USPTO solo JAFFA ORRI, per
+   agrumi (classe 31). Altri significati: in catalano, antico o dialettale,
+   un granaio e la capanna di pietra dei Pirenei per mungere le pecore; in
+   faroese e norreno il fagiano di monte; in italiano una forma rara di
+   *orrare*. Rischi: in italiano richiama «orrore» e «orrido»; il verbo
+   («orrare questa idea») non viene naturale.
+2. **keping** (indonesiano): scheggia, pezzo, frammento, foglio, fetta; anche
+   moneta, e il classificatore delle cose sottili e piatte (in malese solo il
+   classificatore). Un pezzo qualunque, quindi va bene per testo, dati o
+   funzioni. Controlli: tutto libero (npm, `-cli`, PyPI, crates.io, comando),
+   nessun marchio USPTO. Rischi: in inglese si sente «keeping», che può
+   essere un gioco di parole o una confusione; come nome dell'app è debole,
+   meglio per il mattone.
+3. **lappu** (finlandese): pezzetto di carta o di stoffa; etichetta;
+   foglietto. Tutto libero, nessun marchio USPTO. Rischi: è vicino a
+   *Lapp*, che in inglese indica i Sami ed è datato e a volte offensivo; in
+   italiano *lappare* vuol dire leccare, come fanno i gatti.
+4. **jogak** e **madang** (coreano). 조각, *jogak*: pezzo, frammento,
+   scheggia, e anche scultura; 마당, *madang*: cortile, piazza, ed
+   «occasione in cui succede qualcosa», un buon nome per il canvas. «Crea un
+   jogak nel madang». Controlli: `jogak` libero ovunque, nessun marchio
+   USPTO; `madang` preso su npm (una base Next.js del 2024), libero
+   `madang-cli`, PyPI e crates.io, nessun marchio USPTO nelle classi 9 o 42.
+   Rischi: in italiano e in inglese si leggono male («giogak»); *hanji*, la
+   carta coreana, parallelo di *kami*, ha `hanji` preso su npm (2026).
+   Anche 칸, *kan*, la casella o lo scompartimento, sarebbe bello per una
+   cella, ma `kan` è preso su npm, PyPI e crates.io.
+5. **shard** (cultura cyberpunk). In *Cyberpunk 2077* lo shard è il chip
+   che contiene dati, testi o registrazioni, un mattone di qualunque tipo
+   (questo viene da conoscenza generale, non l'ho verificato). In inglese
+   vuol dire coccio, scheggia; nei giochi online è un'istanza di un mondo.
+   Come mattone: «crea uno shard», «gli shard», «shardare». Rischi: `shard`
+   preso su npm, PyPI e crates.io; nei database *sharding* vuol dire
+   partizionare i dati, proprio il campo dei dataset, quindi confonde. Per
+   il resto del filone cyberpunk (holo, cyberdeck, i nomi di *Neuromancer*)
+   i controlli non sono finiti: HOLO ha marchi vivi in 9 e 42.
+
+**Raccomandazione.** **Orri** come nome dell'app e del mattone insieme, sul
+modello di *kami*: carta, foglio, pagina, in una lingua europea, libero su
+tutti i registri controllati e senza marchi nelle classi 9 e 42. Il rischio
+da pesare a voce è «orrore». Se non convince, **keping** per il mattone. Prima
+di decidere vanno fatte le ricerche web sugli omonimi e i marchi europei.
