@@ -5,7 +5,9 @@ import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
+  CodeActionKind,
   CompletionItemKind,
+  ResponseError,
   createConnection,
   DiagnosticSeverity,
   MarkupKind,
@@ -14,11 +16,13 @@ import {
   TextDocuments,
   TextDocumentSyncKind,
   type CompletionItem,
+  type WorkspaceEdit,
   type Diagnostic as LspDiagnostic,
   type Location,
   type Position,
 } from 'vscode-languageserver/node';
 import { LiveFolder } from './live.js';
+import { evaluate, OperationError, planExtract, planRename, type Outcome, type Plan, type Workspace } from './operations.js';
 import type { JsonML, ResolvedTree, TreeNode } from './tree.js';
 
 /** The kinds an `![[id]]` cannot include (§8): no point in proposing them there. */
@@ -77,7 +81,7 @@ export function startLanguageServer(): void {
   /** The text of a file of the folder: the open buffer, else the file on disk. */
   const textOf = (file: string): string => {
     const open = live?.overlay.get(file);
-    if (open !== undefined) return open;
+    if (open !== undefined && open !== null) return open;
     try {
       return readFileSync(join(live!.folder, file), 'utf8').replace(/^﻿/, '').replace(/\r\n?/g, '\n');
     } catch {
@@ -149,6 +153,8 @@ export function startLanguageServer(): void {
         definitionProvider: true,
         hoverProvider: true,
         referencesProvider: true,
+        renameProvider: true,
+        codeActionProvider: { codeActionKinds: [CodeActionKind.QuickFix] },
       },
       serverInfo: { name: 'doc-runtime' },
     };
@@ -258,6 +264,85 @@ export function startLanguageServer(): void {
       for (const node of nodeById(live.tree, id)) locations.unshift({ uri: uriOf(node.file), range: { start, end: start } });
     }
     return locations;
+  });
+
+  // The operations, on the open buffers: the editor applies the edit and can undo it.
+  const workspaceOf = (folder: LiveFolder): Workspace => ({
+    folder: folder.folder,
+    files: () => [...new Set([...folder.listed.keys(), ...[...folder.overlay].filter(([, text]) => text !== null).map(([file]) => file)])],
+    read: (file) => {
+      const open = folder.overlay.get(file);
+      if (open !== undefined) return open;
+      try {
+        return readFileSync(join(folder.folder, file), 'utf8').replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
+      } catch {
+        return null;
+      }
+    },
+    overlay: folder.overlay,
+  });
+  /** An outcome as a WorkspaceEdit: files created, replaced or deleted. */
+  const toEdit = (workspace: Workspace, outcome: Outcome): WorkspaceEdit => {
+    const documentChanges: NonNullable<WorkspaceEdit['documentChanges']> = [];
+    for (const [file, text] of outcome.files) {
+      const uri = uriOf(file);
+      const current = workspace.read(file);
+      if (text === null) {
+        documentChanges.push({ kind: 'delete', uri });
+        continue;
+      }
+      if (current === null) documentChanges.push({ kind: 'create', uri, options: { ignoreIfExists: true } });
+      const lines = (current ?? '').split('\n');
+      const end = { line: lines.length - 1, character: lines[lines.length - 1]!.length };
+      documentChanges.push({
+        textDocument: { uri, version: documents.get(uri)?.version ?? null },
+        edits: [{ range: { start: { line: 0, character: 0 }, end }, newText: text }],
+      });
+    }
+    return { documentChanges };
+  };
+  /** Runs a plan as the cli would, but returns the edit instead of writing. */
+  const asEdit = (make: (workspace: Workspace) => Plan): WorkspaceEdit => {
+    if (live === null) throw new ResponseError(-32803, 'nessuna cartella del documento');
+    const workspace = workspaceOf(live);
+    let plan: Plan;
+    try {
+      plan = make(workspace);
+    } catch (error) {
+      if (error instanceof OperationError) throw new ResponseError(-32803, error.message);
+      throw error;
+    }
+    const outcome = evaluate(workspace, plan);
+    if (outcome.newErrors.length > 0) {
+      throw new ResponseError(-32803, `l'operazione porterebbe errori: ${outcome.newErrors.map((d) => `${d.code} ${d.target ?? ''}`.trim()).join(', ')}`);
+    }
+    return toEdit(workspace, outcome);
+  };
+
+  connection.onRenameRequest(({ textDocument, position, newName }) => {
+    // The id under the cursor, else the object of the file.
+    const file = pathOf(textDocument.uri);
+    const id = referenceAt(textDocument.uri, position)?.id ?? (live?.tree.nodes ?? []).find((node) => node.file === file)?.id;
+    if (id === undefined) throw new ResponseError(-32803, 'qui non c\'è un id da rinominare');
+    return asEdit((workspace) => planRename(workspace, live!.tree, id, newName));
+  });
+
+  connection.onCodeAction(({ textDocument, context }) => {
+    const file = pathOf(textDocument.uri);
+    const wanted = context.diagnostics.filter((d) => d.code === 'composition-content');
+    if (live === null || file === null || wanted.length === 0) return [];
+    try {
+      return [{
+        title: 'Estrai in un oggetto',
+        kind: CodeActionKind.QuickFix,
+        diagnostics: wanted,
+        isPreferred: true,
+        edit: asEdit((workspace) => planExtract(workspace, live!.tree, file)),
+      }];
+    } catch (error) {
+      log(`estrai in un oggetto: ${error instanceof Error ? error.message : String(error)}`);
+      return [];
+    }
   });
 
   connection.onShutdown(() => live?.close());

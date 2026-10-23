@@ -262,9 +262,10 @@ export interface ResolveOptions {
   positions?: boolean;
   /**
    * Texts that hold in place of the files on disk, by path from the folder: the
-   * buffers open in an editor (§11.7). A path not on disk is added to the list.
+   * buffers open in an editor (§11.7), or the files an operation would write
+   * (§11.9). A path not on disk is added to the list; null removes a file.
    */
-  overlay?: ReadonlyMap<string, string>;
+  overlay?: ReadonlyMap<string, string | null>;
 }
 
 /** The start of each line of a text, for positions counted as in LSP. */
@@ -304,12 +305,14 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
   const diagnostics: Diagnostic[] = [];
   const listing = listFiles(folder);
   const unreadable = listing.unreadable;
-  const files = options.overlay ? [...new Set([...listing.files, ...options.overlay.keys()])].sort(compareCodePoints) : listing.files;
+  const files = options.overlay
+    ? [...new Set([...listing.files, ...options.overlay.keys()])].filter((file) => options.overlay!.get(file) !== null).sort(compareCodePoints)
+    : listing.files;
   /** The texts as read, for the ranges of the diagnostics. */
   const texts = new Map<string, string>();
   const read = (file: string): string | null => {
     const buffer = options.overlay?.get(file);
-    const text = buffer === undefined ? readText(join(folder, file)) : buffer.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
+    const text = buffer === undefined || buffer === null ? readText(join(folder, file)) : buffer.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
     if (text !== null) texts.set(file, text);
     return text;
   };

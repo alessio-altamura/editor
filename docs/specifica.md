@@ -3212,8 +3212,9 @@ editor di testo [C: «La strada verso l'app»]. Usa lo stesso `runtime` acceso
 di `serve` (§11.6): la cartella del documento è la workspace folder, o la
 cartella del primo file aperto che contiene un `document file`; il testo di
 un file aperto nell'editor vale al posto di quello su disco, e ogni
-modifica ricalcola la cartella dopo una breve attesa. Legge e non scrive
-file.
+modifica ricalcola la cartella dopo una breve attesa. Non scrive file da
+sé: `rename` ed «estrai in un oggetto» (§11.9) tornano all'editor come
+modifiche da applicare, che l'editor può annullare.
 
 - **Diagnostic**: quelli del `resolved tree`, per file, con un range: la
   prima occorrenza del `target` nel file, dentro `[[…]]` se c'è, e per più
@@ -3262,6 +3263,44 @@ perché è un errore da correggere a mano. Negli `stylesheet` e in
 `retired-ids.yaml` cambia solo la codifica. Il `formatter` non cambia mai
 il `resolved tree`: un file la cui forma canonica lo cambierebbe resta com'è,
 con un messaggio. Due passaggi danno lo stesso risultato di uno.
+
+### 11.9 Le operazioni *(proposta)*
+
+Il `runtime` scrive i file con quattro operazioni, comandi della `cli` e,
+per `rename` ed `extract`, del language server [C: «Sulla bozza di
+specifica»]. Ogni operazione passa i file che tocca dal `formatter`
+(§11.8), ricalcola l'albero, e se l'operazione porta errori nuovi non
+scrive niente: esce con 1 e i `diagnostic` nuovi. Scrive con un file
+temporaneo e una rinomina, e stampa un riassunto JSON; con `--dry-run` non
+scrive, e il riassunto ha anche le differenze. La cartella del documento è
+la più vicina, risalendo, con un `document file`, o quella di `--folder`.
+
+- `create <kind> --in <id> [--after <id> | --before <id>] [--text "…"]
+  [--id <id>] [--asset <file>]` crea un oggetto e ne mette l'`embed` nella
+  `composition`, dopo o prima di un altro `embed` o in fondo. L'`id` viene
+  dalle prime parole del testo, al più cinque, in minuscolo e senza accenti,
+  e non è mai un `id` vivo o ritirato: con un conflitto prende `-2`, `-3`
+  (deciso che viene dalle prime parole e che si può cambiare). Un `text` va
+  nel `multi-object file` dei testi della `composition`, accanto al suo
+  file: `<nome>-texts.text.md`, dove `<nome>` è il nome del file della
+  `composition` fino al primo punto, creato se non c'è. Un `image` copia
+  `--asset` nella cartella della `composition` e mette accanto il
+  descrittore; ogni altro `kind` ha un file suo, `<id>.<kind>.md`.
+- `extract <file>` fa di ogni blocco scritto direttamente nel corpo di una
+  `composition` (`composition-content`) un `text` nel file dei testi, con
+  l'`embed` al suo posto, nello stesso ordine; è la correzione «estrai in un
+  oggetto» (deciso). Un titolo Markdown resta dov'è: in un `text` sarebbe
+  `text-blocks`, e il suo posto è il `title` di un capitolo.
+- `rename <id> <nuovo-id>` cambia l'`id` nel suo file, aggiorna i
+  riferimenti in tutti i file (`[[…]]`, `![[…]]`, i valori `"[[…]]"` e le
+  liste `associations`, mai dentro il codice) e mette il vecchio `id` in
+  `retired-ids.yaml` con il nuovo come successore (§0.3); gli `id` già
+  ritirati verso il vecchio passano al nuovo, senza catene.
+- `move <id> --to <file>` sposta un oggetto fra un file suo e un
+  `multi-object file`, nei due sensi, senza cambiarne l'`id`: un file che
+  resta senza oggetti si cancella, uno che non c'è si crea, come file suo se
+  il nome comincia con l'`id`, altrimenti come `multi-object file`.
+  L'estensione del file di arrivo deve avere il `kind` dell'oggetto.
 
 ## Appendice A. Classi successive (non normativa)
 

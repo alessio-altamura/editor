@@ -2,7 +2,7 @@
 // The command line: `resolve-tree`, that prints the resolved tree as JSON, and
 // `export`, that writes the HTML of an article (§11.4).
 import { closeSync, existsSync, openSync, readdirSync, readFileSync, renameSync, statSync, unlinkSync, writeSync } from 'node:fs';
-import { basename, dirname, join } from 'node:path';
+import { basename, dirname, join, relative, resolve as resolvePath, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BASE_FONTS } from './base-stylesheet.js';
 import { pageAssets, readAsset } from './assets.js';
@@ -14,6 +14,8 @@ import { startLanguageServer } from './language-server.js';
 import { serve } from './serve.js';
 import { formatFolder } from './format.js';
 import { unifiedDiff } from './diff.js';
+import { diskWorkspace, evaluate, OperationError, planCreate, planExtract, planMove, planRename, write, type Plan, type Workspace } from './operations.js';
+import type { ResolvedTree } from './tree.js';
 import { baseFontFace, staticExport, staticExportSize, type ExportAsset } from './static-export.js';
 import type { JsonML } from './tree.js';
 
@@ -53,12 +55,23 @@ Uso:
                                          d'accesso, va su stdout; si ferma con Ctrl-C
   ${BINARY_NAME} language-server          il language server (LSP) su stdin e stdout, per
                                          gli editor: diagnostic, completamento degli id,
-                                         definizione, hover e riferimenti; non scrive file
+                                         definizione, hover, riferimenti, rename, estrai
   ${BINARY_NAME} format <cartella> [--check] [--diff]
                                          riscrive i file nella forma canonica e stampa
                                          quelli cambiati; --check non scrive ed esce
                                          con 1 se qualcosa cambierebbe; --diff stampa
                                          le differenze senza scrivere
+  ${BINARY_NAME} create <kind> --in <id> [--after <id> | --before <id>] [--text "…"] [--id <id>] [--asset <file>]
+  ${BINARY_NAME} extract <file della composition>
+  ${BINARY_NAME} rename <id> <nuovo-id>
+  ${BINARY_NAME} move <id> --to <file>
+                                         le operazioni: scrivono i file, passati dal
+                                         formatter, solo se non portano errori nuovi;
+                                         stampano un riassunto JSON; con --dry-run
+                                         non scrivono e mettono le differenze nel
+                                         riassunto; --folder dice la cartella del
+                                         documento, altrimenti la più vicina con un
+                                         document file
   ${BINARY_NAME} --help                    questo aiuto
   ${BINARY_NAME} --version                 la spec-version che il runtime implementa
 
@@ -99,6 +112,7 @@ function main(args: string[]): number | Promise<number> {
   if (args[0] === 'print') return exportCommand(args.slice(1), 'print');
   if (args[0] === 'serve') return serveCommand(args.slice(1));
   if (args[0] === 'format') return formatCommand(args.slice(1));
+  if (['create', 'extract', 'rename', 'move'].includes(args[0]!)) return operationCommand(args[0]!, args.slice(1));
   if (args[0] === 'language-server') {
     // LSP on stdin and stdout; --stdio, which clients add, changes nothing. It ends with the client's exit.
     if (args.slice(1).some((arg) => arg !== '--stdio')) return usage(`uso: ${BINARY_NAME} language-server`);
@@ -166,6 +180,93 @@ function formatCommand(args: string[]): number {
   for (const [file, { after }] of changes) {
     if (!writeFileAtomically(join(folder, file), [after])) return EXIT_USAGE;
   }
+  return EXIT_OK;
+}
+
+/** The folder of the document: the nearest one, from `start` up, with a document file. */
+function documentFolderFrom(start: string): string | null {
+  for (let folder = resolvePath(start); ; folder = dirname(folder)) {
+    try {
+      if (readdirSync(folder).some((name) => name.endsWith('.document.md'))) return folder;
+    } catch {
+      // Not readable: go on up.
+    }
+    if (dirname(folder) === folder) return null;
+  }
+}
+
+/** create, extract, rename, move (§11.9): a plan, checked, then written; --dry-run only prints it. */
+function operationCommand(command: string, args: string[]): number {
+  const syntax: Record<string, string> = {
+    create: `${BINARY_NAME} create <kind> --in <id> [--after <id> | --before <id>] [--text "…"] [--id <id>] [--asset <file>]`,
+    extract: `${BINARY_NAME} extract <file della composition>`,
+    rename: `${BINARY_NAME} rename <id> <nuovo-id>`,
+    move: `${BINARY_NAME} move <id> --to <file>`,
+  };
+  const options = new Map<string, string>();
+  const positional: string[] = [];
+  let dryRun = false;
+  const valued = ['--in', '--after', '--before', '--text', '--id', '--asset', '--to', '--folder'];
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i]!;
+    if (arg === '--dry-run') dryRun = true;
+    else if (valued.includes(arg)) {
+      const value = args[++i];
+      if (value === undefined || options.has(arg)) return usage(`uso: ${syntax[command]} [--dry-run] [--folder <cartella>]`);
+      options.set(arg, value);
+    } else if (arg.startsWith('--')) return usage(`uso: ${syntax[command]} [--dry-run] [--folder <cartella>]`);
+    else positional.push(arg);
+  }
+  const wanted = { create: 1, extract: 1, rename: 2, move: 1 }[command as 'create'];
+  if (positional.length !== wanted || (options.has('--after') && options.has('--before'))) return usage(`uso: ${syntax[command]} [--dry-run] [--folder <cartella>]`);
+  // The folder: --folder, else the nearest with a document file, from the file of extract or from here.
+  const folder = options.get('--folder') ?? documentFolderFrom(command === 'extract' ? dirname(resolvePath(positional[0]!)) : process.cwd());
+  if (folder === null) return usage('non trovo la cartella del documento: dilla con --folder <cartella>');
+  if (!readableFolder(folder)) return EXIT_USAGE;
+  const workspace: Workspace = diskWorkspace(folder, () => [...listDocumentFiles(folder).keys()]);
+  const tree: ResolvedTree = resolveTree(folder, { positions: true });
+  let plan: Plan;
+  try {
+    if (command === 'create') {
+      if (!options.has('--in')) return usage(`uso: ${syntax.create}`);
+      plan = planCreate(workspace, tree, {
+        kind: positional[0]!,
+        into: options.get('--in')!,
+        ...(options.has('--after') ? { after: options.get('--after')! } : {}),
+        ...(options.has('--before') ? { before: options.get('--before')! } : {}),
+        ...(options.has('--text') ? { text: options.get('--text')! } : {}),
+        ...(options.has('--id') ? { id: options.get('--id')! } : {}),
+        ...(options.has('--asset') ? { asset: options.get('--asset')! } : {}),
+      });
+    } else if (command === 'extract') {
+      const file = relative(resolvePath(folder), resolvePath(positional[0]!)).split(sep).join('/');
+      plan = planExtract(workspace, tree, file);
+    } else if (command === 'rename') plan = planRename(workspace, tree, positional[0]!, positional[1]!);
+    else {
+      if (!options.has('--to')) return usage(`uso: ${syntax.move}`);
+      plan = planMove(workspace, tree, positional[0]!, options.get('--to')!);
+    }
+  } catch (error) {
+    if (error instanceof OperationError) return usage(error.message);
+    throw error;
+  }
+  const outcome = evaluate(workspace, plan);
+  if (outcome.newErrors.length > 0) {
+    // New errors: nothing is written.
+    writeAll(2, JSON.stringify({ diagnostics: outcome.newErrors }) + '\n');
+    return EXIT_ERRORS;
+  }
+  const files = [...outcome.files];
+  const summary = {
+    operation: plan.operation,
+    ...plan.summary,
+    written: files.filter(([, text]) => text !== null).map(([file]) => file).sort(),
+    deleted: files.filter(([, text]) => text === null).map(([file]) => file).sort(),
+    copied: outcome.copies.map((copy) => copy.to),
+    ...(dryRun ? { dryRun: true, diff: outcome.diff } : {}),
+  };
+  if (!dryRun && !write(folder, outcome, (path, text) => writeFileAtomically(path, [text]))) return EXIT_USAGE;
+  writeAll(1, JSON.stringify(summary) + '\n');
   return EXIT_OK;
 }
 

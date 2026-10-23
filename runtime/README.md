@@ -37,6 +37,10 @@ node dist/src/cli.js print <cartella> [--root <id>] [-o <file>] [--allow-errors]
 node dist/src/cli.js serve <cartella> [--port <n>]
 node dist/src/cli.js language-server            # LSP su stdin e stdout, per gli editor
 node dist/src/cli.js format <cartella> [--check] [--diff]
+node dist/src/cli.js create <kind> --in <id> [--after <id> | --before <id>] [--text "…"] [--id <id>] [--asset <file>]
+node dist/src/cli.js extract <file della composition>
+node dist/src/cli.js rename <id> <nuovo-id>
+node dist/src/cli.js move <id> --to <file>
 node dist/src/cli.js --help
 ```
 
@@ -256,6 +260,29 @@ con un messaggio su stderr. Scrive con un file temporaneo e una rinomina.
 `--check` esce con 1 se qualcosa cambierebbe, `--diff` stampa le differenze
 (`src/diff.ts`); nessuno dei due scrive.
 
+## Le operazioni
+
+`create`, `extract`, `rename` e `move` (`src/operations.ts`, §11.9)
+calcolano un piano: il testo nuovo di ogni file toccato, i file da
+cancellare, gli asset da copiare. Il piano passa dal formatter, poi il
+`runtime` ricalcola l'albero con i testi nuovi (con l'opzione `overlay` di
+`resolveTree`, dove `null` toglie un file) e conta gli errori per codice e
+`target`: se ce n'è uno in più, non scrive niente, stampa i `diagnostic`
+nuovi su stderr ed esce con 1. Altrimenti scrive i file con un file
+temporaneo e una rinomina, poi cancella, e stampa su stdout un riassunto
+JSON (`operation`, i dati dell'operazione, `written`, `deleted`, `copied`).
+Con `--dry-run` non scrive, e il riassunto ha `dryRun: true` e `diff`. La
+cartella del documento è quella di `--folder`, o la più vicina con un
+`document file`, risalendo dalla cartella corrente o, per `extract`, da
+quella del file. Una richiesta impossibile (un `id` che non c'è o già
+preso, un file di arrivo di un altro `kind`) esce con 2.
+
+Il language server offre le stesse operazioni sui buffer aperti:
+`textDocument/rename` su un `[[id]]` o `![[id]]` (o sull'oggetto del file) e
+la code action «Estrai in un oggetto» sull'errore `composition-content`.
+Restituiscono una WorkspaceEdit, con i file creati, sostituiti per intero o
+cancellati, così l'editor la applica e la può annullare.
+
 ## Il language server
 
 `language-server` parla LSP su stdin e stdout (`src/language-server.ts`),
@@ -266,7 +293,8 @@ sarebbero più codice da tenere. Usa lo stesso nucleo acceso di `serve`
 `document file`, altrimenti la cartella più vicina, risalendo dal primo file
 aperto, che ne ha uno; i buffer aperti valgono al posto dei file su disco
 finché restano aperti, e ogni modifica, nell'editor o su disco, ricalcola
-dopo 60 ms. Non scrive file.
+dopo 60 ms. Non scrive file da sé: `rename` e «Estrai in un oggetto» tornano
+all'editor come modifiche da applicare.
 
 - I diagnostic per file, con il range: la n-esima occorrenza del `target`,
   dentro `[[…]]` se c'è; senza `target`, o se non si trova, l'intestazione o
@@ -345,7 +373,15 @@ legge resta al suo posto anche se il testo sopra cresce.
 (in processo, per la velocità) e ogni cartella di `test/fixtures/export` (con
 la cli): l'albero resta uguale, un secondo passaggio non cambia niente,
 `--check` e `--diff` non scrivono e dicono gli stessi file; più alcuni file
-scritti apposta, con l'atteso a mano. `npm test` lancia infine `test/language-server-suite.ts`, che parla JSON-RPC
+scritti apposta, con l'atteso a mano. `test/operations-suite.ts` prova le operazioni con la cli, prima con
+`--dry-run` (non scrive) e poi davvero: `extract` in ordine con gli `id`
+dalle prime parole, accenti tolti; `create` dopo e prima di un `embed`, con
+il suffisso `-2`, un `image` con la copia dell'asset, un `concept` rifiutato
+per `embed-kind` senza scrivere niente, un `id` preso o ritirato rifiutato;
+`rename` che aggiorna testo, `embed`, attributi e `associations` ma non il
+codice, e scrive `retired-ids.yaml`; `move` nei due sensi con l'albero
+uguale tranne `file`, e il file svuotato che si cancella; alla fine i file
+sono già canonici. `npm test` lancia infine `test/language-server-suite.ts`, che parla JSON-RPC
 su stdio con il server: `initialize`; un errore in un buffer aperto, con il
 range giusto, e i diagnostic vuoti quando un `didChange` lo corregge; il
 completamento dopo `![[` e `[[`; la definizione, l'hover su un `id` e su una
@@ -377,6 +413,7 @@ Solo il typecheck: `npm run typecheck`.
 - `src/live.ts`: il `runtime` acceso su una cartella, per `serve` e il
   language server.
 - `src/language-server.ts`: il language server.
+- `src/operations.ts`: le operazioni.
 - `src/format.ts` e `src/diff.ts`: il formatter e le differenze;
   `src/attribute-line.ts`: la `attribute line` dei `multi-object file`.
 - `fonts/`: i font di partenza e le loro licenze.
