@@ -861,6 +861,20 @@ documenti libero molto usato per scrivere, nello stesso campo.
   Media (la radio in streaming), Pandora A/S (i gioielli) e Pandora FMS
   (software di monitoraggio).
 
+**Nello spirito di Pandoc** (Alessio: «pandoc sarebbe stato bello»):
+- **panfolio** (*pan*, tutto, più *folio*, foglio): libero su npm (anche
+  `-cli`), PyPI, crates.io, nessun comando, nessun marchio USPTO; la ricerca
+  web non trova software con questo nome. Il più vicino a «tutti i fogli».
+- **pangraph**: libero sui registri e senza marchi USPTO, ma nella genomica
+  i *pan graph* (grafi del pangenoma) sono un termine in uso, con strumenti
+  come panGraphViewer e anvi'o.
+- **panscript**: libero sui registri, non controllato oltre.
+- **pantext**: preso su PyPI.
+- **pangram** (la frase con tutte le lettere): preso su npm, marchio vivo
+  in classe 9 di Pangram Labs.
+Qualunque «pan-doc» stretto (pandocs e simili) si confonderebbe con
+Pandoc.
+
 Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
 <https://en.wiktionary.org/wiki/orri>, <https://en.wiktionary.org/wiki/keping>,
 <https://en.wiktionary.org/wiki/lappu>, <https://en.wiktionary.org/wiki/Lapp>,
@@ -918,4 +932,6 @@ UnitZ <https://videogamegeek.com/videogame/180372/unitz>; ID-0
 <https://looking-glass.helpscoutdocs.com/article/417-musubi-subscription>;
 Ribon Musubi <https://dentsu-ho.com/en/articles/8255>;
 Pandoc <https://en.wikipedia.org/wiki/Pandoc>; <https://en.wiktionary.org/wiki/panu>,
-<https://en.wiktionary.org/wiki/pantos>, <https://en.wiktionary.org/wiki/panta_rhei>.
+<https://en.wiktionary.org/wiki/pantos>, <https://en.wiktionary.org/wiki/panta_rhei>;
+panGraphViewer <https://gitee.com/ych12/panGraphViewer>; anvi'o
+<https://anvio.org/help/main/programs/anvi-display-pan-graph/>.
