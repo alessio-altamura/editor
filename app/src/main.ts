@@ -11,6 +11,9 @@ const here = fileURLToPath(new URL('.', import.meta.url));
 const stateFile = () => join(app.getPath('userData'), 'state.json');
 
 let session: Session | null = null;
+/** Resolved once the first folder is open: the window may ask before that. */
+let opened: () => void = () => undefined;
+const ready = new Promise<void>((resolve) => (opened = resolve));
 let window: BrowserWindow | null = null;
 let preview: WebContentsView | null = null;
 
@@ -38,6 +41,7 @@ async function openFolder(folder: string): Promise<void> {
   writeFileSync(stateFile(), JSON.stringify({ folder }));
   window?.setTitle(`${folder} — doc`);
   window?.webContents.send('doc:updated');
+  opened();
 }
 
 function createWindow(): void {
@@ -72,8 +76,9 @@ function createWindow(): void {
 
 /** Every IPC call: the session must be open, and the arguments are checked by it. */
 function handle(channel: string, answer: (current: Session, ...args: never[]) => unknown): void {
-  ipcMain.handle(channel, (event, ...args: unknown[]) => {
+  ipcMain.handle(channel, async (event, ...args: unknown[]) => {
     if (event.sender !== window?.webContents) throw new Error('richiesta da un\'altra pagina');
+    await ready;
     if (session === null) throw new Error('nessuna cartella aperta');
     return (answer as (current: Session, ...rest: unknown[]) => unknown)(session, ...args);
   });
@@ -122,9 +127,9 @@ app.whenReady().then(async () => {
     const folder = await chooseFolder(true);
     if (folder !== null) await openFolder(folder);
   });
+  createWindow();
   const folder = await chooseFolder(false);
   if (folder === null) return app.quit();
-  createWindow();
   await openFolder(folder);
 });
 

@@ -15,3 +15,9 @@ export function writeFixture(): string {
   writeFileSync(join(folder, 'idea.concept.md'), front('idea', 'concept') + 'Un concetto.\n');
   return folder;
 }
+
+declare global {
+  interface Window {
+    docAppState: { file: string | null; line: number; character: number; text: string };
+  }
+}
