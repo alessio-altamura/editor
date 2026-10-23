@@ -563,6 +563,16 @@ sui registri, ma sono nomi di persona giapponesi e personaggi di un'opera
 famosa; **neotokyo** è libero, ma è un luogo, e di nuovo giapponese. Da
 Akira non esce un candidato.
 
+**Da Ghost in the Shell** (Shirow, Oshii): **ghost** è Ghost, la
+piattaforma open source per pubblicare blog, nello stesso campo, con un
+marchio vivo in classe 42 della Ghost Foundation; **shell** è la shell Unix;
+**tachikoma** è preso su npm, PyPI e crates.io, ed è un nome dell'opera;
+**cyberbrain** è libero su npm ma preso su PyPI e crates.io, e dice un
+cervello, non un mattone. **koma** (駒) in giapponese è il pezzo dello
+shogi, e anche chi è manovrato da altri, una pedina, un burattino, un bel
+legame con il *Puppet Master*; ma in danese e in azero vuol dire coma, in
+faroese è gergo per l'orgasmo, ed è preso su npm e PyPI. Nessun candidato.
+
 Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
 <https://en.wiktionary.org/wiki/orri>, <https://en.wiktionary.org/wiki/keping>,
 <https://en.wiktionary.org/wiki/lappu>, <https://en.wiktionary.org/wiki/Lapp>,
@@ -581,4 +591,6 @@ D-Mail sul wiki della serie <https://steins-gate.fandom.com/wiki/Upa>,
 <https://en.wiktionary.org/wiki/stein>, <https://en.wiktionary.org/wiki/upa>;
 Arcane <https://en.wikipedia.org/wiki/Arcane_(TV_series)>;
 <https://en.wiktionary.org/wiki/arcano>; Akira
-<https://en.wikipedia.org/wiki/Akira_(manga)>.
+<https://en.wikipedia.org/wiki/Akira_(manga)>; Ghost
+<https://en.wikipedia.org/wiki/Ghost_(blogging_platform)>;
+<https://en.wiktionary.org/wiki/koma>, <https://en.wiktionary.org/wiki/%E9%A7%92>.
