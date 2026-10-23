@@ -663,6 +663,24 @@ Una famiglia possibile: **seki** il mattone, **genseki** il canvas delle
 idee grezze, **hoseki** l'app, il posto dove le pietre diventano gemme. Resta
 giapponese.
 
+**Hoseki scartato da Alessio** («non mi piace»). Chiede «qualcosa alla
+id-zero»: una sigla corta più «zero», internazionale, da fantascienza.
+
+**Nomi nella forma di ID-Zero.** Liberi su npm (scritti attaccati e con il
+trattino), `-cli`, PyPI, crates.io e come comando, salvo dove detto:
+- **id-zero** stesso: libero ovunque e senza marchi USPTO, né ID ZERO né
+  IDZERO. L'unico motivo per cui era stato messo da parte è l'anime *ID-0*
+  (2017), che è un titolo, non un marchio di software.
+- **dotzero** (il punto, cioè il mattone, e lo zero da cui si parte): due
+  risultati USPTO per DOT ZERO e uno per DOTZERO, nessuno vivo; la ricerca web
+  non trova software con questo nome.
+- **inkzero**: libero, nessun marchio vivo; la ricerca web non lo trova, ma
+  il campo è pieno di app Ink per note e disegno, e c'è Zerowriter Ink, una
+  macchina da scrivere a inchiostro elettronico.
+- **bitzero**, **unitzero**, **plainzero**: liberi sui registri, non cercati
+  sul web né all'USPTO.
+- **pagezero**, **opzero**, **nodezero**: presi su npm nel 2026.
+
 Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
 <https://en.wiktionary.org/wiki/orri>, <https://en.wiktionary.org/wiki/keping>,
 <https://en.wiktionary.org/wiki/lappu>, <https://en.wiktionary.org/wiki/Lapp>,
@@ -697,4 +715,5 @@ Sigil <https://en.wikipedia.org/wiki/Sigil_(application)>;
 <https://en.wiktionary.org/wiki/%E9%9B%86%E7%A9%8D>,
 <https://en.wiktionary.org/wiki/%E8%93%84%E7%A9%8D>,
 <https://en.wiktionary.org/wiki/%E7%9F%B3%E5%9E%A3>,
-<https://en.wiktionary.org/wiki/%E6%9B%B8%E7%B1%8D>.
+<https://en.wiktionary.org/wiki/%E6%9B%B8%E7%B1%8D>; Zerowriter Ink
+<https://liliputing.com/?p=170724>.
