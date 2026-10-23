@@ -311,12 +311,21 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     state cercate e scartate altre proposte (frol, tesso, tarsia, patema e
     altre), con i controlli su npm, comandi e omonimi.
     Report: [ricerca/nomi-del-prodotto.md](ricerca/nomi-del-prodotto.md).
-    Seconda ricerca (2026-10-23, stesso report): per la parola dell'`app`
-    che indica i mattoni Alessio ha detto «jot mi piace» (in inglese un
-    appunto breve e il verbo annotare; in italiano «un jot», «jottare»); è
-    un nome d'interfaccia, il concetto resta `object`. Sul nome del prodotto
-    proposto, brano: «brano non lo capisco». Il nome del prodotto resta
-    Kamii, provvisorio.
+    Seconda ricerca (2026-10-23, stesso report). Per la parola dell'`app`
+    che indica i mattoni Alessio aveva detto «jot mi piace», poi, nella
+    sessione dei nomi, «anche jot forse non mi piace, che cosa c'entra con un
+    dataset o con una funzione»: jot non è scelto. Scartati anche brano
+    («non lo capisco») e rensei («mi sa del politico italiano Renzi»).
+    Orientamento di Alessio: la parola del mattone è corta, non descrive il
+    contenuto e prende senso con l'uso, come «tweet»; il nome dell'`app` va
+    d'accordo con quello del mattone o del `canvas`, o è lo stesso. Il terzo
+    giro della sessione dei nomi ha trovato, solo nella banca dati USPTO, che
+    kami e gami sono marchi vivi nel software e che anche KAMII è un marchio
+    vivo in classe 9 (custodie di cellulari); marchi UE e italiani non
+    controllati. Le proposte di quel giro (orri, keping, lappu, jogak,
+    madang, shard) sono nel report, con gli omonimi web non verificati.
+    Il nome del prodotto resta Kamii, provvisorio, e la parola del mattone è
+    aperta.
   - Numerazione dei capitoli che si ripetono per ricorsione (2026-10-22,
     Alessio, «sì va bene 1, 1.1, 1.1.1»): ogni ripetizione con un title prende
     un numero nuovo, come un capitolo annidato.

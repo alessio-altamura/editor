@@ -174,7 +174,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | Nome | Italiano | Definizione | Stato | Da non usare |
 |---|---|---|---|---|
 | `canvas` | foglio bianco, foglio di bozze | Superficie libera da cui si creano gli oggetti; all'apertura si vede questa | concetto deciso, nome proposto | sheet, board, page |
-| `object` | oggetto | Nell'interfaccia dell'`app` si chiama jot (gradito da Alessio il 2026-10-23). Pezzo con un `kind`, un file: testo, `collection`, `chart`, immagine, e tipi da estensioni; si crea sul `canvas` o con `develop`, e può sviluppare uno o più `concept` | deciso | element, block, node, variant |
+| `object` | oggetto | Pezzo con un `kind`, un file: testo, `collection`, `chart`, immagine, e tipi da estensioni; si crea sul `canvas` o con `develop`, e può sviluppare uno o più `concept` | deciso | element, block, node, variant |
 | `kind` | tipo di oggetto | Il tipo di un `object` o di un `node`; ogni nodo ne ha uno (deciso il 2026-10-20) | concetto deciso, nome proposto | type (riservato ai dati) |
 | `navigator` | lista a fianco | Pannello che organizza gli oggetti in `shelf`, con `unfiled` e le `composition` | concetto deciso, nome proposto | list, sidebar, library |
 | `shelf` | sezione del navigator | Gruppo di oggetti di un `kind` nel `navigator` | proposto | section, folder |
