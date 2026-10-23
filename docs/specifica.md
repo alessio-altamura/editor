@@ -3235,6 +3235,34 @@ I range sono contati come in LSP, righe da 0 e colonne in unità UTF-16,
 come la `source position` (§11.6). Il client per VS Code sta in
 `editors/vscode`.
 
+### 11.8 Il formatter *(proposta)*
+
+Il comando `doc-runtime format <cartella>` riscrive i file del documento
+nella forma canonica e stampa quelli che cambia; `--check` non scrive ed
+esce con 1 se qualcosa cambierebbe, `--diff` stampa le differenze senza
+scrivere. Applica le regole del `formatter` sparse in questa bozza, e
+nient'altro:
+- UTF-8 senza BOM, LF, un a capo alla fine (§2);
+- nel `front matter` le chiavi nell'ordine della tabella del §4, poi le
+  altre come sono scritte; `tags: []` quando manca (§0.12), tranne
+  nell'intestazione di un `multi-object file`, che ha il solo `kind`
+  (§0.18); un valore fra virgolette doppie quando YAML lo leggerebbe come
+  altro che la stessa stringa (§0.6), o quando ha caratteri di controllo,
+  altrimenti senza virgolette; le liste nella forma `[a, b]`;
+- la `attribute line` nella forma `{#id .class chiave=valore}`: l'`id`, poi
+  le `class` nell'ordine scritto, poi gli altri attributi nell'ordine del
+  §4, ogni valore senza virgolette quando può (§0.18);
+- una riga di separazione si scrive `---` (§7.4);
+- fra due blocchi una riga vuota, e nessuna dopo l'intestazione.
+
+Il contenuto dei blocchi resta com'è scritto: numeri (§0.4), commenti
+(§0.13), attributi sconosciuti (§1), `directive` (§10), `association`
+(§6). Un `front matter` con commenti YAML o chiavi ripetute resta com'è,
+perché è un errore da correggere a mano. Negli `stylesheet` e in
+`retired-ids.yaml` cambia solo la codifica. Il `formatter` non cambia mai
+il `resolved tree`: un file la cui forma canonica lo cambierebbe resta com'è,
+con un messaggio. Due passaggi danno lo stesso risultato di uno.
+
 ## Appendice A. Classi successive (non normativa)
 
 Dove si aggancerà ciascuna al `core`.

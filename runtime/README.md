@@ -36,6 +36,7 @@ node dist/src/cli.js export <cartella> [--root <id>] [-o <file>] [--allow-errors
 node dist/src/cli.js print <cartella> [--root <id>] [-o <file>] [--allow-errors]
 node dist/src/cli.js serve <cartella> [--port <n>]
 node dist/src/cli.js language-server            # LSP su stdin e stdout, per gli editor
+node dist/src/cli.js format <cartella> [--check] [--diff]
 node dist/src/cli.js --help
 ```
 
@@ -240,6 +241,21 @@ in 234 ms e 64 ms (576 e 76 ms la prima volta). Dal salvataggio
 all'arrivo sul WebSocket passano circa 80 ms per un documento piccolo, 60 di
 attesa compresi.
 
+## Il formatter
+
+`format` (`src/format.ts`) riscrive i file nella forma canonica della
+specifica (§11.8): codifica, `front matter` (ordine delle chiavi, `tags:
+[]`, virgolette solo dove servono), `attribute line`, `---` per le righe di
+separazione, una riga vuota fra i blocchi. Non tocca il dentro dei blocchi:
+li ricopia com'erano, prendendo i blocchi di primo livello da mdast. Solo i
+file sorgente: `*.<kind>.md`, `*.stylesheet.css` e `retired-ids.yaml`, per
+gli ultimi due solo la codifica. Prima di scrivere ricalcola l'albero con i
+testi nuovi (con l'opzione `overlay` di `resolveTree`) e lo confronta con
+quello di prima, come valori JSON: un file che lo cambierebbe resta com'è,
+con un messaggio su stderr. Scrive con un file temporaneo e una rinomina.
+`--check` esce con 1 se qualcosa cambierebbe, `--diff` stampa le differenze
+(`src/diff.ts`); nessuno dei due scrive.
+
 ## Il language server
 
 `language-server` parla LSP su stdin e stdout (`src/language-server.ts`),
@@ -325,7 +341,11 @@ sparisce. `npm run test:browser` lancia anche `test/serve-browser-suite.ts`:
 nel browser la pagina si aggiorna senza ricaricarsi, e il capoverso che si
 legge resta al suo posto anche se il testo sopra cresce.
 
-`npm test` lancia infine `test/language-server-suite.ts`, che parla JSON-RPC
+`test/format-suite.ts`, in `npm test`, formatta ogni esempio della specifica
+(in processo, per la velocità) e ogni cartella di `test/fixtures/export` (con
+la cli): l'albero resta uguale, un secondo passaggio non cambia niente,
+`--check` e `--diff` non scrivono e dicono gli stessi file; più alcuni file
+scritti apposta, con l'atteso a mano. `npm test` lancia infine `test/language-server-suite.ts`, che parla JSON-RPC
 su stdio con il server: `initialize`; un errore in un buffer aperto, con il
 range giusto, e i diagnostic vuoti quando un `didChange` lo corregge; il
 completamento dopo `![[` e `[[`; la definizione, l'hover su un `id` e su una
@@ -357,6 +377,8 @@ Solo il typecheck: `npm run typecheck`.
 - `src/live.ts`: il `runtime` acceso su una cartella, per `serve` e il
   language server.
 - `src/language-server.ts`: il language server.
+- `src/format.ts` e `src/diff.ts`: il formatter e le differenze;
+  `src/attribute-line.ts`: la `attribute line` dei `multi-object file`.
 - `fonts/`: i font di partenza e le loro licenze.
 
 Dipendenze, con versione fissata: `mdast-util-from-markdown` 2.1.0,

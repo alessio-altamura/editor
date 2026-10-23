@@ -13,7 +13,7 @@ const specPath = resolve(process.argv[2] ?? join(packageRoot, '../docs/specifica
 const cliPath = join(packageRoot, 'dist/src/cli.js');
 const FENCE = '`'.repeat(32);
 
-interface Example {
+export interface Example {
   number: number;
   conformanceClass: string;
   status: string;
@@ -22,7 +22,7 @@ interface Example {
   resolved: string;
 }
 
-function extractExamples(spec: string): Example[] {
+export function extractExamples(spec: string): Example[] {
   const examples: Example[] = [];
   const lines = spec.split('\n');
   for (let i = 0; i < lines.length; i++) {
@@ -85,18 +85,23 @@ function normalize(tree: unknown, problems: string[], label: string): unknown {
   return value;
 }
 
+/** Writes the files of an example in a folder, with the document file of §0 when it has none. */
+export function writeExample(example: Example, folder: string): void {
+  for (const file of example.files) {
+    mkdirSync(dirname(join(folder, file.path)), { recursive: true });
+    writeFileSync(join(folder, file.path), file.content ?? '');
+  }
+  // §0: without a document file the script creates doc.document.md, unless the example says no-document.
+  if (!example.noDocument && !example.files.some((file) => file.path.endsWith('.document.md'))) {
+    writeFileSync(join(folder, 'doc.document.md'), '---\nid: doc\nkind: document\ntags: []\nspec-version: "0.1"\n---\n');
+  }
+}
+
 function runExample(example: Example): string[] {
   const problems: string[] = [];
   const folder = mkdtempSync(join(tmpdir(), `example-${example.number}-`));
   try {
-    for (const file of example.files) {
-      mkdirSync(dirname(join(folder, file.path)), { recursive: true });
-      writeFileSync(join(folder, file.path), file.content ?? '');
-    }
-    // §0: without a document file the script creates doc.document.md, unless the example says no-document.
-    if (!example.noDocument && !example.files.some((file) => file.path.endsWith('.document.md'))) {
-      writeFileSync(join(folder, 'doc.document.md'), '---\nid: doc\nkind: document\ntags: []\nspec-version: "0.1"\n---\n');
-    }
+    writeExample(example, folder);
     const run = spawnSync(process.execPath, [cliPath, 'resolve-tree', folder], { encoding: 'utf8' });
     if (run.status !== 0 && run.status !== 1) return [`exit code ${run.status}: ${run.stderr}`];
     const actual: unknown = JSON.parse(run.stdout);
@@ -115,21 +120,23 @@ function runExample(example: Example): string[] {
   return problems;
 }
 
-const examples = extractExamples(readFileSync(specPath, 'utf8'));
-let failed = 0;
-for (const example of examples) {
-  let problems: string[];
-  try {
-    problems = runExample(example);
-  } catch (error) {
-    problems = [String(error)];
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const examples = extractExamples(readFileSync(specPath, 'utf8'));
+  let failed = 0;
+  for (const example of examples) {
+    let problems: string[];
+    try {
+      problems = runExample(example);
+    } catch (error) {
+      problems = [String(error)];
+    }
+    if (problems.length === 0) {
+      console.log(`ok   example ${example.number} conf=${example.conformanceClass} status=${example.status}`);
+    } else {
+      failed++;
+      console.log(`FAIL example ${example.number}\n  ${problems.join('\n  ')}`);
+    }
   }
-  if (problems.length === 0) {
-    console.log(`ok   example ${example.number} conf=${example.conformanceClass} status=${example.status}`);
-  } else {
-    failed++;
-    console.log(`FAIL example ${example.number}\n  ${problems.join('\n  ')}`);
-  }
+  console.log(`\n${examples.length - failed}/${examples.length} examples pass (${specPath})`);
+  if (examples.length === 0 || failed > 0) process.exitCode = 1;
 }
-console.log(`\n${examples.length - failed}/${examples.length} examples pass (${specPath})`);
-if (examples.length === 0 || failed > 0) process.exitCode = 1;
