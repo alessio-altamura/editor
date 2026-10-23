@@ -747,6 +747,16 @@ si legge «orìcalt» o «oricàlt», in inglese «ORR-i-kalt»: l'accento non �
 fissato. Come parola del mattone non funziona, è una sostanza, non un
 pezzo.
 
+Alessio nota che «Orichalt» contiene *halt*: in inglese e in tedesco
+«fermati», e in informatica l'arresto della macchina; `halt` è anche un
+comando Unix (qui `/usr/sbin/halt`), quello che spegne il sistema. Per
+un'app è un'associazione da evitare. Le forme senza *halt* sono libere:
+**orichalc** (la grafia inglese dell'oricalco, usata anche in *The Elder
+Scrolls*), **oricalc** e **oricalco** (l'italiano), tutte libere su npm
+(anche `-cli`), PyPI e crates.io, nessun comando, nessun marchio USPTO.
+Oricalc però si legge «ori-calc», calcolatrice; e tutte e tre perdono il
+legame con *ID-0*, che sta proprio nella grafia Orichalt.
+
 **Il filone delle monadi** (proposta di Alessio). In filosofia la monade è
 l'unità ultima e indivisibile; in Leibniz (*Monadologia*) una «sostanza
 semplice», di cui sono fatte tutte le cose composte. È esattamente il
