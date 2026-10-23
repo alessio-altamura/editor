@@ -731,7 +731,21 @@ l'Orichalt (オリハルト, *Oriharuto*), il minerale che ha permesso
 all'umanità di uscire dal sistema solare, usato per i viaggi più veloci
 della luce e per far funzionare le I-Machines (Wikipedia, *ID-0*).
 `orichalt` è libero su npm (anche `-cli`), PyPI e crates.io, nessun
-comando, nessun marchio USPTO. Ricerca web non fatta.
+comando, nessun marchio USPTO (nemmeno ORICHAL; ORICHALCUM è vivo solo in
+classe 11, piccoli elettrodomestici). La ricerca web non trova software,
+aziende o prodotti chiamati Orichalt: escono solo l'oricalco (*orichalcum*,
+in inglese anche *orichalc*), il metallo prezioso dei Greci e dei Romani,
+che nel *Crizia* di Platone era secondo solo all'oro, e l'*orichalc* di
+*The Elder Scrolls*, un metallo per armi e armature. Domini, via RDAP, il
+2026-10-23: `orichalt.com` non registrato (404 dal registro Verisign, che
+risponde 200 per un dominio esistente), `orichalt.app` e `orichalt.dev` non
+trovati; per `orichalt.io` il registro non ha un servizio RDAP, quindi non
+controllato. Rischi: il legame con *ID-0* lo vede solo chi conosce la
+serie, come Alessio vuole; chi non la conosce ci sente l'oricalco, un
+metallo mitico e prezioso, un buon significato. Tre sillabe; in italiano
+si legge «orìcalt» o «oricàlt», in inglese «ORR-i-kalt»: l'accento non è
+fissato. Come parola del mattone non funziona, è una sostanza, non un
+pezzo.
 
 **Il filone delle monadi** (proposta di Alessio). In filosofia la monade è
 l'unità ultima e indivisibile; in Leibniz (*Monadologia*) una «sostanza
@@ -797,4 +811,7 @@ UnitZ <https://videogamegeek.com/videogame/180372/unitz>; ID-0
 <https://en.wikipedia.org/wiki/ID-0>; <https://en.wiktionary.org/wiki/monad>,
 <https://en.wiktionary.org/wiki/monade>; Monadologia
 <https://en.wikipedia.org/wiki/Monadology>; Proclo
-<https://en.wikipedia.org/wiki/Proclus>.
+<https://en.wikipedia.org/wiki/Proclus>; oricalco
+<https://en.wikipedia.org/wiki/Orichalcum>,
+<https://en.wiktionary.org/wiki/orichalcum>; orichalc in The Elder Scrolls
+<https://app.uesp.net/wiki/Lore:Orichalc>; RDAP <https://rdap.org/>.
