@@ -362,6 +362,16 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      lo disegna un font del sistema; «Source» è un Reserved Font Name
      dell'OFL, quindi ridurre i font ai caratteri usati li rinomina, da
      decidere quando si farà.
+   - `serve` c'è (2026-10-23, contesto.md «La strada verso l'app»):
+     `doc-runtime serve <cartella>` tiene acceso il `runtime` su 127.0.0.1
+     con un codice d'accesso, guarda i file e aggiorna l'anteprima nel
+     browser senza ricaricarla; errori segnati e elencati in cima; immagini
+     e font come indirizzi; `data-node` e `data-source` (la `source
+     position`) su ogni elemento; specifica §11.6. Tempi: documento
+     d'esempio 17 ms di ricalcolo, mille text circa 300 ms; dal
+     salvataggio all'anteprima circa 80 ms. Da correggere: nell'anteprima
+     un'immagine di formato sconosciuto appare rotta invece di mostrare la
+     descrizione come nell'`export`. Prossimo passo: LSP.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);

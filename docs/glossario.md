@@ -337,7 +337,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `cli` | riga di comando | Client del `runtime` da terminale, pensato anche per l'AI | concetto deciso, nome proposto | shell, tool |
 | `resolve-tree` | risolvi l'albero | Comando della `cli` che legge la cartella di un `document` e stampa il `resolved tree` in JSON, con i `diagnostic`; nome da N3. Il binario che lo offre si chiama per ora doc-runtime, nome provvisorio da scegliere | proposto | resolve, build, compile |
 | `serve` | servire | Comando della `cli` che tiene acceso il `runtime` su una cartella e mostra la `preview` nel browser, aggiornata a ogni modifica dei file; nome da N3 sul verbo, come un server di sviluppo | proposto | watch, live, dev |
-| `source position` | posizione nel sorgente | File, riga e colonna di inizio e di fine di un `node` nel suo file, contate come in LSP; non sta nel `resolved tree` che confrontano i test | proposto | location, span, range |
+| `source position` | posizione nel sorgente | File, riga e colonna di inizio e di fine di un `node` nel suo file, contate come in LSP; non sta nel `resolved tree` che confrontano i test. Nel JSON la chiave è sourcePosition, scritta da resolve-tree con --positions; nella `preview` è l'attributo data-source | proposto | location, span, range |
 | `language server` | server LSP | Parte del `runtime` che parla LSP | concetto deciso, nome proposto | lsp |
 | `runtime protocol` | protocollo proprio | Protocollo fra `runtime` e client per `operation` e `preview` | concetto deciso, nome proposto | api |
 | `mcp server` | server MCP | Espone le `operation` agli agenti AI | proposto | plugin, bot |
