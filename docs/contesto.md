@@ -325,7 +325,15 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     controllati. Le proposte di quel giro (orri, keping, lappu, jogak,
     madang, shard) sono nel report, con gli omonimi web non verificati.
     Il nome del prodotto resta Kamii, provvisorio, e la parola del mattone è
-    aperta.
+    aperta. Esito della giornata nella sessione dei nomi, riferito da quella
+    sessione: «per ora nessuno mi convince». Scartati anche orri («orrido»),
+    hoseki («non mi piace»), orichalt (contiene «halt») e i composti con jot
+    (Jotform è già troppo diffuso). Criteri chiariti: la parola del mattone
+    vale per ogni tipo di mattone, testo, dati e funzioni; di ID-Zero ad
+    Alessio piace che sia diretto e che abbia un legame con il Giappone e i
+    manga che chi non li conosce non vede, ma lo «zero» non va imitato.
+    Candidati ancora in piedi, non scelti: musubime, planetes, panfolio,
+    fleta; per il mattone seki, musubi, monade.
   - Numerazione dei capitoli che si ripetono per ricorsione (2026-10-22,
     Alessio, «sì va bene 1, 1.1, 1.1.1»): ogni ripetizione con un title prende
     un numero nuovo, come un capitolo annidato.
