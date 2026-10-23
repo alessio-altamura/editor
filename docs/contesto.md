@@ -439,8 +439,10 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     4. I testi nati scrivendo una pagina vanno in un file solo accanto alla
        `composition` (per esempio `report-q3.texts.md`), le immagini nella
        cartella della `composition`.
-    Aperto: la sintassi per separare gli oggetti in un file, e se i loro
-    metadati si vedono su GitHub (domanda di Alessio).
+    Poi, sulla domanda di Alessio se i metadati di ogni oggetto si vedono su
+    GitHub («ok visibili»): si vedono, con una riga breve fra parentesi
+    graffe nella famiglia di `![[id]]{.nota}`, non nascosti in un commento
+    HTML. Aperta la forma esatta della sintassi.
 
 ## Proposte non decise
 
