@@ -681,6 +681,21 @@ trattino), `-cli`, PyPI, crates.io e come comando, salvo dove detto:
   sul web né all'USPTO.
 - **pagezero**, **opzero**, **nodezero**: presi su npm nel 2026.
 
+**Da Cyberpunk: Edgerunners** (Netflix, CD Projekt Red e Studio Trigger):
+- **edgerunner**: libero su npm, preso su PyPI; all'USPTO EDGERUNNER è vivo
+  nelle classi 9, 37 e 42 per Edgerunner AI (software di edge computing), e
+  CD Projekt ha un marchio vivo CYBERPUNK: EDGERUNNERS (classi 25, 28, 41).
+  Scartato.
+- **netrunner**: preso su npm, PyPI e crates.io; marchi vivi della R.
+  Talsorian Games (classi 16 e 28) e uno in classe 9.
+- **braindance**: libero sui registri, ma ha marchi vivi, uno anche in
+  classe 9; e dice un'esperienza registrata, non un mattone.
+- **sandevistan** e **ripperdoc**: liberi su npm, presi su PyPI, nessun
+  marchio USPTO; ma sono termini inventati del franchise, lunghi, e dicono
+  un impianto e un medico.
+- **fixer**: preso dappertutto.
+Nessun candidato.
+
 Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
 <https://en.wiktionary.org/wiki/orri>, <https://en.wiktionary.org/wiki/keping>,
 <https://en.wiktionary.org/wiki/lappu>, <https://en.wiktionary.org/wiki/Lapp>,
@@ -716,4 +731,5 @@ Sigil <https://en.wikipedia.org/wiki/Sigil_(application)>;
 <https://en.wiktionary.org/wiki/%E8%93%84%E7%A9%8D>,
 <https://en.wiktionary.org/wiki/%E7%9F%B3%E5%9E%A3>,
 <https://en.wiktionary.org/wiki/%E6%9B%B8%E7%B1%8D>; Zerowriter Ink
-<https://liliputing.com/?p=170724>.
+<https://liliputing.com/?p=170724>; Cyberpunk: Edgerunners
+<https://en.wikipedia.org/wiki/Cyberpunk:_Edgerunners>.
