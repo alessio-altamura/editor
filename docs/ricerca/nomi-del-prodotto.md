@@ -839,6 +839,28 @@ vivo in classe 42 di Musubi, Inc., nel software.** Per uscirne servirebbe un
 composto o una variante (per esempio *musubime*, il nodo), da controllare.
 Resta giapponese.
 
+**Nomi con pan-** (proposta di Alessio): in greco *pan* è «tutto»; sul
+canvas *pan* è anche lo spostamento della vista; in italiano e spagnolo
+richiama il pane. Attenzione al vicino **Pandoc**, il convertitore di
+documenti libero molto usato per scrivere, nello stesso campo.
+- **panzero** (*pan*, tutto, più zero; della famiglia di ID-Zero): libero su
+  npm (anche `-cli`), PyPI, crates.io, nessun comando, nessun marchio USPTO;
+  la ricerca web non trova software con questo nome (escono Zanzero, un'app
+  per impianti antizanzare, e Power Zero, per l'energia). Rischio: in
+  italiano si sente «panzer» e «pan zero».
+- **pantos**: libero ovunque, quattro marchi USPTO, nessuno vivo in 9 o 42;
+  in inglese è il plurale di *panto*, la pantomima natalizia britannica.
+  Ricerca web non fatta.
+- **panu**: libero ovunque, nessun marchio vivo in 9 o 42; in finlandese
+  vuol dire fuoco, in gun piatto. Ricerca web non fatta.
+- **panmono**: libero sui registri, non controllato oltre.
+- Scartati: **panta** (*panta rhei*, tutto scorre) e **panora**, marchi vivi
+  in classe 9; **pando** (la colonia di pioppi dello Utah che è un solo
+  organismo), molti marchi vivi in 9 e 42; **panthea**, marchio vivo in 42;
+  **pandora**, preso dappertutto, con marchi vivi in classe 9 di Pandora
+  Media (la radio in streaming), Pandora A/S (i gioielli) e Pandora FMS
+  (software di monitoraggio).
+
 Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
 <https://en.wiktionary.org/wiki/orri>, <https://en.wiktionary.org/wiki/keping>,
 <https://en.wiktionary.org/wiki/lappu>, <https://en.wiktionary.org/wiki/Lapp>,
@@ -894,4 +916,6 @@ UnitZ <https://videogamegeek.com/videogame/180372/unitz>; ID-0
 <https://en.wikipedia.org/wiki/Your_Name>; Musubi, Inc.
 <https://www.employbl.com/companies/Musubi>; Looking Glass
 <https://looking-glass.helpscoutdocs.com/article/417-musubi-subscription>;
-Ribon Musubi <https://dentsu-ho.com/en/articles/8255>.
+Ribon Musubi <https://dentsu-ho.com/en/articles/8255>;
+Pandoc <https://en.wikipedia.org/wiki/Pandoc>; <https://en.wiktionary.org/wiki/panu>,
+<https://en.wiktionary.org/wiki/pantos>, <https://en.wiktionary.org/wiki/panta_rhei>.
