@@ -616,6 +616,24 @@ Nessun candidato pieno; cantrip è da tenere come idea, ma non è libero.
 - **mindset** (proposta di Alessio): preso su npm, PyPI e crates.io, molti
   marchi vivi nelle classi 9 e 42 (Mindset Care, Magicave e altri). Scartato.
 
+**seki** (riproposto da Alessio, ora anche come nome dell'app). In
+giapponese *seki* si scrive con molti caratteri: 石, pietra; 積, accumulo, e
+in matematica il prodotto; 席, posto a sedere; 籍, registro; 関, barriera;
+堰, chiusa; 隻, il classificatore delle navi; e 咳, tosse. Nel go è la
+situazione di stallo in cui nessuno dei due giocatori guadagna a giocare
+in un punto. In turco vuol dire posto a sedere. Il legame con *Tonari no
+Seki-kun* è nella prima ricerca. Funziona come app e mattone insieme:
+«Seki», «crea un seki», «i seki». Controlli: `seki` preso su npm (un
+middleware per il web semantico, fermo dal 2022), su PyPI (strumenti di
+sicurezza) e su crates.io (una CLI per i log di accesso); `seki-cli`
+libero, nessun comando. USPTO: diciotto risultati, nessun marchio SEKI vivo
+nelle classi 9 o 42; i marchi vivi sono di coltelleria e utensili
+giapponesi (Seki Magoroku e altri), di un ristorante e di macchine per
+diamanti. La ricerca web non trova app o software per documenti o note con
+questo nome. Rischi: è di nuovo un nome giapponese, il dubbio che Alessio
+aveva su Kamii; i tre nomi tecnici sono presi, quindi servirebbe uno scope
+(`@seki/...`); fra i significati ci sono la tosse e lo stallo.
+
 Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
 <https://en.wiktionary.org/wiki/orri>, <https://en.wiktionary.org/wiki/keping>,
 <https://en.wiktionary.org/wiki/lappu>, <https://en.wiktionary.org/wiki/Lapp>,
@@ -642,4 +660,5 @@ Arcane <https://en.wikipedia.org/wiki/Arcane_(TV_series)>;
 Sigil <https://en.wikipedia.org/wiki/Sigil_(application)>;
 <https://en.wiktionary.org/wiki/flet%C3%AB>, <https://en.wiktionary.org/wiki/fleta>,
 <https://en.wiktionary.org/wiki/sivu>, <https://en.wiktionary.org/wiki/dalen>,
-<https://en.wiktionary.org/wiki/lapa>.
+<https://en.wiktionary.org/wiki/lapa>; <https://en.wiktionary.org/wiki/seki>,
+<https://en.wiktionary.org/wiki/%E3%81%9B%E3%81%8D>.
