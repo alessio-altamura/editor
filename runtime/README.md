@@ -3,7 +3,7 @@
 Il `runtime` da riga di comando, ridotto all'essenziale: legge la cartella di
 un documento e stampa il `resolved tree` in JSON, come dice la bozza di
 [specifica](../docs/specifica.md) per il `core` e la classe 1, e ne scrive
-l'HTML di un `article` (§11.4). Non fa PDF né `format`.
+l'HTML di un `article` (§11.4) e il suo PDF (§11.5). Non fa `format`.
 
 ## Installare
 
@@ -16,12 +16,22 @@ npm ci
 npm run build
 ```
 
+Per `print` serve il Chromium di `playwright-core` 1.56.1, la versione
+141.0.7390.37:
+
+```
+npx playwright-core install chromium
+```
+
+Se l'ambiente ne ha già uno, `PLAYWRIGHT_BROWSERS_PATH` dice dove sta.
+
 ## Lanciare
 
 ```
 node dist/src/cli.js resolve-tree <cartella>            # JSON compatto
 node dist/src/cli.js resolve-tree <cartella> --pretty   # JSON indentato
 node dist/src/cli.js export <cartella> [--root <id>] [-o <file>] [--allow-errors] [--theme light|dark]
+node dist/src/cli.js print <cartella> [--root <id>] [-o <file>] [--allow-errors]
 node dist/src/cli.js --help
 ```
 
@@ -63,7 +73,7 @@ cartella corrente.
 
 La pagina è un file solo: `<!DOCTYPE html>`, `<html lang>` con la lingua del
 documento, nel `<head>` `charset`, una Content Security Policy (`default-src
-'none'; img-src data:; style-src 'unsafe-inline'; base-uri 'none';
+'none'; img-src data:; font-src data:; style-src 'unsafe-inline'; base-uri 'none';
 form-action 'none'`), `viewport`, `<title>` (il `title` dell'`article`,
 altrimenti l'`id`) e un `<style>` fisso; nel `<body>` l'`article`.
 
@@ -146,6 +156,33 @@ Limiti noti di Chromium, non controllati: non annida oltre 512 elementi, quindi
 capitoli molto annidati si vedono appiattiti; valori oltre i suoi limiti,
 come `font-size` oltre 7500pt o lunghezze oltre 2^25 px, si tagliano.
 
+**I font di partenza.** `serif`, `sans-serif` e `monospace` si disegnano con
+i tre font di `fonts/`, Source Serif 4, Source Sans 3 e Source Code Pro (OFL
+1.1; versioni, sha256 e licenze in [fonts/README.md](fonts/README.md)). Nello
+`style` una famiglia generica diventa `"Source Serif 4", serif`, e così via;
+un nome scritto dall'autore resta com'è. La pagina incorpora come
+`@font-face`, con `data:font/woff2`, solo le famiglie e gli stili (tondo o
+corsivo) che qualche nodo usa: un primo passaggio sul corpo li trova, senza
+scrivere niente. I font contano nei 256 MiB. Pesano da 75 a 429 KB l'uno,
+1,25 MB tutti e sei. Sono variabili nel peso da 200 a 900: un peso fuori da
+lì si disegna con l'estremo. Non hanno U+FFFD, il carattere che prende il
+posto dei controlli: quello lo disegna un font del sistema.
+
+## La stampa
+
+`print` fa l'HTML di `export --theme light` e lo stampa con Chromium, in
+`src/print.ts`: A4, margini di 2 cm, sfondi stampati, intestazione vuota e
+il numero di pagina in basso al centro, con Source Serif 4. `--root`, `-o`,
+`--allow-errors`, il rifiuto con un errore, i limiti e i codici di uscita
+sono quelli di `export`; `--theme` non c'è. Senza Chromium, o con una
+versione diversa da 141.0.7390.37, esce con 2 e dice come installarlo. Due
+stampe della stessa cartella sono uguali, tranne le date che Chromium scrive
+nel PDF.
+
+Chromium scrive i font variabili come font Type 3: incorporati, ridotti ai
+caratteri usati e con il testo che si copia, ma senza le istruzioni di
+hinting di un TrueType.
+
 `[[…]]` e `![[…]]` li riconosce un'estensione micromark scritta qui,
 `src/wiki-reference.ts`, prima degli altri costrutti in linea (§0.6).
 
@@ -186,9 +223,14 @@ npm run test:browser
 Apre le pagine valide della suite precedente in Chromium, con
 `playwright-core`, nello schema chiaro e in quello scuro, e confronta
 `getComputedStyle` delle dodici proprietà con i valori ricostruiti del tema,
-e lo sfondo di `html`, più alcuni valori scritti a mano. Il Chromium è quello
-di `PLAYWRIGHT_BROWSERS_PATH`; sul Mac si installa con `npx playwright-core
-install chromium`.
+e lo sfondo di `html`, più alcuni valori scritti a mano; controlla anche che i
+font di partenza siano caricati e che il testo li usi. Poi
+`test/print-suite.ts` stampa due cartelle, una lunga: `%PDF`, pagine A4,
+più pagine per quella lunga, i font di partenza incorporati e nessun altro,
+due stampe uguali tranne le date, il numero di pagina (con `pdftotext`, se
+c'è), il rifiuto con un errore e il codice 2 senza browser. Il Chromium è
+quello di `PLAYWRIGHT_BROWSERS_PATH`; sul Mac si installa con `npx
+playwright-core install chromium`.
 
 Solo il typecheck: `npm run typecheck`.
 
@@ -211,12 +253,14 @@ Solo il typecheck: `npm run typecheck`.
 - `src/static-export.ts`: `staticExport(tree, rootId, assets)`, un generatore
   dei pezzi dell'HTML; importa solo i due moduli precedenti.
 - `src/assets.ts`: la lettura delle immagini e il riconoscimento del formato.
+- `src/print.ts`: la stampa in PDF con Chromium.
+- `fonts/`: i font di partenza e le loro licenze.
 
 Dipendenze, con versione fissata: `mdast-util-from-markdown` 2.1.0,
 `micromark-extension-gfm-table` 2.1.2 e `mdast-util-gfm-table` 2.0.0 (MIT), per
 CommonMark con le tabelle di GFM; `yaml` 2.9.1 (ISC); `decimal.js` 10.6.0
-(MIT). Per lo sviluppo `typescript` 5.9.3 (Apache-2.0) e `@types/node`,
-`@types/mdast`, `micromark-util-types` (MIT); per i test dell'`export`
-`parse5` 8.0.1 (MIT), `html-validate` 11.16.2 (MIT) e `playwright-core`
-1.56.1 (Apache-2.0), con dipendenze MIT, ISC, BSD e Apache-2.0. Il parser del CSS è scritto qui: il sottoinsieme è
+(MIT); `playwright-core` 1.56.1 (Apache-2.0) per la stampa. Per lo sviluppo
+`typescript` 5.9.3 (Apache-2.0) e `@types/node`, `@types/mdast`,
+`micromark-util-types` (MIT); per i test dell'`export` `parse5` 8.0.1 (MIT) e
+`html-validate` 11.16.2 (MIT), con dipendenze MIT, ISC, BSD e Apache-2.0. Il parser del CSS è scritto qui: il sottoinsieme è
 piccolo.

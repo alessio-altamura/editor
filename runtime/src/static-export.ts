@@ -1,7 +1,7 @@
 // The reference renderer: one HTML file for an article of the resolved tree, with
 // the CSS and the images inside (§11.4). It reads the tree and computes nothing
 // but the inheritance of §0.5; the mapping is in the README of the runtime.
-import { BASE_STYLESHEET_RULES, INHERITED_PROPERTIES, NOT_INHERITED_DEFAULTS, PAGE_BACKGROUND, STYLE_PROPERTIES, type Theme } from './base-stylesheet.js';
+import { BASE_FONT_WEIGHTS, BASE_FONTS, BASE_STYLESHEET_RULES, INHERITED_PROPERTIES, NOT_INHERITED_DEFAULTS, PAGE_BACKGROUND, STYLE_PROPERTIES, type GenericFamily, type Theme } from './base-stylesheet.js';
 import { CLASS_FORM, ID_FORM, LANG_FORM, type JsonML, type ResolvedTree, type TreeNode } from './tree.js';
 
 /** An image read by the cli, or why it is not embedded. */
@@ -12,6 +12,8 @@ export interface ExportOptions {
   allowErrors?: boolean;
   /** One theme fixed with --theme; without it the page has both and follows the viewer (§11.4). */
   theme?: Theme;
+  /** The files of the base fonts, by name, read by the cli: the page embeds the ones it uses. */
+  fonts?: ReadonlyMap<string, Uint8Array>;
 }
 
 /** Base64 in blocks of 3·16384 bytes: each block is a whole number of base64 quads. */
@@ -101,7 +103,8 @@ function fontFamilyCss(value: string): string {
       const end = value.indexOf(', ', i);
       const generic = value.slice(i, end < 0 ? value.length : end);
       if (!GENERIC_FAMILIES.has(generic)) throw new Error(`font-family out of form: ${value}`);
-      items.push(generic);
+      // A generic family is drawn with its base font (§0.5).
+      items.push(`${cssString(BASE_FONTS[generic as GenericFamily].family)}, ${generic}`);
       i += generic.length;
     }
     if (i === value.length) return items.join(', ');
@@ -131,6 +134,39 @@ function styleAttribute(styles: Styles, theme: Theme | undefined): string {
     }
     return `${property}: ${checked(property, styles[theme ?? 'light'][property])}`;
   }).join('; ');
+}
+
+/** The base fonts a style uses: one key per generic family and font-style. */
+function noteFonts(style: Style, used: Set<string>): void {
+  for (const item of (style['font-family'] ?? '').split(', ')) {
+    if (GENERIC_FAMILIES.has(item)) used.add(`${item}/${style['font-style'] === 'italic' ? 'italic' : 'normal'}`);
+  }
+}
+
+function* base64(bytes: Uint8Array, encode: boolean): Generator<string | number> {
+  if (!encode) {
+    yield 4 * Math.ceil(bytes.length / 3);
+    return;
+  }
+  for (let offset = 0; offset < bytes.length; offset += BASE64_BLOCK) {
+    const block = bytes.subarray(offset, Math.min(offset + BASE64_BLOCK, bytes.length));
+    yield Buffer.from(block.buffer, block.byteOffset, block.byteLength).toString('base64');
+  }
+}
+
+/** The @font-face rules of the base fonts the page uses, in a fixed order. */
+function* fontFaces(used: ReadonlySet<string>, fonts: ReadonlyMap<string, Uint8Array> | undefined, encode: boolean): Generator<string | number> {
+  for (const generic of Object.keys(BASE_FONTS) as GenericFamily[]) {
+    for (const style of ['normal', 'italic'] as const) {
+      if (!used.has(`${generic}/${style}`)) continue;
+      const file = BASE_FONTS[generic][style];
+      const bytes = fonts?.get(file);
+      if (bytes === undefined) throw new Error(`the base font ${file} is missing`);
+      yield `@font-face { font-family: ${cssString(BASE_FONTS[generic].family)}; font-style: ${style}; font-weight: ${BASE_FONT_WEIGHTS}; src: url(data:font/woff2;base64,`;
+      yield* base64(bytes, encode);
+      yield ') format("woff2"); }\n';
+    }
+  }
 }
 
 /**
@@ -292,7 +328,27 @@ interface Context {
  * The pieces of the page, in order. A number stands for the length in bytes of
  * an image in base64, when `encode` is false: the counting pass.
  */
-function* pieces(tree: ResolvedTree, rootId: string, assets: ReadonlyMap<string, ExportAsset>, options: ExportOptions, encode: boolean): Generator<string | number> {
+/**
+ * The page in two passes over the body: the first, without output, finds the base
+ * fonts the nodes use, so that the head embeds only those (§11.4).
+ */
+function* page(tree: ResolvedTree, rootId: string, assets: ReadonlyMap<string, ExportAsset>, options: ExportOptions, encode: boolean): Generator<string | number> {
+  const used = new Set<string>();
+  for (const _ of pieces(tree, rootId, assets, options, false, used, null)) {
+    // Only the fonts are wanted here.
+  }
+  yield* pieces(tree, rootId, assets, options, encode, new Set(), used);
+}
+
+function* pieces(
+  tree: ResolvedTree,
+  rootId: string,
+  assets: ReadonlyMap<string, ExportAsset>,
+  options: ExportOptions,
+  encode: boolean,
+  used: Set<string>,
+  headFonts: ReadonlySet<string> | null,
+): Generator<string | number> {
   const article = tree.nodes?.find((node) => node.id === rootId && node.kind === 'article' && node.directive !== true);
   if (!article) throw new Error(`no article ${rootId}`);
   const { ids, embeds } = pageIds(article);
@@ -303,17 +359,23 @@ function* pieces(tree: ResolvedTree, rootId: string, assets: ReadonlyMap<string,
   const titleAttribute = article.attributes?.title;
   const pageTitle = typeof titleAttribute === 'string' && titleAttribute !== '' ? titleAttribute : (article.id ?? article.file);
 
-  let buffer =
+  const head =
     '<!DOCTYPE html>\n' +
     `<html lang="${typeof documentLang === 'string' && LANG_FORM.test(documentLang) ? escapeHtml(documentLang) : ''}">` +
     '<head><meta charset="utf-8">' +
-    `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">` +
+    `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; font-src data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">` +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
     `<title>${escapeHtml(pageTitle)}</title>` +
-    `<style>\n${styleSheet(options)}</style></head><body>`;
+    `<style>\n${styleSheet(options)}`;
+  if (headFonts !== null) {
+    yield head;
+    yield* fontFaces(headFonts, options.fonts, encode);
+  }
+  let buffer = '</style></head><body>';
 
   const rootRule = finalStyles('root', { light: {}, dark: {} }, {});
   const articleStyle = finalStyles('root', rootRule, article);
+  noteFonts(articleStyle.light, used);
   buffer +=
     `<article data-kind="article"${article.id !== undefined && ids.has(article.id) ? ` id="${escapeHtml(article.id)}"` : ''}` +
     `${langAttribute(article.attributes?.lang)}${classAttribute(article.attributes?.class)} style="${escapeHtml(styleAttribute(articleStyle, options.theme))}">`;
@@ -359,6 +421,7 @@ function* pieces(tree: ResolvedTree, rootId: string, assets: ReadonlyMap<string,
       element.type === 'title' ? `title-${task.context.depth === 0 ? 0 : Math.min(task.context.depth, 3)}`
         : element.type === 'embed' && attributes.kind === 'image' ? 'image' : element.type;
     const style = finalStyles(type, task.parent, attributes);
+    noteFonts(style.light, used);
     const styled = ` style="${escapeHtml(styleAttribute(style, options.theme))}"`;
     let context = task.context;
     let open: string;
@@ -499,7 +562,7 @@ function* pieces(tree: ResolvedTree, rootId: string, assets: ReadonlyMap<string,
 
 /** The page as pieces of text, to write one after the other. */
 export function* staticExport(tree: ResolvedTree, rootId: string, assets: ReadonlyMap<string, ExportAsset>, options: ExportOptions = {}): Generator<string> {
-  for (const piece of pieces(tree, rootId, assets, options, true)) yield piece as string;
+  for (const piece of page(tree, rootId, assets, options, true)) yield piece as string;
 }
 
 function utf8Length(text: string): number {
@@ -519,6 +582,11 @@ function utf8Length(text: string): number {
 /** The length in bytes of the page, without encoding the images. */
 export function staticExportSize(tree: ResolvedTree, rootId: string, assets: ReadonlyMap<string, ExportAsset>, options: ExportOptions = {}): number {
   let size = 0;
-  for (const piece of pieces(tree, rootId, assets, options, false)) size += typeof piece === 'number' ? piece : utf8Length(piece);
+  for (const piece of page(tree, rootId, assets, options, false)) size += typeof piece === 'number' ? piece : utf8Length(piece);
   return size;
+}
+
+/** The @font-face of one base font, as the page writes it: for the page number of the print. */
+export function baseFontFace(generic: GenericFamily, style: 'normal' | 'italic', fonts: ReadonlyMap<string, Uint8Array>): string {
+  return [...fontFaces(new Set([`${generic}/${style}`]), fonts, true)].join('');
 }

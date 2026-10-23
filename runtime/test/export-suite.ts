@@ -226,7 +226,7 @@ function checkStructure(page: Page, body: DomNode, problems: string[], record?: 
     if (declarations.map(([p]) => p).join() !== order.join()) return fail(where, `properties ${declarations.map(([p]) => p).join()}`);
     for (const [property, value] of declarations) {
       const same = property === 'font-family'
-        ? JSON.stringify(families(value, true)) === JSON.stringify(families(style[property]!, false))
+        ? JSON.stringify(families(value, true)) === JSON.stringify(withBaseFonts(families(style[property]!, false)))
         : value === style[property];
       if (!same) fail(where, `${property}: ${value}, expected ${style[property]}`);
     }
@@ -427,7 +427,36 @@ function checkStructure(page: Page, body: DomNode, problems: string[], record?: 
   }
 }
 
-const CSP = "default-src 'none'; img-src data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'";
+const CSP = "default-src 'none'; img-src data:; font-src data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'";
+
+/** The base fonts of §0.5 and their files in fonts/, for the generic families. */
+const BASE_FONTS: Record<string, { name: string; normal: string; italic: string }> = {
+  'serif': { name: 'Source Serif 4', normal: 'SourceSerif4Variable-Roman.ttf.woff2', italic: 'SourceSerif4Variable-Italic.ttf.woff2' },
+  'sans-serif': { name: 'Source Sans 3', normal: 'SourceSans3VF-Upright.ttf.woff2', italic: 'SourceSans3VF-Italic.ttf.woff2' },
+  'monospace': { name: 'Source Code Pro', normal: 'SourceCodeVF-Upright.ttf.woff2', italic: 'SourceCodeVF-Italic.ttf.woff2' },
+};
+/** In the style a generic family comes after the name of its base font. */
+function withBaseFonts(list: string[]): string[] {
+  return list.flatMap((item) => (BASE_FONTS[item] ? [`"${BASE_FONTS[item].name}"`, item] : [item]));
+}
+
+/** The @font-face rules of the page must be exactly the base fonts its nodes use, with the bytes of fonts/. */
+function checkFontFaces(page: Page, styles: Iterable<Styles>, problems: string[]): void {
+  const want = new Set<string>();
+  for (const { light } of styles) {
+    for (const item of families(light['font-family']!, false)) if (BASE_FONTS[item]) want.add(`${BASE_FONTS[item].name}/${light['font-style']}`);
+  }
+  const got = new Set<string>();
+  for (const match of page.html.matchAll(/@font-face \{ font-family: "([^"]+)"; font-style: (normal|italic); font-weight: 200 900; src: url\(data:font\/woff2;base64,([A-Za-z0-9+/=]*)\) format\("woff2"\); \}/g)) {
+    const key = `${match[1]}/${match[2]}`;
+    got.add(key);
+    const font = Object.values(BASE_FONTS).find((f) => f.name === match[1]);
+    const file = font ? join(packageRoot, 'fonts', font[match[2] as 'normal' | 'italic']) : '';
+    if (!font || Buffer.from(match[3]!, 'base64').compare(readFileSync(file)) !== 0) problems.push(`${page.label}: @font-face ${key} is not the base font`);
+  }
+  if ((page.html.match(/@font-face/g) ?? []).length !== got.size) problems.push(`${page.label}: @font-face out of form`);
+  if ([...want].sort().join() !== [...got].sort().join()) problems.push(`${page.label}: fonts ${[...got].sort().join()}, expected ${[...want].sort().join()}`);
+}
 const VALIDATOR = new HtmlValidate({
   root: true,
   extends: ['html-validate:recommended', 'html-validate:document'],
@@ -470,7 +499,9 @@ async function checkPage(page: Page, problems: string[], outside?: Buffer): Prom
     : [`html { background: ${page.theme === 'light' ? '#ffffff' : '#1e1e1e'}; color-scheme: ${page.theme}; }`];
   for (const rule of themeRules) if (!page.html.includes(`\n${rule}\n`)) problems.push(`${page.label}: no rule ${rule}`);
   if (page.html.includes('!important')) problems.push(`${page.label}: !important`);
-  checkStructure(page, body!, problems);
+  const record = new Map<DomNode, Styles>();
+  checkStructure(page, body!, problems, record);
+  checkFontFaces(page, record.values(), problems);
 }
 
 /**

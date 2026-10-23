@@ -346,6 +346,16 @@ l'attributo HTML.
   `line-height` e `text-decoration-line` [C: «Sulla bozza di specifica»], più le proprietà
   personalizzate `--number-notation` e `--number-decimals` (§0.4). Ereditate, come in CSS: tutte
   tranne i margini e `text-decoration-line`.
+- **I font di partenza.** Il `runtime` porta tre font aperti, con licenza
+  OFL, per `serif`, `sans-serif` e `monospace`, e li usa sia nell'HTML sia
+  nel PDF, così anteprima e stampa coincidono [C: «Il PDF»]. *(proposte)* Sono
+  Source Serif 4, Source Sans 3 e Source Code Pro di Adobe (OFL 1.1),
+  variabili nel peso, con il tondo e il corsivo; il peso va da 200 a 900, e
+  un peso fuori da lì si disegna con l'estremo più vicino. Una famiglia
+  generica sono i font di partenza, e chi disegna usa quelli, non i font
+  del sistema; nel `resolved tree` il valore resta `serif`, `sans-serif` o
+  `monospace`. Un nome di font scritto dall'autore resta com'è, e lo trova
+  chi disegna, se c'è.
 - **I valori ammessi**, quelli che il `runtime` sa calcolare senza sapere
   come si disegna:
   - lunghezze assolute (`pt`, `px`, `mm`, `cm`, `in`), `em` e lo zero senza
@@ -2986,7 +2996,7 @@ o `--theme dark` ne fissa uno [C: «Due temi per l'HTML»]. Nel tema scuro
 cambiano solo i colori, quelli di `darkComputedStyle` e lo sfondo (§0.5).
 
 La pagina non carica niente da fuori: una Content Security Policy ammette
-solo le immagini `data:` e lo stile in linea, e nessuno script. Un
+solo le immagini e i font `data:` e lo stile in linea, e nessuno script. Un
 collegamento a un URL ha `href` solo per `http:`, `https:` e `mailto:`, o
 per `#id` di un oggetto nella pagina; un percorso relativo, come
 `allegato.pdf`, resta testo senza `href`, perché il file HTML viaggia da
@@ -3000,6 +3010,29 @@ README del `runtime`. Non normativo è anche quello che il `renderer` disegna
 da sé, fuori dal sottoinsieme: i segni degli elenchi, i bordi delle
 tabelle, la linea di `thematicBreak` e il margine della pagina sullo schermo
 (§7.4).
+
+La pagina incorpora i font di partenza che usa (§0.5): solo le famiglie e
+gli stili, tondo o corsivo, che qualche nodo usa davvero, ciascuno come
+`@font-face` con un `data:font/woff2`. Nello `style` una famiglia generica
+si scrive con il nome del suo font di partenza davanti, `"Source Serif 4",
+serif`; i nomi scritti dall'autore restano com'erano. I font contano nel
+limite di 256 MiB.
+
+### 11.5 La stampa *(proposta)*
+
+Il comando `doc-runtime print <cartella> [--root <id>] [-o <file>]
+[--allow-errors]` stampa in PDF l'HTML dell'`export` di un `article`, sempre
+nel tema chiaro [C: «Il PDF»]. La pagina è A4, con margini di 2 cm su tutti i
+lati, fissi finché la pagina non entra nella specifica con `@page`; il
+numero di pagina sta in basso al centro, «1», «2»…, e gli sfondi si
+stampano. Il PDF contiene i font di partenza che la pagina usa. `--root`,
+`-o`, il rifiuto con un errore, `--allow-errors`, i limiti e i codici di
+uscita sono quelli dell'`export` (§11.4). La stampa la fa un Chromium di
+versione fissata, quella di `playwright-core` 1.56.1, perché un'altra
+versione potrebbe impaginare in modo diverso; senza di lui il comando esce
+con 2 e dice come installarlo. Due stampe della stessa cartella hanno le
+stesse pagine e lo stesso testo, non per forza gli stessi byte: Chromium vi
+scrive la data.
 
 ## Appendice A. Classi successive (non normativa)
 

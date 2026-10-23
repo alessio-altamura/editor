@@ -42,6 +42,9 @@ function familyList(value: string, css: boolean): string[] {
   return names;
 }
 
+/** The base fonts of §0.5: a generic family is drawn with its own, named before it. */
+const BASE_FONT_NAMES: Record<string, string> = { 'generic:serif': 'Source Serif 4', 'generic:sans-serif': 'Source Sans 3', 'generic:monospace': 'Source Code Pro' };
+
 const px = (pt: string) => parseFloat(pt) * PX_PER_PT;
 const rgb = (hex: string) => `rgb(${parseInt(hex.slice(1, 3), 16)}, ${parseInt(hex.slice(3, 5), 16)}, ${parseInt(hex.slice(5, 7), 16)})`;
 
@@ -62,7 +65,8 @@ function mismatch(property: string, actual: string, expected: Record<string, str
     case 'font-weight': return Number(actual) === Number(value) ? null : `${actual}, expected ${value}`;
     case 'color': return actual === rgb(value) ? null : `${actual}, expected ${rgb(value)}`;
     case 'font-family':
-      return JSON.stringify(familyList(actual, true)) === JSON.stringify(familyList(value, false)) ? null : `${actual}, expected ${value}`;
+      return JSON.stringify(familyList(actual, true)) === JSON.stringify(familyList(value, false).flatMap((item) => (BASE_FONT_NAMES[item] ? [`name:${BASE_FONT_NAMES[item]}`, item] : [item])))
+        ? null : `${actual}, expected ${value} with the base fonts`;
     default: return actual === value ? null : `${actual}, expected ${value}`;
   }
 }
@@ -115,6 +119,33 @@ try {
           if (problem) problems.push(`${scheme}: <${want.tag}> #${want.index} ${property}: ${problem}`);
         }
       });
+      // The base fonts: every @font-face loaded, and every text drawn with one of them.
+      const faces = await page.evaluate(async () => {
+        await document.fonts.ready;
+        return [...document.fonts].map((face) => `${face.family}/${face.style}/${face.status}`);
+      });
+      if (faces.length === 0 || faces.some((face) => !face.endsWith('/loaded'))) problems.push(`${scheme}: fonts ${faces.join(', ')}`);
+      const cdp = await context.newCDPSession(page);
+      await cdp.send('DOM.enable');
+      await cdp.send('CSS.enable');
+      const { root } = await cdp.send('DOM.getDocument', { depth: -1 });
+      const withText = new Map<number, string>();
+      const visit = (node: { nodeId: number; nodeType: number; nodeValue?: string; localName?: string; children?: Array<typeof node> }, parentId: number, parentName: string) => {
+        if (node.nodeType === 3 && node.nodeValue!.trim() !== '' && !['style', 'title'].includes(parentName)) withText.set(parentId, (withText.get(parentId) ?? '') + node.nodeValue);
+        for (const child of node.children ?? []) visit(child, node.nodeId, node.localName ?? '');
+      };
+      visit(root as never, 0, '');
+      for (const [nodeId, text] of withText) {
+        const { fonts } = await cdp.send('CSS.getPlatformFontsForNode', { nodeId });
+        // The family names written inside the three font files.
+        const other = fonts.filter((font) => !font.isCustomFont || !['Source Serif 4 Variable', 'SourceSans3VF', 'SourceCodeVF'].includes(font.familyName));
+        // U+FFFD, written for the control characters, is in none of the three fonts: a known limit.
+        const replacements = [...text].filter((c) => c === '\uFFFD').length;
+        if (other.reduce((n, f) => n + f.glyphCount, 0) > replacements) {
+          const { outerHTML } = await cdp.send('DOM.getOuterHTML', { nodeId });
+          problems.push(`${scheme}: text drawn with ${other.map((f) => `${f.familyName} (${f.glyphCount})`).join(', ')}: ${outerHTML.replace(/ style="[^"]*"/g, '').slice(0, 120)}`);
+        }
+      }
       const layout = await page.evaluate(() => {
         const out: string[] = [];
         const body = getComputedStyle(document.body);
