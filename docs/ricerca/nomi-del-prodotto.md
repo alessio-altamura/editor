@@ -573,6 +573,28 @@ shogi, e anche chi è manovrato da altri, una pedina, un burattino, un bel
 legame con il *Puppet Master*; ma in danese e in azero vuol dire coma, in
 faroese è gergo per l'orgasmo, ed è preso su npm e PyPI. Nessun candidato.
 
+**Dal mondo dei giochi e di Dungeons & Dragons:**
+- **cantrip**: in inglese un incantesimo, un piccolo trucco magico; nei
+  giochi di ruolo l'incantesimo minore, che si lancia senza preparazione. Il
+  più interessante del gruppo per la seconda strada: non dice il contenuto,
+  dice un piccolo gesto che fa qualcosa, e per testo, dati o funzioni vale
+  lo stesso. «Crea un cantrip», «i cantrip». Controlli: preso su npm (una API
+  REST da un file JSON, 2015), su PyPI e crates.io; nessun marchio USPTO
+  vivo nelle classi 9 e 42. Rischi: parola da appassionati, poco nota in
+  italiano; il verbo non viene.
+- **meeple**: la pedina a forma di omino dei giochi da tavolo. Libero su
+  PyPI e crates.io, preso su npm (una libreria per Roll20), nessun marchio
+  USPTO vivo in 9 e 42. Ma è una persona, non un mattone.
+- **sigil**: sigillo, segno magico, e in programmazione il simbolo davanti a
+  un nome di variabile; ma Sigil è l'editor open source di e-book EPUB, nello
+  stesso campo, e SIGIL ha marchi vivi in 9 e 42.
+- **chit** (in inglese anche biglietto, e le pedine di cartone dei
+  wargame): marchi vivi in classe 42 e preso su npm; gli altri significati
+  inglesi sono una ragazzina sfacciata e un germoglio.
+- **trinket**, **grimoire**, **relic**, **mimic**: presi su npm, PyPI e
+  crates.io; TRINKET è anche un microcontrollore con marchio vivo in classe 9.
+Nessun candidato pieno; cantrip è da tenere come idea, ma non è libero.
+
 Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
 <https://en.wiktionary.org/wiki/orri>, <https://en.wiktionary.org/wiki/keping>,
 <https://en.wiktionary.org/wiki/lappu>, <https://en.wiktionary.org/wiki/Lapp>,
@@ -593,4 +615,7 @@ Arcane <https://en.wikipedia.org/wiki/Arcane_(TV_series)>;
 <https://en.wiktionary.org/wiki/arcano>; Akira
 <https://en.wikipedia.org/wiki/Akira_(manga)>; Ghost
 <https://en.wikipedia.org/wiki/Ghost_(blogging_platform)>;
-<https://en.wiktionary.org/wiki/koma>, <https://en.wiktionary.org/wiki/%E9%A7%92>.
+<https://en.wiktionary.org/wiki/koma>, <https://en.wiktionary.org/wiki/%E9%A7%92>;
+<https://en.wiktionary.org/wiki/cantrip>, <https://en.wiktionary.org/wiki/meeple>,
+<https://en.wiktionary.org/wiki/sigil>, <https://en.wiktionary.org/wiki/chit>;
+Sigil <https://en.wikipedia.org/wiki/Sigil_(application)>.
