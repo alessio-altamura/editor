@@ -370,8 +370,18 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      position`) su ogni elemento; specifica §11.6. Tempi: documento
      d'esempio 17 ms di ricalcolo, mille text circa 300 ms; dal
      salvataggio all'anteprima circa 80 ms. Un'immagine che non si incorpora
-     ha nell'anteprima lo stesso ripiego dell'`export`. Prossimo passo:
-     LSP.
+     ha nell'anteprima lo stesso ripiego dell'`export`.
+   - Il `language server` c'è (2026-10-23): `doc-runtime language-server`
+     su stdio, con diagnostic al punto giusto, completamento degli id dopo
+     `[[` e `![[`, definizione, hover (con il valore delle righe di calcolo)
+     e riferimenti; i buffer aperti contano prima di salvarli. Il client per
+     VS Code è in `editors/vscode` (`npm run package` produce il .vsix); non
+     è stato provato in VS Code vero. Nucleo acceso comune a `serve` in
+     `runtime/src/live.ts`: il nome «live» può confondersi con il `live
+     export`, da rivedere. vscode-languageclient porta minimatch con
+     licenza Blue Oak 1.0.0, permissiva. Solo lettura: rinomina ed
+     «estrai in un oggetto» aspettano le scelte sulla creazione degli
+     oggetti. Prossimo passo del piano: il `runtime` che scrive.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
