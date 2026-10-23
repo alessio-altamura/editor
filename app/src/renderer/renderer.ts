@@ -23,7 +23,11 @@ declare global {
 const api = window.docApp;
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 let file: string | null = null;
+/** The text of the file as it is on disk: what the editor shows differs if it is not saved. */
+let saved = '';
 let view: EditorView;
+const isDirty = () => file !== null && view.state.doc.toString() !== saved;
+const tellDirty = () => api.setDirty(isDirty() ? file : null);
 let pushing: ReturnType<typeof setTimeout> | undefined;
 
 const position = (state: EditorState, offset: number) => {
@@ -86,10 +90,12 @@ const save = async () => {
   if (file === null) return true;
   const before = view.state.doc.toString();
   const after = await api.save(file, before);
+  saved = after;
   if (after !== before) {
     const head = mapOffset(before, after, view.state.selection.main.head);
     view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: after }, selection: EditorSelection.cursor(head) });
   }
+  tellDirty();
   return true;
 };
 
@@ -137,6 +143,7 @@ function extensions(): Extension[] {
     EditorView.updateListener.of((update) => {
       updateState();
       if (!update.docChanged || file === null) return;
+      tellDirty();
       const current = file;
       clearTimeout(pushing);
       pushing = setTimeout(() => void api.edit(current, update.state.doc.toString()), 50);
@@ -147,7 +154,16 @@ function extensions(): Extension[] {
 /** Opens a file in the editor, with the cursor at a position, and its article in the preview. */
 async function open(target: string, line: number, character: number): Promise<void> {
   if (target !== file) {
+    // Changes not saved: save them, forget them, or stay.
+    if (isDirty()) {
+      const answer = await api.confirmUnsaved(file!);
+      if (answer === 'cancel') return;
+      if (answer === 'save') await save();
+      else await api.discard(file!);
+    }
+    // No buffer is left unsaved here, so what read gives is the file on disk.
     const text = await api.read(target);
+    saved = text;
     file = target;
     view.setState(EditorState.create({ doc: text, extensions: extensions() }));
     $('file').textContent = target;
@@ -158,6 +174,7 @@ async function open(target: string, line: number, character: number): Promise<vo
   view.dispatch({ selection: EditorSelection.cursor(offset), effects: EditorView.scrollIntoView(offset, { y: 'center' }) });
   view.focus();
   updateState();
+  tellDirty();
 }
 
 async function renderNavigator(): Promise<void> {
@@ -212,6 +229,10 @@ async function start(): Promise<void> {
     forceLinting(view);
   });
   api.onReveal((target, line, character) => void open(target, line, character));
+  api.onSaveAndClose(async () => {
+    await save();
+    api.closeNow();
+  });
   await renderNavigator();
   await api.showPreview(null);
 }

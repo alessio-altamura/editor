@@ -17,6 +17,16 @@ const api = {
   previewBounds: (bounds: { x: number; y: number; width: number; height: number }) => ipcRenderer.send('doc:preview-bounds', bounds),
   extract: (file: string, text: string) => ipcRenderer.invoke('doc:extract', file, text),
   openFolder: () => ipcRenderer.invoke('doc:open-folder'),
+  /** Whether the file in the editor has changes not saved: the main process asks before closing. */
+  setDirty: (file: string | null) => ipcRenderer.send('doc:dirty', file),
+  /** Asks whether to save the changes of a file: save, discard or cancel. */
+  confirmUnsaved: (file: string) => ipcRenderer.invoke('doc:confirm-unsaved', file) as Promise<'save' | 'discard' | 'cancel'>,
+  discard: (file: string) => ipcRenderer.invoke('doc:discard', file),
+  /** Closing with changes: the main process asks the page to save, then to close. */
+  onSaveAndClose: (listener: () => void) => {
+    ipcRenderer.on('doc:save-and-close', () => listener());
+  },
+  closeNow: () => ipcRenderer.send('doc:close-now'),
   /** After each recomputation of the tree. */
   onUpdate: (listener: () => void) => {
     ipcRenderer.on('doc:updated', () => listener());
