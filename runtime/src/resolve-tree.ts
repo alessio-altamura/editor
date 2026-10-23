@@ -234,7 +234,7 @@ function removeSlot(text: string): string {
   return text.replaceAll('{n}', '').replace(/^ +| +$/g, '').replace(/ {2,}/g, ' ');
 }
 
-function parseMarkdown(text: string): Root {
+export function parseMarkdown(text: string): Root {
   return fromMarkdown(text, {
     extensions: [gfmTable(), wikiReference()],
     mdastExtensions: [gfmTableFromMarkdown(), wikiReferenceFromMarkdown()],

@@ -12,6 +12,8 @@ import { listDocumentFiles, resolveTree, SPEC_VERSION } from './resolve-tree.js'
 import { CHROMIUM_VERSION, printPdf } from './print.js';
 import { startLanguageServer } from './language-server.js';
 import { serve } from './serve.js';
+import { formatFolder } from './format.js';
+import { unifiedDiff } from './diff.js';
 import { baseFontFace, staticExport, staticExportSize, type ExportAsset } from './static-export.js';
 import type { JsonML } from './tree.js';
 
@@ -52,6 +54,11 @@ Uso:
   ${BINARY_NAME} language-server          il language server (LSP) su stdin e stdout, per
                                          gli editor: diagnostic, completamento degli id,
                                          definizione, hover e riferimenti; non scrive file
+  ${BINARY_NAME} format <cartella> [--check] [--diff]
+                                         riscrive i file nella forma canonica e stampa
+                                         quelli cambiati; --check non scrive ed esce
+                                         con 1 se qualcosa cambierebbe; --diff stampa
+                                         le differenze senza scrivere
   ${BINARY_NAME} --help                    questo aiuto
   ${BINARY_NAME} --version                 la spec-version che il runtime implementa
 
@@ -91,6 +98,7 @@ function main(args: string[]): number | Promise<number> {
   if (args[0] === 'export') return exportCommand(args.slice(1), 'export');
   if (args[0] === 'print') return exportCommand(args.slice(1), 'print');
   if (args[0] === 'serve') return serveCommand(args.slice(1));
+  if (args[0] === 'format') return formatCommand(args.slice(1));
   if (args[0] === 'language-server') {
     // LSP on stdin and stdout; --stdio, which clients add, changes nothing. It ends with the client's exit.
     if (args.slice(1).some((arg) => arg !== '--stdio')) return usage(`uso: ${BINARY_NAME} language-server`);
@@ -128,6 +136,37 @@ function readableFolder(folder: string): boolean {
 function usage(message: string): number {
   process.stderr.write(`${BINARY_NAME}: ${message}\n`);
   return EXIT_USAGE;
+}
+
+/** Reads a file of the folder as text; null when it is not UTF-8 or does not read. */
+function readSource(folder: string, file: string): string | null {
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(readFileSync(join(folder, file)));
+  } catch {
+    return null;
+  }
+}
+
+/** `format` (§11.8): writes the canonical form; --check and --diff write nothing. */
+function formatCommand(args: string[]): number {
+  const syntax = `uso: ${BINARY_NAME} format <cartella> [--check] [--diff]`;
+  const check = args.includes('--check');
+  const diff = args.includes('--diff');
+  const rest = args.filter((arg) => arg !== '--check' && arg !== '--diff');
+  if (rest.length !== 1 || rest[0]!.startsWith('-')) return usage(syntax);
+  const folder = rest[0]!;
+  if (!readableFolder(folder)) return EXIT_USAGE;
+  const { changes, kept } = formatFolder(folder, listDocumentFiles(folder).keys(), (file) => readSource(folder, file));
+  for (const file of kept) process.stderr.write(`${BINARY_NAME}: ${file} resta com'è: la forma canonica cambierebbe il resolved tree\n`);
+  for (const [file, { before, after }] of changes) {
+    if (diff) writeAll(1, unifiedDiff(file, before, after));
+    else process.stdout.write(`${file}\n`);
+  }
+  if (check || diff) return check && changes.size > 0 ? EXIT_ERRORS : EXIT_OK;
+  for (const [file, { after }] of changes) {
+    if (!writeFileAtomically(join(folder, file), [after])) return EXIT_USAGE;
+  }
+  return EXIT_OK;
 }
 
 /** `serve`: on until Ctrl-C; the address with its access code goes on stdout, the times on stderr. */
