@@ -402,6 +402,11 @@ Non metto un quinto: gli altri cadono per i motivi sotto.
 - **jotpad**, **jotbox**: presi su PyPI, e «-pad» è già in JotterPad.
 - **jottery**: libero, ma si sente «lottery».
 - **jotwise**: libero, ma è un avverbio e non dice un posto.
+- **rensei** (proposto da Alessio; 錬成, allenare, perfezionare, e nella
+  fantasy la sintesi alchemica; 連星, stella doppia): `rensei` preso su npm
+  (rendering 3D per agenti, 2026), liberi `rensei-cli`, PyPI, crates.io e il
+  comando, nessun marchio USPTO nelle classi 9 o 42. Scartato da Alessio:
+  «mi sa del politico italiano Renzi», ed è di nuovo giapponese.
 
 **Raccomandazione.** Nessuno dei composti è forte come jot, e il campo è
 affollato (Jotform, JotterPad, JotSpot, molte app Jot). Se Alessio vuole un
