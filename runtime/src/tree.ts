@@ -16,6 +16,14 @@ export interface Diagnostic {
   target?: string;
   message?: string;
   fix?: string;
+  /** Where in the file, counted as in LSP; only with `resolve-tree --positions` and in the language server. */
+  range?: Range;
+}
+
+/** A range counted as in LSP: lines from 0, characters in UTF-16 units. */
+export interface Range {
+  start: { line: number; character: number };
+  end: { line: number; character: number };
 }
 
 /** A JsonML element of the content: the type, an optional object of attributes, the children. */
