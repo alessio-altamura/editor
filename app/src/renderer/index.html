@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'">
+<title>doc</title>
+<link rel="stylesheet" href="style.css">
+<script src="renderer.js" defer></script>
+</head>
+<body>
+<nav id="navigator">
+  <input id="search" type="search" placeholder="Cerca per id o titolo" aria-label="Cerca">
+  <div id="shelves"></div>
+</nav>
+<main id="source">
+  <header id="bar"><span id="file">Nessun file aperto</span><button id="extract" hidden>Estrai in un oggetto</button></header>
+  <div id="editor"></div>
+</main>
+<section id="preview" aria-label="Anteprima"></section>
+</body>
+</html>
