@@ -809,6 +809,36 @@ NTU è un marchio vivo della Nanyang Technological University anche in 9 e
 ho trovato una fonte primaria sul significato, ed è un cognome italiano
 comune.
 
+**musubi, nel dettaglio** (richiesta di Alessio). Significati, da
+Wiktionary:
+- 結び, *musubi*: legame, nodo, fiocco (dal 759); il legame fra due persone;
+  la polpetta di riso pressata fra le mani (*omusubi*); la conclusione, la
+  chiusa di una storia; in teoria degli insiemi l'unione; **nelle basi di
+  dati il join**.
+- 産霊, *musuhi* o *musubi*: nello shintō il Creatore, la forza che genera.
+- Il titolo provvisorio di *Kimi no na wa* (*Your Name*, Shinkai) fu *Kimi
+  no musubime*, «il tuo legame» (Wikipedia).
+È la parola più ricca del giro: unisce, lega, genera, e in informatica vuol
+dire già unire tabelle. Per un'app che unisce mattoni diversi in un
+documento il significato è quasi perfetto, e il legame con il Giappone e
+con Shinkai lo vede solo chi lo conosce.
+
+Controlli: **preso su npm** (`musubi`, pacchetto vuoto fermo dal 2022),
+**su PyPI** (un controllo di DNSBL per la posta) **e su crates.io**
+(programmazione relazionale in Rust, ferma dal 2020); `musubi-cli` libero;
+nessun comando. **USPTO: MUSUBI è vivo due volte in classe 42 per Musubi,
+Inc.**, software come servizio per la moderazione dei contenuti; altri
+marchi vivi per borse (Acne Studios), macchine (Disco), furoshiki, riso,
+ristoranti, e per Atelier Musubi in classe 16, quaderni e cancelleria,
+vicino al campo. Sul web Musubi, Inc. risulta una startup di Santa Barbara
+fondata nel 2023, con un seed di circa 6 milioni di dollari e Mozilla
+Ventures fra gli investitori (profilo di Employbl, terza parte); c'è anche
+un «musubi» di Looking Glass, che non ho identificato, e Ribon Musubi, l'app
+per fan della rivista Ribon di Shueisha. **Rischio principale: il marchio
+vivo in classe 42 di Musubi, Inc., nel software.** Per uscirne servirebbe un
+composto o una variante (per esempio *musubime*, il nodo), da controllare.
+Resta giapponese.
+
 Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
 <https://en.wiktionary.org/wiki/orri>, <https://en.wiktionary.org/wiki/keping>,
 <https://en.wiktionary.org/wiki/lappu>, <https://en.wiktionary.org/wiki/Lapp>,
@@ -858,4 +888,10 @@ UnitZ <https://videogamegeek.com/videogame/180372/unitz>; ID-0
 <https://app.uesp.net/wiki/Lore:Orichalc>; RDAP <https://rdap.org/>;
 <https://en.wikipedia.org/wiki/Ylem>, <https://en.wiktionary.org/wiki/ylem>,
 <https://en.wikipedia.org/wiki/Teotl>, <https://en.wikipedia.org/wiki/Prakriti>,
-<https://en.wikipedia.org/wiki/Pudgala>, <https://en.wikipedia.org/wiki/Yuanqi>.
+<https://en.wikipedia.org/wiki/Pudgala>, <https://en.wikipedia.org/wiki/Yuanqi>;
+<https://en.wiktionary.org/wiki/%E7%B5%90%E3%81%B3>,
+<https://en.wiktionary.org/wiki/%E7%94%A3%E9%9C%8A>; Your Name
+<https://en.wikipedia.org/wiki/Your_Name>; Musubi, Inc.
+<https://www.employbl.com/companies/Musubi>; Looking Glass
+<https://looking-glass.helpscoutdocs.com/article/417-musubi-subscription>;
+Ribon Musubi <https://dentsu-ho.com/en/articles/8255>.
