@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 // The command line: `resolve-tree`, that prints the resolved tree as JSON, and
 // `export`, that writes the HTML of an article (§11.4).
-import { closeSync, existsSync, openSync, readdirSync, renameSync, statSync, unlinkSync, writeSync } from 'node:fs';
+import { closeSync, existsSync, openSync, readdirSync, readFileSync, renameSync, statSync, unlinkSync, writeSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { BASE_FONTS } from './base-stylesheet.js';
 import { readAsset } from './assets.js';
 import { makeDiagnostic, sortDiagnostics } from './diagnostic.js';
 import { writeAll, writeJson } from './json-output.js';
 import { listDocumentFiles, resolveTree, SPEC_VERSION } from './resolve-tree.js';
-import { staticExport, staticExportSize, type ExportAsset } from './static-export.js';
+import { CHROMIUM_VERSION, printPdf } from './print.js';
+import { baseFontFace, staticExport, staticExportSize, type ExportAsset } from './static-export.js';
 import type { JsonML } from './tree.js';
 
 /** Provisional name of the binary, not decided yet: change it here and in package.json. */
@@ -34,6 +37,10 @@ Uso:
                                          file di -o; --root sceglie l'article quando
                                          non è uno solo; senza --theme la pagina ha il
                                          tema chiaro e quello scuro, e segue chi la apre
+  ${BINARY_NAME} print <cartella> [--root <id>] [-o <file>] [--allow-errors]
+                                         stampa in PDF l'HTML del tema chiaro: A4,
+                                         margini di 2 cm, numero di pagina in basso;
+                                         serve Chromium ${CHROMIUM_VERSION}
   ${BINARY_NAME} --help                    questo aiuto
   ${BINARY_NAME} --version                 la spec-version che il runtime implementa
 
@@ -57,7 +64,7 @@ ciascuna solo se non è vuota, e "document" (docs/specifica.md, §11.3). Ogni di
 severity, code, file e, secondo il codice, target e fix; ogni errore ha un fix.
 `;
 
-function main(args: string[]): number {
+function main(args: string[]): number | Promise<number> {
   if (args.length === 0) {
     process.stderr.write(HELP);
     return EXIT_USAGE;
@@ -70,7 +77,8 @@ function main(args: string[]): number {
     process.stdout.write(`${SPEC_VERSION}\n`);
     return EXIT_OK;
   }
-  if (args[0] === 'export') return exportCommand(args.slice(1));
+  if (args[0] === 'export') return exportCommand(args.slice(1), 'export');
+  if (args[0] === 'print') return exportCommand(args.slice(1), 'print');
   const pretty = args.includes('--pretty');
   const [command, folder, ...rest] = args.filter((arg) => arg !== '--pretty');
   if (command !== 'resolve-tree' || folder === undefined || rest.length > 0) {
@@ -118,7 +126,21 @@ function imageEmbeds(content: JsonML[]): Array<Record<string, unknown>> {
   return found;
 }
 
-function exportCommand(args: string[]): number {
+/** The files of the base fonts, next to the package (fonts/). */
+function readBaseFonts(): Map<string, Uint8Array> {
+  const folder = fileURLToPath(new URL('../../fonts/', import.meta.url));
+  const fonts = new Map<string, Uint8Array>();
+  for (const family of Object.values(BASE_FONTS)) {
+    for (const file of [family.normal, family.italic]) fonts.set(file, readFileSync(join(folder, file)));
+  }
+  return fonts;
+}
+
+/** `export` writes the HTML; `print` prints the HTML of the light theme to PDF (§11.4, §11.5). */
+function exportCommand(args: string[], command: 'export' | 'print'): number | Promise<number> {
+  const syntax = command === 'export'
+    ? `uso: ${BINARY_NAME} export <cartella> [--root <id>] [-o <file>] [--allow-errors] [--theme light|dark]`
+    : `uso: ${BINARY_NAME} print <cartella> [--root <id>] [-o <file>] [--allow-errors]`;
   let folder: string | undefined;
   let rootId: string | undefined;
   let output: string | undefined;
@@ -127,17 +149,17 @@ function exportCommand(args: string[]): number {
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;
     if (arg === '--allow-errors') allowErrors = true;
-    else if (arg === '--root' || arg === '-o' || arg === '--theme') {
+    else if (arg === '--root' || arg === '-o' || (arg === '--theme' && command === 'export')) {
       const value = args[++i];
       if (value === undefined) return usage(`${arg} vuole un valore (vedi --help)`);
       if (arg === '--root') rootId = value;
       else if (arg === '-o') output = value;
       else if (value === 'light' || value === 'dark') theme = value;
       else return usage(`--theme vuole light o dark, non ${value}`);
-    } else if (arg.startsWith('-') || folder !== undefined) return usage(`uso: ${BINARY_NAME} export <cartella> [--root <id>] [-o <file>] [--allow-errors] [--theme light|dark]`);
+    } else if (arg.startsWith('-') || folder !== undefined) return usage(syntax);
     else folder = arg;
   }
-  if (folder === undefined) return usage(`uso: ${BINARY_NAME} export <cartella> [--root <id>] [-o <file>] [--allow-errors] [--theme light|dark]`);
+  if (folder === undefined) return usage(syntax);
   if (!readableFolder(folder)) return EXIT_USAGE;
 
   const tree = resolveTree(folder);
@@ -177,10 +199,22 @@ function exportCommand(args: string[]): number {
   };
   if (hasErrors && !allowErrors) return finish(EXIT_ERRORS);
 
-  const options = theme === undefined ? { allowErrors } : { allowErrors, theme };
+  const fonts = readBaseFonts();
+  // The PDF is always in the light theme (§11.5).
+  if (command === 'print') theme = 'light';
+  const options = theme === undefined ? { allowErrors, fonts } : { allowErrors, theme, fonts };
   if (staticExportSize(tree, article.id, assets, options) > MAX_EXPORT_BYTES) {
     diagnostics.push(makeDiagnostic('export-too-large', article.file, undefined, 'riduci le immagini o le loro inclusioni'));
     return finish(EXIT_ERRORS);
+  }
+  if (command === 'print') {
+    const html = [...staticExport(tree, article.id, assets, options)].join('');
+    return printPdf(html, baseFontFace('serif', 'normal', fonts)).then((result) => {
+      if ('browserError' in result) return usage(result.browserError);
+      if (output === undefined) writeAll(1, result.pdf);
+      else if (!writeFileAtomically(output, [result.pdf])) return EXIT_USAGE;
+      return finish(hasErrors ? EXIT_ERRORS : EXIT_OK);
+    });
   }
   if (output === undefined) {
     for (const piece of staticExport(tree, article.id, assets, options)) writeAll(1, piece);
@@ -191,7 +225,7 @@ function exportCommand(args: string[]): number {
 }
 
 /** Writes to a temporary file in the same folder, then renames it; false, with a message, when it cannot. */
-function writeFileAtomically(path: string, pieces: Iterable<string>): boolean {
+function writeFileAtomically(path: string, pieces: Iterable<string | Uint8Array>): boolean {
   const temporary = join(dirname(path), `.${basename(path)}.${process.pid}.tmp`);
   let fd: number;
   try {
@@ -202,7 +236,7 @@ function writeFileAtomically(path: string, pieces: Iterable<string>): boolean {
   }
   try {
     for (const piece of pieces) {
-      const buffer = Buffer.from(piece, 'utf8');
+      const buffer = typeof piece === 'string' ? Buffer.from(piece, 'utf8') : piece;
       for (let offset = 0; offset < buffer.length; ) offset += writeSync(fd, buffer, offset);
     }
     closeSync(fd);
@@ -224,9 +258,14 @@ function writeFileAtomically(path: string, pieces: Iterable<string>): boolean {
   }
 }
 
-try {
-  process.exitCode = main(process.argv.slice(2));
-} catch (error) {
+const internal = (error: unknown) => {
   process.stderr.write(`${BINARY_NAME}: errore interno: ${error instanceof Error ? error.stack ?? error.message : String(error)}\n`);
   process.exitCode = EXIT_INTERNAL;
+};
+try {
+  const code = main(process.argv.slice(2));
+  if (typeof code === 'number') process.exitCode = code;
+  else code.then((value) => (process.exitCode = value), internal);
+} catch (error) {
+  internal(error);
 }

@@ -81,3 +81,16 @@ export function baseStylesheetCss(): string {
   const dark = BASE_STYLESHEET_RULES.filter((rule) => rule.dark);
   return css(BASE_STYLESHEET_RULES.filter((rule) => !rule.dark)) + `@media (prefers-color-scheme: dark) {\n${css(dark)}}\n`;
 }
+
+/**
+ * The base fonts: the three open fonts the runtime carries for the generic families
+ * (§0.5), variable in weight, with an upright and an italic file each.
+ */
+export const BASE_FONTS = {
+  'serif': { family: 'Source Serif 4', normal: 'SourceSerif4Variable-Roman.ttf.woff2', italic: 'SourceSerif4Variable-Italic.ttf.woff2' },
+  'sans-serif': { family: 'Source Sans 3', normal: 'SourceSans3VF-Upright.ttf.woff2', italic: 'SourceSans3VF-Italic.ttf.woff2' },
+  'monospace': { family: 'Source Code Pro', normal: 'SourceCodeVF-Upright.ttf.woff2', italic: 'SourceCodeVF-Italic.ttf.woff2' },
+} as const;
+export type GenericFamily = keyof typeof BASE_FONTS;
+/** The weight axis of the three fonts: a weight outside it is drawn at its nearest end. */
+export const BASE_FONT_WEIGHTS = '200 900';
