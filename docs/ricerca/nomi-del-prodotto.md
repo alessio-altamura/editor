@@ -768,6 +768,47 @@ mattone, e vale per qualunque contenuto. Ma:
 - **monas**, **dyad**, **tetrad**: presi su npm, e quasi tutti su PyPI o
   crates.io.
 
+**La sostanza che sta sotto tutto, in molte tradizioni** (proposta di
+Alessio, «non solo mitologie occidentali»). Controlli come sopra; significati
+da Wikipedia e Wiktionary, salvo dove detto. In ordine:
+1. **ylem**: la sostanza originaria ipotetica, lo stato condensato della
+   materia da cui si sono formati particelle ed elementi, nel linguaggio di
+   George Gamow e Ralph Alpher (dal 1948); la parola viene dall'inglese medio
+   *yle*, e questo dal greco *hylē*, materia. Si pronuncia «ìilem» o
+   «àilem». Laica, scientifica, internazionale, e il riferimento lo vede solo
+   chi lo conosce, come ID-Zero. Controlli: preso su npm (febbraio 2025) e
+   PyPI, liberi `ylem-cli` e crates.io, nessun comando; all'USPTO cinque
+   risultati, nessuno vivo nelle classi 9 o 42.
+2. **teotl** (nahuatl, azteco): la sacralità o divinità, per gli Aztechi la
+   presenza metafisica onnipresente, «energia in movimento» che genera,
+   permea e plasma la realtà (James Maffie). È la definizione più vicina a
+   «ciò che compone tutto». Controlli: libero su npm (anche `-cli`) e
+   crates.io, preso su PyPI, nessun comando; all'USPTO nessun marchio vivo
+   in 9 o 42. Rischi: la *tl* finale è difficile in italiano e in inglese; è
+   un termine religioso di una cultura viva, da usare con rispetto.
+3. **prakriti** (sanscrito, scuola Samkhya): «la forma o condizione
+   originaria di ogni cosa, la sostanza primaria», che comprende anche la
+   mente, non solo la materia. Libero su npm (anche `-cli`), PyPI, crates.io,
+   nessun comando; all'USPTO solo PRAKRITI SMART per interruttori (classe 9).
+   Rischi: tre sillabe; in India è un nome di persona.
+4. **pudgala** (giainismo): la materia, una delle sei sostanze che compongono
+   la realtà. Libero ovunque, nessun marchio USPTO. Rischio: in inglese
+   «pudge» vuol dire grassottello.
+5. **yuanqi** (元氣, Cina): il *qi* innato, prenatale, la riserva vitale con
+   cui si nasce, nella medicina tradizionale cinese. Libero ovunque, un solo
+   marchio USPTO fuori dalle classi 9 e 42. Rischio: la pronuncia, «iuàn-ci».
+Scartati: **apeiron** (l'illimitato di Anassimandro), **akasha** (l'etere
+indiano), **aither**, **azoth** (il solvente universale degli alchimisti),
+**arche**, **hyle**, **pleroma** (la pienezza gnostica), **tattva**,
+**paramanu** e **anu** (l'atomo del Vaisheshika), **musubi** (la forza che
+lega e genera, nello shintō), **wuji**, **sila**, **nyama**, **hundun** (il
+caos primordiale cinese): presi su npm, o con marchi vivi nelle classi 9 e
+42, o tutte e due. **ntu** (dalla filosofia bantu) è libero sui registri ma
+NTU è un marchio vivo della Nanyang Technological University anche in 9 e
+42. **mauri** (in maori la forza vitale delle cose) è libero ovunque, ma non
+ho trovato una fonte primaria sul significato, ed è un cognome italiano
+comune.
+
 Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
 <https://en.wiktionary.org/wiki/orri>, <https://en.wiktionary.org/wiki/keping>,
 <https://en.wiktionary.org/wiki/lappu>, <https://en.wiktionary.org/wiki/Lapp>,
@@ -814,4 +855,7 @@ UnitZ <https://videogamegeek.com/videogame/180372/unitz>; ID-0
 <https://en.wikipedia.org/wiki/Proclus>; oricalco
 <https://en.wikipedia.org/wiki/Orichalcum>,
 <https://en.wiktionary.org/wiki/orichalcum>; orichalc in The Elder Scrolls
-<https://app.uesp.net/wiki/Lore:Orichalc>; RDAP <https://rdap.org/>.
+<https://app.uesp.net/wiki/Lore:Orichalc>; RDAP <https://rdap.org/>;
+<https://en.wikipedia.org/wiki/Ylem>, <https://en.wiktionary.org/wiki/ylem>,
+<https://en.wikipedia.org/wiki/Teotl>, <https://en.wikipedia.org/wiki/Prakriti>,
+<https://en.wikipedia.org/wiki/Pudgala>, <https://en.wikipedia.org/wiki/Yuanqi>.
