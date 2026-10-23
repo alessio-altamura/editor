@@ -3034,6 +3034,45 @@ con 2 e dice come installarlo. Due stampe della stessa cartella hanno le
 stesse pagine e lo stesso testo, non per forza gli stessi byte: Chromium vi
 scrive la data.
 
+### 11.6 L'anteprima *(proposta)*
+
+Il comando `doc-runtime serve <cartella> [--port <n>]` tiene acceso il
+`runtime` su una cartella e mostra nel browser la `preview` di ogni
+`article`, aggiornata mentre si scrive con un editor qualsiasi [C: «La strada
+verso l'app»]. Guarda i file, e a ogni modifica, finita una raffica di
+salvataggi, ricalcola tutta la cartella. Ascolta solo su 127.0.0.1, e stampa
+l'indirizzo con un codice d'accesso casuale, che ogni richiesta HTTP e
+WebSocket deve portare; senza, la risposta è 403. Un indice elenca gli
+`article`, con il titolo, l'`id` e il numero di errori e di avvisi dei file
+che mostrano.
+
+La `preview` è lo stesso HTML dell'`export` (§11.4), con la stessa mappatura
+e gli stessi stili, nei due temi; cambia solo il contorno [C: «L'HTML
+dell'`export` sarà usato anche come anteprima»]:
+- gli errori non la fermano, e si vedono segnati come con `--allow-errors`;
+  in cima, fuori dall'`article`, un elenco dei `diagnostic` della cartella,
+  con gravità, codice, file, `target` e suggerimento;
+- immagini e font sono indirizzi che il `runtime` serve, non incorporati,
+  e il `runtime` serve solo i file della sua lista, come l'`export`;
+- le regole di sicurezza non sono nel file ma nell'intestazione HTTP della
+  risposta: script, connessioni, immagini e font solo dal `runtime`;
+- uno script del `runtime` riceve dal WebSocket il nuovo HTML a ogni
+  modifica e lo applica senza ricaricare la pagina, tenendo il punto che
+  si sta leggendo; se il file dell'`article` sparisce, la pagina lo dice;
+- ogni elemento di un nodo porta `data-node`, l'`id` dell'oggetto a cui
+  appartiene (per un `embed`, quello dell'oggetto incluso), e `data-source`,
+  la sua `source position`.
+
+La `source position` di un nodo è il file, la riga e la colonna di inizio e
+di fine del punto in cui è scritto, contate come in LSP: righe da 0,
+colonne in unità UTF-16, su un file letto senza BOM. Viene dal Markdown;
+per un `embed` è la sua riga `![[id]]`, per un titolo la riga `title:` del
+`front matter`. Non sta nel `resolved tree` che confrontano gli esempi:
+`resolve-tree --positions` la scrive, come `sourcePosition` negli attributi
+di ogni elemento, `{"file": …, "range": {"start": {"line": …, "character":
+…}, "end": {…}}}`, la forma di LSP. In `data-source` si scrive
+`file:riga:colonna-riga:colonna`.
+
 ## Appendice A. Classi successive (non normativa)
 
 Dove si aggancerà ciascuna al `core`.

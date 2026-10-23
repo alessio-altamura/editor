@@ -2,7 +2,7 @@
 // the CSS and the images inside (§11.4). It reads the tree and computes nothing
 // but the inheritance of §0.5; the mapping is in the README of the runtime.
 import { BASE_FONT_WEIGHTS, BASE_FONTS, BASE_STYLESHEET_RULES, INHERITED_PROPERTIES, NOT_INHERITED_DEFAULTS, PAGE_BACKGROUND, STYLE_PROPERTIES, type GenericFamily, type Theme } from './base-stylesheet.js';
-import { CLASS_FORM, ID_FORM, LANG_FORM, type JsonML, type ResolvedTree, type TreeNode } from './tree.js';
+import { CLASS_FORM, ID_FORM, LANG_FORM, type Diagnostic, type JsonML, type ResolvedTree, type TreeNode } from './tree.js';
 
 /** An image read by the cli, or why it is not embedded. */
 export type ExportAsset = { mime: string; bytes: Uint8Array } | { fallback: 'format' | 'unreadable' | 'size' };
@@ -14,6 +14,16 @@ export interface ExportOptions {
   theme?: Theme;
   /** The files of the base fonts, by name, read by the cli: the page embeds the ones it uses. */
   fonts?: ReadonlyMap<string, Uint8Array>;
+  /** The preview of `serve` (§11.6): the same page, with a different frame. */
+  preview?: PreviewOptions;
+}
+
+/** What changes in the preview: addresses instead of embedded files, the diagnostics on top, the scripts. */
+export interface PreviewOptions {
+  assetUrl: (path: string) => string;
+  fontUrl: (file: string) => string;
+  scriptUrls: string[];
+  diagnostics: Diagnostic[];
 }
 
 /** Base64 in blocks of 3·16384 bytes: each block is a whole number of base64 quads. */
@@ -155,11 +165,15 @@ function* base64(bytes: Uint8Array, encode: boolean): Generator<string | number>
 }
 
 /** The @font-face rules of the base fonts the page uses, in a fixed order. */
-function* fontFaces(used: ReadonlySet<string>, fonts: ReadonlyMap<string, Uint8Array> | undefined, encode: boolean): Generator<string | number> {
+function* fontFaces(used: ReadonlySet<string>, fonts: ReadonlyMap<string, Uint8Array> | undefined, encode: boolean, preview?: PreviewOptions): Generator<string | number> {
   for (const generic of Object.keys(BASE_FONTS) as GenericFamily[]) {
     for (const style of ['normal', 'italic'] as const) {
       if (!used.has(`${generic}/${style}`)) continue;
       const file = BASE_FONTS[generic][style];
+      if (preview) {
+        yield `@font-face { font-family: ${cssString(BASE_FONTS[generic].family)}; font-style: ${style}; font-weight: ${BASE_FONT_WEIGHTS}; src: url(${cssString(preview.fontUrl(file))}) format("woff2"); }\n`;
+        continue;
+      }
       const bytes = fonts?.get(file);
       if (bytes === undefined) throw new Error(`the base font ${file} is missing`);
       yield `@font-face { font-family: ${cssString(BASE_FONTS[generic].family)}; font-style: ${style}; font-weight: ${BASE_FONT_WEIGHTS}; src: url(data:font/woff2;base64,`;
@@ -322,7 +336,34 @@ interface Context {
   number?: string;
   /** Inside a table: th in the first row, td in the others. */
   cell?: 'th' | 'td';
+  /** The object whose content this is, for data-node in the preview. */
+  node?: string;
 }
+
+/** A source position as data-source: file:line:character-line:character, counted as in LSP. */
+function sourceAttribute(position: unknown): string {
+  const p = position as { file?: unknown; range?: { start?: { line?: unknown; character?: unknown }; end?: { line?: unknown; character?: unknown } } } | undefined;
+  const numbers = [p?.range?.start?.line, p?.range?.start?.character, p?.range?.end?.line, p?.range?.end?.character];
+  if (typeof p?.file !== 'string' || !numbers.every((n) => Number.isInteger(n))) return '';
+  return ` data-source="${escapeHtml(`${p.file}:${numbers[0]}:${numbers[1]}-${numbers[2]}:${numbers[3]}`)}"`;
+}
+
+/** The diagnostics of the folder, on top of the preview, outside the article: not a node. */
+function diagnosticsList(diagnostics: Diagnostic[]): string {
+  const errors = diagnostics.filter((d) => d.severity === 'error').length;
+  const summary = `${errors} ${errors === 1 ? 'errore' : 'errori'}, ${diagnostics.length - errors} ${diagnostics.length - errors === 1 ? 'avviso' : 'avvisi'}`;
+  const items = diagnostics.map((d) =>
+    `<li data-severity="${d.severity}"><strong>${d.severity}</strong> <code>${escapeHtml(d.code)}</code> ${escapeHtml(d.file)}` +
+    `${d.target === undefined ? '' : ` <code>${escapeHtml(d.target)}</code>`}${d.fix === undefined ? '' : ` → ${escapeHtml(d.fix)}`}</li>`).join('');
+  return `<section data-diagnostics><p>${summary}</p>${items === '' ? '' : `<ul>${items}</ul>`}</section>`;
+}
+
+/** The fixed drawing of the diagnostics list, in the preview only. */
+const PREVIEW_RULES =
+  '[data-diagnostics] { font-family: "Source Sans 3", sans-serif; font-size: 10pt; line-height: 1.4; margin-bottom: 18pt; padding: 6pt 9pt; border: 0.75pt solid currentColor; }\n' +
+  '[data-diagnostics] ul { margin-left: 18pt; }\n' +
+  '[data-diagnostics] code { font-family: "Source Code Pro", monospace; }\n' +
+  '[data-gone] { font-family: "Source Sans 3", sans-serif; font-weight: 700; margin-bottom: 12pt; }\n';
 
 /**
  * The pieces of the page, in order. A number stands for the length in bytes of
@@ -359,29 +400,38 @@ function* pieces(
   const titleAttribute = article.attributes?.title;
   const pageTitle = typeof titleAttribute === 'string' && titleAttribute !== '' ? titleAttribute : (article.id ?? article.file);
 
+  const preview = options.preview;
   const head =
     '<!DOCTYPE html>\n' +
     `<html lang="${typeof documentLang === 'string' && LANG_FORM.test(documentLang) ? escapeHtml(documentLang) : ''}">` +
     '<head><meta charset="utf-8">' +
-    `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; font-src data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">` +
+    // The preview has no CSP in the file: the server sends it as a header (§11.6).
+    (preview ? '' : `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; font-src data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">`) +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
     `<title>${escapeHtml(pageTitle)}</title>` +
-    `<style>\n${styleSheet(options)}`;
+    (preview ? preview.scriptUrls.map((url) => `<script src="${escapeHtml(url)}" defer></script>`).join('') : '') +
+    `<style>\n${styleSheet(options)}${preview ? PREVIEW_RULES : ''}`;
   if (headFonts !== null) {
     yield head;
-    yield* fontFaces(headFonts, options.fonts, encode);
+    yield* fontFaces(headFonts, options.fonts, encode, preview);
   }
   let buffer = '</style></head><body>';
+  if (preview) {
+    buffer += diagnosticsList(preview.diagnostics);
+    // The list is drawn with the sans-serif and monospace base fonts.
+    used.add('sans-serif/normal').add('monospace/normal');
+  }
 
   const rootRule = finalStyles('root', { light: {}, dark: {} }, {});
   const articleStyle = finalStyles('root', rootRule, article);
   noteFonts(articleStyle.light, used);
   buffer +=
     `<article data-kind="article"${article.id !== undefined && ids.has(article.id) ? ` id="${escapeHtml(article.id)}"` : ''}` +
+    (preview && article.id !== undefined ? ` data-node="${escapeHtml(article.id)}"` : '') +
     `${langAttribute(article.attributes?.lang)}${classAttribute(article.attributes?.class)} style="${escapeHtml(styleAttribute(articleStyle, options.theme))}">`;
 
   const stack: Task[] = [{ type: 'text', text: '</article></body></html>\n' }];
-  const rootContext: Context = { shift: titleInPage ? 1 : 0, depth: 0 };
+  const rootContext: Context = { shift: titleInPage ? 1 : 0, depth: 0, ...(article.id !== undefined ? { node: article.id } : {}) };
   for (let i = content.length - 1; i >= 0; i--) stack.push({ type: 'node', item: content[i]!, parent: articleStyle, context: rootContext });
 
   while (stack.length > 0) {
@@ -422,7 +472,10 @@ function* pieces(
         : element.type === 'embed' && attributes.kind === 'image' ? 'image' : element.type;
     const style = finalStyles(type, task.parent, attributes);
     noteFonts(style.light, used);
-    const styled = ` style="${escapeHtml(styleAttribute(style, options.theme))}"`;
+    // In the preview each node element says which object it belongs to and where it is written.
+    const node = element.type === 'embed' ? String(attributes.id) : task.context.node;
+    const marks = preview ? `${node === undefined ? '' : ` data-node="${escapeHtml(node)}"`}${sourceAttribute(attributes.sourcePosition)}` : '';
+    const styled = `${marks} style="${escapeHtml(styleAttribute(style, options.theme))}"`;
     let context = task.context;
     let open: string;
     let close: string;
@@ -450,6 +503,7 @@ function* pieces(
           break;
         }
         const kind = String(attributes.kind);
+        context = { ...context, node: String(attributes.id) };
         const common =
           `${embeds.has(task.item) ? ` id="${escapeHtml(String(attributes.id))}"` : ''}` +
           `${langAttribute(attributes.lang)}${classAttribute(attributes.class)}${styled}`;
@@ -463,7 +517,11 @@ function* pieces(
           }
         } else if (kind === 'image') {
           const asset = typeof attributes.asset === 'string' ? assets.get(attributes.asset) : undefined;
-          if (asset && 'bytes' in asset) {
+          if (preview && typeof attributes.asset === 'string') {
+            // In the preview the image is an address the runtime serves.
+            open = `<figure data-kind="image"${common}><img src="${escapeHtml(preview.assetUrl(attributes.asset))}" alt="${escapeHtml(plainText(children))}">`;
+            children = [];
+          } else if (asset && 'bytes' in asset) {
             open = `<figure data-kind="image"${common}><img src="data:${asset.mime};base64,`;
             afterOpen = [{ type: 'image', bytes: asset.bytes }, { type: 'text', text: `" alt="${escapeHtml(plainText(children))}">` }];
             children = [];
