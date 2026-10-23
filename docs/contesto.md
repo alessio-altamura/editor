@@ -311,6 +311,12 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     state cercate e scartate altre proposte (frol, tesso, tarsia, patema e
     altre), con i controlli su npm, comandi e omonimi.
     Report: [ricerca/nomi-del-prodotto.md](ricerca/nomi-del-prodotto.md).
+    Seconda ricerca (2026-10-23, stesso report): per la parola dell'`app`
+    che indica i mattoni Alessio ha detto «jot mi piace» (in inglese un
+    appunto breve e il verbo annotare; in italiano «un jot», «jottare»); è
+    un nome d'interfaccia, il concetto resta `object`. Sul nome del prodotto
+    proposto, brano: «brano non lo capisco». Il nome del prodotto resta
+    Kamii, provvisorio.
   - Numerazione dei capitoli che si ripetono per ricorsione (2026-10-22,
     Alessio, «sì va bene 1, 1.1, 1.1.1»): ogni ripetizione con un title prende
     un numero nuovo, come un capitolo annidato.
