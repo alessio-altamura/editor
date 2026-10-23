@@ -35,6 +35,7 @@ node dist/src/cli.js resolve-tree <cartella> --positions   # con la sourcePositi
 node dist/src/cli.js export <cartella> [--root <id>] [-o <file>] [--allow-errors] [--theme light|dark]
 node dist/src/cli.js print <cartella> [--root <id>] [-o <file>] [--allow-errors]
 node dist/src/cli.js serve <cartella> [--port <n>]
+node dist/src/cli.js language-server            # LSP su stdin e stdout, per gli editor
 node dist/src/cli.js --help
 ```
 
@@ -239,6 +240,32 @@ in 234 ms e 64 ms (576 e 76 ms la prima volta). Dal salvataggio
 all'arrivo sul WebSocket passano circa 80 ms per un documento piccolo, 60 di
 attesa compresi.
 
+## Il language server
+
+`language-server` parla LSP su stdin e stdout (`src/language-server.ts`),
+con `vscode-languageserver`: la libreria fa l'incorniciatura dei messaggi,
+la sincronizzazione dei buffer e i tipi del protocollo, che scritti a mano
+sarebbero più codice da tenere. Usa lo stesso nucleo acceso di `serve`
+(`src/live.ts`): la cartella del documento è la workspace folder, se ha un
+`document file`, altrimenti la cartella più vicina, risalendo dal primo file
+aperto, che ne ha uno; i buffer aperti valgono al posto dei file su disco
+finché restano aperti, e ogni modifica, nell'editor o su disco, ricalcola
+dopo 60 ms. Non scrive file.
+
+- I diagnostic per file, con il range: la n-esima occorrenza del `target`,
+  dentro `[[…]]` se c'è; senza `target`, o se non si trova, l'intestazione o
+  l'inizio del file. `resolve-tree --positions` scrive lo stesso `range` nei
+  `diagnostic`; un `diagnostic` della cartella (`.`) non ne ha.
+- Il completamento degli `id` dopo `[[` e `![[`, con `kind` e titolo o
+  prime parole; dopo `![[` niente `concept`, `scratch`, `article`, `deck`,
+  `stylesheet`, `canvas-file`, né il file stesso.
+- La definizione di un `[[id]]` o `![[id]]` (l'inizio del file), l'hover
+  (`kind` e titolo o primo testo; su una riga di calcolo `display` e
+  valore), i riferimenti (chi include o collega l'`id` sotto il cursore, o
+  quello del file).
+
+Il client per VS Code sta in [../editors/vscode](../editors/vscode/README.md).
+
 `[[…]]` e `![[…]]` li riconosce un'estensione micromark scritta qui,
 `src/wiki-reference.ts`, prima degli altri costrutti in linea (§0.6).
 
@@ -298,6 +325,12 @@ sparisce. `npm run test:browser` lancia anche `test/serve-browser-suite.ts`:
 nel browser la pagina si aggiorna senza ricaricarsi, e il capoverso che si
 legge resta al suo posto anche se il testo sopra cresce.
 
+`npm test` lancia infine `test/language-server-suite.ts`, che parla JSON-RPC
+su stdio con il server: `initialize`; un errore in un buffer aperto, con il
+range giusto, e i diagnostic vuoti quando un `didChange` lo corregge; il
+completamento dopo `![[` e `[[`; la definizione, l'hover su un `id` e su una
+riga di calcolo, i riferimenti; `shutdown` ed `exit` con codice 0.
+
 Solo il typecheck: `npm run typecheck`.
 
 ## Com'è fatto
@@ -321,13 +354,17 @@ Solo il typecheck: `npm run typecheck`.
 - `src/assets.ts`: la lettura delle immagini e il riconoscimento del formato.
 - `src/print.ts`: la stampa in PDF con Chromium.
 - `src/serve.ts`: il server dell'anteprima, con lo script della pagina.
+- `src/live.ts`: il `runtime` acceso su una cartella, per `serve` e il
+  language server.
+- `src/language-server.ts`: il language server.
 - `fonts/`: i font di partenza e le loro licenze.
 
 Dipendenze, con versione fissata: `mdast-util-from-markdown` 2.1.0,
 `micromark-extension-gfm-table` 2.1.2 e `mdast-util-gfm-table` 2.0.0 (MIT), per
 CommonMark con le tabelle di GFM; `yaml` 2.9.1 (ISC); `decimal.js` 10.6.0
 (MIT); `playwright-core` 1.56.1 (Apache-2.0) per la stampa; `ws` 8.22.0 e
-`morphdom` 2.7.8 (MIT) per l'anteprima. Per lo sviluppo
+`morphdom` 2.7.8 (MIT) per l'anteprima; `vscode-languageserver` 10.1.2 e
+`vscode-languageserver-textdocument` 1.0.15 (MIT) per il language server. Per lo sviluppo
 `typescript` 5.9.3 (Apache-2.0) e `@types/node`, `@types/mdast`,
 `@types/ws`, `micromark-util-types` (MIT); per i test dell'`export` `parse5` 8.0.1 (MIT) e
 `html-validate` 11.16.2 (MIT), con dipendenze MIT, ISC, BSD e Apache-2.0. Il parser del CSS è scritto qui: il sottoinsieme è

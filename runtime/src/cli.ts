@@ -10,6 +10,7 @@ import { makeDiagnostic, sortDiagnostics } from './diagnostic.js';
 import { writeAll, writeJson } from './json-output.js';
 import { listDocumentFiles, resolveTree, SPEC_VERSION } from './resolve-tree.js';
 import { CHROMIUM_VERSION, printPdf } from './print.js';
+import { startLanguageServer } from './language-server.js';
 import { serve } from './serve.js';
 import { baseFontFace, staticExport, staticExportSize, type ExportAsset } from './static-export.js';
 import type { JsonML } from './tree.js';
@@ -48,6 +49,9 @@ Uso:
                                          nel browser, su 127.0.0.1, aggiornata a ogni
                                          modifica; l'indirizzo, con il codice
                                          d'accesso, va su stdout; si ferma con Ctrl-C
+  ${BINARY_NAME} language-server          il language server (LSP) su stdin e stdout, per
+                                         gli editor: diagnostic, completamento degli id,
+                                         definizione, hover e riferimenti; non scrive file
   ${BINARY_NAME} --help                    questo aiuto
   ${BINARY_NAME} --version                 la spec-version che il runtime implementa
 
@@ -87,6 +91,12 @@ function main(args: string[]): number | Promise<number> {
   if (args[0] === 'export') return exportCommand(args.slice(1), 'export');
   if (args[0] === 'print') return exportCommand(args.slice(1), 'print');
   if (args[0] === 'serve') return serveCommand(args.slice(1));
+  if (args[0] === 'language-server') {
+    // LSP on stdin and stdout; --stdio, which clients add, changes nothing. It ends with the client's exit.
+    if (args.slice(1).some((arg) => arg !== '--stdio')) return usage(`uso: ${BINARY_NAME} language-server`);
+    startLanguageServer();
+    return new Promise<number>(() => undefined);
+  }
   const pretty = args.includes('--pretty');
   const positions = args.includes('--positions');
   const [command, folder, ...rest] = args.filter((arg) => arg !== '--pretty' && arg !== '--positions');

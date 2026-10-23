@@ -1,7 +1,7 @@
 // `serve` (§11.6): keeps the runtime on over a folder, recomputes the tree at every
 // change and shows the preview of each article in the browser, updated in place.
 import { randomBytes, timingSafeEqual } from 'node:crypto';
-import { readFileSync, watch, type FSWatcher } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
@@ -9,7 +9,8 @@ import { fileURLToPath } from 'node:url';
 import { WebSocketServer, type WebSocket } from 'ws';
 import { pageAssets, readAsset } from './assets.js';
 import { BASE_FONTS } from './base-stylesheet.js';
-import { listDocumentFiles, resolveTree, type FileIdentity } from './resolve-tree.js';
+import { LiveFolder } from './live.js';
+import type { FileIdentity } from './resolve-tree.js';
 import { escapeHtml, staticExport, type ExportAsset } from './static-export.js';
 import { sortDiagnostics } from './diagnostic.js';
 import type { Diagnostic, JsonML, ResolvedTree, TreeNode } from './tree.js';
@@ -18,8 +19,6 @@ import type { Diagnostic, JsonML, ResolvedTree, TreeNode } from './tree.js';
 const CSP =
   "default-src 'none'; script-src 'self'; connect-src 'self'; img-src 'self'; font-src 'self'; " +
   "style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
-/** Saves come in bursts: the recomputation waits this long after the last change. */
-const SETTLE_MS = 60;
 
 /** The script of the page: it opens the WebSocket and applies each new page with morphdom. */
 const CLIENT = `(() => {
@@ -133,10 +132,9 @@ export function serve(options: ServeOptions): Promise<{ url: string; close: () =
     probes.set(path, { key, asset });
     return asset;
   };
-  const recompute = (): State => {
-    const start = performance.now();
-    const tree = resolveTree(folder, { positions: true });
-    const listed = listDocumentFiles(folder);
+  // What the pages need from the tree: the images recognised and their diagnostics.
+  const derive = (): State => {
+    const { tree, listed, ms } = live;
     const assets = new Map<string, ExportAsset>();
     const unsupported = new Map<string, Diagnostic>();
     for (const article of articlesOf(tree)) {
@@ -145,11 +143,10 @@ export function serve(options: ServeOptions): Promise<{ url: string; close: () =
       for (const diagnostic of page.diagnostics) unsupported.set(diagnostic.file, diagnostic);
     }
     const diagnostics = sortDiagnostics([...(tree.diagnostics ?? []), ...unsupported.values()]);
-    const ms = performance.now() - start;
-    options.log(`ricalcolo: ${ms.toFixed(1)} ms, ${tree.nodes?.length ?? 0} nodi`);
     return { tree, listed, assets, diagnostics, ms };
   };
-  let state = recompute();
+  const live = new LiveFolder(folder, () => update(), options.log);
+  let state = derive();
 
   const withToken = (path: string) => `${path}?token=${encodeURIComponent(token)}`;
   const render = (id: string): string | null => {
@@ -242,25 +239,15 @@ export function serve(options: ServeOptions): Promise<{ url: string; close: () =
     });
   });
 
-  const update = () => {
-    try {
-      state = recompute();
-    } catch (error) {
-      options.log(`errore interno nel ricalcolo: ${error instanceof Error ? error.message : String(error)}`);
-      return;
-    }
+  function update(): void {
+    state = derive();
     for (const [ws, client] of clients) {
       const html = render(client.article);
       if (html === client.last) continue;
       client.last = html;
       ws.send(JSON.stringify(html === null ? { type: 'gone' } : { type: 'page', html }));
     }
-  };
-  let timer: NodeJS.Timeout | undefined;
-  const watcher: FSWatcher = watch(folder, { recursive: true }, () => {
-    clearTimeout(timer);
-    timer = setTimeout(update, SETTLE_MS);
-  });
+  }
 
   return new Promise((resolve, reject) => {
     server.once('error', reject);
@@ -269,8 +256,7 @@ export function serve(options: ServeOptions): Promise<{ url: string; close: () =
       port = typeof address === 'object' && address !== null ? address.port : options.port;
       const close = () =>
         new Promise<void>((done) => {
-          clearTimeout(timer);
-          watcher.close();
+          live.close();
           for (const ws of clients.keys()) ws.terminate();
           sockets.close();
           server.close(() => done());

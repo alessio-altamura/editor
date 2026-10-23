@@ -255,6 +255,11 @@ const isComment = (node: RootContent): boolean =>
 /** Options of the resolution: `positions` writes the source position of each element (§11.6). */
 export interface ResolveOptions {
   positions?: boolean;
+  /**
+   * Texts that hold in place of the files on disk, by path from the folder: the
+   * buffers open in an editor (§11.7). A path not on disk is added to the list.
+   */
+  overlay?: ReadonlyMap<string, string>;
 }
 
 /** The start of each line of a text, for positions counted as in LSP. */
@@ -277,6 +282,8 @@ function lspPoint(starts: number[], offset: number): { line: number; character: 
 
 export function resolveTree(folder: string, options: ResolveOptions = {}): ResolvedTree {
   const lineIndex = new Map<string, number[]>();
+  /** How many diagnostics of each file and target have their range already. */
+  const placed = new Map<string, number>();
   /** Marks an element with where it is written in the file of `context`. */
   const mark = (target: Child, offsets: Offsets | undefined, context: { file: string; source: string }): void => {
     if (!options.positions || typeof target === 'string' || offsets === undefined) return;
@@ -290,7 +297,17 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
       ? undefined
       : { start: node.position.start.offset, end: node.position.end.offset };
   const diagnostics: Diagnostic[] = [];
-  const { files, unreadable } = listFiles(folder);
+  const listing = listFiles(folder);
+  const unreadable = listing.unreadable;
+  const files = options.overlay ? [...new Set([...listing.files, ...options.overlay.keys()])].sort(compareCodePoints) : listing.files;
+  /** The texts as read, for the ranges of the diagnostics. */
+  const texts = new Map<string, string>();
+  const read = (file: string): string | null => {
+    const buffer = options.overlay?.get(file);
+    const text = buffer === undefined ? readText(join(folder, file)) : buffer.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
+    if (text !== null) texts.set(file, text);
+    return text;
+  };
   for (const file of unreadable) report(diagnostics, 'syntax', file, undefined, 'rendilo un file o una cartella leggibile, con un nome in UTF-8 e senza link simbolici');
   const fileSet = new Set(files);
   const nodes: SourceNode[] = [];
@@ -300,7 +317,7 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
     const match = /^.+\.([^.]+)\.md$/.exec(base);
     const isStylesheet = base.endsWith('.stylesheet.css');
     if (file !== RETIRED_IDS_FILE && !isStylesheet && !match) continue;
-    const text = readText(join(folder, file));
+    const text = read(file);
     if (text === null) {
       report(diagnostics, 'syntax', file, undefined, 'salva il file in UTF-8');
       if (file !== RETIRED_IDS_FILE) nodes.push(unreadableNode(file, isStylesheet ? 'stylesheet' : match![1]!));
@@ -561,7 +578,7 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
     const invalid = () => report(diagnostics, 'syntax', node.file, undefined, `correggi il JSON Canvas di ${node.asset}`);
     let canvas: unknown;
     try {
-      canvas = JSON.parse(readText(join(folder, path)) ?? '');
+      canvas = JSON.parse(read(path) ?? '');
     } catch {
       return invalid();
     }
@@ -1171,6 +1188,44 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
 
   return finish();
 
+  /**
+   * The range of a diagnostic: the n-th occurrence of its target in the file, inside
+   * [[…]] if it is there, for the n-th diagnostic with that target; else the header,
+   * or the start of the file. The folder itself (`.`) has no range.
+   */
+  function placeDiagnostic(diagnostic: Diagnostic): void {
+    if (diagnostic.file === '.') return;
+    const text = texts.get(diagnostic.file) ?? '';
+    let starts = lineIndex.get(diagnostic.file);
+    if (starts === undefined) lineIndex.set(diagnostic.file, (starts = lineStarts(text)));
+    const range = (start: number, end: number) => ({ start: lspPoint(starts!, start), end: lspPoint(starts!, end) });
+    const target = diagnostic.target;
+    if (target !== undefined && target !== '') {
+      const key = `${diagnostic.file}\0${target}`;
+      const nth = placed.get(key) ?? 0;
+      placed.set(key, nth + 1);
+      for (const [needle, skip] of [[`[[${target}`, 2], [target, 0]] as const) {
+        let at = -1;
+        for (let i = 0; i <= nth; i++) {
+          const next = text.indexOf(needle, at + 1);
+          if (next < 0) break;
+          at = next;
+          if (i === nth) {
+            diagnostic.range = range(at + skip, at + skip + target.length);
+            return;
+          }
+        }
+        // Fewer occurrences than diagnostics: the last one found.
+        if (at >= 0) {
+          diagnostic.range = range(at + skip, at + skip + target.length);
+          return;
+        }
+      }
+    }
+    // The header: the front matter between its --- lines, or the comment of a stylesheet.
+    const header = /^---\n[\s\S]*?\n---(?=\n|$)/.exec(text) ?? /^\s*\/\*[\s\S]*?\*\//.exec(text);
+    diagnostic.range = range(0, header ? header[0].length : 0);
+  }
   function finish(): ResolvedTree {
     const result: ResolvedTree = {};
     outputs.sort((a, b) => compareCodePoints(String(a.id ?? ''), String(b.id ?? '')) || compareCodePoints(String(a.file), String(b.file)));
@@ -1180,6 +1235,7 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
       .sort((a, b) => compareCodePoints(a.ids[0], b.ids[0]) || compareCodePoints(a.ids[1], b.ids[1]));
     if (associations.length > 0) result.associations = associations;
     if (diagnostics.length > 0) result.diagnostics = sortDiagnostics(diagnostics);
+    if (options.positions) for (const diagnostic of result.diagnostics ?? []) placeDiagnostic(diagnostic);
     if (documentOutput) result.document = documentOutput;
     return result;
   }
