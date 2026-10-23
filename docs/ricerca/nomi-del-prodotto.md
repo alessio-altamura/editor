@@ -537,6 +537,22 @@ europei e italiani.
   laboratorio) dicono una mail e una persona, non un mattone; `dmail` è
   preso su npm e PyPI, `labmem` è libero ovunque e senza marchi USPTO.
 
+**Da Arcane** (la serie di Riot Games ambientata fra Piltover e Zaun):
+- i nomi propri della serie sono di Riot: **ekko** ha un marchio USPTO vivo
+  di Riot Games in classe 9, e altri marchi EKKO vivi nelle classi 9 e 42;
+  **piltover** e **zaun** non hanno marchi USPTO e piltover è libero sui
+  registri (`zaun` è preso su npm), ma sono luoghi di un franchise altrui e
+  un nome così si legge come un prodotto per fan.
+- **hex** e **rune** sono parole comuni ma prese su npm, PyPI e crates.io,
+  e RUNE ha marchi vivi in 9 e 42 (Rune Technologies, Jagex); **hexcore** ha
+  marchi vivi in 9 e 42.
+- **arcano** (italiano, galiziano, portoghese: arcano, mistero) sarebbe
+  naturale in italiano, «un arcano», «gli arcani», e non ha marchi USPTO
+  nelle classi 9 e 42; ma `arcano` è preso su npm (gestione di segreti,
+  2026), `arcana` dappertutto, e il significato, mistero, va contro un
+  prodotto che vuole essere chiaro e leggibile.
+Da Arcane non esce un candidato.
+
 Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
 <https://en.wiktionary.org/wiki/orri>, <https://en.wiktionary.org/wiki/keping>,
 <https://en.wiktionary.org/wiki/lappu>, <https://en.wiktionary.org/wiki/Lapp>,
@@ -552,4 +568,6 @@ Hanji <https://en.wikipedia.org/wiki/Hanji>; Sprawl
 Steins;Gate <https://en.wikipedia.org/wiki/Steins;Gate_(video_game)>, Upa e
 D-Mail sul wiki della serie <https://steins-gate.fandom.com/wiki/Upa>,
 <https://steins-gate.fandom.com/wiki/D-Mail>; Wiktionary
-<https://en.wiktionary.org/wiki/stein>, <https://en.wiktionary.org/wiki/upa>.
+<https://en.wiktionary.org/wiki/stein>, <https://en.wiktionary.org/wiki/upa>;
+Arcane <https://en.wikipedia.org/wiki/Arcane_(TV_series)>;
+<https://en.wiktionary.org/wiki/arcano>.
