@@ -381,7 +381,16 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      export`, da rivedere. vscode-languageclient porta minimatch con
      licenza Blue Oak 1.0.0, permissiva. Solo lettura: rinomina ed
      «estrai in un oggetto» aspettano le scelte sulla creazione degli
-     oggetti. Prossimo passo del piano: il `runtime` che scrive.
+     oggetti. Il `runtime` che scrive c'è (2026-10-23, contesto.md «Creazione degli
+     oggetti e file»): i `multi-object file` con la `attribute line`
+     (§0.18), `doc-runtime format` (§11.8) e le operazioni `create`,
+     `extract`, `rename`, `move` con `--dry-run` (§11.9); nel `language
+     server` rinomina ed «Estrai in un oggetto». Aperti: `tags` nelle
+     `attribute line` (la sottosessione non lo scrive se è vuoto, contro
+     «tags è sempre scritto»: domanda ad Alessio); il nome del file dei
+     testi (oggi `<nome>-texts.text.md`); l'id dalle prime parole può
+     finire con una parola corta («il-prossimo-incontro-sara-a»).
+     Prossimo passo del piano: il guscio dell'`app`.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
