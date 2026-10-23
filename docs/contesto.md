@@ -504,7 +504,12 @@ quando due rami lavorano in parallelo.
 - Creazione semplificata degli oggetti (2026-10-23): non solo dal foglio
   bianco, ma anche da una pagina mentre si scrive e da una `slide` mentre si
   fa la presentazione. Da precisare con il `runtime` che scrive e con
-  l'`app`.
+  l'`app`. Alessio, poco dopo: il `canvas` serve soprattutto quando non si
+  sa ancora cosa si farà e si parte da idee alla rinfusa; per scrivere un
+  articolo si può essere ordinati, in una pagina. E forse serve ordinare
+  gli oggetti sul `canvas`: da precisare se vuol dire riordinarli (griglia,
+  per tipo, per data) o metterli in sequenza perché diventino una
+  `composition`.
 
 
 - Estensibilità: estensioni e connettori distribuiti da un marketplace, per
