@@ -75,10 +75,10 @@ try {
     const allowed = runCli(['print', folder, '--allow-errors']);
     if (allowed.status !== 1 || !allowed.stdout.toString('latin1').startsWith('%PDF-')) problems.push(`--allow-errors: ${allowed.status}`);
     if (runCli(['print', folder, '--theme', 'dark']).status !== 2) problems.push('--theme accepted');
-    const env = { ...process.env, PLAYWRIGHT_BROWSERS_PATH: join(base, 'nessun-browser') };
+    const env = { ...process.env, DOC_RUNTIME_ELECTRON: join(base, 'nessun-electron') };
     const valid = prepare('esempio-34', mkdtempSync(join(base, 'n-')));
     const missing = runCli(['print', valid], { env });
-    if (missing.status !== 2 || missing.stdout.length > 0 || !missing.stderr.includes('npx playwright-core install chromium')) problems.push(`no browser: ${missing.status} ${missing.stderr}`);
+    if (missing.status !== 2 || missing.stdout.length > 0 || !missing.stderr.includes('npm ci')) problems.push(`no browser: ${missing.status} ${missing.stderr}`);
     report('errors and no browser', problems);
   }
 } finally {

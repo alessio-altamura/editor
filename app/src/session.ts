@@ -99,6 +99,12 @@ export class Session {
     this.live.schedule();
   }
 
+  /** Forgets a buffer not saved: the file on disk holds again. */
+  discard(path: string): void {
+    this.live.overlay.delete(this.safe(path));
+    this.live.schedule();
+  }
+
   /** Saves through the formatter, with a temporary file and a rename; returns the text written. */
   save(path: string, text: string): string {
     const file = this.safe(path);

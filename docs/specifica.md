@@ -3157,10 +3157,11 @@ lati, fissi finché la pagina non entra nella specifica con `@page`; il
 numero di pagina sta in basso al centro, «1», «2»…, e gli sfondi si
 stampano. Il PDF contiene i font di partenza che la pagina usa. `--root`,
 `-o`, il rifiuto con un errore, `--allow-errors`, i limiti e i codici di
-uscita sono quelli dell'`export` (§11.4). La stampa la fa un Chromium di
-versione fissata, quella di `playwright-core` 1.56.1, perché un'altra
-versione potrebbe impaginare in modo diverso; senza di lui il comando esce
-con 2 e dice come installarlo. Due stampe della stessa cartella hanno le
+uscita sono quelli dell'`export` (§11.4). La stampa la fa l'Electron del
+`runtime`, di versione fissata, lo stesso motore dell'anteprima e
+dell'`app`, perché un'altra versione potrebbe impaginare in modo diverso
+[C: «Il guscio dell'app»]; senza di lui il comando esce con 2 e dice di
+installarlo con le dipendenze. Due stampe della stessa cartella hanno le
 stesse pagine e lo stesso testo, non per forza gli stessi byte: Chromium vi
 scrive la data.
 

@@ -3,17 +3,17 @@
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { chromium } from 'playwright-core';
+import { launchBrowser } from './electron-browser.js';
 import { startServe, writeDocument } from './serve-suite.js';
 
 const base = mkdtempSync(join(tmpdir(), 'serve-browser-'));
 const folder = join(base, 'doc');
 writeDocument(folder, 60);
 const server = await startServe(folder);
-const browser = await chromium.launch();
+const browser = await launchBrowser();
 const problems: string[] = [];
 try {
-  const page = await browser.newPage({ viewport: { width: 800, height: 600 } });
+  const page = await browser.newPage({ width: 800, height: 600 });
   const errors: string[] = [];
   page.on('console', (message) => message.type() === 'error' && errors.push(message.text()));
   page.on('pageerror', (error) => errors.push(error.message));

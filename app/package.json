@@ -14,7 +14,8 @@
     "prestart": "npm run runtime && npm run build",
     "start": "electron .",
     "test": "npm run runtime && npm run build && node dist-test/unit.js",
-    "test:e2e": "npm run runtime && npm run build && node dist-test/e2e.js"
+    "test:e2e": "npm run runtime && npm run build && node dist-test/e2e.js",
+    "postinstall": "install-electron"
   },
   "dependencies": {
     "@codemirror/autocomplete": "6.20.3",
@@ -30,7 +31,7 @@
   },
   "devDependencies": {
     "@types/node": "22.20.5",
-    "electron": "39.8.10",
+    "electron": "44.9.3",
     "esbuild": "0.28.2",
     "playwright-core": "1.56.1",
     "typescript": "5.9.3"

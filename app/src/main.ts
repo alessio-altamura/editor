@@ -16,6 +16,22 @@ let opened: () => void = () => undefined;
 const ready = new Promise<void>((resolve) => (opened = resolve));
 let window: BrowserWindow | null = null;
 let preview: WebContentsView | null = null;
+/** The file in the editor with changes not saved, as the page says. */
+let dirty: string | null = null;
+let closing = false;
+
+/** Asks whether to save the changes of a file. */
+async function askToSave(file: string): Promise<'save' | 'discard' | 'cancel'> {
+  const { response } = await dialog.showMessageBox(window!, {
+    type: 'question',
+    buttons: ['Salva', 'Non salvare', 'Annulla'],
+    defaultId: 0,
+    cancelId: 2,
+    message: `Salvare le modifiche a ${file}?`,
+    detail: 'Se non le salvi, si perdono.',
+  });
+  return (['save', 'discard', 'cancel'] as const)[response] ?? 'cancel';
+}
 
 /** The folder: --folder on the command line, else the last one opened, else a dialog. */
 async function chooseFolder(ask: boolean): Promise<string | null> {
@@ -71,6 +87,21 @@ function createWindow(): void {
     const match = /^(.*):(\d+):(\d+)-(\d+):(\d+)$/.exec(decodeURIComponent(hash.slice('#source='.length)));
     if (match && session?.file(match[1]!) !== null) window?.webContents.send('doc:reveal', match[1], Number(match[2]), Number(match[3]));
   });
+  // Closing with changes not saved: ask first.
+  window.on('close', (event) => {
+    if (closing || dirty === null || session === null) return;
+    event.preventDefault();
+    const file = dirty;
+    void askToSave(file).then((answer) => {
+      if (answer === 'cancel') return;
+      closing = true;
+      if (answer === 'save') window?.webContents.send('doc:save-and-close');
+      else {
+        session?.discard(file);
+        window?.close();
+      }
+    });
+  });
   void window.loadFile(join(here, 'renderer/index.html'));
 }
 
@@ -93,6 +124,16 @@ handle('doc:diagnostics', (current, file: string) => current.diagnostics(file));
 handle('doc:complete', (current, file: string, text: string, position: { line: number; character: number }) => current.complete(file, String(text), position));
 handle('doc:hover', (current, file: string, text: string, position: { line: number; character: number }) => current.hover(file, String(text), position));
 handle('doc:definition', (current, file: string, text: string, position: { line: number; character: number }) => current.definition(file, String(text), position));
+handle('doc:confirm-unsaved', (_current, file: string) => askToSave(String(file)));
+handle('doc:discard', (current, file: string) => current.discard(file));
+ipcMain.on('doc:dirty', (event, file: unknown) => {
+  if (event.sender === window?.webContents) dirty = typeof file === 'string' && session?.file(file) !== null ? file : null;
+});
+ipcMain.on('doc:close-now', (event) => {
+  if (event.sender !== window?.webContents) return;
+  closing = true;
+  window?.close();
+});
 handle('doc:extract', (current, file: string, text: string) => current.extract(file, String(text)));
 handle('doc:preview', (current, file: string | null) => {
   const article = current.articleFor(file);

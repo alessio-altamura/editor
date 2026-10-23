@@ -17,14 +17,9 @@ npm ci
 npm run build
 ```
 
-Per `print` serve il Chromium di `playwright-core` 1.56.1, la versione
-141.0.7390.37:
-
-```
-npx playwright-core install chromium
-```
-
-Se l'ambiente ne ha già uno, `PLAYWRIGHT_BROWSERS_PATH` dice dove sta.
+`print` stampa con l'Electron del pacchetto, 44.9.3 (Chromium
+152.0.7977.167): lo scarica `npm ci`, con il postinstall `install-electron`.
+Non serve installare altro, nemmeno sul Mac.
 
 ## Lanciare
 
@@ -179,14 +174,20 @@ posto dei controlli: quello lo disegna un font del sistema.
 
 ## La stampa
 
-`print` fa l'HTML di `export --theme light` e lo stampa con Chromium, in
-`src/print.ts`: A4, margini di 2 cm, sfondi stampati, intestazione vuota e
-il numero di pagina in basso al centro, con Source Serif 4. `--root`, `-o`,
-`--allow-errors`, il rifiuto con un errore, i limiti e i codici di uscita
-sono quelli di `export`; `--theme` non c'è. Senza Chromium, o con una
-versione diversa da 141.0.7390.37, esce con 2 e dice come installarlo. Due
-stampe della stessa cartella sono uguali, tranne le date che Chromium scrive
-nel PDF.
+`print` fa l'HTML di `export --theme light` e lo stampa con l'Electron del
+pacchetto, lo stesso motore dell'anteprima e dell'app: `src/print.ts` lo
+lancia come processo figlio con `src/print-electron.ts`, che carica la
+pagina in una finestra nascosta, aspetta i font e chiama
+`webContents.printToPDF`: A4, margini di 2 cm, sfondi stampati,
+intestazione vuota e il numero di pagina in basso al centro, con Source
+Serif 4. La finestra carica solo la pagina, e nient'altro da fuori. Su Linux
+gira con `--ozone-platform=headless`, senza schermo e senza `xvfb-run`.
+`--root`, `-o`, `--allow-errors`, il rifiuto con un errore, i limiti e i
+codici di uscita sono quelli di `export`; `--theme` non c'è. Senza Electron,
+o con una versione diversa da 44.9.3, esce con 2 e dice di lanciare `npm ci`;
+`DOC_RUNTIME_ELECTRON` indica un altro eseguibile, per le prove. Due stampe
+della stessa cartella sono uguali, tranne le date che Chromium scrive nel
+PDF.
 
 Chromium scrive i font variabili come font Type 3: incorporati, ridotti ai
 caratteri usati e con il testo che si copia, ma senza le istruzioni di
@@ -347,17 +348,18 @@ La suite del browser è fuori da `npm test`:
 npm run test:browser
 ```
 
-Apre le pagine valide della suite precedente in Chromium, con
-`playwright-core`, nello schema chiaro e in quello scuro, e confronta
+Apre le pagine valide della suite precedente nel Chromium di Electron, il
+motore dell'anteprima, dell'app e della stampa, guidato con l'`_electron` di
+`playwright-core` (`test/electron-browser.ts`, in headless, senza schermo),
+nello schema chiaro e in quello scuro, e confronta
 `getComputedStyle` delle dodici proprietà con i valori ricostruiti del tema,
 e lo sfondo di `html`, più alcuni valori scritti a mano; controlla anche che i
 font di partenza siano caricati e che il testo li usi. Poi
 `test/print-suite.ts` stampa due cartelle, una lunga: `%PDF`, pagine A4,
 più pagine per quella lunga, i font di partenza incorporati e nessun altro,
 due stampe uguali tranne le date, il numero di pagina (con `pdftotext`, se
-c'è), il rifiuto con un errore e il codice 2 senza browser. Il Chromium è
-quello di `PLAYWRIGHT_BROWSERS_PATH`; sul Mac si installa con `npx
-playwright-core install chromium`.
+c'è), il rifiuto con un errore e il codice 2 senza Electron. Non serve un
+browser a parte: basta `npm ci`.
 
 `npm test` lancia anche `test/serve-suite.ts`: avvia `serve` su una cartella
 temporanea e controlla il 403 senza codice e con un altro `Host`, l'indice e
@@ -408,7 +410,7 @@ Solo il typecheck: `npm run typecheck`.
 - `src/static-export.ts`: `staticExport(tree, rootId, assets)`, un generatore
   dei pezzi dell'HTML; importa solo i due moduli precedenti.
 - `src/assets.ts`: la lettura delle immagini e il riconoscimento del formato.
-- `src/print.ts`: la stampa in PDF con Chromium.
+- `src/print.ts` e `src/print-electron.ts`: la stampa in PDF con Electron.
 - `src/serve.ts`: il server dell'anteprima, con lo script della pagina.
 - `src/live.ts`: il `runtime` acceso su una cartella, per `serve` e il
   language server.
@@ -421,10 +423,10 @@ Solo il typecheck: `npm run typecheck`.
 Dipendenze, con versione fissata: `mdast-util-from-markdown` 2.1.0,
 `micromark-extension-gfm-table` 2.1.2 e `mdast-util-gfm-table` 2.0.0 (MIT), per
 CommonMark con le tabelle di GFM; `yaml` 2.9.1 (ISC); `decimal.js` 10.6.0
-(MIT); `playwright-core` 1.56.1 (Apache-2.0) per la stampa; `ws` 8.22.0 e
+(MIT); `electron` 44.9.3 (MIT) per la stampa; `ws` 8.22.0 e
 `morphdom` 2.7.8 (MIT) per l'anteprima; `vscode-languageserver` 10.1.2 e
 `vscode-languageserver-textdocument` 1.0.15 (MIT) per il language server. Per lo sviluppo
 `typescript` 5.9.3 (Apache-2.0) e `@types/node`, `@types/mdast`,
-`@types/ws`, `micromark-util-types` (MIT); per i test dell'`export` `parse5` 8.0.1 (MIT) e
+`@types/ws`, `micromark-util-types` (MIT); per i test `playwright-core` 1.56.1 (Apache-2.0), che guida Electron, e per quelli dell'`export` `parse5` 8.0.1 (MIT) e
 `html-validate` 11.16.2 (MIT), con dipendenze MIT, ISC, BSD e Apache-2.0. Il parser del CSS è scritto qui: il sottoinsieme è
 piccolo.

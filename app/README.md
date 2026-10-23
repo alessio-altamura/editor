@@ -37,6 +37,8 @@ cartella: File → Apri cartella (Cmd-O). Si può anche dire da riga di comando:
   formatter cambia il testo, l'editor lo prende e tiene il cursore il più
   vicino possibile a dov'era. Sull'errore `composition-content` compare il
   pulsante «Estrai in un oggetto», che usa l'operazione del `runtime`.
+  Cambiando file o chiudendo con modifiche non salvate, l'app chiede se
+  salvare, non salvare o annullare.
 - **L'anteprima**, a destra: la `preview` dell'`article` del file aperto, o
   del primo che lo include, con gli errori elencati in cima, che si
   aggiorna mentre si scrive senza ricaricarsi. È la pagina di `serve`, sullo
@@ -55,32 +57,33 @@ sta in una vista separata, senza preload, e carica solo gli indirizzi della
 `preview`; nessuna pagina apre finestre o naviga altrove, e i collegamenti
 al web si aprono nel browser del sistema.
 
-La versione di Electron è 39.8.10, con Chromium 142: non c'è un Electron con
-Chromium 141, quello della stampa (`playwright-core` 1.56.1), e il 142 è il
-più vicino. La linea 39 però non è più supportata, e `npm audit` segnala
-avvisi gravi per finestre aperte da link, `<webview>` e gestori di
-protocollo; l'app non usa nessuna delle tre cose, ma va aggiornata insieme
-al Chromium della stampa.
+La versione di Electron è 44.9.3, con Chromium 152.0.7977.167: la stessa del
+`runtime`, che la usa per la stampa e per i test nel browser, così anteprima,
+app e PDF hanno un solo motore. `npm audit` non segnala avvisi. `npm ci`
+scarica Electron (lo script `postinstall`); non serve installare un browser a
+parte, nemmeno sul Mac.
 
 ## Cosa manca
 
 L'editing grafico, il canvas, la creazione di oggetti dall'interfaccia
 (tranne «Estrai in un oggetto»), la rinomina dall'interfaccia, più file
-aperti insieme, la richiesta di salvare un file modificato quando si cambia
-file o si chiude (il testo non salvato resta nel `runtime` finché l'app è
-aperta, ma si perde chiudendola), il pacchetto firmato.
+aperti insieme, il pacchetto firmato.
 
 ## Test
 
 ```
 npm test            # le funzioni dietro l'IPC, senza Electron
-npm run test:e2e    # end to end, con l'Electron di playwright-core
+npm run test:e2e    # end to end, con l'Electron del pacchetto e playwright-core
 ```
 
-Su Linux senza schermo: `xvfb-run -a npm run test:e2e`. L'end to end apre
+Su Linux l'end to end gira sulla piattaforma headless di Chromium, senza
+schermo e senza `xvfb`; `node dist-test/e2e.js` da solo va bene dopo
+`npm run build`, che gli script npm fanno prima. L'end to end apre
 l'app su una cartella di prova, scrive nell'editor e aspetta il testo
 nell'anteprima, che non deve ricaricarsi, poi fa clic su un titolo e su un
-capoverso dell'anteprima e controlla file, riga e colonna del cursore.
+capoverso dell'anteprima e controlla file, riga e colonna del cursore;
+controlla anche che cambiando file e chiudendo l'app chieda di salvare, e
+che il testo finisca sul disco.
 
 ## Com'è fatta
 
@@ -97,6 +100,6 @@ capoverso dell'anteprima e controlla file, riga e colonna del cursore.
 Dipendenze, con versione esatta: CodeMirror 6 (`@codemirror/state` 6.7.6,
 `view` 6.43.14, `language` 6.13.1, `lang-markdown` 6.5.2, `autocomplete`
 6.20.3, `lint` 6.9.7, `commands` 6.11.1, `search` 6.7.2, `theme-one-dark`
-6.1.3; MIT). Per lo sviluppo `electron` 39.8.10 (MIT), `esbuild` 0.28.2
+6.1.3; MIT). Per lo sviluppo `electron` 44.9.3 (MIT), `esbuild` 0.28.2
 (MIT), `typescript` 5.9.3 (Apache-2.0), `playwright-core` 1.56.1
 (Apache-2.0), `@types/node` (MIT).
