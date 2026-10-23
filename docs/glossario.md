@@ -328,7 +328,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | Nome | Italiano | Definizione | Stato | Da non usare |
 |---|---|---|---|---|
 | `app` | app, editor | Client grafico del `runtime`: `source`, editing e `preview` | concetto deciso, nome proposto | editor, client |
-| `preview` | anteprima | Resa del documento aggiornata dentro l'`app` | concetto deciso, nome proposto | view |
+| `preview` | anteprima | Resa del documento aggiornata dentro l'`app`, o nel browser con `serve`: lo stesso HTML dell'`export`, con gli errori segnati ed elencati, le immagini come indirizzi e la `source position` di ogni elemento (2026-10-23) | concetto deciso, nome proposto | view |
 | `paged preview` | vista per pagina | `preview` divisa nelle `page` della stampa | concetto deciso, nome proposto | page view |
 | `round-trip` | doppia scrittura | `source` ed editing grafico si generano a vicenda senza perdite | concetto deciso, nome proposto | sync |
 | `operation` | operazione | Modifica atomica del `model` esprimibile nel `source`, la stessa da `app`, `cli` e `mcp server` | concetto deciso, nome proposto | command, action |
@@ -336,6 +336,8 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `semantic diff` | diff semantico | Confronto fra versioni a livello di `node` | proposto | smart diff |
 | `cli` | riga di comando | Client del `runtime` da terminale, pensato anche per l'AI | concetto deciso, nome proposto | shell, tool |
 | `resolve-tree` | risolvi l'albero | Comando della `cli` che legge la cartella di un `document` e stampa il `resolved tree` in JSON, con i `diagnostic`; nome da N3. Il binario che lo offre si chiama per ora doc-runtime, nome provvisorio da scegliere | proposto | resolve, build, compile |
+| `serve` | servire | Comando della `cli` che tiene acceso il `runtime` su una cartella e mostra la `preview` nel browser, aggiornata a ogni modifica dei file; nome da N3 sul verbo, come un server di sviluppo | proposto | watch, live, dev |
+| `source position` | posizione nel sorgente | File, riga e colonna di inizio e di fine di un `node` nel suo file, contate come in LSP; non sta nel `resolved tree` che confrontano i test | proposto | location, span, range |
 | `language server` | server LSP | Parte del `runtime` che parla LSP | concetto deciso, nome proposto | lsp |
 | `runtime protocol` | protocollo proprio | Protocollo fra `runtime` e client per `operation` e `preview` | concetto deciso, nome proposto | api |
 | `mcp server` | server MCP | Espone le `operation` agli agenti AI | proposto | plugin, bot |
