@@ -703,7 +703,7 @@ che sembri internazionale e tecnico, con un riferimento nascosto.
 
 Candidati in questa forma:
 - **unit-zero** (o unitzero): in *Neon Genesis Evangelion* l'Evangelion
-  Unit-00, il prototipo pilotato da Rei Ayanami, è chiamato anche «Zero». Per
+  Unit-00 è quello pilotato da Rei Ayanami. Per
   chi non lo sa è una sigla tecnica, «l'unità zero», e «unit» richiama il
   mattone. Controlli: `unitzero`, `unit-zero` e `unit00` liberi su npm,
   `-cli` liberi, liberi PyPI e crates.io, nessun comando; all'USPTO nessun
