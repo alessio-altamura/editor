@@ -553,6 +553,16 @@ europei e italiani.
   prodotto che vuole essere chiaro e leggibile.
 Da Arcane non esce un candidato.
 
+**Da Akira** (Otomo): **akira** è preso su npm e PyPI e ha marchi vivi in
+classe 42 (fra cui un software di chatbot); **esper** (i bambini con poteri
+della storia) è preso su npm, PyPI e crates.io, con marchi vivi in 9 e 42;
+**capsule**, che sarebbe un contenitore neutro per qualunque mattone, è
+preso dappertutto e ha molti marchi vivi in 9 e 42 (Capsule CRM e altri).
+**kaneda** e **tetsuo** non hanno marchi USPTO in 9 e 42 e tetsuo è libero
+sui registri, ma sono nomi di persona giapponesi e personaggi di un'opera
+famosa; **neotokyo** è libero, ma è un luogo, e di nuovo giapponese. Da
+Akira non esce un candidato.
+
 Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
 <https://en.wiktionary.org/wiki/orri>, <https://en.wiktionary.org/wiki/keping>,
 <https://en.wiktionary.org/wiki/lappu>, <https://en.wiktionary.org/wiki/Lapp>,
@@ -570,4 +580,5 @@ D-Mail sul wiki della serie <https://steins-gate.fandom.com/wiki/Upa>,
 <https://steins-gate.fandom.com/wiki/D-Mail>; Wiktionary
 <https://en.wiktionary.org/wiki/stein>, <https://en.wiktionary.org/wiki/upa>;
 Arcane <https://en.wikipedia.org/wiki/Arcane_(TV_series)>;
-<https://en.wiktionary.org/wiki/arcano>.
+<https://en.wiktionary.org/wiki/arcano>; Akira
+<https://en.wikipedia.org/wiki/Akira_(manga)>.
