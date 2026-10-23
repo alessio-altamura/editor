@@ -173,7 +173,7 @@ function listFiles(
     else if (stat.isDirectory()) for (const file of listFiles(folder, path, unreadable, identities).files) files.push(file);
     else if (stat.isFile()) {
       files.push(path);
-      identities?.set(path, { dev: stat.dev, ino: stat.ino });
+      identities?.set(path, { dev: stat.dev, ino: stat.ino, mtimeNs: stat.mtimeNs, size: stat.size });
     }
   }
   return { files, unreadable };
@@ -183,6 +183,9 @@ function listFiles(
 export interface FileIdentity {
   dev: bigint;
   ino: bigint;
+  /** When the file last changed and its size, for a cache of what was read from it. */
+  mtimeNs: bigint;
+  size: bigint;
 }
 
 /** The regular files of the document folder, as the resolution lists them (§2), with their identity. */

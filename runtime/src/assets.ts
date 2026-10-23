@@ -2,8 +2,10 @@
 // recognised by their first bytes, never by the extension (§11.4).
 import { closeSync, constants, fstatSync, openSync, readSync } from 'node:fs';
 import { join } from 'node:path';
+import { makeDiagnostic } from './diagnostic.js';
 import type { FileIdentity } from './resolve-tree.js';
 import type { ExportAsset } from './static-export.js';
+import type { Diagnostic, JsonML, ResolvedTree, TreeNode } from './tree.js';
 
 /** An image is embedded up to 64 MiB (§11.1). */
 export const MAX_ASSET_BYTES = 64 * 1024 * 1024;
@@ -97,4 +99,44 @@ export function readAsset(folder: string, path: string, listed: ReadonlyMap<stri
   if (bytes === 'size') return { fallback: 'size' };
   const mime = sniffImage(bytes);
   return mime === null ? { fallback: 'format' } : { mime, bytes };
+}
+
+/** The embeds of images in a content, in reading order. */
+function imageEmbeds(content: JsonML[]): Array<Record<string, unknown>> {
+  const found: Array<Record<string, unknown>> = [];
+  const stack = [...content].reverse();
+  while (stack.length > 0) {
+    const item = stack.pop()!;
+    if (typeof item === 'string') continue;
+    const attributes = item[1] !== null && typeof item[1] === 'object' && !Array.isArray(item[1]) ? (item[1] as Record<string, unknown>) : null;
+    if (item[0] === 'embed' && attributes?.kind === 'image' && attributes.unresolved !== true) found.push(attributes);
+    const children = item.slice(attributes ? 2 : 1) as JsonML[];
+    for (let i = children.length - 1; i >= 0; i--) stack.push(children[i]!);
+  }
+  return found;
+}
+
+/**
+ * The images of an article, each read once by path with `read`, and an
+ * `asset-unsupported` for each descriptor whose image is not embedded (§11.2).
+ */
+export function pageAssets(tree: ResolvedTree, article: TreeNode, read: (path: string) => ExportAsset): { assets: Map<string, ExportAsset>; diagnostics: Diagnostic[] } {
+  const assets = new Map<string, ExportAsset>();
+  const diagnostics: Diagnostic[] = [];
+  const reported = new Set<string>();
+  for (const embed of imageEmbeds(article.content ?? [])) {
+    if (typeof embed.asset !== 'string') continue;
+    let asset = assets.get(embed.asset);
+    if (asset === undefined) {
+      asset = read(embed.asset);
+      assets.set(embed.asset, asset);
+    }
+    if (!('fallback' in asset)) continue;
+    const image = tree.nodes?.find((node) => node.id === embed.id && node.kind === 'image');
+    if (image && !reported.has(image.file)) {
+      reported.add(image.file);
+      diagnostics.push(makeDiagnostic('asset-unsupported', image.file, String(image.attributes?.asset ?? embed.asset)));
+    }
+  }
+  return { assets, diagnostics };
 }

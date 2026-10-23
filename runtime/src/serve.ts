@@ -7,11 +7,12 @@ import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WebSocketServer, type WebSocket } from 'ws';
-import { readAsset } from './assets.js';
+import { pageAssets, readAsset } from './assets.js';
 import { BASE_FONTS } from './base-stylesheet.js';
 import { listDocumentFiles, resolveTree, type FileIdentity } from './resolve-tree.js';
-import { escapeHtml, staticExport } from './static-export.js';
-import type { JsonML, ResolvedTree, TreeNode } from './tree.js';
+import { escapeHtml, staticExport, type ExportAsset } from './static-export.js';
+import { sortDiagnostics } from './diagnostic.js';
+import type { Diagnostic, JsonML, ResolvedTree, TreeNode } from './tree.js';
 
 /** The rules of the pages, as an HTTP header: scripts, connections, images and fonts only from the server. */
 const CSP =
@@ -76,6 +77,10 @@ const CLIENT = `(() => {
 interface State {
   tree: ResolvedTree;
   listed: Map<string, FileIdentity>;
+  /** The images of the articles, recognised or not, as the export would embed them. */
+  assets: Map<string, ExportAsset>;
+  /** The diagnostics of the tree with the asset-unsupported of the images. */
+  diagnostics: Diagnostic[];
   /** Milliseconds of the last recomputation. */
   ms: number;
 }
@@ -115,13 +120,34 @@ export function serve(options: ServeOptions): Promise<{ url: string; close: () =
   const fontFiles = new Set<string>(Object.values(BASE_FONTS).flatMap((family) => [family.normal, family.italic]));
   let port = 0;
 
+  // What an image is, by path, read again only when the file changes.
+  const probes = new Map<string, { key: string; asset: ExportAsset }>();
+  const probe = (path: string, listed: Map<string, FileIdentity>): ExportAsset => {
+    const identity = listed.get(path);
+    const key = identity ? `${identity.dev}:${identity.ino}:${identity.mtimeNs}:${identity.size}` : '';
+    const known = probes.get(path);
+    if (known && known.key === key && key !== '') return known.asset;
+    const read = readAsset(folder, path, listed);
+    // The preview needs only the verdict: the bytes are served by address.
+    const asset: ExportAsset = 'fallback' in read ? read : { mime: read.mime, bytes: new Uint8Array(0) };
+    probes.set(path, { key, asset });
+    return asset;
+  };
   const recompute = (): State => {
     const start = performance.now();
     const tree = resolveTree(folder, { positions: true });
     const listed = listDocumentFiles(folder);
+    const assets = new Map<string, ExportAsset>();
+    const unsupported = new Map<string, Diagnostic>();
+    for (const article of articlesOf(tree)) {
+      const page = pageAssets(tree, article, (path) => assets.get(path) ?? probe(path, listed));
+      for (const [path, asset] of page.assets) assets.set(path, asset);
+      for (const diagnostic of page.diagnostics) unsupported.set(diagnostic.file, diagnostic);
+    }
+    const diagnostics = sortDiagnostics([...(tree.diagnostics ?? []), ...unsupported.values()]);
     const ms = performance.now() - start;
     options.log(`ricalcolo: ${ms.toFixed(1)} ms, ${tree.nodes?.length ?? 0} nodi`);
-    return { tree, listed, ms };
+    return { tree, listed, assets, diagnostics, ms };
   };
   let state = recompute();
 
@@ -133,13 +159,13 @@ export function serve(options: ServeOptions): Promise<{ url: string; close: () =
       assetUrl: (path: string) => withToken(`/asset/${path.split('/').map(encodeURIComponent).join('/')}`),
       fontUrl: (file: string) => withToken(`/font/${encodeURIComponent(file)}`),
       scriptUrls: [withToken('/morphdom.js'), withToken('/client.js')],
-      diagnostics: state.tree.diagnostics ?? [],
+      diagnostics: state.diagnostics,
     };
-    return [...staticExport(state.tree, id, new Map(), { allowErrors: true, preview })].join('');
+    return [...staticExport(state.tree, id, state.assets, { allowErrors: true, preview })].join('');
   };
 
   const index = (): string => {
-    const all = state.tree.diagnostics ?? [];
+    const all = state.diagnostics;
     const count = (files: Set<string> | null) => {
       const own = files === null ? all : all.filter((d) => files.has(d.file));
       const errors = own.filter((d) => d.severity === 'error').length;
