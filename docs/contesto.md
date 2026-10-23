@@ -507,9 +507,16 @@ quando due rami lavorano in parallelo.
   l'`app`. Alessio, poco dopo: il `canvas` serve soprattutto quando non si
   sa ancora cosa si farà e si parte da idee alla rinfusa; per scrivere un
   articolo si può essere ordinati, in una pagina. E forse serve ordinare
-  gli oggetti sul `canvas`: da precisare se vuol dire riordinarli (griglia,
-  per tipo, per data) o metterli in sequenza perché diventino una
-  `composition`.
+  gli oggetti sul `canvas`. Precisato da Alessio: tutte e due le cose,
+  riordinarli e metterli in sequenza perché diventino una `composition`.
+  «Immagina una lavagna: scrivi le cose, ma su una lavagna grande a un certo
+  punto non riesci a trovarle». Servono: fare spazio per mettere il
+  prossimo pensiero vicino a quelli con cui ha a che fare, un po' come la
+  vista a grafo di Obsidian, ma come idea e non come disegno; dire «metti in
+  ordine per tipo»; spostare a mano. Da progettare con l'editing grafico e
+  il foglio bianco. Nota dell'orchestratore: riordinare riscrive molte
+  posizioni nel file del `canvas`, quindi va ripresa la proposta del layout
+  a vincoli invece delle coordinate assolute, per non sporcare i diff.
 
 
 - Estensibilità: estensioni e connettori distribuiti da un marketplace, per
