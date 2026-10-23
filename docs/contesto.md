@@ -442,7 +442,13 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     Poi, sulla domanda di Alessio se i metadati di ogni oggetto si vedono su
     GitHub («ok visibili»): si vedono, con una riga breve fra parentesi
     graffe nella famiglia di `![[id]]{.nota}`, non nascosti in un commento
-    HTML. Aperta la forma esatta della sintassi.
+    HTML. La forma (Alessio, «A», sul confronto di due forme rese come su
+    GitHub): una riga prima di ogni oggetto, per esempio
+    `{#calo-q3-sintesi .evidenza}`, una riga vuota, poi il contenuto; la
+    stessa regola per capoversi, elenchi, tabelle e codice. Il file comincia
+    con un'intestazione con il solo `kind`, senza `id`. Dentro le graffe `#`
+    per l'`id`, `.` per la `class`, `chiave=valore` per gli altri
+    attributi; la forma di `tags`, che è una lista, è da fissare.
 
 ## Proposte non decise
 

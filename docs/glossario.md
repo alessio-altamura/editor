@@ -155,6 +155,8 @@ colonne *codice* e *spec*, come in ID-Zero.
 |---|---|---|---|---|
 | `document` | documento | Insieme di file di testo più gli asset, in una cartella o in un `bundle`; i suoi attributi stanno nel `document file` | concetto deciso, nome proposto | project, workbook |
 | `document file` | file del documento | Il file con gli attributi del `document`, come `lang` e `spec version`, con `kind` document; uno e uno solo, e il `runtime` lo crea se manca (deciso il 2026-10-21) | concetto deciso, nome proposto | config, settings |
+| `multi-object file` | file con più oggetti | File che contiene più `object` dello stesso `kind`, ognuno con la sua `attribute line`; è solo un contenitore, senza significato né ordine (deciso il 2026-10-23) | concetto deciso, nome proposto | bundle, pack |
+| `attribute line` | riga di attributi | Riga fra graffe prima di un `object` in un `multi-object file`, con il cancelletto per l'`id`, il punto per la `class` e chiave=valore per gli altri attributi (deciso il 2026-10-23) | concetto deciso, nome proposto | header line, block attributes |
 | `bundle` | pacchetto | Il documento compresso in un unico zip con `file extension` propria, da scegliere | proposto | package, archive |
 | `part` | livello | Un livello del documento (contenuto, stile, dati, formule, wire, grafici, composizioni, canvas): un gruppo di `kind`, sviluppato per fasi; orientamento: non è né un file né una cartella, gli oggetti stanno insieme e l'`app` li filtra per livello | deciso | layer, level, tier |
 | `source` | sorgente | Il testo dei file del documento, fonte di verità da cui si generano le viste | concetto deciso, nome proposto | code, integration |
@@ -181,6 +183,10 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `recall` | richiamare | Riportare sul `canvas` un oggetto archiviato; è lo stesso oggetto | concetto deciso, nome proposto | restore, copy |
 | `isolate` | vedere da solo | Aprire un oggetto da solo nella sua vista naturale | concetto deciso, nome proposto | focus, zoom |
 | `duplicate` | duplicare | Azione esplicita che crea una copia indipendente | concetto deciso, nome proposto | copy |
+| `create` | creare | `operation` che crea un `object`, con l'`id` ricavato dalle prime parole e modificabile (deciso il 2026-10-23); nella `cli` è il comando create | concetto deciso, nome proposto | new, add |
+| `extract` | estrarre in un oggetto | `operation` che trasforma un blocco scritto direttamente in una `composition` in un `object`, e mette al suo posto l'`embed` (deciso il 2026-10-23) | concetto deciso, nome proposto | split, promote |
+| `rename` | rinominare | `operation` che cambia l'`id` di un `object`, aggiorna i riferimenti e ritira il vecchio `id` con il nuovo come successore | proposto | relabel |
+| `move` | spostare | `operation` che sposta un `object` in un altro file senza cambiarne l'`id` | proposto | relocate |
 | `classify` | classificare | Assegnare un oggetto al suo `shelf` | concetto deciso, nome proposto | sort, tag |
 | `turn into` | promuovere | Trasformare un pezzo in un tipo strutturato, per esempio testo in `collection` o in `chart` | concetto deciso, nome proposto | promote, convert |
 | `revert` | gesto inverso | Riportare un oggetto strutturato a testo libero; da decidere | aperto | demote, downgrade |
