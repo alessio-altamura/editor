@@ -333,7 +333,11 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     Alessio piace che sia diretto e che abbia un legame con il Giappone e i
     manga che chi non li conosce non vede, ma lo «zero» non va imitato.
     Candidati ancora in piedi, non scelti: musubime, planetes, panfolio,
-    fleta; per il mattone seki, musubi, monade.
+    fleta; per il mattone seki, musubi, monade. Il 2026-10-25, sempre nella
+    sessione dei nomi: «Zakuro non mi dispiace», «teniamolo presente»
+    (柘榴, melograno), come nome dell'`app`; orientamento, non decisione.
+    Accanto, per il mattone, la sessione propone tsubu (粒, chicco). Nel
+    report i controlli; marchi UE e italiani non controllati.
   - Numerazione dei capitoli che si ripetono per ricorsione (2026-10-22,
     Alessio, «sì va bene 1, 1.1, 1.1.1»): ogni ripetizione con un title prende
     un numero nuovo, come un capitolo annidato.
