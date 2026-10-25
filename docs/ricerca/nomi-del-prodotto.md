@@ -925,6 +925,23 @@ solo frutto, come i mattoni in un documento. Significati da Wiktionary.
   (il greco moderno ρόδι), **shiliu** (il cinese): presi su npm.
 Una coppia possibile: **Roia** l'app, gli **arilli** i mattoni.
 
+Melograno in giapponese e coreano (richiesta di Alessio):
+- **zakuro** (柘榴, anche 石榴, dal 747): `zakuro` preso su npm (uno
+  strumento per monorepo) e PyPI, e all'USPTO ZAKURO è vivo in classe 9
+  (telecamere, monitor per neonati). Scartato come nome dell'app.
+- **seongnyu** (석류, dal sino-coreano 石榴, con 石 come in seki): libero su
+  npm (anche nelle grafie *seokryu* e *sukryu*), PyPI, crates.io, nessun
+  marchio USPTO. Rischio: la pronuncia, «sòng-niu», non si indovina dalla
+  grafia.
+- **tsubu** (粒, giapponese): chicco, granello, goccia, e il classificatore
+  delle cose minute. È il chicco del melograno, e funziona come parola del
+  mattone: «crea uno tsubu», «gli tsubu». Libero su npm (anche `-cli`),
+  PyPI, crates.io, nessun comando; all'USPTO solo marchi per cibo (natto,
+  caramelle) e giocattoli, nessuno in 9 o 42. Rischio: il gruppo *ts*
+  all'inizio è scomodo in italiano, che lo leggerà «zubu».
+- **algaengi** (알갱이, coreano): chicco, granello, pallino. Libero ovunque,
+  ma lungo e difficile da leggere.
+
 Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
 <https://en.wiktionary.org/wiki/orri>, <https://en.wiktionary.org/wiki/keping>,
 <https://en.wiktionary.org/wiki/lappu>, <https://en.wiktionary.org/wiki/Lapp>,
@@ -989,4 +1006,6 @@ panGraphViewer <https://gitee.com/ych12/panGraphViewer>; anvi'o
 <https://en.wiktionary.org/wiki/grumous>, <https://en.wiktionary.org/wiki/amigurumi>;
 <https://en.wiktionary.org/wiki/%E1%BF%A5%CF%8C%CE%B1>, <https://en.wiktionary.org/wiki/aril>,
 <https://en.wiktionary.org/wiki/arillo>, <https://en.wiktionary.org/wiki/d%C4%81%E1%B8%8Dima>,
-<https://en.wiktionary.org/wiki/Punica>, <https://en.wiktionary.org/wiki/%CF%81%CF%8C%CE%B4%CE%B9>.
+<https://en.wiktionary.org/wiki/Punica>, <https://en.wiktionary.org/wiki/%CF%81%CF%8C%CE%B4%CE%B9>,
+<https://en.wiktionary.org/wiki/%E7%9F%B3%E6%A6%B4>, <https://en.wiktionary.org/wiki/%EC%84%9D%EB%A5%98>,
+<https://en.wiktionary.org/wiki/%E7%B2%92>, <https://en.wiktionary.org/wiki/%EC%95%8C%EA%B0%B1%EC%9D%B4>.
