@@ -902,6 +902,29 @@ scontroso. Ricorda anche *amigurumi*, i pupazzi giapponesi lavorati a
 uncinetto, un legame giapponese gentile ma non verificato come origine del
 nome.
 
+**Il melograno** (proposta di Alessio). L'immagine: tanti chicchi in un
+solo frutto, come i mattoni in un documento. Significati da Wiktionary.
+- **roia**: dal greco antico ῥοιά (attico; anche ῥόα), il melograno, albero
+  e frutto. Libero su npm (anche `-cli`), PyPI, crates.io, nessun comando;
+  all'USPTO due risultati, nessuno vivo in 9 o 42. Due sillabe, «ròia».
+  Rischi: in galiziano è una forma di *roer*, rodere; il legame con il
+  melograno lo vede solo chi sa il greco.
+- **aril** e **arillo**: in botanica il tessuto che avvolge il seme, nel
+  melograno la parte rossa e lucida di ogni chicco; *arillo* in italiano, e
+  in spagnolo anche orecchino o anello. Come parola del mattone: «crea un
+  aril», «gli arilli». `aril` preso su npm (2026), il resto libero;
+  `arillo` libero ovunque; nessun marchio USPTO vivo in 9 o 42.
+- **dadima** (sanscrito *dāḍima*, in pali e nepalese il melograno): libero
+  ovunque, nessun marchio vivo. Rischio: in italiano richiama «dadi».
+- **punica** (*Punica granatum*, il genere del melograno; in latino *punicum
+  malum*, la mela punica): libero su npm, preso su PyPI; in italiano è
+  anche l'aggettivo «punica», cartaginese.
+- Scartati: **granatum** (GRANATUM SOLUTIONS ha un marchio vivo in 42 per
+  programmazione), **zakuro** (il giapponese; preso su npm e PyPI, marchio
+  vivo in classe 9), **anar** (persiano e hindi), **nar** (turco), **rodi**
+  (il greco moderno ρόδι), **shiliu** (il cinese): presi su npm.
+Una coppia possibile: **Roia** l'app, gli **arilli** i mattoni.
+
 Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
 <https://en.wiktionary.org/wiki/orri>, <https://en.wiktionary.org/wiki/keping>,
 <https://en.wiktionary.org/wiki/lappu>, <https://en.wiktionary.org/wiki/Lapp>,
@@ -963,4 +986,7 @@ Pandoc <https://en.wikipedia.org/wiki/Pandoc>; <https://en.wiktionary.org/wiki/p
 panGraphViewer <https://gitee.com/ych12/panGraphViewer>; anvi'o
 <https://anvio.org/help/main/programs/anvi-display-pan-graph/>;
 <https://en.wiktionary.org/wiki/grume>, <https://en.wiktionary.org/wiki/grumo>,
-<https://en.wiktionary.org/wiki/grumous>, <https://en.wiktionary.org/wiki/amigurumi>.
+<https://en.wiktionary.org/wiki/grumous>, <https://en.wiktionary.org/wiki/amigurumi>;
+<https://en.wiktionary.org/wiki/%E1%BF%A5%CF%8C%CE%B1>, <https://en.wiktionary.org/wiki/aril>,
+<https://en.wiktionary.org/wiki/arillo>, <https://en.wiktionary.org/wiki/d%C4%81%E1%B8%8Dima>,
+<https://en.wiktionary.org/wiki/Punica>, <https://en.wiktionary.org/wiki/%CF%81%CF%8C%CE%B4%CE%B9>.
