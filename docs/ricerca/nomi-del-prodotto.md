@@ -941,6 +941,23 @@ Melograno in giapponese e coreano (richiesta di Alessio):
   `zakuro.com` registrato; `zakuro.app` e `zakuro.dev` non trovati;
   `zakuro.io` non controllabile via RDAP. Restano i marchi UE e italiani, e
   il fatto che è un nome giapponese riconoscibile.
+  Forme brevi e vicine (domanda di Alessio, «nomignoli o parole simili
+  tipo Zaku»):
+  - **zaku**: è il nome dello Zaku II, il robot (*mobile suit*) di serie
+    del Principato di Zeon in *Mobile Suit Gundam* (Wikipedia), il più
+    riconoscibile dopo il Gundam stesso; un riferimento nascosto per chi non
+    conosce Gundam, ovvio per chi lo conosce. `zaku` preso su npm, PyPI e
+    crates.io; all'USPTO ZAKU è vivo per tagliaunghie (classi 8 e 35) e per
+    un sake (33), nessuno in 9 o 42; un marchio di Bandai o Sunrise su
+    «Zaku» negli Stati Uniti non risulta dalla ricerca esatta, ma in
+    Giappone e in Europa non l'ho potuto controllare, ed è il rischio
+    maggiore.
+  - **zakuzaku** (ざくざく, onomatopea): lo scricchiolio di un cibo
+    croccante, il tintinnio di molte monete, lo scricchiolio della ghiaia; e
+    tagliare a pezzi grossi. Libero ovunque, un risultato USPTO non vivo.
+    Simpatico come suono, ma lungo e da fumetto.
+  - Un diminutivo giapponese di *zakuro* non l'ho trovato in una fonte
+    primaria.
 - **seongnyu** (석류, dal sino-coreano 石榴, con 石 come in seki): libero su
   npm (anche nelle grafie *seokryu* e *sukryu*), PyPI, crates.io, nessun
   marchio USPTO. Rischio: la pronuncia, «sòng-niu», non si indovina dalla
@@ -1020,4 +1037,6 @@ panGraphViewer <https://gitee.com/ych12/panGraphViewer>; anvi'o
 <https://en.wiktionary.org/wiki/arillo>, <https://en.wiktionary.org/wiki/d%C4%81%E1%B8%8Dima>,
 <https://en.wiktionary.org/wiki/Punica>, <https://en.wiktionary.org/wiki/%CF%81%CF%8C%CE%B4%CE%B9>,
 <https://en.wiktionary.org/wiki/%E7%9F%B3%E6%A6%B4>, <https://en.wiktionary.org/wiki/%EC%84%9D%EB%A5%98>,
-<https://en.wiktionary.org/wiki/%E7%B2%92>, <https://en.wiktionary.org/wiki/%EC%95%8C%EA%B0%B1%EC%9D%B4>.
+<https://en.wiktionary.org/wiki/%E7%B2%92>, <https://en.wiktionary.org/wiki/%EC%95%8C%EA%B0%B1%EC%9D%B4>;
+Zaku <https://en.wikipedia.org/wiki/Zaku>;
+<https://en.wiktionary.org/wiki/%E3%81%96%E3%81%8F%E3%81%96%E3%81%8F>.
