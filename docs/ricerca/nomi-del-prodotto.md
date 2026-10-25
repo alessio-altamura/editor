@@ -893,6 +893,67 @@ lettura sbagliata del criterio e vanno messi da parte. Di ID-Zero conta
 altro: è diretto, e ha un legame con il Giappone e i manga che chi non li
 conosce non vede.
 
+**grumy** (proposta di Alessio, 2026-10-25). Libero su npm (anche
+`-cli`), PyPI, crates.io, nessun comando, nessun marchio USPTO; Wiktionary
+non ha la voce. Il suono però porta con sé: in italiano *grumo* è il coagulo
+(di sangue) e il grumo nell'impasto, plurale «grumi»; in inglese *grume* è
+un coagulo, *grumous* grumoso, e «grumy» si legge quasi come *grumpy*,
+scontroso. Ricorda anche *amigurumi*, i pupazzi giapponesi lavorati a
+uncinetto, un legame giapponese gentile ma non verificato come origine del
+nome.
+
+**Il melograno** (proposta di Alessio). L'immagine: tanti chicchi in un
+solo frutto, come i mattoni in un documento. Significati da Wiktionary.
+- **roia**: dal greco antico ῥοιά (attico; anche ῥόα), il melograno, albero
+  e frutto. Libero su npm (anche `-cli`), PyPI, crates.io, nessun comando;
+  all'USPTO due risultati, nessuno vivo in 9 o 42. Due sillabe, «ròia».
+  Rischi: in galiziano è una forma di *roer*, rodere; il legame con il
+  melograno lo vede solo chi sa il greco.
+- **aril** e **arillo**: in botanica il tessuto che avvolge il seme, nel
+  melograno la parte rossa e lucida di ogni chicco; *arillo* in italiano, e
+  in spagnolo anche orecchino o anello. Come parola del mattone: «crea un
+  aril», «gli arilli». `aril` preso su npm (2026), il resto libero;
+  `arillo` libero ovunque; nessun marchio USPTO vivo in 9 o 42.
+- **dadima** (sanscrito *dāḍima*, in pali e nepalese il melograno): libero
+  ovunque, nessun marchio vivo. Rischio: in italiano richiama «dadi».
+- **punica** (*Punica granatum*, il genere del melograno; in latino *punicum
+  malum*, la mela punica): libero su npm, preso su PyPI; in italiano è
+  anche l'aggettivo «punica», cartaginese.
+- Scartati: **granatum** (GRANATUM SOLUTIONS ha un marchio vivo in 42 per
+  programmazione), **zakuro** (il giapponese; preso su npm e PyPI, marchio
+  vivo in classe 9), **anar** (persiano e hindi), **nar** (turco), **rodi**
+  (il greco moderno ρόδι), **shiliu** (il cinese): presi su npm.
+Una coppia possibile: **Roia** l'app, gli **arilli** i mattoni.
+
+Melograno in giapponese e coreano (richiesta di Alessio):
+- **zakuro** (柘榴, anche 石榴, dal 747): `zakuro` preso su npm (uno
+  strumento per monorepo) e PyPI, e all'USPTO ZAKURO è vivo in classe 9
+  (telecamere, monitor per neonati). Scartato come nome dell'app.
+  **Zakuro tenuto presente da Alessio** (2026-10-25: «Zakuro non mi
+  dispiace», «teniamolo presente»). Controlli più a fondo: su npm `zakuro`
+  è un segnaposto, versione 0.0.1 senza descrizione, del 2024; su PyPI un
+  segnaposto 0.0.0.dev0 senza nome di progetto; `zakuro-cli` libero. Il
+  marchio USPTO vivo, della Shenzhen Xiaodingdang (depositato 2021), copre
+  in classe 9 telecamere, monitor per neonati, cuffie, GPS e simili: nessun
+  software nell'elenco dei prodotti. Gli altri ZAKURO sono morti
+  (cosmetici; ristoranti, 1974). La ricerca web non trova app o software
+  chiamati Zakuro (escono Zakura, ristoranti di Dublino, e ZakApps). Domini:
+  `zakuro.com` registrato; `zakuro.app` e `zakuro.dev` non trovati;
+  `zakuro.io` non controllabile via RDAP. Restano i marchi UE e italiani, e
+  il fatto che è un nome giapponese riconoscibile.
+- **seongnyu** (석류, dal sino-coreano 石榴, con 石 come in seki): libero su
+  npm (anche nelle grafie *seokryu* e *sukryu*), PyPI, crates.io, nessun
+  marchio USPTO. Rischio: la pronuncia, «sòng-niu», non si indovina dalla
+  grafia.
+- **tsubu** (粒, giapponese): chicco, granello, goccia, e il classificatore
+  delle cose minute. È il chicco del melograno, e funziona come parola del
+  mattone: «crea uno tsubu», «gli tsubu». Libero su npm (anche `-cli`),
+  PyPI, crates.io, nessun comando; all'USPTO solo marchi per cibo (natto,
+  caramelle) e giocattoli, nessuno in 9 o 42. Rischio: il gruppo *ts*
+  all'inizio è scomodo in italiano, che lo leggerà «zubu».
+- **algaengi** (알갱이, coreano): chicco, granello, pallino. Libero ovunque,
+  ma lungo e difficile da leggere.
+
 Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
 <https://en.wiktionary.org/wiki/orri>, <https://en.wiktionary.org/wiki/keping>,
 <https://en.wiktionary.org/wiki/lappu>, <https://en.wiktionary.org/wiki/Lapp>,
@@ -952,4 +1013,11 @@ Ribon Musubi <https://dentsu-ho.com/en/articles/8255>;
 Pandoc <https://en.wikipedia.org/wiki/Pandoc>; <https://en.wiktionary.org/wiki/panu>,
 <https://en.wiktionary.org/wiki/pantos>, <https://en.wiktionary.org/wiki/panta_rhei>;
 panGraphViewer <https://gitee.com/ych12/panGraphViewer>; anvi'o
-<https://anvio.org/help/main/programs/anvi-display-pan-graph/>.
+<https://anvio.org/help/main/programs/anvi-display-pan-graph/>;
+<https://en.wiktionary.org/wiki/grume>, <https://en.wiktionary.org/wiki/grumo>,
+<https://en.wiktionary.org/wiki/grumous>, <https://en.wiktionary.org/wiki/amigurumi>;
+<https://en.wiktionary.org/wiki/%E1%BF%A5%CF%8C%CE%B1>, <https://en.wiktionary.org/wiki/aril>,
+<https://en.wiktionary.org/wiki/arillo>, <https://en.wiktionary.org/wiki/d%C4%81%E1%B8%8Dima>,
+<https://en.wiktionary.org/wiki/Punica>, <https://en.wiktionary.org/wiki/%CF%81%CF%8C%CE%B4%CE%B9>,
+<https://en.wiktionary.org/wiki/%E7%9F%B3%E6%A6%B4>, <https://en.wiktionary.org/wiki/%EC%84%9D%EB%A5%98>,
+<https://en.wiktionary.org/wiki/%E7%B2%92>, <https://en.wiktionary.org/wiki/%EC%95%8C%EA%B0%B1%EC%9D%B4>.
