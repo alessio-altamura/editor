@@ -893,6 +893,15 @@ lettura sbagliata del criterio e vanno messi da parte. Di ID-Zero conta
 altro: è diretto, e ha un legame con il Giappone e i manga che chi non li
 conosce non vede.
 
+**grumy** (proposta di Alessio, 2026-10-25). Libero su npm (anche
+`-cli`), PyPI, crates.io, nessun comando, nessun marchio USPTO; Wiktionary
+non ha la voce. Il suono però porta con sé: in italiano *grumo* è il coagulo
+(di sangue) e il grumo nell'impasto, plurale «grumi»; in inglese *grume* è
+un coagulo, *grumous* grumoso, e «grumy» si legge quasi come *grumpy*,
+scontroso. Ricorda anche *amigurumi*, i pupazzi giapponesi lavorati a
+uncinetto, un legame giapponese gentile ma non verificato come origine del
+nome.
+
 Fonti del terzo giro: USPTO <https://tmsearch.uspto.gov/>; Wiktionary
 <https://en.wiktionary.org/wiki/orri>, <https://en.wiktionary.org/wiki/keping>,
 <https://en.wiktionary.org/wiki/lappu>, <https://en.wiktionary.org/wiki/Lapp>,
@@ -952,4 +961,6 @@ Ribon Musubi <https://dentsu-ho.com/en/articles/8255>;
 Pandoc <https://en.wikipedia.org/wiki/Pandoc>; <https://en.wiktionary.org/wiki/panu>,
 <https://en.wiktionary.org/wiki/pantos>, <https://en.wiktionary.org/wiki/panta_rhei>;
 panGraphViewer <https://gitee.com/ych12/panGraphViewer>; anvi'o
-<https://anvio.org/help/main/programs/anvi-display-pan-graph/>.
+<https://anvio.org/help/main/programs/anvi-display-pan-graph/>;
+<https://en.wiktionary.org/wiki/grume>, <https://en.wiktionary.org/wiki/grumo>,
+<https://en.wiktionary.org/wiki/grumous>, <https://en.wiktionary.org/wiki/amigurumi>.
