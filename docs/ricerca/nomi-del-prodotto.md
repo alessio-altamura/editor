@@ -929,6 +929,18 @@ Melograno in giapponese e coreano (richiesta di Alessio):
 - **zakuro** (柘榴, anche 石榴, dal 747): `zakuro` preso su npm (uno
   strumento per monorepo) e PyPI, e all'USPTO ZAKURO è vivo in classe 9
   (telecamere, monitor per neonati). Scartato come nome dell'app.
+  **Zakuro tenuto presente da Alessio** (2026-10-25: «Zakuro non mi
+  dispiace», «teniamolo presente»). Controlli più a fondo: su npm `zakuro`
+  è un segnaposto, versione 0.0.1 senza descrizione, del 2024; su PyPI un
+  segnaposto 0.0.0.dev0 senza nome di progetto; `zakuro-cli` libero. Il
+  marchio USPTO vivo, della Shenzhen Xiaodingdang (depositato 2021), copre
+  in classe 9 telecamere, monitor per neonati, cuffie, GPS e simili: nessun
+  software nell'elenco dei prodotti. Gli altri ZAKURO sono morti
+  (cosmetici; ristoranti, 1974). La ricerca web non trova app o software
+  chiamati Zakuro (escono Zakura, ristoranti di Dublino, e ZakApps). Domini:
+  `zakuro.com` registrato; `zakuro.app` e `zakuro.dev` non trovati;
+  `zakuro.io` non controllabile via RDAP. Restano i marchi UE e italiani, e
+  il fatto che è un nome giapponese riconoscibile.
 - **seongnyu** (석류, dal sino-coreano 石榴, con 石 come in seki): libero su
   npm (anche nelle grafie *seokryu* e *sukryu*), PyPI, crates.io, nessun
   marchio USPTO. Rischio: la pronuncia, «sòng-niu», non si indovina dalla
