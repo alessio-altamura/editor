@@ -958,6 +958,14 @@ Melograno in giapponese e coreano (richiesta di Alessio):
     Simpatico come suono, ma lungo e da fumetto.
   - Un diminutivo giapponese di *zakuro* non l'ho trovato in una fonte
     primaria.
+  Alessio teme che il melograno «sappia troppo di Apple» (in italiano
+  *melo*-grano, in latino *malum granatum*, la mela con i grani). Il granato
+  prende il nome dai chicchi del melograno; in giapponese si chiama
+  **zakuroishi** (柘榴石 o 石榴石, «pietra di melograno», con 石 come in
+  seki) oppure ガーネット, *gānetto*, il prestito dall'inglese; in coreano
+  석류석. `zakuroishi` e `zakuroseki` liberi su npm (anche `-cli`), PyPI,
+  crates.io, nessun marchio USPTO. Cinque sillabe, troppo lungo per un
+  nome, ma unisce zakuro, le pietre preziose e seki.
 - **seongnyu** (석류, dal sino-coreano 石榴, con 石 come in seki): libero su
   npm (anche nelle grafie *seokryu* e *sukryu*), PyPI, crates.io, nessun
   marchio USPTO. Rischio: la pronuncia, «sòng-niu», non si indovina dalla
@@ -1039,4 +1047,5 @@ panGraphViewer <https://gitee.com/ych12/panGraphViewer>; anvi'o
 <https://en.wiktionary.org/wiki/%E7%9F%B3%E6%A6%B4>, <https://en.wiktionary.org/wiki/%EC%84%9D%EB%A5%98>,
 <https://en.wiktionary.org/wiki/%E7%B2%92>, <https://en.wiktionary.org/wiki/%EC%95%8C%EA%B0%B1%EC%9D%B4>;
 Zaku <https://en.wikipedia.org/wiki/Zaku>;
+<https://en.wiktionary.org/wiki/%E7%9F%B3%E6%A6%B4%E7%9F%B3>;
 <https://en.wiktionary.org/wiki/%E3%81%96%E3%81%8F%E3%81%96%E3%81%8F>.
