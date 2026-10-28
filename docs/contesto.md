@@ -337,7 +337,11 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     sessione dei nomi: «Zakuro non mi dispiace», «teniamolo presente»
     (柘榴, melograno), come nome dell'`app`; orientamento, non decisione.
     Accanto, per il mattone, la sessione propone tsubu (粒, chicco). Nel
-    report i controlli; marchi UE e italiani non controllati.
+    report i controlli; marchi UE e italiani non controllati. Il 2026-10-28
+    Alessio propone «zakurogami», poi «o kurogami»: proposte, non scelte.
+    Controlli dell'orchestratore, lo stesso giorno: tutti e due liberi su
+    npm (anche -cli), PyPI e crates.io, nessun comando; una ricerca web non
+    trova software con questi nomi. Marchi non ancora controllati.
   - Numerazione dei capitoli che si ripetono per ricorsione (2026-10-22,
     Alessio, «sì va bene 1, 1.1, 1.1.1»): ogni ripetizione con un title prende
     un numero nuovo, come un capitolo annidato.
