@@ -486,6 +486,14 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     le relazioni dopo, con «fai spazio vicino»; la scheda mostra l'oggetto
     come apparirà, e un clic apre il sorgente nella scheda. L'editing
     grafico sopra l'anteprima viene dopo la vista per pagina, come deciso.
+    Dopo il primo canvas (2026-10-29), sulla lettura «un oggetto sta sul
+    foglio una volta sola», Alessio: «non serve, perché posso ritrascinarlo
+    sul foglio quando voglio». Quindi lo stesso oggetto può avere più
+    schede sul foglio, tutte lo stesso oggetto e non copie: trascinarlo di
+    nuovo aggiunge una scheda, archiviare toglie solo quella scelta, e
+    l'oggetto è sul foglio finché ne resta una. Non commentate le altre due
+    letture (tutto ciò che non è sul foglio conta come archiviato;
+    l'`article` di `compose` va accanto al descrittore del canvas).
     Poi (2026-10-24, Alessio, «ok» sulla strada A): non esiste un Electron
     con il Chromium 141 della stampa, e l'Electron più vicino (39) non è più
     supportato e ha avvisi di sicurezza; quindi un Electron supportato, e la
