@@ -4,7 +4,7 @@ Progetto di un nuovo standard per documenti, fogli di calcolo e presentazioni:
 un solo modello, sorgente testuale diffabile con Git, editor grafico che genera
 lo stesso sorgente, pensato anche per essere letto e modificato da un'AI.
 
-Il nome provvisorio del progetto è Kamii. C'è la bozza dei tipi di nodo,
+Il nome candidato del progetto è Zakurogami, Zakuro nell'uso quotidiano; prima era Kamii, provvisorio. C'è la bozza dei tipi di nodo,
 scritta con Alessio, una bozza di specifica del `core` e della classe 1, i cui
 esempi sono anche i test, e un primo runtime da riga di comando in TypeScript
 che legge la cartella di un documento e scrive il `resolved tree`, o lo esporta

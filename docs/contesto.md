@@ -342,6 +342,15 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     Controlli dell'orchestratore, lo stesso giorno: tutti e due liberi su
     npm (anche -cli), PyPI e crates.io, nessun comando; una ricerca web non
     trova software con questi nomi. Marchi non ancora controllati.
+    Il 2026-10-29 (Alessio, «zakurogami mi piace ma è lungo», poi «A va
+    bene, registralo»): **Zakurogami** è il candidato principale per il nome
+    del prodotto. *-gami* si legge sia carta (紙, come in origami) sia
+    spirito (神, come in shinigami): «carta di melograno», «spirito del
+    melograno»; il melograno è l'attributo di Kishimojin. Per esteso nel
+    marchio, nel logo e nel dominio; nell'uso quotidiano «Zakuro»; il
+    comando sarà `zakuro`, installato dal pacchetto npm `zakurogami`, come
+    Visual Studio Code ha il comando `code`. Prima di renderlo definitivo,
+    e di rinominare `doc-runtime`, vanno controllati i marchi.
   - Numerazione dei capitoli che si ripetono per ricorsione (2026-10-22,
     Alessio, «sì va bene 1, 1.1, 1.1.1»): ogni ripetizione con un title prende
     un numero nuovo, come un capitolo annidato.
