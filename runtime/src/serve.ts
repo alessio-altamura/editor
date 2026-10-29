@@ -13,6 +13,7 @@ import { LiveFolder } from './live.js';
 import type { FileIdentity } from './resolve-tree.js';
 import { escapeHtml, staticExport, type ExportAsset } from './static-export.js';
 import { sortDiagnostics } from './diagnostic.js';
+import { standalonePage, standaloneTree } from './standalone.js';
 import type { Diagnostic, JsonML, ResolvedTree, TreeNode } from './tree.js';
 
 /** The rules of the pages, as an HTTP header: scripts, connections, images and fonts only from the server. */
@@ -25,6 +26,8 @@ const CLIENT = `(() => {
   'use strict';
   const token = new URLSearchParams(location.search).get('token') || '';
   const article = decodeURIComponent(location.pathname.split('/').pop() || '');
+  // The page of one object alone, or of an article.
+  const object = location.pathname.startsWith('/object/');
   window.previewUpdates = 0;
   // The element at the top of the window, to keep the reading position across an update.
   // The first node element that starts inside the window; else the last one across its top edge.
@@ -42,7 +45,7 @@ const CLIENT = `(() => {
     if (show && !banner) {
       const notice = document.createElement('p');
       notice.setAttribute('data-gone', '');
-      notice.textContent = 'Il file di questo article non c\\u2019è più, o non è più un article.';
+      notice.textContent = object ? 'Questo oggetto non c\\u2019è più.' : 'Il file di questo article non c\\u2019è più, o non è più un article.';
       document.body.prepend(notice);
     } else if (!show && banner) banner.remove();
   };
@@ -69,7 +72,7 @@ const CLIENT = `(() => {
     });
   }
   const connect = () => {
-    const socket = new WebSocket('ws://' + location.host + '/ws?token=' + encodeURIComponent(token) + '&article=' + encodeURIComponent(article));
+    const socket = new WebSocket('ws://' + location.host + '/ws?token=' + encodeURIComponent(token) + '&article=' + encodeURIComponent(article) + (object ? '&object=1' : ''));
     socket.onmessage = (event) => {
       const message = JSON.parse(event.data);
       if (message.type === 'gone') return gone(true);
@@ -174,6 +177,17 @@ export function serve(options: ServeOptions): Promise<{ url: string; close: () =
     return [...staticExport(state.tree, id, state.assets, { allowErrors: true, preview })].join('');
   };
 
+  /** The page of one object alone (§11.6): its own resolution, with the buffers of the runtime. */
+  const renderObject = (id: string): string | null => {
+    const standalone = standaloneTree(folder, live.overlay, [id]);
+    return standalonePage(standalone, id, {
+      assetUrl: (path: string) => withToken(`/asset/${path.split('/').map(encodeURIComponent).join('/')}`),
+      fontUrl: (file: string) => withToken(`/font/${encodeURIComponent(file)}`),
+      scriptUrls: [withToken('/morphdom.js'), withToken('/client.js')],
+      diagnostics: state.diagnostics,
+    }, (path) => probe(path, state.listed));
+  };
+
   const index = (): string => {
     const all = state.diagnostics;
     const count = (files: Set<string> | null) => {
@@ -227,6 +241,10 @@ export function serve(options: ServeOptions): Promise<{ url: string; close: () =
       const html = render(path.slice('/article/'.length));
       return html === null ? send(response, 404, 'text/plain; charset=utf-8', 'nessun article con questo id\n') : send(response, 200, 'text/html; charset=utf-8', html);
     }
+    if (path.startsWith('/object/')) {
+      const html = renderObject(path.slice('/object/'.length));
+      return html === null ? send(response, 404, 'text/plain; charset=utf-8', 'nessun oggetto da mostrare da solo con questo id\n') : send(response, 200, 'text/html; charset=utf-8', html);
+    }
     if (path.startsWith('/font/') && fontFiles.has(path.slice('/font/'.length))) {
       return send(response, 200, 'font/woff2', readFileSync(join(fontsFolder, path.slice('/font/'.length))));
     }
@@ -239,7 +257,7 @@ export function serve(options: ServeOptions): Promise<{ url: string; close: () =
   });
 
   const sockets = new WebSocketServer({ noServer: true });
-  const clients = new Map<WebSocket, { article: string; last: string | null }>();
+  const clients = new Map<WebSocket, { article: string; object: boolean; last: string | null }>();
   server.on('upgrade', (request, socket, head) => {
     const url = new URL(request.url ?? '/', 'http://127.0.0.1');
     if (url.pathname !== '/ws' || !hostOk(request) || !tokenOk(url)) {
@@ -247,7 +265,9 @@ export function serve(options: ServeOptions): Promise<{ url: string; close: () =
       return;
     }
     sockets.handleUpgrade(request, socket, head, (ws) => {
-      clients.set(ws, { article: url.searchParams.get('article') ?? '', last: render(url.searchParams.get('article') ?? '') });
+      const article = url.searchParams.get('article') ?? '';
+      const object = url.searchParams.get('object') === '1';
+      clients.set(ws, { article, object, last: object ? renderObject(article) : render(article) });
       ws.on('close', () => clients.delete(ws));
     });
   });
@@ -255,7 +275,7 @@ export function serve(options: ServeOptions): Promise<{ url: string; close: () =
   function update(): void {
     state = derive();
     for (const [ws, client] of clients) {
-      const html = render(client.article);
+      const html = client.object ? renderObject(client.article) : render(client.article);
       if (html === client.last) continue;
       client.last = html;
       ws.send(JSON.stringify(html === null ? { type: 'gone' } : { type: 'page', html }));

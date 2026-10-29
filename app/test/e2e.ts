@@ -1,8 +1,10 @@
-// End to end, with the Electron of playwright-core: the app opens on a test folder,
-// a line typed in the editor reaches the preview, and a click on the preview brings
-// the editor to the line where the element is written; changes not saved are asked
-// about before changing file and before closing. On Linux it runs on the headless
-// platform, without a screen.
+// End to end, with the Electron of the package and playwright-core: the app opens on
+// a test folder, on the canvas; two texts are written with a double click, one is moved,
+// archived and recalled from the navigator, and the two are composed into an article.
+// Then, in the page, a line typed in the editor reaches the preview, and a click on the
+// preview brings the editor to the line where the element is written; changes not saved
+// are asked about before changing file and before closing. On Linux it runs on the
+// headless platform, without a screen.
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -46,6 +48,85 @@ try {
   main.on('console', (message) => message.type() === 'error' && problems.push(`console: ${message.text()}`));
   main.on('pageerror', (error) => problems.push(`page error: ${error.message}`));
   await main.waitForSelector('#shelves button[data-id="nota"]');
+
+  // The canvas, at the opening: empty, the document has no canvas file yet.
+  const box = (await main.locator('#viewport').boundingBox())!;
+  const at = (x: number, y: number) => ({ x: box.x + x, y: box.y + y });
+  const canvasFile = () => JSON.parse(readFileSync(join(folder, 'foglio.canvas'), 'utf8')) as { nodes: Array<{ file: string; subpath?: string; x: number; y: number }> };
+  const nodeOf = (id: string) => canvasFile().nodes.find((n) => n.subpath === `#${id}`);
+  if ((await main.evaluate(() => document.body.dataset.view)) !== 'canvas') problems.push('the app does not open on the canvas');
+  const write = async (x: number, y: number, text: string, id: string) => {
+    await main.mouse.dblclick(at(x, y).x, at(x, y).y);
+    await main.waitForSelector('.card.editing .cm-content');
+    await main.keyboard.type(text);
+    await main.keyboard.press('Escape');
+    await main.waitForSelector(`.card[data-id="${id}"]:not(.editing)`, { timeout: 5000 });
+  };
+  // With the plane moved by 40, 40 at 100%: a double click at 100, 60 of the viewport is 60, 20 of the canvas.
+  await write(100, 60, 'Primo pensiero sul foglio.', 'primo-pensiero-sul-foglio');
+  await write(100, 400, 'Secondo pensiero.', 'secondo-pensiero');
+  const drawn = await main.evaluate(() => document.querySelector('.card[data-id="primo-pensiero-sul-foglio"] .card-body')?.shadowRoot?.textContent ?? '');
+  if (!drawn.includes('Primo pensiero sul foglio.')) problems.push(`the card is not drawn: ${drawn}`);
+  if (nodeOf('primo-pensiero-sul-foglio')?.x !== 60 || nodeOf('primo-pensiero-sul-foglio')?.y !== 20) problems.push(`the first card ${JSON.stringify(nodeOf('primo-pensiero-sul-foglio'))}`);
+
+  // A click opens the source in the card; leaving it saves through the formatter.
+  await main.click('.card[data-id="secondo-pensiero"] .card-body');
+  await main.waitForSelector('.card[data-id="secondo-pensiero"].editing .cm-content');
+  await main.keyboard.press('Control+End');
+  await main.keyboard.type(' Aggiunto.');
+  await main.keyboard.press('Escape');
+  await main.waitForSelector('.card[data-id="secondo-pensiero"]:not(.editing)');
+  if (!readFileSync(join(folder, 'foglio-texts.text.md'), 'utf8').includes('Secondo pensiero. Aggiunto.')) problems.push('the card did not save its source');
+  // A double click opens the object alone in the page; then back to the canvas.
+  await main.dblclick('.card[data-id="secondo-pensiero"] .card-body');
+  await main.waitForFunction(() => window.docAppState?.view === 'page' && window.docAppState.file === 'foglio-texts.text.md', undefined, { timeout: 5000 })
+    .catch(() => problems.push('the double click did not open the page'));
+  for (let i = 0; i < 50 && !app.windows().some((p) => p.url().includes('/object/secondo-pensiero')); i++) await new Promise((r) => setTimeout(r, 100));
+  if (!app.windows().some((p) => p.url().includes('/object/secondo-pensiero'))) problems.push('the preview of the object alone');
+  await main.click('[data-show="canvas"]');
+  await main.waitForSelector('#board .card[data-id="secondo-pensiero"]', { state: 'visible' });
+
+  // Dragged by its head: 500 to the right.
+  await main.mouse.move(at(150, 70).x, at(150, 70).y);
+  await main.mouse.down();
+  await main.mouse.move(at(400, 70).x, at(400, 70).y, { steps: 5 });
+  await main.mouse.move(at(650, 70).x, at(650, 70).y, { steps: 5 });
+  await main.mouse.up();
+  await main.waitForFunction(() => (document.querySelector('.card[data-id="primo-pensiero-sul-foglio"]') as HTMLElement | null)?.style.left === '560px');
+  await new Promise((r) => setTimeout(r, 300));
+  if (nodeOf('primo-pensiero-sul-foglio')?.x !== 560) problems.push(`moved: ${JSON.stringify(nodeOf('primo-pensiero-sul-foglio'))}`);
+
+  // Chosen with shift-click, archived: off the canvas, still in the navigator.
+  await main.click('.card[data-id="primo-pensiero-sul-foglio"] .card-head', { modifiers: ['Shift'] });
+  await main.click('#archive');
+  await main.waitForSelector('.card[data-id="primo-pensiero-sul-foglio"]', { state: 'detached', timeout: 5000 });
+  await main.waitForSelector('#shelves button[data-id="primo-pensiero-sul-foglio"][data-on-canvas="false"]', { timeout: 5000 });
+  if (nodeOf('primo-pensiero-sul-foglio')) problems.push('archived but still in the canvas file');
+
+  // Recalled by dragging it from the navigator onto the canvas: 700, 50 of the viewport is 660, 10.
+  await main.dragAndDrop('#shelves button[data-id="primo-pensiero-sul-foglio"]', '#viewport', { targetPosition: { x: 700, y: 50 } });
+  await main.waitForSelector('.card[data-id="primo-pensiero-sul-foglio"]', { timeout: 5000 });
+  if (nodeOf('primo-pensiero-sul-foglio')?.x !== 660 || nodeOf('primo-pensiero-sul-foglio')?.y !== 10) problems.push(`recalled at ${JSON.stringify(nodeOf('primo-pensiero-sul-foglio'))}`);
+
+  // Both chosen with a band; the order proposed is from the top: the first, then the second; corrected, then composed.
+  await main.mouse.move(at(20, 15).x, at(20, 15).y);
+  await main.mouse.down();
+  await main.mouse.move(at(600, 400).x, at(600, 400).y, { steps: 5 });
+  await main.mouse.move(at(1100, 700).x, at(1100, 700).y, { steps: 5 });
+  await main.mouse.up();
+  await main.click('#sequence-start');
+  await main.waitForSelector('#order li');
+  const proposed = await main.evaluate(() => [...document.querySelectorAll<HTMLElement>('#order li')].map((li) => li.dataset.id));
+  if (JSON.stringify(proposed) !== '["primo-pensiero-sul-foglio","secondo-pensiero"]') problems.push(`the order proposed ${JSON.stringify(proposed)}`);
+  const badge = await main.evaluate(() => document.querySelector('.card[data-id="secondo-pensiero"] .card-order')?.textContent);
+  if (badge !== '2') problems.push(`the number on the card ${badge}`);
+  await main.click('#order li:first-child button[title="Dopo"]');
+  await main.fill('#compose-title', 'Dal foglio');
+  await main.click('#compose');
+  await main.waitForFunction(() => window.docAppState?.view === 'page' && window.docAppState.file === 'dal-foglio.article.md', undefined, { timeout: 5000 })
+    .catch(async () => problems.push(`compose did not open the article: ${JSON.stringify(await main.evaluate(() => ({ ...window.docAppState, text: undefined })))}`));
+  const article = readFileSync(join(folder, 'dal-foglio.article.md'), 'utf8');
+  if (!article.endsWith('---\n![[secondo-pensiero]]\n\n![[primo-pensiero-sul-foglio]]\n') || !article.includes('title: Dal foglio')) problems.push(`the article ${JSON.stringify(article)}`);
   // The preview is a view of its own: find its page among those of the app.
   const preview = async (): Promise<Page> => {
     for (let i = 0; i < 100; i++) {
@@ -96,6 +177,13 @@ try {
 } catch (error) {
   problems.push(String(error).split('\n')[0]!);
   // What the window shows, to see why.
+  if (process.env.E2E_SCREENSHOT) {
+    const main = app.windows().find((p) => p.url().startsWith('file:'));
+    await main?.screenshot({ path: process.env.E2E_SCREENSHOT }).catch(() => undefined);
+    problems.push(`canvas file: ${(() => { try { return readFileSync(join(folder, 'foglio.canvas'), 'utf8').replace(/\s+/g, ' '); } catch (e) { return String(e); } })()}`);
+    problems.push(`notice: ${await main?.evaluate(() => document.getElementById('notice')?.textContent).catch(String)}`);
+    problems.push(`cards: ${JSON.stringify(await main?.evaluate(() => [...document.querySelectorAll<HTMLElement>('.card')].map((c) => `${c.dataset.id}|${c.className}`)).catch(String))}`);
+  }
   for (const page of app.windows()) {
     const seen = await page.evaluate(() => ({ api: typeof (window as unknown as { docApp?: unknown }).docApp, visibility: document.visibilityState, size: [innerWidth, innerHeight], nota: document.querySelector('[data-node="nota"] p')?.getBoundingClientRect().toJSON() ?? null })).catch((e: unknown) => String(e));
     problems.push(`${page.url()}: ${JSON.stringify(seen)}`);
@@ -105,7 +193,7 @@ try {
   rmSync(folder, { recursive: true, force: true });
   rmSync(userData, { recursive: true, force: true });
 }
-if (problems.length === 0) console.log('ok   typing reaches the preview, a click on the preview brings the editor to the line\n\napp end-to-end: all pass');
+if (problems.length === 0) console.log('ok   the canvas: write, move, archive, recall, compose; the page: typing reaches the preview, a click on it brings the editor to the line\n\napp end-to-end: all pass');
 else {
   console.log(`FAIL the app end to end\n  ${problems.join('\n  ')}\n\napp end-to-end: 1 failed`);
   process.exitCode = 1;

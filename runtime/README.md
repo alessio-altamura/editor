@@ -36,6 +36,11 @@ node dist/src/cli.js create <kind> --in <id> [--after <id> | --before <id>] [--t
 node dist/src/cli.js extract <file della composition>
 node dist/src/cli.js rename <id> <nuovo-id>
 node dist/src/cli.js move <id> --to <file>
+node dist/src/cli.js create <kind> --at <x>,<y> [--text "…"] [--id <id>] [--asset <file>]
+node dist/src/cli.js recall <id> [--at <x>,<y>]
+node dist/src/cli.js place <id> --at <x>,<y>
+node dist/src/cli.js archive <id>
+node dist/src/cli.js compose <id>… --title "…" [--id <id>]
 node dist/src/cli.js --help
 ```
 
@@ -213,7 +218,8 @@ non salta. Se l'`article` non c'è più, la pagina lo dice in cima, e lo toglie
 quando torna.
 
 Gli indirizzi: `/` l'indice, con titolo, `id` ed errori e avvisi dei file di
-ogni `article`; `/article/<id>` la `preview`; `/asset/<percorso>` un file
+ogni `article`; `/article/<id>` la `preview`; `/object/<id>` un oggetto da
+solo (sotto); `/asset/<percorso>` un file
 della lista del `runtime`, letto come lo legge l'`export` (niente link
 simbolici, niente `..`, il formato dai primi byte), altrimenti 404;
 `/font/<file>` i font di partenza; `/client.js` e `/morphdom.js` gli script.
@@ -238,6 +244,16 @@ di nodo porta `data-node`, l'`id` dell'oggetto a cui appartiene (per un
 in unità UTF-16, sul file senza BOM. Per un `embed` è la riga `![[id]]`, per
 un titolo la riga `title:`. `resolve-tree --positions` scrive le stesse
 posizioni nel JSON, come `sourcePosition` negli attributi di ogni elemento.
+
+Un oggetto da solo (`src/standalone.ts`): un `article` in memoria, mai
+scritto, include con `![[id]]` gli oggetti chiesti, e una sola risoluzione
+dà il contenuto di ciascuno; ogni `embed` risolto diventa l'unico contenuto
+di un `article` suo, senza titolo e con il foglio di partenza, che il
+renderer dell'`export` scrive come gli altri. `/object/<id>` è questa
+pagina, con lo stesso script e gli aggiornamenti sul WebSocket; le schede
+del `canvas` dell'`app` usano lo stesso HTML, per tutti gli oggetti del
+`canvas` in una risoluzione. Un oggetto che non si può includere (un
+`concept`, un `article`) non ha pagina.
 
 Tempi misurati qui, Node 22, con le `source position`: il documento
 `test/fixtures/export/completo` si ricalcola in 17 ms e la `preview` si
@@ -277,6 +293,21 @@ cartella del documento è quella di `--folder`, o la più vicina con un
 `document file`, risalendo dalla cartella corrente o, per `extract`, da
 quella del file. Una richiesta impossibile (un `id` che non c'è o già
 preso, un file di arrivo di un altro `kind`) esce con 2.
+
+Le operazioni del `canvas` (`src/canvas.ts`, §0.11 e §11.9) scrivono il
+`canvas file`, un JSON Canvas 1.0 con il suo descrittore di `kind`
+`canvas-file`: `create --at` crea un oggetto con il suo nodo (un `text` nel
+file dei testi del `canvas`, `foglio-texts.text.md`), `recall` rimette sul
+`canvas` un oggetto archiviato, `place` sposta un nodo, `archive` lo toglie
+con i suoi archi, `compose` fa un `article` con gli oggetti nell'ordine
+dato. Un oggetto è un nodo `file` con il percorso del suo file, e per un
+oggetto di un `multi-object file` `subpath` `"#<id>"`; `rename` e `move`
+riscrivono i nodi che nominano l'oggetto. Un documento senza `canvas file`
+ne riceve uno alla prima operazione: `foglio.canvas` e
+`foglio.canvas-file.md`. Il `.canvas` si scrive con le tabulazioni, come lo
+scrive Obsidian, e le chiavi che il `runtime` non conosce restano.
+`readingOrder` dà l'ordine di lettura di alcuni nodi, dall'alto in basso e
+poi da sinistra a destra, per l'`app`.
 
 Il language server offre le stesse operazioni sui buffer aperti:
 `textDocument/rename` su un `[[id]]` o `![[id]]` (o sull'oggetto del file) e
@@ -382,8 +413,12 @@ il suffisso `-2`, un `image` con la copia dell'asset, un `concept` rifiutato
 per `embed-kind` senza scrivere niente, un `id` preso o ritirato rifiutato;
 `rename` che aggiorna testo, `embed`, attributi e `associations` ma non il
 codice, e scrive `retired-ids.yaml`; `move` nei due sensi con l'albero
-uguale tranne `file`, e il file svuotato che si cancella; alla fine i file
-sono già canonici. `npm test` lancia infine `test/language-server-suite.ts`, che parla JSON-RPC
+uguale tranne `file`, e il file svuotato che si cancella; le operazioni del
+`canvas`: il `canvas file` creato alla prima, valido secondo JSON Canvas 1.0
+(`id` unici, interi, `subpath` con `#`), un `subpath` che non si risolve,
+`recall` e `place` con e senza `--at`, i nodi che seguono `move` e `rename`,
+`archive`, e `compose` che dà un `article` senza errori nell'ordine dato e
+si rifiuta con un `concept`; alla fine i file sono già canonici. `npm test` lancia infine `test/language-server-suite.ts`, che parla JSON-RPC
 su stdio con il server: `initialize`; un errore in un buffer aperto, con il
 range giusto, e i diagnostic vuoti quando un `didChange` lo corregge; il
 completamento dopo `![[` e `[[`; la definizione, l'hover su un `id` e su una
@@ -415,7 +450,8 @@ Solo il typecheck: `npm run typecheck`.
 - `src/live.ts`: il `runtime` acceso su una cartella, per `serve` e il
   language server.
 - `src/language-server.ts`: il language server.
-- `src/operations.ts`: le operazioni.
+- `src/operations.ts`: le operazioni; `src/canvas.ts`: quelle del `canvas`.
+- `src/standalone.ts`: un oggetto da solo, per `/object/<id>` e le schede.
 - `src/format.ts` e `src/diff.ts`: il formatter e le differenze;
   `src/attribute-line.ts`: la `attribute line` dei `multi-object file`.
 - `fonts/`: i font di partenza e le loro licenze.

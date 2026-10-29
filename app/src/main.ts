@@ -140,6 +140,20 @@ handle('doc:preview', (current, file: string | null) => {
   if (article !== null) void preview?.webContents.loadURL(current.previewUrl(article));
   return article;
 });
+handle('doc:preview-object', (current, id: string) => void preview?.webContents.loadURL(current.objectPreviewUrl(String(id))));
+// The canvas: the cards, the source of one object, and the operations.
+const at = (value: unknown) => {
+  const point = value as { x?: unknown; y?: unknown } | undefined;
+  return point === undefined || point === null ? undefined : { x: Number(point.x), y: Number(point.y) };
+};
+handle('doc:canvas', (current) => current.canvas());
+handle('doc:object-source', (current, id: string) => current.objectSource(String(id)));
+handle('doc:reading-order', (current, ids: string[]) => current.readingOrder(Array.isArray(ids) ? ids.map(String) : []));
+handle('doc:recall', (current, id: string, point: unknown) => current.recall(String(id), at(point)));
+handle('doc:place', (current, id: string, point: unknown) => current.place(String(id), at(point)!));
+handle('doc:archive', (current, id: string) => current.archive(String(id)));
+handle('doc:create-text', (current, point: unknown, text: string) => current.createText(at(point)!, String(text)));
+handle('doc:compose', (current, ids: string[], title: string) => current.compose(Array.isArray(ids) ? ids.map(String) : [], String(title)));
 ipcMain.handle('doc:open-folder', async () => {
   const folder = await chooseFolder(true);
   if (folder !== null) await openFolder(folder);
@@ -149,6 +163,8 @@ ipcMain.on('doc:preview-bounds', (event, bounds: { x: number; y: number; width: 
   if (event.sender !== window?.webContents) return;
   const round = (n: unknown) => Math.max(0, Math.round(Number(n) || 0));
   preview?.setBounds({ x: round(bounds.x), y: round(bounds.y), width: round(bounds.width), height: round(bounds.height) });
+  // On the canvas the column of the preview is gone: so is the view.
+  preview?.setVisible(round(bounds.width) > 0 && round(bounds.height) > 0);
 });
 
 app.whenReady().then(async () => {
@@ -162,7 +178,17 @@ app.whenReady().then(async () => {
       ],
     },
     { role: 'editMenu' as const },
-    { role: 'viewMenu' as const },
+    {
+      label: 'Vista',
+      submenu: [
+        { label: 'Foglio', accelerator: 'CmdOrCtrl+1', click: () => window?.webContents.send('doc:view', 'canvas') },
+        { label: 'Pagina', accelerator: 'CmdOrCtrl+2', click: () => window?.webContents.send('doc:view', 'page') },
+        { type: 'separator' as const },
+        { role: 'reload' as const },
+        { role: 'toggleDevTools' as const },
+        { role: 'togglefullscreen' as const },
+      ],
+    },
   ]));
   ipcMain.on('doc:menu-open', async () => {
     const folder = await chooseFolder(true);

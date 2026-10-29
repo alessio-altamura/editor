@@ -1,4 +1,4 @@
-// The operations suite: create, extract, rename and move through the cli, on a folder
+// The operations suite: create, extract, rename, move and those of the canvas through the cli, on a folder
 // written here. Each runs first with --dry-run, which must write nothing.
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
@@ -138,6 +138,76 @@ try {
     if (JSON.stringify(last?.deleted) !== '["altri.text.md"]' || existsSync(join(folder, 'altri.text.md'))) problems.push(`emptied file: ${JSON.stringify(last)}`);
     if (cli('move', 'nota-breve', '--to', 'nota.concept.md').status !== 2) problems.push('a move to another kind is accepted');
     report('move', problems);
+  }
+
+  // The canvas: create --at, recall, place, archive, compose; the cards follow move and rename.
+  {
+    const problems: string[] = [];
+    type Canvas = { nodes: Array<Record<string, unknown>>; edges: Array<Record<string, unknown>> };
+    const canvas = () => JSON.parse(readFileSync(join(folder, 'foglio.canvas'), 'utf8')) as Canvas;
+    /** The rules of JSON Canvas 1.0 for what the runtime writes: nodes and edges, ids, integers, files. */
+    const invalid = (c: Canvas): string[] => {
+      const out: string[] = [];
+      if (!Array.isArray(c.nodes) || !Array.isArray(c.edges)) return ['nodes or edges is not a list'];
+      const ids = new Set<unknown>();
+      for (const n of c.nodes) {
+        if (typeof n.id !== 'string' || ids.has(n.id)) out.push(`node id ${String(n.id)}`);
+        ids.add(n.id);
+        if (!['text', 'file', 'link', 'group'].includes(String(n.type))) out.push(`node type ${String(n.type)}`);
+        for (const key of ['x', 'y', 'width', 'height']) if (!Number.isInteger(n[key])) out.push(`node ${key} ${String(n[key])}`);
+        if (n.type === 'file' && typeof n.file !== 'string') out.push('file node without file');
+        if (n.subpath !== undefined && !/^#/.test(String(n.subpath))) out.push(`subpath ${String(n.subpath)}`);
+      }
+      for (const e of c.edges) if (typeof e.id !== 'string' || !ids.has(e.fromNode) || !ids.has(e.toNode)) out.push(`edge ${JSON.stringify(e)}`);
+      return out;
+    };
+    const card = (c: Canvas, file: string) => c.nodes.find((n) => n.file === file || `${String(n.file)}${String(n.subpath ?? '')}` === file);
+
+    const made = operate(problems, 'create', 'text', '--at', '40,-20', '--text', 'Un pensiero sul foglio.');
+    const text = String(made?.id);
+    if (JSON.stringify(made?.written) !== '["foglio-texts.text.md","foglio.canvas","foglio.canvas-file.md"]') problems.push(`create --at wrote ${JSON.stringify(made?.written)}`);
+    if (node(tree(), 'foglio')?.kind !== 'canvas-file') problems.push('the descriptor of the canvas');
+    const first = card(canvas(), `foglio-texts.text.md#${text}`);
+    if (first?.x !== 40 || first?.y !== -20) problems.push(`the new card ${JSON.stringify(first)}`);
+    operate(problems, 'recall', 'nota-breve', '--at', '400,-10');
+    if (cli('recall', 'nota-breve').status !== 2) problems.push('recall of a card already on the canvas');
+    operate(problems, 'recall', 'le-vendite-sono-calate');
+    const below = card(canvas(), 'cap-texts.text.md#le-vendite-sono-calate');
+    if (below?.x !== 40 || below?.y !== 270) problems.push(`recall without --at: ${JSON.stringify(below)}`);
+    operate(problems, 'place', 'nota-breve', '--at', '420,0');
+    const placed = card(canvas(), 'nota.text.md');
+    if (placed?.x !== 420 || placed?.y !== 0 || placed?.subpath !== undefined) problems.push(`place ${JSON.stringify(placed)}`);
+    if (cli('place', 'idea', '--at', '0,0').status !== 2) problems.push('place of an object not on the canvas');
+
+    // The cards follow the objects: into a file of their own without subpath, and back.
+    operate(problems, 'move', 'le-vendite-sono-calate', '--to', 'le-vendite-sono-calate.text.md');
+    if (!card(canvas(), 'le-vendite-sono-calate.text.md') || card(canvas(), 'le-vendite-sono-calate.text.md')?.subpath !== undefined) problems.push('the card did not follow move');
+    operate(problems, 'move', 'le-vendite-sono-calate', '--to', 'cap-texts.text.md');
+    operate(problems, 'rename', text, 'pensiero');
+    if (!card(canvas(), 'foglio-texts.text.md#pensiero')) problems.push(`the card did not follow rename: ${JSON.stringify(canvas().nodes)}`);
+    problems.push(...invalid(canvas()));
+    if (errors(tree()).length !== 0) problems.push(`errors: ${JSON.stringify(errors(tree()))}`);
+
+    // A subpath that names no object is canvas-path-unresolved.
+    const good = readFileSync(join(folder, 'foglio.canvas'), 'utf8');
+    writeFileSync(join(folder, 'foglio.canvas'), good.replace('#pensiero', '#nessuno'));
+    if (!errors(tree()).some((d) => d.code === 'canvas-path-unresolved' && d.target === 'foglio-texts.text.md#nessuno')) problems.push('an unresolved subpath');
+    writeFileSync(join(folder, 'foglio.canvas'), good);
+
+    operate(problems, 'archive', 'nota-breve');
+    if (card(canvas(), 'nota.text.md') || !node(tree(), 'nota-breve')) problems.push('archive');
+    if (cli('archive', 'nota-breve').status !== 2) problems.push('archive of an object not on the canvas');
+
+    const composed = operate(problems, 'compose', 'pensiero', 'nota-breve', 'le-vendite-sono-calate', '--title', 'Il foglio in ordine');
+    const article = node(tree(), String(composed?.id));
+    if (article?.kind !== 'article' || article.file !== 'il-foglio-in-ordine.article.md') problems.push(`compose ${JSON.stringify(composed)}`);
+    if (JSON.stringify(embeds(tree(), String(composed?.id))) !== '["pensiero","nota-breve","le-vendite-sono-calate"]') problems.push(`compose order ${JSON.stringify(embeds(tree(), String(composed?.id)))}`);
+    if (article?.attributes?.title !== 'Il foglio in ordine') problems.push('the title of the article');
+    const before = snapshot();
+    if (cli('compose', 'pensiero', 'idea', '--title', 'Con un concetto').status !== 1 || !isDeepStrictEqual(snapshot(), before)) problems.push('compose with a concept is not refused');
+    if (cli('compose', 'pensiero').status !== 2) problems.push('compose without a title');
+    if (errors(tree()).length !== 0) problems.push(`errors after: ${JSON.stringify(errors(tree()))}`);
+    report('canvas', problems);
   }
 
   // Every file written is canonical.

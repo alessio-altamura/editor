@@ -1,4 +1,5 @@
-// The operations (§11.9): create, extract, rename and move. Each computes a plan, the
+// The operations (§11.9): create, extract, rename and move; those of the canvas are in
+// canvas.ts. Each computes a plan, the
 // new text of every file it touches; the plan passes through the formatter, the tree
 // is recomputed with it, and a plan that brings new errors is refused before writing.
 import { idWords } from './id-words.js';
@@ -11,6 +12,7 @@ import { formatText, isFormattable, writeAttributeLine, writeHeader } from './fo
 import { parseYamlMap, splitFrontMatter, type RawValue } from './front-matter.js';
 import { parseMarkdown, resolveTree } from './resolve-tree.js';
 import { ID_FORM, type Diagnostic, type ResolvedTree } from './tree.js';
+import { planCreateOnCanvas, retargetCanvas } from './canvas.js';
 
 /** A problem with the request itself, not with the document: exit 2. */
 export class OperationError extends Error {}
@@ -52,7 +54,7 @@ interface FileObject {
   start: number;
   end: number;
 }
-interface Shape {
+export interface Shape {
   text: string;
   /** Attributes of the front matter, and whether it has YAML comments. */
   header: Array<[string, RawValue]> | null;
@@ -63,7 +65,7 @@ interface Shape {
 }
 
 /** The objects of a text file and where they are, as the runtime reads them (§0.18). */
-function shape(file: string, raw: string): Shape {
+export function shape(file: string, raw: string): Shape {
   const text = normalize(raw);
   const split = splitFrontMatter(text);
   if ('error' in split) throw new OperationError(`${file}: il front matter non si legge`);
@@ -107,15 +109,26 @@ function shape(file: string, raw: string): Shape {
   return { text, header, comments, headerEnd, multi: true, objects };
 }
 
+/** Whether a file of the folder is a multi-object file. */
+export function isMultiObject(workspace: Workspace, file: string): boolean {
+  const text = workspace.read(file);
+  if (text === null) return false;
+  try {
+    return shape(file, text).multi;
+  } catch {
+    return false;
+  }
+}
+
 /** Applies edits to a text, given as offsets; they must not overlap. */
-function splice(text: string, edits: Array<{ start: number; end: number; insert: string }>): string {
+export function splice(text: string, edits: Array<{ start: number; end: number; insert: string }>): string {
   let out = text;
   for (const edit of [...edits].sort((a, b) => b.start - a.start)) out = out.slice(0, edit.start) + edit.insert + out.slice(edit.end);
   return out;
 }
 
 /** The ids taken: live ones and retired ones (§0.3), and those the plan has made. */
-function takenIds(workspace: Workspace, tree: ResolvedTree): Set<string> {
+export function takenIds(workspace: Workspace, tree: ResolvedTree): Set<string> {
   const taken = new Set<string>();
   for (const node of tree.nodes ?? []) if (node.id !== undefined) taken.add(node.id);
   const retired = workspace.read(RETIRED);
@@ -145,7 +158,7 @@ export function textsFileOf(compositionFile: string): string {
 }
 
 /** Adds objects to the texts file of a composition, creating it if it is not there. */
-function appendTexts(workspace: Workspace, plan: Plan, file: string, objects: Array<{ id: string; content: string }>): void {
+export function appendTexts(workspace: Workspace, plan: Plan, file: string, objects: Array<{ id: string; content: string }>): void {
   const current = plan.files.has(file) ? plan.files.get(file)! : workspace.read(file);
   const parts = objects.map(({ id, content }) => `{#${id}}${content === '' ? '' : `\n\n${content}`}`);
   if (current === null) {
@@ -159,7 +172,7 @@ function appendTexts(workspace: Workspace, plan: Plan, file: string, objects: Ar
   plan.files.set(file, `${normalize(current).replace(/\n*$/, '')}\n\n${parts.join('\n\n')}\n`);
 }
 
-function nodeOf(tree: ResolvedTree, id: string) {
+export function nodeOf(tree: ResolvedTree, id: string) {
   const nodes = (tree.nodes ?? []).filter((node) => node.id === id);
   if (nodes.length === 0) throw new OperationError(`nessun oggetto con id ${id}`);
   if (nodes.length > 1) throw new OperationError(`l'id ${id} è di più oggetti`);
@@ -177,7 +190,9 @@ function objectIn(workspace: Workspace, file: string, id: string): { shape: Shap
 
 export interface CreateRequest {
   kind: string;
-  into: string;
+  /** The composition that gets the embed; or `at`, a place on the canvas. */
+  into?: string;
+  at?: { x: number; y: number };
   after?: string;
   before?: string;
   text?: string;
@@ -186,25 +201,28 @@ export interface CreateRequest {
   asset?: string;
 }
 
-/** `create`: the object, and its embed in the composition. */
-export function planCreate(workspace: Workspace, tree: ResolvedTree, request: CreateRequest): Plan {
-  const composition = nodeOf(tree, request.into);
-  if (!COMPOSITIONS.has(composition.kind)) throw new OperationError(`${request.into} non è un chapter né un article`);
+/** The id of a new object: the one asked, or one from the first words. */
+export function newId(workspace: Workspace, tree: ResolvedTree, request: CreateRequest): string {
   if (!/^[a-z][a-z0-9-]*$/.test(request.kind)) throw new OperationError(`kind non valido: ${request.kind}`);
   const taken = takenIds(workspace, tree);
-  const text = (request.text ?? '').trim();
-  let id: string;
   if (request.id !== undefined) {
     if (!ID_FORM.test(request.id)) throw new OperationError(`l'id ${request.id} non ha la forma di un id`);
     if (taken.has(request.id)) throw new OperationError(`l'id ${request.id} c'è già, vivo o ritirato`);
-    id = request.id;
-  } else {
-    id = idFromWords(text || (request.asset ? basename(request.asset).replace(/\.[^.]*$/, '') : ''), taken, request.kind);
+    return request.id;
   }
+  const text = (request.text ?? '').trim();
+  return idFromWords(text || (request.asset ? basename(request.asset).replace(/\.[^.]*$/, '') : ''), taken, request.kind);
+}
+
+/** `create`: the object, and its embed in the composition; with `at`, its card on the canvas. */
+export function planCreate(workspace: Workspace, tree: ResolvedTree, request: CreateRequest): Plan {
+  if (request.at !== undefined) return planCreateOnCanvas(workspace, tree, request);
+  if (request.into === undefined) throw new OperationError('create vuole --in <id> o --at <x>,<y>');
+  const composition = nodeOf(tree, request.into);
+  if (!COMPOSITIONS.has(composition.kind)) throw new OperationError(`${request.into} non è un chapter né un article`);
+  const id = newId(workspace, tree, request);
   const plan: Plan = { operation: 'create', files: new Map(), copies: [], summary: { id, kind: request.kind, in: request.into } };
   const { shape: compositionShape, object } = objectIn(workspace, composition.file, request.into);
-  const folderOf = posix.dirname(composition.file);
-  const at = (name: string) => (folderOf === '.' ? name : `${folderOf}/${name}`);
 
   // The embed: after or before another embed of the composition, or at its end.
   const embed = `![[${id}]]`;
@@ -219,9 +237,21 @@ export function planCreate(workspace: Workspace, tree: ResolvedTree, request: Cr
     edit = { start: end, end, insert: `\n\n${embed}\n` };
   }
   plan.files.set(composition.file, splice(compositionShape.text, [edit]));
+  addObject(workspace, plan, composition.file, request, id);
+  return plan;
+}
 
+/**
+ * The object of a create, next to `beside`, the file of its composition or of the
+ * canvas: a text in the texts file, an image copied there with its descriptor, any
+ * other kind in a file of its own.
+ */
+export function addObject(workspace: Workspace, plan: Plan, beside: string, request: CreateRequest, id: string): void {
+  const text = (request.text ?? '').trim();
+  const folderOf = posix.dirname(beside);
+  const at = (name: string) => (folderOf === '.' ? name : `${folderOf}/${name}`);
   if (request.kind === 'text') {
-    const file = textsFileOf(composition.file);
+    const file = textsFileOf(beside);
     appendTexts(workspace, plan, file, [{ id, content: text }]);
     plan.summary.file = file;
   } else if (request.kind === 'image') {
@@ -246,7 +276,6 @@ export function planCreate(workspace: Workspace, tree: ResolvedTree, request: Cr
     plan.files.set(file, `---\nid: ${id}\nkind: ${request.kind}${title}\n---\n${request.kind === 'chapter' ? '' : text}\n`);
     plan.summary.file = file;
   }
-  return plan;
 }
 
 /** `extract`: every block written in a composition becomes a text, with its embed in its place, in order. */
@@ -367,6 +396,9 @@ export function planRename(workspace: Workspace, tree: ResolvedTree, from: strin
   }
   lines.push(`${from}: ${to}`);
   plan.files.set(RETIRED, `${lines.join('\n')}\n`);
+  // A card of the object in a multi-object file names it in its subpath.
+  const multi = isMultiObject(workspace, node.file);
+  retargetCanvas(workspace, tree, plan, from, { file: node.file, multi }, { file: node.file, multi }, to);
   plan.summary.files = [...plan.files.keys()].sort();
   return plan;
 }
@@ -415,6 +447,9 @@ export function planMove(workspace: Workspace, tree: ResolvedTree, id: string, t
   } else {
     plan.files.set(target, `---\nkind: ${node.kind}\n---\n${entry}\n`);
   }
+  // The card of the object follows it: a file of its own without subpath, a multi-object file with one.
+  const ownTarget = existing === null && posix.basename(target).startsWith(`${id}.`);
+  retargetCanvas(workspace, tree, plan, id, { file: node.file, multi: source.multi }, { file: target, multi: !ownTarget }, id);
   return plan;
 }
 

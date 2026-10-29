@@ -784,6 +784,36 @@ in più, aperto e risalvato in Obsidian. Che per il momento restino i percorsi
 percorso del `canvas file` che non si risolve è l'errore
 `canvas-path-unresolved`.
 
+*(proposte)* Come il `runtime` scrive i nodi del `canvas`, per il primo
+passo del `canvas` [C: «Il canvas»]:
+- **Un oggetto, un nodo `file`.** Il nodo nomina il file dell'oggetto, con
+  il percorso dalla radice del documento. Per un oggetto di un
+  `multi-object file` il nodo porta anche `subpath` `"#<id>"`: JSON Canvas
+  definisce `subpath` come una stringa che comincia con `#` e porta a una
+  parte del file ([spec 1.0](https://jsoncanvas.org/spec/1.0/)), e qui la
+  parte è l'oggetto. Un nodo senza `subpath` su un file con un oggetto solo
+  è quell'oggetto. Un `subpath` che non nomina un oggetto di quel file è
+  `canvas-path-unresolved`, con `target` il percorso seguito dal
+  `subpath`. È ancora un riferimento per percorso, non per `id` (§2):
+  `rename` e `move` riscrivono i nodi che nominano l'oggetto.
+- **Un oggetto sta sul `canvas` una volta sola**: è lo stesso oggetto, non
+  una copia [C: «L'oggetto richiamato sul foglio è lo stesso oggetto»]. Un
+  oggetto senza nodo è archiviato, e resta nel `navigator` [C: «Il foglio
+  bianco è un foglio di bozze»].
+- **Il nodo** ha le chiavi di JSON Canvas 1.0 nell'ordine `id`, `type`,
+  `file`, `subpath`, `x`, `y`, `width`, `height`; `id` è di 16 cifre
+  esadecimali casuali, come le scrive Obsidian; posizione e misure sono
+  interi; una scheda nuova è larga 360 e alta 240. Il file si scrive in
+  JSON con le tabulazioni, e le chiavi che il `runtime` non conosce, nei
+  nodi, negli archi e in cima, restano come sono.
+- **Un `canvas` per documento**, per ora. Un documento senza `canvas file`
+  ne riceve uno alla prima operazione del `canvas`: `foglio.canvas` e il
+  suo descrittore `foglio.canvas-file.md`, con `id` `foglio` (o `foglio-2`
+  se `foglio` è preso). Con più di un `canvas file` le operazioni del
+  `canvas` si rifiutano.
+- **Il `document file` e il `canvas file`** non hanno nodo: non sono
+  oggetti da mettere sul `canvas`.
+
 ### 0.12 Deciso: `tags`
 
 `tags` è sempre presente, ma la lista vuota è ammessa [C: «Sulla bozza di specifica»]; è sempre scritto,
@@ -3197,6 +3227,13 @@ dell'`export` sarà usato anche come anteprima»]:
   appartiene (per un `embed`, quello dell'oggetto incluso), e `data-source`,
   la sua `source position`.
 
+*(proposta)* Un oggetto si vede anche da solo, all'indirizzo
+`/object/<id>`: la stessa `preview`, come se l'oggetto fosse l'unico
+`embed` di un `article` senza titolo e con il foglio di partenza, che non
+si scrive su disco. È la vista di un oggetto aperto da solo nell'`app`, e
+le schede del `canvas` usano lo stesso HTML. Un oggetto che non si può
+includere (un `concept`, un `article`) non ha questa pagina: 404.
+
 La `source position` di un nodo è il file, la riga e la colonna di inizio e
 di fine del punto in cui è scritto, contate come in LSP: righe da 0,
 colonne in unità UTF-16, su un file letto senza BOM. Viene dal Markdown;
@@ -3268,7 +3305,8 @@ con un messaggio. Due passaggi danno lo stesso risultato di uno.
 
 ### 11.9 Le operazioni *(proposta)*
 
-Il `runtime` scrive i file con quattro operazioni, comandi della `cli` e,
+Il `runtime` scrive i file con quattro operazioni, e con quelle del
+`canvas` in fondo a questa sezione *(proposta)*, comandi della `cli` e,
 per `rename` ed `extract`, del language server [C: «Sulla bozza di
 specifica»]. Ogni operazione passa i file che tocca dal `formatter`
 (§11.8), ricalcola l'albero, e se l'operazione porta errori nuovi non
@@ -3309,6 +3347,34 @@ la più vicina, risalendo, con un `document file`, o quella di `--folder`.
   resta senza oggetti si cancella, uno che non c'è si crea, come file suo se
   il nome comincia con l'`id`, altrimenti come `multi-object file`.
   L'estensione del file di arrivo deve avere il `kind` dell'oggetto.
+
+*(proposte)* Le operazioni del `canvas`, per il primo passo [C: «Il
+canvas»]. Scrivono il `canvas file` come dice il §0.11, e valgono le
+stesse regole: `formatter`, nessun errore nuovo, `--dry-run`, riassunto
+JSON. Le posizioni sono nelle coordinate di JSON Canvas, interi.
+- `create <kind> --at <x>,<y> [--text "…"] [--id <id>] [--asset <file>]`
+  crea un oggetto con il suo nodo in quel punto, senza `embed`. Un `text`
+  va nel `multi-object file` dei testi del `canvas`, accanto al suo
+  descrittore, con la stessa regola delle `composition`:
+  `foglio-texts.text.md` per `foglio.canvas-file.md`. Un `image` e gli
+  altri `kind` come con `--in`.
+- `recall <id> [--at <x>,<y>]` rimette sul `canvas` un oggetto archiviato
+  [C: «Il foglio bianco è un foglio di bozze»]; senza `--at` sotto tutti
+  gli altri, a 40 di distanza, allineato al più a sinistra. Un oggetto mai
+  stato sul `canvas` è archiviato come gli altri, e `recall` lo mette per
+  la prima volta. Un oggetto che ha già un nodo si rifiuta: si sposta con
+  `place`.
+- `place <id> --at <x>,<y>` sposta il nodo di un oggetto.
+- `archive <id>` toglie il nodo dell'oggetto, e gli archi che lo toccano;
+  l'oggetto e i suoi file restano.
+- `compose <id>… --title "…" [--id <id>]` fa un `article` con quel titolo
+  e gli `embed` degli oggetti nell'ordine dato, accanto al descrittore del
+  `canvas`, con l'`id` dalle prime parole del titolo; i nodi restano sul
+  `canvas`. Un oggetto che non si può includere (un `concept`, un
+  `article`) porta `embed-kind`, quindi `compose` si rifiuta. L'ordine lo
+  sceglie chi chiama; l'`app` propone l'ordine di lettura dei nodi: dall'alto
+  in basso, poi da sinistra a destra, e un nodo il cui bordo alto sta entro
+  metà dell'altezza del primo nodo di una riga è in quella riga.
 
 ## Appendice A. Classi successive (non normativa)
 

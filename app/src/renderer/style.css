@@ -1,17 +1,45 @@
-/* The theme of the system: light or dark, with the same three columns. */
-:root { color-scheme: light dark; --line: #d0d0d0; --muted: #666666; --hover: #eef2f7; --accent: #1a4f8b; }
-@media (prefers-color-scheme: dark) { :root { --line: #3a3a3a; --muted: #a0a0a0; --hover: #2a2f36; --accent: #8ab4f8; } }
+/* The theme of the system: light or dark. Two views: the canvas, or the source and the preview. */
+:root { color-scheme: light dark; --line: #d0d0d0; --muted: #666666; --hover: #eef2f7; --accent: #1a4f8b; --plane: #f4f4f2; --card: #ffffff; }
+@media (prefers-color-scheme: dark) { :root { --line: #3a3a3a; --muted: #a0a0a0; --hover: #2a2f36; --accent: #8ab4f8; --plane: #181818; --card: #1e1e1e; } }
 html, body { margin: 0; height: 100%; font-family: system-ui, sans-serif; font-size: 13px; }
 body { display: grid; grid-template-columns: 260px minmax(0, 1fr) minmax(0, 1fr); }
+body[data-view="canvas"] #source, body[data-view="canvas"] #preview { display: none; }
+body[data-view="page"] #board { display: none; }
 #navigator { border-right: 1px solid var(--line); overflow: auto; padding: 8px; }
 #search { width: 100%; box-sizing: border-box; margin-bottom: 8px; }
 .shelf h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 12px 0 4px; }
 .shelf button { display: block; width: 100%; text-align: left; border: 0; background: none; color: inherit; padding: 3px 4px; border-radius: 3px; font: inherit; cursor: pointer; }
 .shelf button:hover, .shelf button[aria-current="true"] { background: var(--hover); }
+.shelf button[data-on-canvas="true"]::before { content: "●"; color: var(--accent); font-size: 8px; margin-right: 4px; vertical-align: middle; }
 .shelf .id { color: var(--muted); font-size: 11px; display: block; }
+.bar { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-bottom: 1px solid var(--line); color: var(--muted); }
 #source { display: flex; flex-direction: column; min-width: 0; border-right: 1px solid var(--line); }
-#bar { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-bottom: 1px solid var(--line); color: var(--muted); }
-#bar button { margin-left: auto; }
+#extract { margin-left: auto; }
 #editor { flex: 1; min-height: 0; }
 #editor .cm-editor { height: 100%; }
 #preview { min-width: 0; }
+#board { grid-column: 2 / 4; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+#notice { color: #b3261e; }
+#zoom { margin-left: auto; font-variant-numeric: tabular-nums; }
+#viewport { position: relative; flex: 1; overflow: hidden; background: var(--plane); touch-action: none; cursor: default; }
+#plane { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+#band { position: absolute; border: 1px solid var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); pointer-events: none; }
+#empty { position: absolute; inset: 40% 0 auto; text-align: center; color: var(--muted); pointer-events: none; }
+.card { position: absolute; display: flex; flex-direction: column; box-sizing: border-box; background: var(--card); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 1px 3px rgb(0 0 0 / 0.12); overflow: hidden; }
+.card.selected { outline: 2px solid var(--accent); }
+.card.dragging { opacity: 0.85; z-index: 5; }
+.card.editing { z-index: 10; height: auto !important; min-height: 240px; max-height: 600px; }
+.card-head { display: flex; gap: 6px; padding: 4px 8px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; cursor: grab; }
+.card-head .id { margin-left: auto; }
+.card-body { flex: 1; min-height: 0; overflow: hidden; }
+.card.editing .card-body { display: none; }
+.card-editor { flex: 1; min-height: 0; overflow: auto; }
+.card-editor .cm-editor { min-height: 200px; }
+.card-order { position: absolute; bottom: 6px; right: 6px; min-width: 22px; height: 22px; border-radius: 11px; background: var(--accent); color: var(--card); font-weight: 700; text-align: center; line-height: 22px; }
+#sequence { position: absolute; top: 12px; right: 12px; width: 280px; padding: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 2px 8px rgb(0 0 0 / 0.2); }
+#sequence h2 { font-size: 13px; margin: 0 0 8px; }
+#order { padding-left: 22px; margin: 0 0 8px; }
+#order li { margin: 2px 0; }
+#order li span { display: inline-block; width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+#compose-title { width: 100%; box-sizing: border-box; margin-bottom: 8px; }
+#sequence .actions { display: flex; gap: 8px; }

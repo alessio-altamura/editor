@@ -15,6 +15,7 @@ import { serve } from './serve.js';
 import { formatFolder } from './format.js';
 import { unifiedDiff } from './diff.js';
 import { diskWorkspace, evaluate, OperationError, planCreate, planExtract, planMove, planRename, write, type Plan, type Workspace } from './operations.js';
+import { planArchive, planCompose, planPlace, planRecall } from './canvas.js';
 import type { ResolvedTree } from './tree.js';
 import { baseFontFace, staticExport, staticExportSize, type ExportAsset } from './static-export.js';
 import type { JsonML } from './tree.js';
@@ -62,16 +63,24 @@ Uso:
                                          con 1 se qualcosa cambierebbe; --diff stampa
                                          le differenze senza scrivere
   ${BINARY_NAME} create <kind> --in <id> [--after <id> | --before <id>] [--text "…"] [--id <id>] [--asset <file>]
+  ${BINARY_NAME} create <kind> --at <x>,<y> [--text "…"] [--id <id>] [--asset <file>]
   ${BINARY_NAME} extract <file della composition>
   ${BINARY_NAME} rename <id> <nuovo-id>
   ${BINARY_NAME} move <id> --to <file>
+  ${BINARY_NAME} recall <id> [--at <x>,<y>]
+  ${BINARY_NAME} place <id> --at <x>,<y>
+  ${BINARY_NAME} archive <id>
+  ${BINARY_NAME} compose <id>… --title "…" [--id <id>]
                                          le operazioni: scrivono i file, passati dal
                                          formatter, solo se non portano errori nuovi;
                                          stampano un riassunto JSON; con --dry-run
                                          non scrivono e mettono le differenze nel
                                          riassunto; --folder dice la cartella del
                                          documento, altrimenti la più vicina con un
-                                         document file
+                                         document file. create --at, recall, place e
+                                         archive scrivono il canvas file (un documento
+                                         senza ne riceve uno, foglio.canvas); compose
+                                         fa un article con gli oggetti nell'ordine dato
   ${BINARY_NAME} --help                    questo aiuto
   ${BINARY_NAME} --version                 la spec-version che il runtime implementa
 
@@ -112,7 +121,7 @@ function main(args: string[]): number | Promise<number> {
   if (args[0] === 'print') return exportCommand(args.slice(1), 'print');
   if (args[0] === 'serve') return serveCommand(args.slice(1));
   if (args[0] === 'format') return formatCommand(args.slice(1));
-  if (['create', 'extract', 'rename', 'move'].includes(args[0]!)) return operationCommand(args[0]!, args.slice(1));
+  if (['create', 'extract', 'rename', 'move', 'recall', 'place', 'archive', 'compose'].includes(args[0]!)) return operationCommand(args[0]!, args.slice(1));
   if (args[0] === 'language-server') {
     // LSP on stdin and stdout; --stdio, which clients add, changes nothing. It ends with the client's exit.
     if (args.slice(1).some((arg) => arg !== '--stdio')) return usage(`uso: ${BINARY_NAME} language-server`);
@@ -195,18 +204,22 @@ function documentFolderFrom(start: string): string | null {
   }
 }
 
-/** create, extract, rename, move (§11.9): a plan, checked, then written; --dry-run only prints it. */
+/** The operations (§11.9): a plan, checked, then written; --dry-run only prints it. */
 function operationCommand(command: string, args: string[]): number {
   const syntax: Record<string, string> = {
-    create: `${BINARY_NAME} create <kind> --in <id> [--after <id> | --before <id>] [--text "…"] [--id <id>] [--asset <file>]`,
+    create: `${BINARY_NAME} create <kind> (--in <id> [--after <id> | --before <id>] | --at <x>,<y>) [--text "…"] [--id <id>] [--asset <file>]`,
     extract: `${BINARY_NAME} extract <file della composition>`,
     rename: `${BINARY_NAME} rename <id> <nuovo-id>`,
     move: `${BINARY_NAME} move <id> --to <file>`,
+    recall: `${BINARY_NAME} recall <id> [--at <x>,<y>]`,
+    place: `${BINARY_NAME} place <id> --at <x>,<y>`,
+    archive: `${BINARY_NAME} archive <id>`,
+    compose: `${BINARY_NAME} compose <id>… --title "…" [--id <id>]`,
   };
   const options = new Map<string, string>();
   const positional: string[] = [];
   let dryRun = false;
-  const valued = ['--in', '--after', '--before', '--text', '--id', '--asset', '--to', '--folder'];
+  const valued = ['--in', '--after', '--before', '--text', '--id', '--asset', '--to', '--folder', '--at', '--title'];
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;
     if (arg === '--dry-run') dryRun = true;
@@ -217,8 +230,15 @@ function operationCommand(command: string, args: string[]): number {
     } else if (arg.startsWith('--')) return usage(`uso: ${syntax[command]} [--dry-run] [--folder <cartella>]`);
     else positional.push(arg);
   }
-  const wanted = { create: 1, extract: 1, rename: 2, move: 1 }[command as 'create'];
+  const wanted = { create: 1, extract: 1, rename: 2, move: 1, recall: 1, place: 1, archive: 1, compose: positional.length }[command as 'create'];
   if (positional.length !== wanted || (options.has('--after') && options.has('--before'))) return usage(`uso: ${syntax[command]} [--dry-run] [--folder <cartella>]`);
+  // A place on the canvas: two integers, x and y, as JSON Canvas writes them.
+  let at: { x: number; y: number } | undefined;
+  if (options.has('--at')) {
+    const match = /^(-?\d+),(-?\d+)$/.exec(options.get('--at')!);
+    if (!match) return usage(`--at vuole <x>,<y>, due interi: ${options.get('--at')}`);
+    at = { x: Number(match[1]), y: Number(match[2]) };
+  }
   // The folder: --folder, else the nearest with a document file, from the file of extract or from here.
   const folder = options.get('--folder') ?? documentFolderFrom(command === 'extract' ? dirname(resolvePath(positional[0]!)) : process.cwd());
   if (folder === null) return usage('non trovo la cartella del documento: dilla con --folder <cartella>');
@@ -228,10 +248,11 @@ function operationCommand(command: string, args: string[]): number {
   let plan: Plan;
   try {
     if (command === 'create') {
-      if (!options.has('--in')) return usage(`uso: ${syntax.create}`);
+      if (options.has('--in') === (at !== undefined)) return usage(`uso: ${syntax.create}`);
       plan = planCreate(workspace, tree, {
         kind: positional[0]!,
-        into: options.get('--in')!,
+        ...(options.has('--in') ? { into: options.get('--in')! } : {}),
+        ...(at !== undefined ? { at } : {}),
         ...(options.has('--after') ? { after: options.get('--after')! } : {}),
         ...(options.has('--before') ? { before: options.get('--before')! } : {}),
         ...(options.has('--text') ? { text: options.get('--text')! } : {}),
@@ -242,7 +263,15 @@ function operationCommand(command: string, args: string[]): number {
       const file = relative(resolvePath(folder), resolvePath(positional[0]!)).split(sep).join('/');
       plan = planExtract(workspace, tree, file);
     } else if (command === 'rename') plan = planRename(workspace, tree, positional[0]!, positional[1]!);
-    else {
+    else if (command === 'recall') plan = planRecall(workspace, tree, positional[0]!, at);
+    else if (command === 'place') {
+      if (at === undefined) return usage(`uso: ${syntax.place}`);
+      plan = planPlace(workspace, tree, positional[0]!, at);
+    } else if (command === 'archive') plan = planArchive(workspace, tree, positional[0]!);
+    else if (command === 'compose') {
+      if (!options.has('--title') || positional.length === 0) return usage(`uso: ${syntax.compose}`);
+      plan = planCompose(workspace, tree, { ids: positional, title: options.get('--title')!, ...(options.has('--id') ? { id: options.get('--id')! } : {}) });
+    } else {
       if (!options.has('--to')) return usage(`uso: ${syntax.move}`);
       plan = planMove(workspace, tree, positional[0]!, options.get('--to')!);
     }

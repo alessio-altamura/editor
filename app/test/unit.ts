@@ -106,6 +106,39 @@ try {
     if (session.diagnostics('cap.chapter.md').length !== 0) problems.push('composition-content stays');
     check('save through the formatter, and «Estrai in un oggetto»', problems);
   }
+  {
+    // The canvas: a text created where it was double-clicked, the card drawn as it will appear, moved, archived, recalled, composed.
+    const problems: string[] = [];
+    if (session.canvas().canvas !== null) problems.push('a canvas before the first operation');
+    const made = session.createText({ x: 100, y: 80 }, 'Un pensiero sul foglio.');
+    const id = String(made.summary?.id);
+    if (made.error || id !== 'un-pensiero-sul-foglio') problems.push(`createText ${JSON.stringify(made)}`);
+    session.recall('nota', { x: 600, y: 60 });
+    const { canvas, cards } = session.canvas();
+    const card = cards.find((c) => c.id === id);
+    if (canvas !== 'foglio.canvas' || card?.x !== 100 || card.kind !== 'text') problems.push(`canvas ${JSON.stringify({ canvas, cards: cards.map(({ html: _html, ...rest }) => rest) })}`);
+    if (!card?.html?.includes('Un pensiero sul foglio.') || !card.html.includes('data-kind="text"')) problems.push('the card is not drawn by the renderer');
+    if (!cards.find((c) => c.id === 'nota')?.html?.includes('data-math-line')) problems.push('the math line of nota');
+    const source = session.objectSource(id);
+    if (source.file !== 'foglio-texts.text.md' || source.text !== `{#${id}}\n\nUn pensiero sul foglio.` || !source.before.startsWith('---\nkind: text')) problems.push(`objectSource ${JSON.stringify(source)}`);
+    if (session.objectSource('nota').before !== '' || session.objectSource('nota').text !== session.read('nota.text.md')) problems.push('objectSource of a file of its own');
+    if (JSON.stringify(session.readingOrder(['nota', id])) !== JSON.stringify([id, 'nota'])) problems.push(`readingOrder ${JSON.stringify(session.readingOrder(['nota', id]))}`);
+    session.place(id, { x: 700, y: 400 });
+    if (JSON.stringify(session.readingOrder(['nota', id])) !== JSON.stringify(['nota', id])) problems.push('readingOrder after place');
+    session.archive('nota');
+    if (session.canvas().cards.some((c) => c.id === 'nota')) problems.push('archive');
+    const shelf = session.navigator().find((s) => s.kind === 'text')?.items ?? [];
+    if (shelf.find((i) => i.id === 'nota')?.onCanvas !== false || shelf.find((i) => i.id === id)?.onCanvas !== true) problems.push(`navigator onCanvas ${JSON.stringify(shelf)}`);
+    if (!session.archive('nota').error) problems.push('archive twice');
+    session.recall('nota', { x: 0, y: 0 });
+    const composed = session.compose([id, 'nota'], 'Dal foglio');
+    if (composed.error || composed.summary?.file !== 'dal-foglio.article.md') problems.push(`compose ${JSON.stringify(composed)}`);
+    if (readFileSync(join(folder, 'dal-foglio.article.md'), 'utf8') !== `---\nid: dal-foglio\nkind: article\ntags: []\ntitle: Dal foglio\n---\n![[${id}]]\n\n![[nota]]\n`) problems.push('the article composed');
+    if (!session.compose(['idea'], 'Con un concetto').error) problems.push('compose of a concept');
+    const page = await fetch(session.objectPreviewUrl(id));
+    if (page.status !== 200 || !(await page.text()).includes('Un pensiero sul foglio.')) problems.push(`the preview of the object alone: ${page.status}`);
+    check('the canvas: create, cards, source of an object, place, archive, recall, reading order, compose', problems);
+  }
 } finally {
   await session.close();
   rmSync(folder, { recursive: true, force: true });
