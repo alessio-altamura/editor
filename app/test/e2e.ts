@@ -1,6 +1,7 @@
 // End to end, with the Electron of the package and playwright-core: the app opens on
 // a test folder, on the canvas; two texts are written with a double click, one is moved,
-// archived and recalled from the navigator, and the two are composed into an article.
+// archived and recalled from the navigator; the other gets a second card, which shows a
+// change made from it on the first and is archived alone; the two are composed into an article.
 // Then, in the page, a line typed in the editor reaches the preview, and a click on the
 // preview brings the editor to the line where the element is written; changes not saved
 // are asked about before changing file and before closing. On Linux it runs on the
@@ -108,6 +109,30 @@ try {
   await main.waitForSelector('.card[data-id="primo-pensiero-sul-foglio"]', { timeout: 5000 });
   if (nodeOf('primo-pensiero-sul-foglio')?.x !== 660 || nodeOf('primo-pensiero-sul-foglio')?.y !== 10) problems.push(`recalled at ${JSON.stringify(nodeOf('primo-pensiero-sul-foglio'))}`);
 
+  // Dragged again from the navigator: a second card of the same object, not a move of the first.
+  const cardsOf = (id: string) => main.evaluate((object) => [...document.querySelectorAll<HTMLElement>(`.card[data-id="${object}"]`)].map((c) => c.dataset.node!), id);
+  const [first] = await cardsOf('secondo-pensiero');
+  await main.dragAndDrop('#shelves button[data-id="secondo-pensiero"]', '#viewport', { targetPosition: { x: 700, y: 400 } });
+  await main.waitForFunction(() => document.querySelectorAll('.card[data-id="secondo-pensiero"]').length === 2, undefined, { timeout: 5000 });
+  const other = (await cardsOf('secondo-pensiero')).find((node) => node !== first)!;
+  if (canvasFile().nodes.filter((n) => n.subpath === '#secondo-pensiero').length !== 2) problems.push('two cards in the canvas file');
+  // A change from one card shows on the other: the same object.
+  await main.click(`.card[data-node="${other}"] .card-body`);
+  await main.waitForSelector(`.card[data-node="${other}"].editing .cm-content`);
+  await main.keyboard.press('Control+End');
+  await main.keyboard.type(' Ovunque.');
+  await main.keyboard.press('Escape');
+  await main.waitForSelector(`.card[data-node="${other}"]:not(.editing)`);
+  await main.waitForFunction((node) => document.querySelector(`.card[data-node="${node}"] .card-body`)?.shadowRoot?.textContent?.includes('Ovunque.'), first, { timeout: 5000 })
+    .catch(() => problems.push('the change did not show on the other card'));
+  // Archiving one card leaves the other, and the object stays on the canvas.
+  // The card clicked to edit it is the one chosen.
+  if ((await main.evaluate(() => [...document.querySelectorAll<HTMLElement>('.card.selected')].map((c) => c.dataset.node).join())) !== other) problems.push('the card edited is not the one chosen');
+  await main.click('#archive');
+  await main.waitForSelector(`.card[data-node="${other}"]`, { state: 'detached', timeout: 5000 });
+  if ((await cardsOf('secondo-pensiero')).join() !== first) problems.push('archive took the other card too');
+  if ((await main.getAttribute('#shelves button[data-id="secondo-pensiero"]', 'data-on-canvas')) !== 'true') problems.push('the object left the canvas with one card still on it');
+
   // Both chosen with a band; the order proposed is from the top: the first, then the second; corrected, then composed.
   await main.mouse.move(at(20, 15).x, at(20, 15).y);
   await main.mouse.down();
@@ -175,7 +200,7 @@ try {
   await closed;
   if (!readFileSync(join(folder, 'nota.text.md'), 'utf8').includes('Prima di chiudere.')) problems.push('the changes were not saved before closing');
 } catch (error) {
-  problems.push(String(error).split('\n')[0]!);
+  problems.push(String(error).split('\n').slice(0, 8).join(' / '));
   // What the window shows, to see why.
   if (process.env.E2E_SCREENSHOT) {
     const main = app.windows().find((p) => p.url().startsWith('file:'));
@@ -193,7 +218,7 @@ try {
   rmSync(folder, { recursive: true, force: true });
   rmSync(userData, { recursive: true, force: true });
 }
-if (problems.length === 0) console.log('ok   the canvas: write, move, archive, recall, compose; the page: typing reaches the preview, a click on it brings the editor to the line\n\napp end-to-end: all pass');
+if (problems.length === 0) console.log('ok   the canvas: write, move, archive, recall, two cards of one object, compose; the page: typing reaches the preview, a click on it brings the editor to the line\n\napp end-to-end: all pass');
 else {
   console.log(`FAIL the app end to end\n  ${problems.join('\n  ')}\n\napp end-to-end: 1 failed`);
   process.exitCode = 1;

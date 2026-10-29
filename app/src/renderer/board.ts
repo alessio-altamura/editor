@@ -46,8 +46,10 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
   let zoom = 1;
   let cards: CardView[] = [];
   const elements = new Map<string, HTMLElement>();
+  /** The cards chosen, by the id of their node: an object may have several cards. */
   const selected = new Set<string>();
   let editing: Editing | null = null;
+  /** The order of «Metti in sequenza», by node. */
   let sequence: string[] | null = null;
   let space = false;
   let clickTimer: ReturnType<typeof setTimeout> | undefined;
@@ -78,7 +80,7 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
     pan = { x: clientX - box.left - point.x * zoom, y: clientY - box.top - point.y * zoom };
     transform();
   };
-  const cardOf = (id: string) => cards.find((card) => card.id === id);
+  const cardOf = (node: string) => cards.find((card) => card.node === node);
   /** A message in the bar of the canvas, instead of a dialog that stops the page. */
   const notice = (text: string) => {
     $('notice').textContent = text;
@@ -144,9 +146,8 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
   /** The marks of the cards: chosen, and their number in the sequence. */
   const mark = () => {
     for (const [node, element] of elements) {
-      const id = cards.find((card) => card.node === node)?.id ?? null;
-      element.classList.toggle('selected', id !== null && selected.has(id));
-      const position = id === null || sequence === null ? -1 : sequence.indexOf(id);
+      element.classList.toggle('selected', selected.has(node));
+      const position = sequence === null ? -1 : sequence.indexOf(node);
       const order = element.querySelector<HTMLElement>('.card-order')!;
       order.textContent = position < 0 ? '' : String(position + 1);
       order.hidden = position < 0;
@@ -176,8 +177,8 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
       element.remove();
       elements.delete(node);
     }
-    for (const id of [...selected]) if (!cardOf(id)) selected.delete(id);
-    if (sequence !== null) sequence = sequence.filter((id) => cardOf(id));
+    for (const node of [...selected]) if (!cardOf(node)) selected.delete(node);
+    if (sequence !== null) sequence = sequence.filter((node) => cardOf(node));
     $('empty').hidden = cards.length > 0 || editing !== null;
     mark();
     renderSequence();
@@ -235,12 +236,12 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
     else hooks.openArticle(target);
   }
 
-  async function edit(id: string): Promise<void> {
+  async function edit(node: string): Promise<void> {
     if (!(await finish())) return;
-    const card = cardOf(id);
-    const element = card && elements.get(card.node);
-    if (!card || !element) return;
-    openEditor(element, id, await api.objectSource(id), { x: card.x, y: card.y });
+    const card = cardOf(node);
+    const element = elements.get(node);
+    if (!card || card.id === null || !element) return;
+    openEditor(element, card.id, await api.objectSource(card.id), { x: card.x, y: card.y });
   }
 
   /** Saves the object through the formatter; the editor takes the text written. */
@@ -301,8 +302,11 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
 
   async function archive(): Promise<void> {
     if (!(await finish())) return;
-    for (const id of [...selected]) {
-      const done = await api.archive(id);
+    // Only the cards chosen: the object stays on the canvas while it has another.
+    for (const node of [...selected]) {
+      const id = cardOf(node)?.id;
+      if (!id) continue;
+      const done = await api.archive(id, node);
       if (done.error) notice(`${id} non si può archiviare: ${done.error}`);
     }
     selected.clear();
@@ -317,11 +321,12 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
     if (sequence === null) return;
     const list = $('order');
     list.replaceChildren();
-    sequence.forEach((id, index) => {
+    sequence.forEach((node, index) => {
       const item = document.createElement('li');
-      item.dataset.id = id;
+      item.dataset.node = node;
+      item.dataset.id = cardOf(node)?.id ?? '';
       const label = document.createElement('span');
-      label.textContent = cardOf(id)?.title || id;
+      label.textContent = cardOf(node)?.title || node;
       const up = document.createElement('button');
       up.textContent = '↑';
       up.title = 'Prima';
@@ -338,8 +343,8 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
   }
   const move = (index: number, by: number) => {
     if (sequence === null) return;
-    const [id] = sequence.splice(index, 1);
-    sequence.splice(index + by, 0, id!);
+    const [node] = sequence.splice(index, 1);
+    sequence.splice(index + by, 0, node!);
     mark();
     renderSequence();
   };
@@ -357,7 +362,8 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
       input.focus();
       return;
     }
-    const done = await api.compose(sequence, input.value);
+    // Two cards of the same object are two embeds.
+    const done = await api.compose(sequence.flatMap((node) => cardOf(node)?.id ?? []), input.value);
     if (done.error) {
       notice(`L'article non si può creare: ${done.error}`);
       return;
@@ -375,7 +381,7 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
   let gesture:
     | { type: 'pan'; x: number; y: number; pan: At }
     | { type: 'band'; from: At; x: number; y: number; additive: boolean }
-    | { type: 'card'; id: string; x: number; y: number; moved: boolean; shift: boolean; origins: Map<string, At> }
+    | { type: 'card'; node: string; x: number; y: number; moved: boolean; shift: boolean; origins: Map<string, At> }
     | null = null;
 
   viewport.addEventListener('pointerdown', (event) => {
@@ -390,14 +396,14 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
       gesture = { type: 'pan', x: event.clientX, y: event.clientY, pan: { ...pan } };
     } else if (event.button !== 0) {
       return;
-    } else if (element && element.dataset.id) {
-      const id = element.dataset.id;
-      const moving = selected.has(id) ? [...selected] : [id];
+    } else if (element && element.dataset.id && element.dataset.node) {
+      const node = element.dataset.node;
+      const moving = selected.has(node) ? [...selected] : [node];
       const origins = new Map(moving.flatMap((each) => {
         const card = cardOf(each);
         return card ? [[each, { x: card.x, y: card.y }] as [string, At]] : [];
       }));
-      gesture = { type: 'card', id, x: event.clientX, y: event.clientY, moved: false, shift: event.shiftKey, origins };
+      gesture = { type: 'card', node, x: event.clientX, y: event.clientY, moved: false, shift: event.shiftKey, origins };
     } else if (!element) {
       gesture = { type: 'band', from: toPlane(event.clientX, event.clientY), x: event.clientX, y: event.clientY, additive: event.shiftKey };
       if (!event.shiftKey) selected.clear();
@@ -417,8 +423,8 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
       const dy = (event.clientY - gesture.y) / zoom;
       if (!gesture.moved && Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y) < DRAG) return;
       gesture.moved = true;
-      for (const [id, origin] of gesture.origins) {
-        const element = elements.get(cardOf(id)!.node)!;
+      for (const [node, origin] of gesture.origins) {
+        const element = elements.get(node)!;
         element.style.left = `${origin.x + dx}px`;
         element.style.top = `${origin.y + dy}px`;
         element.classList.add('dragging');
@@ -441,31 +447,34 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
         const dx = (event.clientX - done.x) / zoom;
         const dy = (event.clientY - done.y) / zoom;
         void (async () => {
-          for (const [id, origin] of done.origins) {
-            const result = await api.place(id, { x: Math.round(origin.x + dx), y: Math.round(origin.y + dy) });
+          for (const [node, origin] of done.origins) {
+            const id = cardOf(node)?.id;
+            if (!id) continue;
+            const result = await api.place(id, { x: Math.round(origin.x + dx), y: Math.round(origin.y + dy) }, node);
             if (result.error) notice(`${id} non si può spostare: ${result.error}`);
           }
           for (const element of elements.values()) element.classList.remove('dragging');
           await refresh();
         })();
       } else if (done.shift) {
-        if (selected.has(done.id)) selected.delete(done.id);
-        else selected.add(done.id);
+        if (selected.has(done.node)) selected.delete(done.node);
+        else selected.add(done.node);
         mark();
-      } else if (second(done.id)) {
+      } else if (second(done.node)) {
         // A double click: the object alone, in the page.
         clearTimeout(clickTimer);
         selected.clear();
         mark();
-        hooks.openAlone(done.id);
+        const id = cardOf(done.node)?.id;
+        if (id) hooks.openAlone(id);
       } else {
         // A click opens the source in the card, unless a second click makes it a double click.
         clearTimeout(clickTimer);
         clickTimer = setTimeout(() => {
           selected.clear();
-          selected.add(done.id);
+          selected.add(done.node);
           mark();
-          void edit(done.id);
+          void edit(done.node);
         }, CLICK_MS);
       }
     } else if (done.type === 'band') {
@@ -479,7 +488,7 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
       }
       for (const card of cards) {
         if (card.id === null) continue;
-        if (card.x < box.right && card.x + card.width > box.left && card.y < box.bottom && card.y + card.height > box.top) selected.add(card.id);
+        if (card.x < box.right && card.x + card.width > box.left && card.y < box.bottom && card.y + card.height > box.top) selected.add(card.node);
       }
       mark();
     }
@@ -495,7 +504,7 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
     }
   }, { passive: false });
 
-  // From the navigator: an object dropped on the plane is recalled there, or moved there.
+  // From the navigator: an object dropped on the plane gets a card there, even if it has others.
   viewport.addEventListener('dragover', (event) => {
     if (event.dataTransfer?.types.includes('application/x-doc-id')) event.preventDefault();
   });
@@ -506,7 +515,7 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
     if (!(await finish())) return;
     const at = toPlane(event.clientX, event.clientY);
     const point = { x: Math.round(at.x), y: Math.round(at.y) };
-    const done = cardOf(id) ? await api.place(id, point) : await api.recall(id, point);
+    const done = await api.recall(id, point);
     if (done.error) notice(`${id} non va sul foglio: ${done.error}`);
     hooks.changed();
     await refresh();

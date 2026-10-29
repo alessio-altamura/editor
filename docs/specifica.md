@@ -796,10 +796,11 @@ passo del `canvas` [C: «Il canvas»]:
   `canvas-path-unresolved`, con `target` il percorso seguito dal
   `subpath`. È ancora un riferimento per percorso, non per `id` (§2):
   `rename` e `move` riscrivono i nodi che nominano l'oggetto.
-- **Un oggetto sta sul `canvas` una volta sola**: è lo stesso oggetto, non
-  una copia [C: «L'oggetto richiamato sul foglio è lo stesso oggetto»]. Un
-  oggetto senza nodo è archiviato, e resta nel `navigator` [C: «Il foglio
-  bianco è un foglio di bozze»].
+- **Un oggetto può avere più nodi**, cioè più `card`, e ognuna è lo stesso
+  oggetto, non una copia [C: «L'oggetto richiamato sul foglio è lo stesso
+  oggetto»; deciso da Alessio, C: «Il canvas»]. Un oggetto è sul `canvas`
+  finché ne ha almeno una; senza nodi è archiviato, e resta nel
+  `navigator` [C: «Il foglio bianco è un foglio di bozze»].
 - **Il nodo** ha le chiavi di JSON Canvas 1.0 nell'ordine `id`, `type`,
   `file`, `subpath`, `x`, `y`, `width`, `height`; `id` è di 16 cifre
   esadecimali casuali, come le scrive Obsidian; posizione e misure sono
@@ -3358,19 +3359,24 @@ JSON. Le posizioni sono nelle coordinate di JSON Canvas, interi.
   descrittore, con la stessa regola delle `composition`:
   `foglio-texts.text.md` per `foglio.canvas-file.md`. Un `image` e gli
   altri `kind` come con `--in`.
-- `recall <id> [--at <x>,<y>]` rimette sul `canvas` un oggetto archiviato
+- `recall <id> [--at <x>,<y>]` mette sul `canvas` una `card` di un oggetto
   [C: «Il foglio bianco è un foglio di bozze»]; senza `--at` sotto tutti
-  gli altri, a 40 di distanza, allineato al più a sinistra. Un oggetto mai
-  stato sul `canvas` è archiviato come gli altri, e `recall` lo mette per
-  la prima volta. Un oggetto che ha già un nodo si rifiuta: si sposta con
-  `place`.
-- `place <id> --at <x>,<y>` sposta il nodo di un oggetto.
-- `archive <id>` toglie il nodo dell'oggetto, e gli archi che lo toccano;
-  l'oggetto e i suoi file restano.
+  gli altri nodi, a 40 di distanza, allineato al più a sinistra. Un oggetto
+  mai stato sul `canvas` è archiviato come gli altri, e `recall` lo mette per
+  la prima volta. Un oggetto che ha già una `card` ne riceve un'altra [C:
+  «Il canvas»].
+- `place <id> --at <x>,<y> [--card <nodo>]` sposta una `card` di un
+  oggetto.
+- `archive <id> [--card <nodo>]` toglie una `card` dell'oggetto, e gli
+  archi che la toccano; l'oggetto, i suoi file e le altre `card` restano.
+- Con più `card` dello stesso oggetto, `place` e `archive` vogliono
+  `--card` con l'`id` del nodo; senza, o con l'`id` di un nodo che non è
+  una `card` di quell'oggetto, è uso sbagliato e il codice è 2.
 - `compose <id>… --title "…" [--id <id>]` fa un `article` con quel titolo
   e gli `embed` degli oggetti nell'ordine dato, accanto al descrittore del
   `canvas`, con l'`id` dalle prime parole del titolo; i nodi restano sul
-  `canvas`. Un oggetto che non si può includere (un `concept`, un
+  `canvas`. Lo stesso oggetto nominato due volte, da due sue `card`, dà due
+  `embed`. Un oggetto che non si può includere (un `concept`, un
   `article`) porta `embed-kind`, quindi `compose` si rifiuta. L'ordine lo
   sceglie chi chiama; l'`app` propone l'ordine di lettura dei nodi: dall'alto
   in basso, poi da sinistra a destra, e un nodo il cui bordo alto sta entro

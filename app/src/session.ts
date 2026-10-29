@@ -259,22 +259,23 @@ export class Session {
     return { file, before: text.slice(0, object.start), text: text.slice(object.start, object.end), after: text.slice(object.end) };
   }
 
-  /** The cards in their order of reading: from top to bottom, then from left to right. */
-  readingOrder(ids: string[]): string[] {
-    const cards = canvasCards(this.workspace(), this.live.tree).cards.filter((card) => card.id !== null && ids.includes(card.id));
-    return readingOrder(cards).map((card) => card.id!);
+  /** Some cards, by node, in their order of reading: from top to bottom, then from left to right. */
+  readingOrder(nodes: string[]): string[] {
+    const cards = canvasCards(this.workspace(), this.live.tree).cards.filter((card) => nodes.includes(card.node));
+    return readingOrder(cards).map((card) => card.node);
   }
 
   recall(id: string, at?: At): Done {
     return this.operate((workspace, tree) => planRecall(workspace, tree, id, at));
   }
 
-  place(id: string, at: At): Done {
-    return this.operate((workspace, tree) => planPlace(workspace, tree, id, at));
+  /** `card` is the id of the node, needed when the object has several cards. */
+  place(id: string, at: At, card?: string): Done {
+    return this.operate((workspace, tree) => planPlace(workspace, tree, id, at, card));
   }
 
-  archive(id: string): Done {
-    return this.operate((workspace, tree) => planArchive(workspace, tree, id));
+  archive(id: string, card?: string): Done {
+    return this.operate((workspace, tree) => planArchive(workspace, tree, id, card));
   }
 
   /** A new text with its card, where the canvas was double-clicked. */

@@ -148,10 +148,11 @@ const at = (value: unknown) => {
 };
 handle('doc:canvas', (current) => current.canvas());
 handle('doc:object-source', (current, id: string) => current.objectSource(String(id)));
-handle('doc:reading-order', (current, ids: string[]) => current.readingOrder(Array.isArray(ids) ? ids.map(String) : []));
+handle('doc:reading-order', (current, nodes: string[]) => current.readingOrder(Array.isArray(nodes) ? nodes.map(String) : []));
 handle('doc:recall', (current, id: string, point: unknown) => current.recall(String(id), at(point)));
-handle('doc:place', (current, id: string, point: unknown) => current.place(String(id), at(point)!));
-handle('doc:archive', (current, id: string) => current.archive(String(id)));
+const card = (value: unknown) => (typeof value === 'string' ? value : undefined);
+handle('doc:place', (current, id: string, point: unknown, which: unknown) => current.place(String(id), at(point)!, card(which)));
+handle('doc:archive', (current, id: string, which: unknown) => current.archive(String(id), card(which)));
 handle('doc:create-text', (current, point: unknown, text: string) => current.createText(at(point)!, String(text)));
 handle('doc:compose', (current, ids: string[], title: string) => current.compose(Array.isArray(ids) ? ids.map(String) : [], String(title)));
 ipcMain.handle('doc:open-folder', async () => {

@@ -170,7 +170,6 @@ try {
     const first = card(canvas(), `foglio-texts.text.md#${text}`);
     if (first?.x !== 40 || first?.y !== -20) problems.push(`the new card ${JSON.stringify(first)}`);
     operate(problems, 'recall', 'nota-breve', '--at', '400,-10');
-    if (cli('recall', 'nota-breve').status !== 2) problems.push('recall of a card already on the canvas');
     operate(problems, 'recall', 'le-vendite-sono-calate');
     const below = card(canvas(), 'cap-texts.text.md#le-vendite-sono-calate');
     if (below?.x !== 40 || below?.y !== 270) problems.push(`recall without --at: ${JSON.stringify(below)}`);
@@ -194,6 +193,19 @@ try {
     if (!errors(tree()).some((d) => d.code === 'canvas-path-unresolved' && d.target === 'foglio-texts.text.md#nessuno')) problems.push('an unresolved subpath');
     writeFileSync(join(folder, 'foglio.canvas'), good);
 
+    // A second card of the same object: place and archive want --card; archiving one leaves the other.
+    const second = operate(problems, 'recall', 'nota-breve', '--at', '900,0');
+    const cardsOf = () => canvas().nodes.filter((n) => n.file === 'nota.text.md');
+    if (cardsOf().length !== 2) problems.push(`two cards: ${cardsOf().length}`);
+    if (cli('place', 'nota-breve', '--at', '0,0').status !== 2) problems.push('place without --card on two cards');
+    if (cli('archive', 'nota-breve').status !== 2) problems.push('archive without --card on two cards');
+    if (cli('place', 'nota-breve', '--at', '0,0', '--card', 'nessuna').status !== 2) problems.push('place with a --card of no card');
+    operate(problems, 'place', 'nota-breve', '--at', '900,40', '--card', String(second?.node));
+    if (cardsOf().find((n) => n.id === second?.node)?.y !== 40) problems.push('place --card moved another card');
+    const doubled = operate(problems, 'compose', 'nota-breve', 'nota-breve', '--title', 'Due schede');
+    if (JSON.stringify(embeds(tree(), String(doubled?.id))) !== '["nota-breve","nota-breve"]') problems.push(`compose of two cards ${JSON.stringify(embeds(tree(), String(doubled?.id)))}`);
+    operate(problems, 'archive', 'nota-breve', '--card', String(second?.node));
+    if (cardsOf().length !== 1 || cardsOf()[0]!.id === second?.node) problems.push('archive --card');
     operate(problems, 'archive', 'nota-breve');
     if (card(canvas(), 'nota.text.md') || !node(tree(), 'nota-breve')) problems.push('archive');
     if (cli('archive', 'nota-breve').status !== 2) problems.push('archive of an object not on the canvas');
