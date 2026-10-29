@@ -181,6 +181,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `unfiled` | da sistemare | Oggetti non ancora classificati | concetto deciso, nome proposto | inbox, misc |
 | `archive` | archiviare | L'oggetto esce dal `canvas` e resta nel `navigator` | concetto deciso, nome proposto | store, save |
 | `recall` | richiamare | Riportare sul `canvas` un oggetto archiviato; è lo stesso oggetto | concetto deciso, nome proposto | restore, copy |
+| `compose` | comporre | `operation` che fa di alcuni oggetti scelti sul `canvas` una `composition` nel loro `reading order`, per ora un `article` | proposto | sequence, assemble |
 | `isolate` | vedere da solo | Aprire un oggetto da solo nella sua vista naturale | concetto deciso, nome proposto | focus, zoom |
 | `duplicate` | duplicare | Azione esplicita che crea una copia indipendente | concetto deciso, nome proposto | copy |
 | `create` | creare | `operation` che crea un `object`, con l'`id` ricavato dalle prime parole e modificabile (deciso il 2026-10-23); nella `cli` è il comando create | concetto deciso, nome proposto | new, add |

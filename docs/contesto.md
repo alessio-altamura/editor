@@ -476,6 +476,16 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     tecniche dell'orchestratore: CodeMirror 6 per il testo, il codice in
     `app/`, il tema del sistema, `npm start` per lanciarla; il pacchetto
     firmato viene dopo.
+  - Il canvas (2026-10-29). Alessio: «lascia stare per ora, continuiamo con
+    l'implementazione», senza rispondere alle tre scelte poste
+    dall'orchestratore; l'orchestratore procede con le sue raccomandazioni,
+    da confermare: nel primo passo le basi (schede degli oggetti, spostarle,
+    zoom e scorrimento, creare un testo con un doppio clic, `archive` e
+    `recall`) più «metti in sequenza», che fa di alcune schede un
+    `article` in quell'ordine; le posizioni nelle coordinate di JSON Canvas,
+    le relazioni dopo, con «fai spazio vicino»; la scheda mostra l'oggetto
+    come apparirà, e un clic apre il sorgente nella scheda. L'editing
+    grafico sopra l'anteprima viene dopo la vista per pagina, come deciso.
     Poi (2026-10-24, Alessio, «ok» sulla strada A): non esiste un Electron
     con il Chromium 141 della stampa, e l'Electron più vicino (39) non è più
     supportato e ha avvisi di sicurezza; quindi un Electron supportato, e la
