@@ -409,9 +409,10 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      mostrano l'oggetto e un clic apre il sorgente; doppio clic crea un
      testo (in `foglio-texts.text.md`); trascinare, archiviare, richiamare
      dal navigator; «Metti in sequenza» fa un `article` con `compose`. Nel
-     runtime `create --at`, `place`, `archive`, `recall`, `compose`. Da
-     confermare con Alessio alcune letture: un oggetto sta sul foglio una
-     volta sola; tutto ciò che non è sul foglio conta come archiviato;
+     runtime `create --at`, `place`, `archive`, `recall`, `compose`. Lo
+     stesso oggetto può avere più schede (deciso; `place` e `archive` con
+     `--card`). Da confermare con Alessio: tutto ciò che non è sul foglio
+     conta come archiviato;
      l'`article` di `compose` va accanto al descrittore del canvas. Una
      scheda di un `image` punta al descrittore, non all'immagine: in
      Obsidian si vedrebbe il descrittore. Prossimo: «fai spazio vicino» e
