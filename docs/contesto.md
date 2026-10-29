@@ -350,7 +350,9 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     marchio, nel logo e nel dominio; nell'uso quotidiano «Zakuro»; il
     comando sarà `zakuro`, installato dal pacchetto npm `zakurogami`, come
     Visual Studio Code ha il comando `code`. Prima di renderlo definitivo,
-    e di rinominare `doc-runtime`, vanno controllati i marchi.
+    e di rinominare `doc-runtime`, vanno controllati i marchi. Subito dopo
+    Alessio riferisce il parere della moglie: «troppo lungo, giapponese…
+    non facile da ricordare». Il candidato resta da confermare.
   - Numerazione dei capitoli che si ripetono per ricorsione (2026-10-22,
     Alessio, «sì va bene 1, 1.1, 1.1.1»): ogni ripetizione con un title prende
     un numero nuovo, come un capitolo annidato.
