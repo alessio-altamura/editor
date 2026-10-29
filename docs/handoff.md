@@ -403,6 +403,19 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      corregge un avviso grave della 44.7.0. L'`app` chiede di salvare
      quando si cambia file o si chiude. Mancano: più file aperti, la
      rinomina dall'interfaccia, il pacchetto firmato.
+   - Il canvas c'è (2026-10-29, contesto.md «Il canvas», con le
+     raccomandazioni dell'orchestratore da confermare): l'`app` si apre sul
+     foglio (`foglio.canvas` in JSON Canvas, con descrittore); le `card`
+     mostrano l'oggetto e un clic apre il sorgente; doppio clic crea un
+     testo (in `foglio-texts.text.md`); trascinare, archiviare, richiamare
+     dal navigator; «Metti in sequenza» fa un `article` con `compose`. Nel
+     runtime `create --at`, `place`, `archive`, `recall`, `compose`. Da
+     confermare con Alessio alcune letture: un oggetto sta sul foglio una
+     volta sola; tutto ciò che non è sul foglio conta come archiviato;
+     l'`article` di `compose` va accanto al descrittore del canvas. Una
+     scheda di un `image` punta al descrittore, non all'immagine: in
+     Obsidian si vedrebbe il descrittore. Prossimo: «fai spazio vicino» e
+     «metti in ordine per tipo», con le posizioni come relazioni.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);

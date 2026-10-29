@@ -182,6 +182,8 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `archive` | archiviare | L'oggetto esce dal `canvas` e resta nel `navigator` | concetto deciso, nome proposto | store, save |
 | `recall` | richiamare | Riportare sul `canvas` un oggetto archiviato; è lo stesso oggetto | concetto deciso, nome proposto | restore, copy |
 | `compose` | comporre | `operation` che fa di alcuni oggetti scelti sul `canvas` una `composition` nel loro `reading order`, per ora un `article` | proposto | sequence, assemble |
+| `place` | posizionare | `operation` che mette o sposta la `card` di un oggetto sul `canvas`, alle coordinate date; move resta lo spostamento fra file | proposto | position, drag |
+| `card` | scheda | Un oggetto visto sul `canvas`: mostra l'oggetto come apparirà, e un clic apre il `source` nella scheda | proposto | tile, node |
 | `isolate` | vedere da solo | Aprire un oggetto da solo nella sua vista naturale | concetto deciso, nome proposto | focus, zoom |
 | `duplicate` | duplicare | Azione esplicita che crea una copia indipendente | concetto deciso, nome proposto | copy |
 | `create` | creare | `operation` che crea un `object`, con l'`id` ricavato dalle prime parole e modificabile (deciso il 2026-10-23); nella `cli` è il comando create | concetto deciso, nome proposto | new, add |
