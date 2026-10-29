@@ -1,7 +1,9 @@
 // The preload of the window: a small API over IPC, nothing of Node reaches the page.
 import { contextBridge, ipcRenderer } from 'electron';
+import type { CardView, Done, ObjectSource } from './session.js';
 
 type Position = { line: number; character: number };
+type At = { x: number; y: number };
 
 const api = {
   state: () => ipcRenderer.invoke('doc:state') as Promise<{ folder: string }>,
@@ -16,6 +18,20 @@ const api = {
   showPreview: (file: string | null) => ipcRenderer.invoke('doc:preview', file) as Promise<string | null>,
   previewBounds: (bounds: { x: number; y: number; width: number; height: number }) => ipcRenderer.send('doc:preview-bounds', bounds),
   extract: (file: string, text: string) => ipcRenderer.invoke('doc:extract', file, text),
+  /** The preview of one object alone. */
+  showObject: (id: string) => ipcRenderer.invoke('doc:preview-object', id),
+  canvas: () => ipcRenderer.invoke('doc:canvas') as Promise<{ canvas: string | null; cards: CardView[] }>,
+  objectSource: (id: string) => ipcRenderer.invoke('doc:object-source', id) as Promise<ObjectSource>,
+  readingOrder: (ids: string[]) => ipcRenderer.invoke('doc:reading-order', ids) as Promise<string[]>,
+  recall: (id: string, at?: At) => ipcRenderer.invoke('doc:recall', id, at) as Promise<Done>,
+  place: (id: string, at: At) => ipcRenderer.invoke('doc:place', id, at) as Promise<Done>,
+  archive: (id: string) => ipcRenderer.invoke('doc:archive', id) as Promise<Done>,
+  createText: (at: At, text: string) => ipcRenderer.invoke('doc:create-text', at, text) as Promise<Done>,
+  compose: (ids: string[], title: string) => ipcRenderer.invoke('doc:compose', ids, title) as Promise<Done>,
+  /** The menu Vista: the canvas or the page. */
+  onView: (listener: (view: 'canvas' | 'page') => void) => {
+    ipcRenderer.on('doc:view', (_event, view: 'canvas' | 'page') => listener(view));
+  },
   openFolder: () => ipcRenderer.invoke('doc:open-folder'),
   /** Whether the file in the editor has changes not saved: the main process asks before closing. */
   setDirty: (file: string | null) => ipcRenderer.send('doc:dirty', file),

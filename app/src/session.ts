@@ -3,11 +3,15 @@
 // serve on the same runtime, saving through the formatter. The IPC calls these.
 import { closeSync, openSync, readFileSync, renameSync, unlinkSync, writeSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, sep } from 'node:path';
+import { readAsset } from 'doc-runtime/dist/src/assets.js';
+import { canvasCards, planArchive, planCompose, planPlace, planRecall, readingOrder } from 'doc-runtime/dist/src/canvas.js';
 import { formatText } from 'doc-runtime/dist/src/format.js';
 import { completions, definitionOf, describe, hoverAt, referenceAt, type Completion, type Position, type Range } from 'doc-runtime/dist/src/language-services.js';
 import { LiveFolder } from 'doc-runtime/dist/src/live.js';
-import { diskWorkspace, evaluate, OperationError, planExtract, write, type Workspace } from 'doc-runtime/dist/src/operations.js';
+import { diskWorkspace, evaluate, OperationError, planCreate, planExtract, shape, write, type Plan, type Workspace } from 'doc-runtime/dist/src/operations.js';
+import { listDocumentFiles, resolveTree } from 'doc-runtime/dist/src/resolve-tree.js';
 import { serve } from 'doc-runtime/dist/src/serve.js';
+import { standalonePage, standaloneTree } from 'doc-runtime/dist/src/standalone.js';
 import type { JsonML, TreeNode } from 'doc-runtime/dist/src/tree.js';
 
 /** The compositions come first in the navigator, then the other kinds by name. */
@@ -17,7 +21,35 @@ export interface ShelfItem {
   id: string;
   title: string;
   file: string;
+  /** Whether the object has a card on the canvas; otherwise it is archived. */
+  onCanvas: boolean;
 }
+/** A card of the canvas, with the object as it will appear: the HTML of the preview, or null. */
+export interface CardView {
+  node: string;
+  id: string | null;
+  kind: string | null;
+  title: string;
+  file: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  html: string | null;
+}
+/** The text of one object in its file, and what comes before and after it. */
+export interface ObjectSource {
+  file: string;
+  before: string;
+  text: string;
+  after: string;
+}
+/** What a canvas operation did, or why it did nothing. */
+export interface Done {
+  summary?: Record<string, unknown>;
+  error?: string;
+}
+type At = { x: number; y: number };
 export interface Shelf {
   kind: string;
   items: ShelfItem[];
@@ -71,11 +103,13 @@ export class Session {
   navigator(query = ''): Shelf[] {
     const wanted = query.trim().toLowerCase();
     const shelves = new Map<string, ShelfItem[]>();
+    const onCanvas = new Set(canvasCards(this.workspace(), this.live.tree).cards.map((card) => card.id));
     for (const node of this.live.tree.nodes ?? []) {
-      if (node.id === undefined || node.kind === 'document') continue;
+      // The document file and the canvas file are not objects to place.
+      if (node.id === undefined || node.kind === 'document' || node.kind === 'canvas-file') continue;
       const title = describe(node);
       if (wanted !== '' && !node.id.toLowerCase().includes(wanted) && !title.toLowerCase().includes(wanted)) continue;
-      shelves.set(node.kind, [...(shelves.get(node.kind) ?? []), { id: node.id, title, file: node.file }]);
+      shelves.set(node.kind, [...(shelves.get(node.kind) ?? []), { id: node.id, title, file: node.file, onCanvas: onCanvas.has(node.id) }]);
     }
     const rank = (kind: string) => (COMPOSITIONS.includes(kind) ? COMPOSITIONS.indexOf(kind) : COMPOSITIONS.length);
     return [...shelves].sort(([a], [b]) => rank(a) - rank(b) || (a < b ? -1 : a > b ? 1 : 0)).map(([kind, items]) => ({ kind, items }));
@@ -168,6 +202,109 @@ export class Session {
   /** The address of the preview of an article, as serve gives it, marked for the app. */
   previewUrl(article: string): string {
     return `${this.base}/article/${encodeURIComponent(article)}?token=${encodeURIComponent(this.token)}&app=1`;
+  }
+
+  /** The address of the preview of one object alone. */
+  objectPreviewUrl(id: string): string {
+    return `${this.base}/object/${encodeURIComponent(id)}?token=${encodeURIComponent(this.token)}&app=1`;
+  }
+
+  /** The folder as the operations read it: the buffers open in the editor hold. */
+  private workspace(): Workspace {
+    return { ...diskWorkspace(this.folder, () => [...this.live.listed.keys()]), overlay: this.live.overlay };
+  }
+
+  /** The cards of the canvas, each with its object drawn by the renderer of the preview, with the base stylesheet. */
+  canvas(): { canvas: string | null; cards: CardView[] } {
+    const { canvas, cards } = canvasCards(this.workspace(), this.live.tree);
+    const ids = cards.flatMap((card) => (card.id === null ? [] : [card.id]));
+    const standalone = standaloneTree(this.folder, this.live.overlay, ids, false);
+    const url = (path: string) => `${this.base}${path}?token=${encodeURIComponent(this.token)}`;
+    const preview = {
+      assetUrl: (path: string) => url(`/asset/${path.split('/').map(encodeURIComponent).join('/')}`),
+      fontUrl: (file: string) => url(`/font/${encodeURIComponent(file)}`),
+      scriptUrls: [],
+      diagnostics: [],
+    };
+    const listed = this.live.listed;
+    return {
+      canvas,
+      cards: cards.map((card) => {
+        const node = card.id === null ? undefined : (this.live.tree.nodes ?? []).find((n) => n.id === card.id);
+        return {
+          node: card.node,
+          id: card.id,
+          kind: node?.kind ?? null,
+          title: node ? describe(node) : `${card.file}${card.subpath ?? ''}`,
+          file: card.file,
+          x: card.x,
+          y: card.y,
+          width: card.width,
+          height: card.height,
+          html: card.id === null ? null : standalonePage(standalone, card.id, preview, (path) => readAsset(this.folder, path, listed)),
+        };
+      }),
+    };
+  }
+
+  /** The text of an object: in a multi-object file from its attribute line to its last block, otherwise the whole file. */
+  objectSource(id: string): ObjectSource {
+    const node = (this.live.tree.nodes ?? []).find((n) => n.id === id);
+    if (node === undefined) throw new Error(`nessun oggetto con id ${id}`);
+    const file = this.safe(node.file);
+    const text = this.read(file);
+    const fileShape = shape(file, text);
+    const object = fileShape.multi ? fileShape.objects.find((o) => o.id === id) : undefined;
+    if (object === undefined) return { file, before: '', text, after: '' };
+    return { file, before: text.slice(0, object.start), text: text.slice(object.start, object.end), after: text.slice(object.end) };
+  }
+
+  /** The cards in their order of reading: from top to bottom, then from left to right. */
+  readingOrder(ids: string[]): string[] {
+    const cards = canvasCards(this.workspace(), this.live.tree).cards.filter((card) => card.id !== null && ids.includes(card.id));
+    return readingOrder(cards).map((card) => card.id!);
+  }
+
+  recall(id: string, at?: At): Done {
+    return this.operate((workspace, tree) => planRecall(workspace, tree, id, at));
+  }
+
+  place(id: string, at: At): Done {
+    return this.operate((workspace, tree) => planPlace(workspace, tree, id, at));
+  }
+
+  archive(id: string): Done {
+    return this.operate((workspace, tree) => planArchive(workspace, tree, id));
+  }
+
+  /** A new text with its card, where the canvas was double-clicked. */
+  createText(at: At, text: string): Done {
+    return this.operate((workspace, tree) => planCreate(workspace, tree, { kind: 'text', at, text }));
+  }
+
+  compose(ids: string[], title: string): Done {
+    return this.operate((workspace, tree) => planCompose(workspace, tree, { ids, title }));
+  }
+
+  /** An operation on the files on disk, as the cli runs it: refused if it brings new errors. */
+  private operate(make: (workspace: Workspace, tree: ReturnType<typeof resolveTree>) => Plan): Done {
+    const workspace = diskWorkspace(this.folder, () => [...listDocumentFiles(this.folder).keys()]);
+    let plan: Plan;
+    try {
+      plan = make(workspace, resolveTree(this.folder));
+    } catch (error) {
+      if (error instanceof OperationError) return { error: error.message };
+      throw error;
+    }
+    const outcome = evaluate(workspace, plan);
+    if (outcome.newErrors.length > 0) return { error: outcome.newErrors.map((d) => `${d.code}${d.target === undefined ? '' : ` ${d.target}`}`).join(', ') };
+    write(this.folder, outcome, (target, content) => {
+      this.writeAtomically(target, content);
+      return true;
+    });
+    for (const file of outcome.files.keys()) this.live.overlay.delete(file);
+    this.live.recompute();
+    return { summary: plan.summary };
   }
 
   /** Whether an address is one of this preview's: the window lets nothing else load. */

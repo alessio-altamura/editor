@@ -616,8 +616,16 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
     const canvasNodes = canvas.nodes ?? [];
     if (!Array.isArray(canvasNodes) || !canvasNodes.every(isObject)) return invalid();
     for (const entry of canvasNodes) {
-      if (entry.type === 'file' && typeof entry.file === 'string' && !fileSet.has(posix.normalize(entry.file))) {
+      if (entry.type !== 'file' || typeof entry.file !== 'string') continue;
+      const target = posix.normalize(entry.file);
+      if (!fileSet.has(target)) {
         report(diagnostics, 'canvas-path-unresolved', node.file, entry.file, 'correggi il percorso o togli il nodo dal canvas');
+      } else if (typeof entry.subpath === 'string' && entry.subpath !== '') {
+        // "#<id>" names one object of a multi-object file (§0.11, proposal).
+        const id = entry.subpath.startsWith('#') ? entry.subpath.slice(1) : null;
+        if (id === null || !nodes.some((other) => other.file === target && other.id === id)) {
+          report(diagnostics, 'canvas-path-unresolved', node.file, `${entry.file}${entry.subpath}`, 'correggi il subpath o togli il nodo dal canvas');
+        }
       }
     }
   }

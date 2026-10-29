@@ -2,18 +2,38 @@
 <html lang="it">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: http://127.0.0.1:*; font-src 'self' http://127.0.0.1:*">
 <title>doc</title>
 <link rel="stylesheet" href="style.css">
+<style id="card-fonts"></style>
 <script src="renderer.js" defer></script>
 </head>
-<body>
+<body data-view="canvas">
 <nav id="navigator">
   <input id="search" type="search" placeholder="Cerca per id o titolo" aria-label="Cerca">
   <div id="shelves"></div>
 </nav>
+<main id="board" aria-label="Foglio">
+  <header class="bar">
+    <button data-show="page" title="Vista pagina (Cmd-2)">Pagina</button>
+    <button id="sequence-start" disabled>Metti in sequenza</button>
+    <button id="archive" disabled title="Archivia le schede scelte (Canc)">Archivia</button>
+    <span id="notice" role="status"></span>
+    <span id="zoom">100%</span>
+  </header>
+  <div id="viewport">
+    <div id="plane"><div id="band" hidden></div></div>
+    <p id="empty" hidden>Doppio clic per scrivere un testo; trascina qui un oggetto dal navigator.</p>
+    <aside id="sequence" hidden aria-label="Metti in sequenza">
+      <h2>Metti in sequenza</h2>
+      <ol id="order"></ol>
+      <input id="compose-title" type="text" placeholder="Titolo dell'article" aria-label="Titolo dell'article">
+      <div class="actions"><button id="compose">Crea l'article</button><button id="sequence-cancel">Annulla</button></div>
+    </aside>
+  </div>
+</main>
 <main id="source">
-  <header id="bar"><span id="file">Nessun file aperto</span><button id="extract" hidden>Estrai in un oggetto</button></header>
+  <header id="bar" class="bar"><button data-show="canvas" title="Vista foglio (Cmd-1)">Foglio</button><span id="file">Nessun file aperto</span><button id="extract" hidden>Estrai in un oggetto</button></header>
   <div id="editor"></div>
 </main>
 <section id="preview" aria-label="Anteprima"></section>

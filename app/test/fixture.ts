@@ -18,6 +18,6 @@ export function writeFixture(): string {
 
 declare global {
   interface Window {
-    docAppState: { file: string | null; line: number; character: number; text: string };
+    docAppState: { file: string | null; line: number; character: number; text: string; view: 'canvas' | 'page' };
   }
 }
