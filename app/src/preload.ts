@@ -22,10 +22,12 @@ const api = {
   showObject: (id: string) => ipcRenderer.invoke('doc:preview-object', id),
   canvas: () => ipcRenderer.invoke('doc:canvas') as Promise<{ canvas: string | null; cards: CardView[] }>,
   objectSource: (id: string) => ipcRenderer.invoke('doc:object-source', id) as Promise<ObjectSource>,
-  readingOrder: (ids: string[]) => ipcRenderer.invoke('doc:reading-order', ids) as Promise<string[]>,
+  /** The cards in their order of reading, by node. */
+  readingOrder: (nodes: string[]) => ipcRenderer.invoke('doc:reading-order', nodes) as Promise<string[]>,
   recall: (id: string, at?: At) => ipcRenderer.invoke('doc:recall', id, at) as Promise<Done>,
-  place: (id: string, at: At) => ipcRenderer.invoke('doc:place', id, at) as Promise<Done>,
-  archive: (id: string) => ipcRenderer.invoke('doc:archive', id) as Promise<Done>,
+  /** `card`: the id of the node, for an object with several cards. */
+  place: (id: string, at: At, card?: string) => ipcRenderer.invoke('doc:place', id, at, card) as Promise<Done>,
+  archive: (id: string, card?: string) => ipcRenderer.invoke('doc:archive', id, card) as Promise<Done>,
   createText: (at: At, text: string) => ipcRenderer.invoke('doc:create-text', at, text) as Promise<Done>,
   compose: (ids: string[], title: string) => ipcRenderer.invoke('doc:compose', ids, title) as Promise<Done>,
   /** The menu Vista: the canvas or the page. */

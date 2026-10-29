@@ -205,44 +205,54 @@ function addCard(canvas: Canvas, reference: Reference, at: { x: number; y: numbe
   return card;
 }
 
-function cardOf(workspace: Workspace, tree: ResolvedTree, canvas: Canvas, id: string): number {
+/**
+ * The card of an object that an operation acts on: the one named by `card`, the id of
+ * its node, or the only one; with several and none named, the request is wrong.
+ */
+function cardOf(workspace: Workspace, tree: ResolvedTree, canvas: Canvas | null, id: string, card?: string): number {
   const reference = referenceOf(workspace, tree, id);
-  return canvas.data.nodes.findIndex((entry) => names(entry, reference, id));
+  const cards = (canvas?.data.nodes ?? []).flatMap((entry, index) => (names(entry, reference, id) ? [index] : []));
+  if (cards.length === 0) throw new OperationError(`${id} non è sul canvas: richiamalo con recall`);
+  if (card !== undefined) {
+    const index = cards.find((each) => canvas!.data.nodes[each]!.id === card);
+    if (index === undefined) throw new OperationError(`${card} non è una scheda di ${id}`);
+    return index;
+  }
+  if (cards.length > 1) throw new OperationError(`${id} ha ${cards.length} schede: di' quale con --card <id del nodo> (${cards.map((each) => canvas!.data.nodes[each]!.id).join(', ')})`);
+  return cards[0]!;
 }
 
-/** `recall`: the card of an object back on the canvas, at a place or below the others. */
+/**
+ * `recall`: a card of an object on the canvas, at a place or below the others. The
+ * object may have other cards already: each is the same object, not a copy.
+ */
 export function planRecall(workspace: Workspace, tree: ResolvedTree, id: string, at?: { x: number; y: number }): Plan {
   const node = nodeOf(tree, id);
   if (NO_CARD.has(node.kind)) throw new OperationError(`${id} è un ${node.kind}: non va sul canvas`);
   const canvas = findCanvas(workspace, tree, true)!;
-  if (cardOf(workspace, tree, canvas, id) >= 0) throw new OperationError(`${id} è già sul canvas: spostalo con place`);
   const card = addCard(canvas, referenceOf(workspace, tree, id), at ?? freePlace(canvas));
   const plan: Plan = { operation: 'recall', files: new Map(), copies: [], summary: { id, node: card.id, x: card.x, y: card.y } };
   writeCanvas(plan, canvas);
   return plan;
 }
 
-/** `place`: the card of an object somewhere else on the canvas. */
-export function planPlace(workspace: Workspace, tree: ResolvedTree, id: string, at: { x: number; y: number }): Plan {
+/** `place`: a card of an object somewhere else on the canvas. */
+export function planPlace(workspace: Workspace, tree: ResolvedTree, id: string, at: { x: number; y: number }, which?: string): Plan {
   nodeOf(tree, id);
   const canvas = findCanvas(workspace, tree, false);
-  const index = canvas === null ? -1 : cardOf(workspace, tree, canvas, id);
-  if (canvas === null || index < 0) throw new OperationError(`${id} non è sul canvas: richiamalo con recall`);
-  const card = canvas.data.nodes[index]!;
+  const card = canvas!.data.nodes[cardOf(workspace, tree, canvas, id, which)]!;
   card.x = integer(at.x, 'x');
   card.y = integer(at.y, 'y');
   const plan: Plan = { operation: 'place', files: new Map(), copies: [], summary: { id, node: card.id, x: card.x, y: card.y } };
-  writeCanvas(plan, canvas);
+  writeCanvas(plan, canvas!);
   return plan;
 }
 
-/** `archive`: the card leaves the canvas, with its edges; the object stays, in the navigator. */
-export function planArchive(workspace: Workspace, tree: ResolvedTree, id: string): Plan {
+/** `archive`: one card leaves the canvas, with its edges; the object stays, in the navigator, and on the canvas while it has another card. */
+export function planArchive(workspace: Workspace, tree: ResolvedTree, id: string, which?: string): Plan {
   nodeOf(tree, id);
-  const canvas = findCanvas(workspace, tree, false);
-  const index = canvas === null ? -1 : cardOf(workspace, tree, canvas, id);
-  if (canvas === null || index < 0) throw new OperationError(`${id} non è sul canvas`);
-  const [card] = canvas.data.nodes.splice(index, 1);
+  const canvas = findCanvas(workspace, tree, false)!;
+  const [card] = canvas.data.nodes.splice(cardOf(workspace, tree, canvas, id, which), 1);
   canvas.data.edges = canvas.data.edges.filter((edge) => edge.fromNode !== card!.id && edge.toNode !== card!.id);
   const plan: Plan = { operation: 'archive', files: new Map(), copies: [], summary: { id, node: card!.id } };
   writeCanvas(plan, canvas);
@@ -278,12 +288,8 @@ export function planCompose(workspace: Workspace, tree: ResolvedTree, request: C
   const title = request.title.trim();
   if (title === '') throw new OperationError('compose vuole un titolo: --title "…"');
   if (request.ids.length === 0) throw new OperationError('compose vuole almeno un oggetto');
-  const seen = new Set<string>();
-  for (const id of request.ids) {
-    if (seen.has(id)) throw new OperationError(`${id} è due volte`);
-    seen.add(id);
-    nodeOf(tree, id);
-  }
+  // The same object twice, from two of its cards, is two embeds.
+  for (const id of request.ids) nodeOf(tree, id);
   const id = newId(workspace, tree, { kind: 'article', text: title, ...(request.id !== undefined ? { id: request.id } : {}) });
   const canvas = findCanvas(workspace, tree, false);
   const folder = canvas === null ? '.' : posix.dirname(canvas.descriptor);

@@ -68,8 +68,8 @@ Uso:
   ${BINARY_NAME} rename <id> <nuovo-id>
   ${BINARY_NAME} move <id> --to <file>
   ${BINARY_NAME} recall <id> [--at <x>,<y>]
-  ${BINARY_NAME} place <id> --at <x>,<y>
-  ${BINARY_NAME} archive <id>
+  ${BINARY_NAME} place <id> --at <x>,<y> [--card <nodo>]
+  ${BINARY_NAME} archive <id> [--card <nodo>]
   ${BINARY_NAME} compose <id>… --title "…" [--id <id>]
                                          le operazioni: scrivono i file, passati dal
                                          formatter, solo se non portano errori nuovi;
@@ -79,8 +79,10 @@ Uso:
                                          documento, altrimenti la più vicina con un
                                          document file. create --at, recall, place e
                                          archive scrivono il canvas file (un documento
-                                         senza ne riceve uno, foglio.canvas); compose
-                                         fa un article con gli oggetti nell'ordine dato
+                                         senza ne riceve uno, foglio.canvas); un oggetto
+                                         può avere più schede, e --card dice quale con
+                                         l'id del nodo; compose fa un article con gli
+                                         oggetti nell'ordine dato
   ${BINARY_NAME} --help                    questo aiuto
   ${BINARY_NAME} --version                 la spec-version che il runtime implementa
 
@@ -212,14 +214,14 @@ function operationCommand(command: string, args: string[]): number {
     rename: `${BINARY_NAME} rename <id> <nuovo-id>`,
     move: `${BINARY_NAME} move <id> --to <file>`,
     recall: `${BINARY_NAME} recall <id> [--at <x>,<y>]`,
-    place: `${BINARY_NAME} place <id> --at <x>,<y>`,
-    archive: `${BINARY_NAME} archive <id>`,
+    place: `${BINARY_NAME} place <id> --at <x>,<y> [--card <nodo>]`,
+    archive: `${BINARY_NAME} archive <id> [--card <nodo>]`,
     compose: `${BINARY_NAME} compose <id>… --title "…" [--id <id>]`,
   };
   const options = new Map<string, string>();
   const positional: string[] = [];
   let dryRun = false;
-  const valued = ['--in', '--after', '--before', '--text', '--id', '--asset', '--to', '--folder', '--at', '--title'];
+  const valued = ['--in', '--after', '--before', '--text', '--id', '--asset', '--to', '--folder', '--at', '--title', '--card'];
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;
     if (arg === '--dry-run') dryRun = true;
@@ -266,8 +268,8 @@ function operationCommand(command: string, args: string[]): number {
     else if (command === 'recall') plan = planRecall(workspace, tree, positional[0]!, at);
     else if (command === 'place') {
       if (at === undefined) return usage(`uso: ${syntax.place}`);
-      plan = planPlace(workspace, tree, positional[0]!, at);
-    } else if (command === 'archive') plan = planArchive(workspace, tree, positional[0]!);
+      plan = planPlace(workspace, tree, positional[0]!, at, options.get('--card'));
+    } else if (command === 'archive') plan = planArchive(workspace, tree, positional[0]!, options.get('--card'));
     else if (command === 'compose') {
       if (!options.has('--title') || positional.length === 0) return usage(`uso: ${syntax.compose}`);
       plan = planCompose(workspace, tree, { ids: positional, title: options.get('--title')!, ...(options.has('--id') ? { id: options.get('--id')! } : {}) });

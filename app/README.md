@@ -36,22 +36,27 @@ cartella: File → Apri cartella (Cmd-O). Si può anche dire da riga di comando:
     spaziatrice premuta; lo zoom con Ctrl o Cmd e la rotella (o il pinch), o
     Cmd-+, Cmd-- e Cmd-0. È un piano DOM con una trasformazione CSS, senza
     librerie.
-  - Una scheda si trascina per spostarla, e la posizione si salva (`place`);
-    se è fra quelle scelte, si spostano tutte.
+  - Un oggetto può avere più schede, e ognuna è lo stesso oggetto, non una
+    copia: una modifica fatta da una scheda si vede su tutte.
+  - Una scheda si trascina per spostarla, e la posizione si salva (`place`,
+    con `--card` il nodo di quella scheda); se è fra quelle scelte, si
+    spostano tutte.
   - Un clic apre il sorgente nella scheda, in CodeMirror con gli stessi
     servizi dell'editor; per un oggetto di un `multi-object file` solo la sua
     parte, dalla `attribute line` all'ultimo blocco. Con Escape, o con un
     clic fuori, si torna alla vista, e il testo si salva dal `formatter`.
   - Un doppio clic sul vuoto apre una scheda nuova lì: uscendo con qualcosa
     scritto nasce un `text` (`create --at`), con l'`id` dalle prime parole.
-  - Un oggetto trascinato dal `navigator` torna sul `canvas` in quel punto
-    (`recall`), o ci si sposta se c'è già.
-  - Shift-clic o un riquadro tracciato sul vuoto scelgono più schede;
-    «Archivia», o Canc, le toglie dal `canvas` (`archive`): gli oggetti
-    restano nel `navigator`.
+  - Un oggetto trascinato dal `navigator` riceve una scheda in quel punto
+    (`recall`), anche se ne ha già altre.
+  - Un clic sceglie una scheda; shift-clic o un riquadro tracciato sul vuoto
+    ne scelgono più d'una. «Archivia», o Canc, toglie dal `canvas` le schede
+    scelte e solo quelle (`archive`): un oggetto resta sul `canvas`, e con il
+    punto nel `navigator`, finché ne ha una.
   - Un doppio clic su una scheda apre l'oggetto da solo nella pagina: il suo
     file nell'editor, al suo punto, e solo lui nell'anteprima.
-  - «Metti in sequenza» numera le schede scelte nell'ordine di lettura,
+  - «Metti in sequenza» numera le schede scelte nell'ordine di lettura (due
+    schede dello stesso oggetto danno due `embed`),
     dall'alto in basso e poi da sinistra a destra; nel pannello l'ordine si
     corregge con ↑ e ↓, e con un titolo nasce l'`article` (`compose`), che si
     apre nella pagina.
@@ -123,7 +128,9 @@ schermo e senza `xvfb`; `node dist-test/e2e.js` da solo va bene dopo
 l'app su una cartella di prova, sul `canvas`: scrive due testi con un doppio
 clic, ne modifica uno nella scheda e lo apre da solo nella pagina con un
 doppio clic, sposta l'altro, lo archivia e lo richiama trascinandolo dal
-`navigator`, li sceglie con un riquadro, corregge l'ordine proposto e ne fa
+`navigator`; trascina di nuovo l'altro per avere una sua seconda scheda, ci
+scrive e controlla che la modifica si veda sull'altra, e la archivia
+lasciando l'altra; poi li sceglie con un riquadro, corregge l'ordine proposto e ne fa
 un `article`, controllando ogni volta il `canvas file` sul disco. Poi, nella
 pagina, scrive nell'editor e aspetta il testo
 nell'anteprima, che non deve ricaricarsi, poi fa clic su un titolo e su un

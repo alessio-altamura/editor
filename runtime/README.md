@@ -38,8 +38,8 @@ node dist/src/cli.js rename <id> <nuovo-id>
 node dist/src/cli.js move <id> --to <file>
 node dist/src/cli.js create <kind> --at <x>,<y> [--text "…"] [--id <id>] [--asset <file>]
 node dist/src/cli.js recall <id> [--at <x>,<y>]
-node dist/src/cli.js place <id> --at <x>,<y>
-node dist/src/cli.js archive <id>
+node dist/src/cli.js place <id> --at <x>,<y> [--card <nodo>]
+node dist/src/cli.js archive <id> [--card <nodo>]
 node dist/src/cli.js compose <id>… --title "…" [--id <id>]
 node dist/src/cli.js --help
 ```
@@ -297,10 +297,13 @@ preso, un file di arrivo di un altro `kind`) esce con 2.
 Le operazioni del `canvas` (`src/canvas.ts`, §0.11 e §11.9) scrivono il
 `canvas file`, un JSON Canvas 1.0 con il suo descrittore di `kind`
 `canvas-file`: `create --at` crea un oggetto con il suo nodo (un `text` nel
-file dei testi del `canvas`, `foglio-texts.text.md`), `recall` rimette sul
-`canvas` un oggetto archiviato, `place` sposta un nodo, `archive` lo toglie
-con i suoi archi, `compose` fa un `article` con gli oggetti nell'ordine
-dato. Un oggetto è un nodo `file` con il percorso del suo file, e per un
+file dei testi del `canvas`, `foglio-texts.text.md`), `recall` mette sul
+`canvas` una `card` di un oggetto, anche se ne ha già altre, `place` sposta
+una `card`, `archive` la toglie con i suoi archi, `compose` fa un `article`
+con gli oggetti nell'ordine dato, due `embed` se un oggetto c'è due volte.
+Le `card` dello stesso oggetto sono tutte lo stesso oggetto; con più di una,
+`place` e `archive` vogliono `--card` con l'`id` del nodo, altrimenti
+escono con 2. Un oggetto è un nodo `file` con il percorso del suo file, e per un
 oggetto di un `multi-object file` `subpath` `"#<id>"`; `rename` e `move`
 riscrivono i nodi che nominano l'oggetto. Un documento senza `canvas file`
 ne riceve uno alla prima operazione: `foglio.canvas` e
@@ -417,7 +420,8 @@ uguale tranne `file`, e il file svuotato che si cancella; le operazioni del
 `canvas`: il `canvas file` creato alla prima, valido secondo JSON Canvas 1.0
 (`id` unici, interi, `subpath` con `#`), un `subpath` che non si risolve,
 `recall` e `place` con e senza `--at`, i nodi che seguono `move` e `rename`,
-`archive`, e `compose` che dà un `article` senza errori nell'ordine dato e
+due `card` dello stesso oggetto (`--card` richiesto, `place` e `archive` di
+una sola, `compose` con due `embed`), `archive`, e `compose` che dà un `article` senza errori nell'ordine dato e
 si rifiuta con un `concept`; alla fine i file sono già canonici. `npm test` lancia infine `test/language-server-suite.ts`, che parla JSON-RPC
 su stdio con il server: `initialize`; un errore in un buffer aperto, con il
 range giusto, e i diagnostic vuoti quando un `didChange` lo corregge; il

@@ -122,9 +122,21 @@ try {
     const source = session.objectSource(id);
     if (source.file !== 'foglio-texts.text.md' || source.text !== `{#${id}}\n\nUn pensiero sul foglio.` || !source.before.startsWith('---\nkind: text')) problems.push(`objectSource ${JSON.stringify(source)}`);
     if (session.objectSource('nota').before !== '' || session.objectSource('nota').text !== session.read('nota.text.md')) problems.push('objectSource of a file of its own');
-    if (JSON.stringify(session.readingOrder(['nota', id])) !== JSON.stringify([id, 'nota'])) problems.push(`readingOrder ${JSON.stringify(session.readingOrder(['nota', id]))}`);
+    const nodeOf = (object: string) => session.canvas().cards.find((c) => c.id === object)!.node;
+    const both = [nodeOf('nota'), nodeOf(id)];
+    if (JSON.stringify(session.readingOrder(both)) !== JSON.stringify([nodeOf(id), nodeOf('nota')])) problems.push(`readingOrder ${JSON.stringify(session.readingOrder(both))}`);
     session.place(id, { x: 700, y: 400 });
-    if (JSON.stringify(session.readingOrder(['nota', id])) !== JSON.stringify(['nota', id])) problems.push('readingOrder after place');
+    if (JSON.stringify(session.readingOrder(both)) !== JSON.stringify(both)) problems.push('readingOrder after place');
+    // A second card of nota: the same object, place and archive of one card only.
+    const second = String(session.recall('nota', { x: 1200, y: 0 }).summary?.node);
+    const notas = () => session.canvas().cards.filter((c) => c.id === 'nota');
+    const pair = notas();
+    if (pair.length !== 2 || pair[0]!.html !== pair[1]!.html) problems.push(`two cards of nota: ${pair.length}`);
+    if (!session.place('nota', { x: 0, y: 0 }).error) problems.push('place without the card, with two');
+    session.place('nota', { x: 1200, y: 50 }, second);
+    if (notas().find((c) => c.node === second)?.y !== 50) problems.push('place of one card');
+    session.archive('nota', second);
+    if (notas().length !== 1) problems.push('archive of one card');
     session.archive('nota');
     if (session.canvas().cards.some((c) => c.id === 'nota')) problems.push('archive');
     const shelf = session.navigator().find((s) => s.kind === 'text')?.items ?? [];
