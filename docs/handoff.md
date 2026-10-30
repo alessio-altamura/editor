@@ -457,7 +457,13 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
        testo della tabella;
      - un suggerimento dice «scrivi un valore number», con il nome inglese
        del tipo.
-     Prossimo passo deciso: la `grid` modificabile.
+     Le prime tre sono decise (contesto.md, stessa voce, «Poi, dopo la
+     verifica del primo passo»): avviso e si procede; `name` ricavato come
+     l'`id` e `title` uguale all'intestazione; in colonna il separatore
+     delle migliaia o in tutti i valori o in nessuno. In corso, affidati
+     alla stessa sottosessione: queste correzioni, i due difetti minori e
+     la `grid` modificabile, con le proposte dell'orchestratore sul suo
+     comportamento da confermare con Alessio.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
