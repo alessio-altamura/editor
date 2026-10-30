@@ -135,6 +135,9 @@ ipcMain.on('doc:close-now', (event) => {
   window?.close();
 });
 handle('doc:extract', (current, file: string, text: string) => current.extract(file, String(text)));
+handle('doc:table-at', (current, file: string, text: string, line: number) => current.tableAt(file, String(text), Number(line)));
+handle('doc:turn-into', (current, file: string, text: string, line: number) => current.turnInto(file, String(text), Number(line)));
+handle('doc:data-file', (current, file: string) => current.dataFile(file));
 handle('doc:preview', (current, file: string | null) => {
   const article = current.articleFor(file);
   if (article !== null) void preview?.webContents.loadURL(current.previewUrl(article));

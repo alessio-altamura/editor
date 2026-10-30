@@ -1084,7 +1084,7 @@ non cambia la risoluzione né l'aspetto; il `formatter` lo conserva, e il
   (§6), la `directive` e gli `id reference` (§10) e il `runtime` (§11). La
   classe 1 aggiunge `text`, `image`, `scratch`, `chapter`, `article`,
   `stylesheet` e il `canvas file`. La bozza mette il `concept` nel primo
-  livello (§0.1).
+  livello (§0.1). La classe 2 aggiunge la `collection` (§12).
 
 ## 2. Il documento
 
@@ -3419,14 +3419,375 @@ JSON. Le posizioni sono nelle coordinate di JSON Canvas, interi.
   in basso, poi da sinistra a destra, e un nodo il cui bordo alto sta entro
   metà dell'altezza del primo nodo di una riga è in quella riga.
 
+## 12. La classe 2: dati e `collection` *(proposta)*
+
+Il primo passo della classe 2 porta la `collection`: una tabella di dati con
+il suo `schema`, letta dal `runtime`, controllata e mostrata come tabella
+[C: «Dati e `collection`»]. Le `dimension` e il `pivot` arrivano con i
+grafici, le `relation` e la colonna di ID corti quando un `record` viene
+referenziato (stessa voce).
+
+### 12.1 Il descrittore
+
+Una `collection` è due file: i dati, un `.tsv` o un `.csv`, e il suo
+`descriptor`, `<id>.collection.md` (deciso: lo `schema` sta nel
+`descriptor`, con il vocabolario e i nomi di Frictionless Table Schema; i
+file creati dal `runtime` sono TSV, e un CSV si legge quando arriva da fuori
+[C: «Dati e `collection`»]). Nell'intestazione `id`, `kind: collection`,
+`tags` e `asset`, il percorso dei dati come per l'`image`; poi lo `schema`;
+nel corpo la descrizione, che serve agli screen reader ed è la `static
+fallback`. *(proposte)*
+- **I nomi delle chiavi** sono quelli di Frictionless, in `camelCase`
+  (`primaryKey`, `missingValues`, `decimalChar`): un'eccezione al
+  `kebab-case` delle chiavi dell'intestazione, perché lo `schema` si possa
+  confrontare e convertire senza tradurre i nomi. Le chiavi dello `schema`
+  sono le sole dell'intestazione che ammettono mappe e liste di mappe, con
+  stringhe dentro, lette con lo schema failsafe come il resto (§0.6).
+- **`asset`** nomina un `.tsv` o un `.csv`; un'altra estensione è
+  `collection-schema-invalid`. Il delimitatore di partenza segue
+  l'estensione: la tabulazione per `.tsv`, la virgola per `.csv`.
+- **`fields`**, obbligatoria, una lista; ogni `field` ha `name`, e `type`,
+  che senza vale `string`, come in Frictionless. Si leggono anche `title`,
+  `description`, `format` (solo `default`), `categories` (per `string` e
+  `integer`, una lista di valori), `decimalChar` (per `number`), `groupChar`
+  (per `number` e `integer`), `trueValues` e `falseValues` (per `boolean`),
+  con i default di Frictionless.
+- **I tipi** di questo passo sono `string`, `number`, `integer`, `boolean`,
+  `date`, `datetime`, `time`, `year`, `yearmonth`, nel formato `default` di
+  Frictionless. Gli altri tipi di Frictionless (`object`, `array`, `list`,
+  `duration`, `geopoint`, `geojson`, `any`), un `format` diverso da
+  `default` e una chiave che non si legge danno
+  `collection-schema-unsupported`, e i valori si mostrano come scritti. Un
+  tipo che Frictionless non ha è `collection-schema-invalid`.
+- **`primaryKey`**, facoltativa, un nome o una lista di nomi di `field`
+  (deciso che la chiave è facoltativa e che, se c'è, è unica e senza vuoti
+  [C: «Dati e `collection`»]). **`missingValues`**, una lista, `[""]` se
+  manca.
+- **`dialect`**, con i nomi e i default di Table Dialect: `delimiter`,
+  `quoteChar` (`"`), `doubleQuote` (`"true"`), `skipInitialSpace`
+  (`"false"`), `header` (solo `"true"`: la prima riga sono i `name`) e
+  `lineTerminator`, che si legge ma vale ogni fine riga.
+
+### 12.2 La lettura dei dati
+
+*(proposte)*
+- **Il file** è in UTF-8, letto come gli altri: senza BOM e con LF. Le righe
+  vuote si saltano; la prima riga sono i `name`.
+- **Un TSV** ha un `record` per riga, senza virgolette né escape, come vuole
+  la registrazione IANA del formato (deciso [C: «Dati e `collection`»]).
+  **Un CSV** segue RFC 4180: un valore fra virgolette può contenere il
+  delimitatore, la fine riga e la virgoletta raddoppiata. Un `record` con un
+  numero di valori diverso dall'intestazione, o con le virgolette aperte e
+  non chiuse, è `collection-record-invalid`, e non entra nella tabella.
+- **Le colonne** si trovano per `name`, nell'ordine dei `fields`: un `field`
+  senza colonna è `collection-field-missing`, e i suoi valori mancano; una
+  colonna che non è un `field` è `collection-field-extra`, e non si mostra.
+- **I valori.** Uno di `missingValues` manca. Gli altri si leggono con il
+  loro tipo: `integer` cifre con segno; `number` un decimale, senza `NaN` né
+  infiniti, con `decimalChar` e `groupChar`; `boolean` uno di `trueValues`
+  (`true`, `True`, `TRUE`, `1`) o di `falseValues`; `date` `AAAA-MM-GG` di un
+  giorno che esiste; `datetime` una data, `T` e un `time`, con il fuso
+  facoltativo (`Z` o `±hh:mm`); `time` `hh:mm:ss`; `year` `AAAA`;
+  `yearmonth` `AAAA-MM`. Un valore che non è del suo tipo, o non è fra le
+  `categories`, è `collection-value-invalid`, e si mostra com'è scritto.
+- **La chiave.** Due `record` con la stessa chiave sono
+  `collection-key-duplicate`; una chiave con un valore mancante è
+  `collection-key-empty`.
+- **I limiti** nuovi: 16 MiB e 100 000 `record` per file di dati. Oltre, il
+  file non si legge, è `collection-too-large`, e la `collection` mostra la
+  sola descrizione. Il testo della tabella conta per il limite dei caratteri
+  del `resolved tree` (§11.1).
+- **La posizione.** I `diagnostic` dei dati hanno per `file` il file di dati,
+  e il loro range (§11.7) è il punto del file: il valore, la chiave, il
+  `record` o l'intestazione, contato come le `source position`, non un
+  indirizzo di cella. Quelli dello `schema` stanno sul `descriptor`.
+
+I codici nuovi, che si aggiungono alla tabella del §11.2:
+
+| Codice | Gravità | Quando | `target` | Esempio |
+|---|---|---|---|---|
+| `collection-schema-invalid` | error | lo `schema` non si legge: `fields` assente o senza `name`, un `name` ripetuto, un tipo che Frictionless non ha, `primaryKey` su un `field` che non c'è, `categories` su un tipo che non le ammette, un `asset` che non è `.tsv` o `.csv` | la chiave, il `name` o il tipo | non coperto |
+| `collection-schema-unsupported` | warning | un tipo, un `format` o una chiave che questo passo non legge | il tipo, il `format` o la chiave | non coperto |
+| `collection-field-missing` | error | un `field` senza colonna nel file di dati | il `name` | non coperto |
+| `collection-field-extra` | warning | una colonna che non è un `field` | il nome della colonna | non coperto |
+| `collection-record-invalid` | error | un `record` con un numero di valori sbagliato, o con le virgolette non chiuse | il `record`, fino a 60 caratteri | non coperto |
+| `collection-value-invalid` | error | un valore che non è del suo tipo o non è fra le `categories` | il valore com'è scritto | 53 |
+| `collection-key-duplicate` | error | una chiave già vista in un `record` prima | la chiave, i valori separati da tabulazioni | 53 |
+| `collection-key-empty` | error | una chiave con un valore mancante | la chiave, se c'è | non coperto |
+| `collection-too-large` | error | un file di dati oltre 16 MiB o 100 000 `record` | — | non coperto |
+
+Un file di dati che non è UTF-8 è `syntax`, come gli altri file.
+
+### 12.3 Nel `resolved tree`
+
+*(proposte)* Il nodo della `collection` ha negli `attributes` l'`asset` e lo
+`schema` come sono scritti. Il `content` è la descrizione, poi un elemento
+`table`, lo stesso delle tabelle del testo (§7.4), con l'attributo
+`fields`: `name`, `type` e `title` di ogni `field`, nell'ordine dello
+`schema`. La prima riga è l'intestazione, con il `title`, o il `name`; poi
+una riga per `record`. Ogni cella ha l'attributo `value`, il valore con il
+suo tipo, e per figlio la stringa da mostrare, calcolata dal `runtime`: i
+renderer la applicano soltanto (§0.4, §0.5).
+- **`value`**: per `number` e `integer` il decimale scritto con il punto,
+  senza zeri in fondo, come il `value` delle righe di calcolo; per `boolean`
+  `true` o `false`; per gli altri tipi la stringa letta.
+- **Un valore mancante** è una cella con `missing: true` e senza figli; **uno
+  sbagliato** ha `invalid: true` e per figlio il valore com'è scritto.
+- **La stringa dei numeri** segue il `display` delle righe di calcolo
+  (§0.4): arrotondamento half-even a `--number-decimals`, 2 se non c'è, e i
+  separatori della lingua dell'oggetto. In colonna i decimali sono fissi:
+  quelli del valore che ne mostra di più dopo l'arrotondamento, con gli zeri
+  tenuti, così le cifre si allineano (1,50 sopra 2,25, deciso [C: «Dati e
+  `collection`»]). Un `integer` non ne ha. `--number-notation: compact` non
+  vale nelle tabelle: le forme corte non si allineano.
+- **Lo stile.** Le celle dell'intestazione hanno `font-weight: 700`, quelle
+  di `number` e `integer` `text-align: right`, come dichiarazioni del
+  `runtime` sulla cella, le stesse delle tabelle del testo (§0.5, §7.4).
+  Date, testo e `boolean` restano come scritti.
+- **Le posizioni.** Con `--positions` ogni riga della tabella ha la sua
+  `sourcePosition` nel file di dati.
+- **L'`embed`** di una `collection` in una `composition` porta `number`, con
+  una sequenza propria delle `collection`, accanto a quelle dei capitoli e
+  delle immagini (§0.10). Serve ai `cross-ref`, `[[vendite-2026|tabella
+  {n}]]` (§0.14); nessuna didascalia la mostra (deciso [C: «Dati e
+  `collection`»]).
+
+```````````````````````````````` example 52 conf=2 status=proposal
+=== file doc.document.md
+---
+id: doc
+kind: document
+lang: it
+spec-version: "0.1"
+---
+=== file vendite-2026.collection.md
+---
+id: vendite-2026
+kind: collection
+asset: vendite-2026.tsv
+fields:
+  - name: mese
+    type: string
+    title: Mese
+  - name: euro
+    type: number
+    title: Vendite in euro
+  - name: pezzi
+    type: integer
+primaryKey: mese
+---
+Le vendite del 2026, mese per mese.
+=== file vendite-2026.tsv
+mese	euro	pezzi
+gennaio	1250.5	12
+febbraio	2.255	1300
+marzo		7
+=== resolved
+{
+  "nodes": [
+    {"id": "vendite-2026", "kind": "collection", "file": "vendite-2026.collection.md", "attributes": {"asset": "vendite-2026.tsv", "fields": [{"name": "mese", "type": "string", "title": "Mese"}, {"name": "euro", "type": "number", "title": "Vendite in euro"}, {"name": "pezzi", "type": "integer"}], "primaryKey": "mese"}, "content": [["paragraph", "Le vendite del 2026, mese per mese."], ["table", {"fields": [{"name": "mese", "type": "string", "title": "Mese"}, {"name": "euro", "type": "number", "title": "Vendite in euro"}, {"name": "pezzi", "type": "integer"}]}, ["tableRow", ["tableCell", "Mese"], ["tableCell", "Vendite in euro"], ["tableCell", "pezzi"]], ["tableRow", ["tableCell", {"value": "gennaio"}, "gennaio"], ["tableCell", {"value": "1250.5"}, "1250,50"], ["tableCell", {"value": "12"}, "12"]], ["tableRow", ["tableCell", {"value": "febbraio"}, "febbraio"], ["tableCell", {"value": "2.255"}, "2,26"], ["tableCell", {"value": "1300"}, "1300"]], ["tableRow", ["tableCell", {"value": "marzo"}, "marzo"], ["tableCell", {"missing": true}], ["tableCell", {"value": "7"}, "7"]]]]}
+  ],
+  "document": {"id": "doc", "file": "doc.document.md", "attributes": {"lang": "it", "specVersion": "0.1"}}
+}
+````````````````````````````````
+
+```````````````````````````````` example 53 conf=2 status=proposal
+=== file prezzi.collection.md
+---
+id: prezzi
+kind: collection
+asset: prezzi.tsv
+fields:
+  - name: prodotto
+    type: string
+  - name: prezzo
+    type: number
+primaryKey: prodotto
+---
+I prezzi dei prodotti.
+=== file prezzi.tsv
+prodotto	prezzo
+penna	1.50
+quaderno	due
+penna	2
+=== resolved
+{
+  "nodes": [
+    {"id": "prezzi", "kind": "collection", "file": "prezzi.collection.md", "attributes": {"asset": "prezzi.tsv", "fields": [{"name": "prodotto", "type": "string"}, {"name": "prezzo", "type": "number"}], "primaryKey": "prodotto"}, "content": [["paragraph", "I prezzi dei prodotti."], ["table", {"fields": [{"name": "prodotto", "type": "string"}, {"name": "prezzo", "type": "number"}]}, ["tableRow", ["tableCell", "prodotto"], ["tableCell", "prezzo"]], ["tableRow", ["tableCell", {"value": "penna"}, "penna"], ["tableCell", {"value": "1.5"}, "1.5"]], ["tableRow", ["tableCell", {"value": "quaderno"}, "quaderno"], ["tableCell", {"invalid": true}, "due"]], ["tableRow", ["tableCell", {"value": "penna"}, "penna"], ["tableCell", {"value": "2"}, "2.0"]]]]}
+  ],
+  "diagnostics": [
+    {"severity": "error", "code": "collection-key-duplicate", "file": "prezzi.tsv", "target": "penna", "fix": "cambia la chiave: c'è già alla riga 2"},
+    {"severity": "error", "code": "collection-value-invalid", "file": "prezzi.tsv", "target": "due", "fix": "scrivi un valore number"}
+  ]
+}
+````````````````````````````````
+
+```````````````````````````````` example 54 conf=2 status=proposal
+=== file report.article.md
+---
+id: report
+kind: article
+title: Il rapporto
+---
+![[foto]]
+
+![[nota]]
+
+![[prezzi]]
+=== file nota.text.md
+---
+id: nota
+kind: text
+---
+I prezzi sono nella [[prezzi|tabella {n}]].
+=== asset foto.png
+=== file foto.image.md
+---
+id: foto
+kind: image
+asset: foto.png
+---
+La vetrina.
+=== file prezzi.collection.md
+---
+id: prezzi
+kind: collection
+asset: prezzi.tsv
+fields:
+  - name: prodotto
+    type: string
+  - name: prezzo
+    type: number
+---
+I prezzi.
+=== file prezzi.tsv
+prodotto	prezzo
+penna	1.5
+=== resolved
+{
+  "nodes": [
+    {"id": "foto", "kind": "image", "file": "foto.image.md", "attributes": {"asset": "foto.png"}, "content": [["paragraph", "La vetrina."]]},
+    {"id": "nota", "kind": "text", "file": "nota.text.md", "content": [["paragraph", "I prezzi sono nella ", ["hyperlink", {"ref": "prezzi"}, "tabella"], "."]]},
+    {"id": "prezzi", "kind": "collection", "file": "prezzi.collection.md", "attributes": {"asset": "prezzi.tsv", "fields": [{"name": "prodotto", "type": "string"}, {"name": "prezzo", "type": "number"}]}, "content": [["paragraph", "I prezzi."], ["table", {"fields": [{"name": "prodotto", "type": "string"}, {"name": "prezzo", "type": "number"}]}, ["tableRow", ["tableCell", "prodotto"], ["tableCell", "prezzo"]], ["tableRow", ["tableCell", {"value": "penna"}, "penna"], ["tableCell", {"value": "1.5"}, "1.5"]]]]},
+    {"id": "report", "kind": "article", "file": "report.article.md", "attributes": {"title": "Il rapporto"}, "content": [["title", "Il rapporto"], ["embed", {"id": "foto", "kind": "image", "asset": "foto.png", "number": "1"}, ["paragraph", "La vetrina."]], ["embed", {"id": "nota", "kind": "text"}, ["paragraph", "I prezzi sono nella ", ["hyperlink", {"ref": "prezzi"}, "tabella 1"], "."]], ["embed", {"id": "prezzi", "kind": "collection", "number": "1"}, ["paragraph", "I prezzi."], ["table", {"fields": [{"name": "prodotto", "type": "string"}, {"name": "prezzo", "type": "number"}]}, ["tableRow", ["tableCell", {"computedStyle": {"font-weight": "700"}}, "prodotto"], ["tableCell", {"computedStyle": {"font-weight": "700", "text-align": "right"}}, "prezzo"]], ["tableRow", ["tableCell", {"value": "penna"}, "penna"], ["tableCell", {"value": "1.5", "computedStyle": {"text-align": "right"}}, "1.5"]]]]]}
+  ]
+}
+````````````````````````````````
+
+```````````````````````````````` example 55 conf=2 status=proposal
+=== file clienti-tsv.collection.md
+---
+id: clienti-tsv
+kind: collection
+asset: clienti.tsv
+fields:
+  - name: nome
+    type: string
+  - name: attivo
+    type: boolean
+---
+I clienti, in TSV.
+=== file clienti.tsv
+nome	attivo
+Rossi, Mario	true
+Bianchi "Gino"	false
+=== file clienti-csv.collection.md
+---
+id: clienti-csv
+kind: collection
+asset: clienti.csv
+fields:
+  - name: nome
+    type: string
+  - name: attivo
+    type: boolean
+---
+I clienti, in CSV.
+=== file clienti.csv
+nome,attivo
+"Rossi, Mario",true
+"Bianchi ""Gino""",false
+=== resolved
+{
+  "nodes": [
+    {"id": "clienti-csv", "kind": "collection", "file": "clienti-csv.collection.md", "attributes": {"asset": "clienti.csv", "fields": [{"name": "nome", "type": "string"}, {"name": "attivo", "type": "boolean"}]}, "content": [["paragraph", "I clienti, in CSV."], ["table", {"fields": [{"name": "nome", "type": "string"}, {"name": "attivo", "type": "boolean"}]}, ["tableRow", ["tableCell", "nome"], ["tableCell", "attivo"]], ["tableRow", ["tableCell", {"value": "Rossi, Mario"}, "Rossi, Mario"], ["tableCell", {"value": true}, "true"]], ["tableRow", ["tableCell", {"value": "Bianchi \"Gino\""}, "Bianchi \"Gino\""], ["tableCell", {"value": false}, "false"]]]]},
+    {"id": "clienti-tsv", "kind": "collection", "file": "clienti-tsv.collection.md", "attributes": {"asset": "clienti.tsv", "fields": [{"name": "nome", "type": "string"}, {"name": "attivo", "type": "boolean"}]}, "content": [["paragraph", "I clienti, in TSV."], ["table", {"fields": [{"name": "nome", "type": "string"}, {"name": "attivo", "type": "boolean"}]}, ["tableRow", ["tableCell", "nome"], ["tableCell", "attivo"]], ["tableRow", ["tableCell", {"value": "Rossi, Mario"}, "Rossi, Mario"], ["tableCell", {"value": true}, "true"]], ["tableRow", ["tableCell", {"value": "Bianchi \"Gino\""}, "Bianchi \"Gino\""], ["tableCell", {"value": false}, "false"]]]]}
+  ]
+}
+````````````````````````````````
+
+### 12.4 La resa
+
+*(proposte)* Nell'`export`, nella stampa, nell'anteprima e nelle schede del
+`canvas` l'`embed` di una `collection` è un `<div data-kind="collection">` con
+la `<table>` dentro.
+- **La descrizione** sta in un `<caption data-description>`, nascosto alla
+  vista e alla stampa con il ritaglio dei testi per screen reader (`clip-path:
+  inset(50%)`, un pixel). Il `<caption>` è il nome della tabella per le
+  regole di accessibilità di HTML: gli screen reader lo leggono entrando
+  nella tabella, senza ripeterlo nel testo, e resta legato alla tabella
+  anche fuori da una pagina, a differenza di un `aria-describedby` verso un
+  altro elemento; un `<figure>` con la didascalia la mostrerebbe. Nel PDF la
+  descrizione non si vede e non si estrae come testo: un PDF accessibile,
+  con i tag, è un passo da fare (Electron ha l'opzione `generateTaggedPDF`,
+  sperimentale).
+- **La `static fallback`**: senza dati (file assente, che non si legge, oltre
+  i limiti) l'`embed` è un `<figure data-kind="collection"
+  data-collection-fallback>` con la descrizione visibile, come l'`image` di
+  ripiego.
+- **Un valore sbagliato** è una cella con `data-invalid`, che con
+  `--allow-errors` ha un contorno tratteggiato, come `data-unresolved`.
+- **Un oggetto da solo** (`/object/<id>`, le schede) ha la sua tabella con i
+  suoi numeri, come in un `article` che lo includa da solo.
+
+### 12.5 Le operazioni
+
+*(proposte)*
+- `create collection --field <nome>:<tipo>… (--in <id> | --at <x>,<y> |
+  --near <id>)` crea il `descriptor` e un TSV con la sola intestazione;
+  senza `--field` è uso sbagliato (2).
+- `turn-into <id> [--line <riga>] [--type <campo>:<tipo>]… [--key <campo> |
+  --no-key]` fa di una `text table` una `collection` (deciso [C: «Dati e
+  `collection`»]):
+  - da un `text` che è una tabella sola, l'`id` resta e cambia il `kind`
+    (§0.1, «`turn into` rinomina il file»): nascono `<id>.collection.md` e
+    `<id>.tsv` accanto al file del `text`, che sparisce, anche da un
+    `multi-object file`; `tags`, `lang`, `class` e `associations` passano al
+    `descriptor`. `embed`, collegamenti e schede del `canvas` restano validi;
+  - da una tabella di uno `scratch` (con `--line` se ce n'è più d'una) nasce
+    un `id` nuovo dalle prime parole dell'intestazione, e al posto della
+    tabella va un collegamento, `[[<id>|<nomi delle colonne>]]`: in uno
+    `scratch` un `![[id]]` da solo è `embed-inline` (§7.3), e il testo del
+    collegamento evita `reference-text-missing`;
+  - i tipi si propongono dai valori, i vuoti esclusi: `integer`, `number`
+    (letto con i separatori della lingua dell'oggetto), `boolean`, `date`,
+    altrimenti `string`; la chiave è la prima colonna con i valori tutti
+    scritti e tutti diversi, altrimenti niente chiave. `--type`, `--key` e
+    `--no-key` scelgono al posto della proposta;
+  - il TSV scritto usa il punto decimale anche se la tabella aveva la
+    virgola;
+  - come le altre operazioni passa dal `formatter`, ha `--dry-run`, e si
+    rifiuta se porta errori nuovi, come una chiave scelta con valori
+    ripetuti. Nel language server è l'azione «Trasforma in collection» sulla
+    tabella sotto il cursore.
+- `rename` e `move` valgono anche per la `collection`, come per l'`image`:
+  `rename` cambia l'`id` nel `descriptor`, `move` sposta il `descriptor` in un
+  file suo; una `collection` non entra in un `multi-object file`, perché lo
+  `schema` non sta in una `attribute line`.
+- Il `formatter` riscrive il `descriptor`, con lo `schema` in forma a blocchi
+  e le chiavi di un `field` nell'ordine `name`, `type`, `title`,
+  `description`, `format`; il file di dati non lo tocca mai.
+
 ## Appendice A. Classi successive (non normativa)
 
 Dove si aggancerà ciascuna al `core`.
 
-- **Dati e `collection`** (classe 2). Un CSV o TSV, che è un orientamento [C:
-  «Dati in CSV oppure TSV»], con il suo `schema` separato [C: «Tipi, chiavi e
-  dimensioni si dichiarano»]; il CSV ha un descrittore (§0.1). È un
-  `object`, con `association` ed `embed`.
+- **Dati e `collection`** (classe 2). Il primo passo è nel §12: un TSV o un
+  CSV con il suo `descriptor`, che porta lo `schema` con i nomi di
+  Frictionless [C: «Dati e `collection`»]; è un `object`, con `association`
+  ed `embed`. Restano per i passi dopo le `dimension` e il `pivot` (con i
+  grafici), le `relation` e la colonna di ID corti dei `record` referenziati,
+  e la `grid` modificabile nell'`app`.
 - **Grafici** (classe 3). *(proposta della bozza)* Il `chart` applica un
   `template` a una `collection`, e un aggregatore lo ripete su più dati
   (bozza-nodi.md §3). Porta le dipendenze accanto alle `association`

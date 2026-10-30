@@ -42,6 +42,8 @@ node dist/src/cli.js place <id> [--at <x>,<y>] [--size <larghezza>,<altezza>] [-
 node dist/src/cli.js archive <id> [--card <nodo>]
 node dist/src/cli.js gather <id> [--card <nodo>]
 node dist/src/cli.js arrange --by kind|tag
+node dist/src/cli.js create collection --field <nome>:<tipo>… (--in <id> | --at <x>,<y> | --near <id>)
+node dist/src/cli.js turn-into <id> [--line <riga>] [--type <campo>:<tipo>]… [--key <campo> | --no-key]
 node dist/src/cli.js compose <id>… --title "…" [--id <id>]
 node dist/src/cli.js --help
 ```
@@ -337,6 +339,40 @@ la code action «Estrai in un oggetto» sull'errore `composition-content`.
 Restituiscono una WorkspaceEdit, con i file creati, sostituiti per intero o
 cancellati, così l'editor la applica e la può annullare.
 
+## Le `collection` (classe 2)
+
+Una `collection` (§12 della specifica) è un `descriptor`
+`<id>.collection.md` e un file di dati `.tsv` o `.csv`. Lo `schema` sta
+nell'intestazione del `descriptor`, in YAML, con i nomi di Frictionless
+(`fields` con `name`, `type`, `title`, `categories`, `decimalChar`,
+`groupChar`, `trueValues`, `falseValues`; `primaryKey`; `missingValues`;
+`dialect`); il lettore dell'intestazione (`src/front-matter.ts`) ammette
+mappe e liste di mappe solo per queste chiavi, e il `formatter` le riscrive
+in blocchi.
+
+`src/collection.ts` legge lo `schema` e il file, senza file e senza albero:
+un TSV ha un `record` per riga, senza virgolette; un CSV segue RFC 4180. Ogni
+valore si legge con il suo tipo (`string`, `number`, `integer`, `boolean`,
+`date`, `datetime`, `time`, `year`, `yearmonth`; gli altri tipi di
+Frictionless si mostrano come scritti, con un avviso); `columnDisplays`
+scrive i numeri di una colonna con i decimali fissi. `src/resolve-tree.ts`
+mette i `diagnostic` dei dati sul file di dati, con il range del punto, e fa
+del contenuto la descrizione e una `table` con il valore tipizzato e la
+stringa di ogni cella; l'`embed` ha un `number` della sequenza delle
+`collection`, per i `cross-ref`. I limiti nuovi: 16 MiB e 100 000 `record`.
+
+Nell'HTML la tabella ha la descrizione in un `<caption data-description>`
+nascosto, letto dagli screen reader; nel PDF non si vede e non è testo
+(un PDF con i tag è da fare). Senza dati la
+`collection` è una `figure` con la descrizione, come un'`image` di ripiego.
+
+`src/collection-operations.ts` ha le operazioni: `create collection --field`
+(un `descriptor` e un TSV con la sola intestazione) e `turn-into`, da un
+`text` che è una tabella (stesso `id`, il `text` sparisce) o da una tabella
+di uno `scratch` (un `id` nuovo e un collegamento al posto della tabella),
+con tipi e chiave proposti dai valori e il punto decimale nel TSV; nel
+language server è l'azione «Trasforma in collection».
+
 ## Il language server
 
 `language-server` parla LSP su stdin e stdout (`src/language-server.ts`),
@@ -384,7 +420,10 @@ passare un'altra copia della specifica: `node dist/test/conformance-suite.js
 
 Poi lancia `test/robustness-suite.ts`: casi che gli esempi non coprono, come
 cicli di `embed`, collegamenti simbolici, file non UTF-8, annidamenti profondi
-e chiavi come `__proto__`, ciascuno con il suo controllo sull'albero.
+e chiavi come `__proto__`, ciascuno con il suo controllo sull'albero; e il
+lettore dei dati delle `collection`: virgolette del CSV, una virgoletta non
+chiusa, CRLF e BOM, colonne sbagliate e virgolette nel TSV, un file non
+UTF-8, colonne mancanti o in più, il limite di 16 MiB.
 
 Infine lancia `test/export-suite.ts`, senza browser, sulle cartelle di
 `test/fixtures/export/`, con le immagini generate dal test: codici di uscita,
@@ -407,7 +446,9 @@ motore dell'anteprima, dell'app e della stampa, guidato con l'`_electron` di
 nello schema chiaro e in quello scuro, e confronta
 `getComputedStyle` delle dodici proprietà con i valori ricostruiti del tema,
 e lo sfondo di `html`, più alcuni valori scritti a mano; controlla anche che i
-font di partenza siano caricati e che il testo li usi. Poi
+font di partenza siano caricati e che il testo li usi, e in una `collection`
+i numeri allineati a destra con i decimali fissi, le cifre sullo stesso
+bordo, l'intestazione in grassetto e il `caption` nascosto. Poi
 `test/print-suite.ts` stampa due cartelle, una lunga: `%PDF`, pagine A4,
 più pagine per quella lunga, i font di partenza incorporati e nessun altro,
 due stampe uguali tranne le date, il numero di pagina (con `pdftotext`, se
@@ -446,8 +487,14 @@ con gli spostamenti più corti attesi, senza sovrapposizioni e uguale due
 volte, dentro un gruppo che si allarga e con `--size`, `create --near`,
 `gather` con legami nei due sensi e `card` già presenti (la più vicina) o
 richiamate, `arrange` per `kind` e per tag, rifatto, con il gruppo fatto a
-mano che resta, e il JSON Canvas valido con i gruppi; alla fine i file sono
-già canonici. `npm test` lancia infine `test/language-server-suite.ts`, che parla JSON-RPC
+mano che resta, e il JSON Canvas valido con i gruppi; le `collection`, in
+una cartella loro: `create collection` (e senza `--field`), `turn-into` da un
+`text` (stesso `id`, `embed` e `cross-ref` validi, il punto nel TSV, tipi e
+chiave proposti) e da uno `scratch` (niente chiave con un `record` ripetuto,
+il collegamento al posto della tabella), il rifiuto di una chiave ripetuta,
+`rename` e `move`; alla fine i file sono già canonici. Nella suite del
+language server, l'azione «Trasforma in collection» sulla tabella sotto il
+cursore. `npm test` lancia infine `test/language-server-suite.ts`, che parla JSON-RPC
 su stdio con il server: `initialize`; un errore in un buffer aperto, con il
 range giusto, e i diagnostic vuoti quando un `didChange` lo corregge; il
 completamento dopo `![[` e `[[`; la definizione, l'hover su un `id` e su una
@@ -479,6 +526,9 @@ Solo il typecheck: `npm run typecheck`.
 - `src/live.ts`: il `runtime` acceso su una cartella, per `serve` e il
   language server.
 - `src/language-server.ts`: il language server.
+- `src/collection.ts`: lo `schema` e la lettura dei dati di una
+  `collection`; `src/collection-operations.ts`: `create collection` e
+  `turn-into`.
 - `src/operations.ts`: le operazioni; `src/canvas.ts`: quelle del `canvas`;
   `src/canvas-layout.ts`: gruppi e fare spazio, solo geometria.
 - `src/standalone.ts`: un oggetto da solo, per `/object/<id>` e le schede.

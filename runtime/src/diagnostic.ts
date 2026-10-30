@@ -54,6 +54,16 @@ const SEVERITY: Record<string, Severity> = {
   'attribute-line-invalid': 'error',
   'dark-contrast-low': 'warning',
   'export-too-large': 'error',
+  // Class 2: the collection.
+  'collection-schema-invalid': 'error',
+  'collection-schema-unsupported': 'warning',
+  'collection-field-missing': 'error',
+  'collection-field-extra': 'warning',
+  'collection-record-invalid': 'error',
+  'collection-value-invalid': 'error',
+  'collection-key-duplicate': 'error',
+  'collection-key-empty': 'error',
+  'collection-too-large': 'error',
 };
 
 export function makeDiagnostic(code: string, file: string, target?: string, fix?: string): Diagnostic {

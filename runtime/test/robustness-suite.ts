@@ -452,6 +452,47 @@ check('1000 levels under a chapter node fit, the next one is tree-limit', () => 
   return tree(fits) ?? tree(over) ?? (fits.status === 0 && has(over.tree, 'tree-limit', 'c') ? null : json([fits.tree.diagnostics, over.tree.diagnostics]));
 });
 
+// C. The reader of the data of a collection (class 2).
+const collection = (asset: string, extra = '') =>
+  front('t', 'collection', `asset: ${asset}\nfields:\n  - name: nome\n    type: string\n  - name: valore\n    type: number\n${extra}`);
+/** The strings of the table of the collection t, record by record. */
+const values = (r: Run) => {
+  const table = (node(r.tree, 't')?.content ?? []).find((c) => Array.isArray(c) && c[0] === 'table') as unknown[] | undefined;
+  return (table ?? []).slice(3).map((row) => (row as unknown[]).slice(1).map((cell) => {
+    const parts = cell as unknown[];
+    return parts.length > 2 ? parts[2] : '';
+  }));
+};
+check('a CSV with quotes: delimiter, doubled quote and a line end inside', () => {
+  const r = run({ 't.collection.md': collection('t.csv'), 't.csv': 'nome,valore\n"Rossi, Mario",1.5\n"detto ""il grande""",2\n"a\ncapo",3\n' });
+  return tree(r) ?? (json(values(r)) === json([['Rossi, Mario', '1.5'], ['detto "il grande"', '2.0'], ['a\ncapo', '3.0']]) && !r.tree.diagnostics ? null : `${json(values(r))} ${json(r.tree.diagnostics)}`);
+});
+check('a CSV with a quote not closed is collection-record-invalid, the other records stay', () => {
+  const r = run({ 't.collection.md': collection('t.csv'), 't.csv': 'nome,valore\nuno,1\n"due,2\n' });
+  return tree(r) ?? (has(r.tree, 'collection-record-invalid', undefined, 't.csv') && json(values(r)) === json([['uno', '1']]) ? null : `${json(values(r))} ${json(r.tree.diagnostics)}`);
+});
+check('CRLF and a BOM are read as LF without BOM', () => {
+  const r = run({ 't.collection.md': collection('t.tsv'), 't.tsv': '﻿nome\tvalore\r\nuno\t1\r\ndue\t2\r\n' });
+  return tree(r) ?? (json(values(r)) === json([['uno', '1'], ['due', '2']]) && !r.tree.diagnostics ? null : `${json(values(r))} ${json(r.tree.diagnostics)}`);
+});
+check('a TSV record with a wrong number of values is collection-record-invalid; quotes are text', () => {
+  const r = run({ 't.collection.md': collection('t.tsv'), 't.tsv': 'nome\tvalore\n"uno"\t1\ndue\t2\tin più\ntre\n' });
+  return tree(r) ?? (count(r.tree, 'collection-record-invalid') === 2 && json(values(r)) === json([['"uno"', '1']]) ? null : `${json(values(r))} ${json(r.tree.diagnostics)}`);
+});
+check('a data file that is not UTF-8 is syntax, and the collection shows its description', () => {
+  const r = run({ 't.collection.md': collection('t.tsv') + 'La descrizione.\n', 't.tsv': Buffer.from([0x6e, 0x6f, 0x6d, 0x65, 0x09, 0x76, 0x0a, 0xff, 0xfe, 0x0a]) });
+  const content = node(r.tree, 't')?.content ?? [];
+  return tree(r) ?? (has(r.tree, 'syntax', undefined, 't.tsv') && json(content) === json([['paragraph', 'La descrizione.']]) ? null : `${json(content)} ${json(r.tree.diagnostics)}`);
+});
+check('a column of the schema missing from the file is an error, one more a warning', () => {
+  const r = run({ 't.collection.md': collection('t.tsv'), 't.tsv': 'nome\taltro\nuno\tx\n' });
+  return tree(r) ?? (has(r.tree, 'collection-field-missing', 'valore', 't.tsv') && has(r.tree, 'collection-field-extra', 'altro', 't.tsv') ? null : json(r.tree.diagnostics));
+});
+check('a data file over the limit is collection-too-large, without reading it', () => {
+  const r = run({ 't.collection.md': collection('t.tsv') }, { setup: (folder) => writeFileSync(join(folder, 't.tsv'), Buffer.alloc(16 * 1024 * 1024 + 1, 0x61)) });
+  return tree(r) ?? (has(r.tree, 'collection-too-large', undefined, 't.tsv') ? null : json(r.tree.diagnostics));
+});
+
 let failed = 0;
 for (const [name, body] of cases) {
   let problem: string | null;

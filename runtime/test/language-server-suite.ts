@@ -20,6 +20,7 @@ writeFileSync(join(folder, 'cap.chapter.md'), chapter);
 const note = front('nota', 'text') + 'La somma fa `= 2 * 21`, come dice [[cap]].\n';
 writeFileSync(join(folder, 'nota.text.md'), note);
 writeFileSync(join(folder, 'idea.concept.md'), front('idea', 'concept') + 'Un concetto con parecchie parole dentro.\n');
+writeFileSync(join(folder, 'prezzi.text.md'), front('prezzi', 'text') + '| Prodotto | Prezzo |\n|---|--:|\n| penna | 1,50 |\n');
 const uri = (file: string) => pathToFileURL(join(folder, file)).href;
 
 const server = spawn(process.execPath, [cliPath, 'language-server', '--stdio'], { stdio: ['pipe', 'pipe', 'inherit'] });
@@ -98,11 +99,11 @@ try {
     const lines = withEmbed.split('\n');
     const embedItems = (await call('textDocument/completion', { textDocument: { uri: uri('cap.chapter.md') }, position: { line: lines.length - 1, character: 3 } })) as Array<{ label: string; detail: string; documentation: string }>;
     const embedLabels = embedItems.map((i) => i.label).sort().join();
-    if (embedLabels !== 'nota') problems.push(`after ![[: ${embedLabels}`);
+    if (embedLabels !== 'nota,prezzi') problems.push(`after ![[: ${embedLabels}`);
     send({ method: 'textDocument/didOpen', params: { textDocument: { uri: uri('nota.text.md'), languageId: 'markdown', version: 1, text: note + 'Vedi [[' } } });
     const linkItems = (await call('textDocument/completion', { textDocument: { uri: uri('nota.text.md') }, position: { line: 5, character: 7 } })) as Array<{ label: string; detail: string; documentation: string }>;
     const linkLabels = linkItems.map((i) => i.label).sort().join();
-    if (linkLabels !== 'cap,idea,nota,report') problems.push(`after [[: ${linkLabels}`);
+    if (linkLabels !== 'cap,idea,nota,prezzi,report') problems.push(`after [[: ${linkLabels}`);
     const idea = linkItems.find((i) => i.label === 'idea');
     if (idea?.detail !== 'concept' || !idea.documentation.startsWith('Un concetto')) problems.push(`detail of idea: ${JSON.stringify(idea)}`);
     if (linkItems.find((i) => i.label === 'report')?.documentation !== 'Il rapporto') problems.push('the title of report');
@@ -154,6 +155,23 @@ try {
       }
     }
     report('rename and «Estrai in un oggetto» as WorkspaceEdits', problems);
+  }
+
+  // A table of a text under the cursor: «Trasforma in collection», a WorkspaceEdit that creates the descriptor and the TSV and deletes the text.
+  {
+    const problems: string[] = [];
+    type Change = { kind?: string; uri?: string; textDocument?: { uri: string }; edits?: Array<{ newText: string }> };
+    const name = (u: string | undefined) => u?.split('/').pop();
+    const actions = (await call('textDocument/codeAction', { textDocument: { uri: uri('prezzi.text.md') }, range: { start: { line: 6, character: 2 }, end: { line: 6, character: 2 } }, context: { diagnostics: [] } })) as Array<{ title: string; edit: { documentChanges: Change[] } }>;
+    const action = actions.find((a) => a.title === 'Trasforma in collection');
+    const changes = action?.edit.documentChanges ?? [];
+    const data = changes.find((c) => name(c.textDocument?.uri) === 'prezzi.tsv')?.edits?.[0]?.newText;
+    if (!changes.some((c) => c.kind === 'delete' && name(c.uri) === 'prezzi.text.md') || !changes.some((c) => c.kind === 'create' && name(c.uri) === 'prezzi.collection.md') || data !== 'Prodotto\tPrezzo\npenna\t1.5\n') {
+      problems.push(`turn-into: ${JSON.stringify(actions)}`);
+    }
+    const none = (await call('textDocument/codeAction', { textDocument: { uri: uri('nota.text.md') }, range: { start: { line: 4, character: 0 }, end: { line: 4, character: 0 } }, context: { diagnostics: [] } })) as unknown[];
+    if (none.length !== 0) problems.push(`an action outside a table: ${JSON.stringify(none)}`);
+    report('«Trasforma in collection» on a table under the cursor', problems);
   }
 
   await call('shutdown', {});

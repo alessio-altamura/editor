@@ -7,7 +7,9 @@ import { parseYamlMap, splitFrontMatter, type RawValue } from './front-matter.js
 import { parseMarkdown, resolveTree } from './resolve-tree.js';
 
 /** The order of the attributes in a header and in an attribute line: the table of §4, then the others as written. */
-const KEY_ORDER = ['id', 'kind', 'tags', 'class', 'lang', 'title', 'spec-version', 'asset', 'recursion', 'stylesheet', 'origin', 'associations'];
+const KEY_ORDER = ['id', 'kind', 'tags', 'class', 'lang', 'title', 'spec-version', 'asset', 'fields', 'primaryKey', 'missingValues', 'dialect', 'recursion', 'stylesheet', 'origin', 'associations'];
+/** The order of the keys of a field of a collection: those of Frictionless that say what it is, then the others as written. */
+const FIELD_ORDER = ['name', 'type', 'title', 'description', 'format'];
 
 /** In an attribute line the class comes right after the id (§0.18). */
 const LINE_ORDER = ['id', 'class', ...KEY_ORDER.filter((key) => key !== 'id' && key !== 'class')];
@@ -57,10 +59,31 @@ function canonicalHeader(frontMatter: string, multiObject: boolean): string | nu
   return writeHeader(entries);
 }
 
+/**
+ * A structure of the schema of a collection, in block style: a map as indented keys, a
+ * list of maps as items with a dash, a list of strings inline, a string as above.
+ */
+function yamlBlock(value: unknown, indent: string): string {
+  if (value === null || value === undefined) return '""';
+  if (typeof value === 'string') return yamlString(value);
+  if (Array.isArray(value)) {
+    if (value.every((item) => typeof item === 'string')) return yamlList(value as string[]);
+    return value.map((item) => `\n${indent}- ${yamlBlock(item, `${indent}  `).replace(/^\n\s*/, '')}`).join('');
+  }
+  const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) => {
+    const x = FIELD_ORDER.indexOf(a);
+    const y = FIELD_ORDER.indexOf(b);
+    return (x < 0 ? FIELD_ORDER.length : x) - (y < 0 ? FIELD_ORDER.length : y);
+  });
+  return entries.map(([key, item]) => `\n${indent}${key}: ${yamlBlock(item, `${indent}  `)}`.replace(/: \n/, ':\n')).join('');
+}
+
 /** The lines of a front matter for these attributes, in canonical order. */
 export function writeHeader(entries: Array<[string, RawValue]>): string {
   return ordered(entries)
-    .map(([key, value]) => `${key}: ${value.type === 'list' ? yamlList(value.value) : yamlString((value as { value: string }).value)}`)
+    .map(([key, value]) =>
+      value.type === 'structure' ? `${key}:${yamlBlock(value.value, '  ')}`
+        : `${key}: ${value.type === 'list' ? yamlList(value.value) : yamlString((value as { value: string }).value)}`)
     .join('\n');
 }
 

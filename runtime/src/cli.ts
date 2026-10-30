@@ -16,6 +16,7 @@ import { formatFolder } from './format.js';
 import { unifiedDiff } from './diff.js';
 import { diskWorkspace, evaluate, OperationError, planCreate, planExtract, planMove, planRename, write, type Plan, type Workspace } from './operations.js';
 import { planArchive, planArrange, planCompose, planGather, planPlace, planRecall } from './canvas.js';
+import { planTurnInto } from './collection-operations.js';
 import type { ResolvedTree } from './tree.js';
 import { baseFontFace, staticExport, staticExportSize, type ExportAsset } from './static-export.js';
 import type { JsonML } from './tree.js';
@@ -73,6 +74,8 @@ Uso:
   ${BINARY_NAME} gather <id> [--card <nodo>]
   ${BINARY_NAME} arrange --by kind|tag
   ${BINARY_NAME} compose <id>… --title "…" [--id <id>]
+  ${BINARY_NAME} create collection --field <nome>:<tipo>… (--in <id> | --at <x>,<y> | --near <id>)
+  ${BINARY_NAME} turn-into <id> [--line <riga>] [--type <campo>:<tipo>]… [--key <campo> | --no-key]
                                          le operazioni: scrivono i file, passati dal
                                          formatter, solo se non portano errori nuovi;
                                          stampano un riassunto JSON; con --dry-run
@@ -88,7 +91,10 @@ Uso:
                                          gather porta vicino gli oggetti legati, arrange
                                          mette le schede in gruppi per kind o per tag;
                                          compose fa un article con gli oggetti
-                                         nell'ordine dato
+                                         nell'ordine dato; create collection fa un
+                                         descrittore e un TSV con l'intestazione;
+                                         turn-into fa di una tabella di un text o di
+                                         uno scratch una collection
   ${BINARY_NAME} --help                    questo aiuto
   ${BINARY_NAME} --version                 la spec-version che il runtime implementa
 
@@ -129,7 +135,7 @@ function main(args: string[]): number | Promise<number> {
   if (args[0] === 'print') return exportCommand(args.slice(1), 'print');
   if (args[0] === 'serve') return serveCommand(args.slice(1));
   if (args[0] === 'format') return formatCommand(args.slice(1));
-  if (['create', 'extract', 'rename', 'move', 'recall', 'place', 'archive', 'gather', 'arrange', 'compose'].includes(args[0]!)) return operationCommand(args[0]!, args.slice(1));
+  if (['create', 'extract', 'rename', 'move', 'recall', 'place', 'archive', 'gather', 'arrange', 'compose', 'turn-into'].includes(args[0]!)) return operationCommand(args[0]!, args.slice(1));
   if (args[0] === 'language-server') {
     // LSP on stdin and stdout; --stdio, which clients add, changes nothing. It ends with the client's exit.
     if (args.slice(1).some((arg) => arg !== '--stdio')) return usage(`uso: ${BINARY_NAME} language-server`);
@@ -225,22 +231,31 @@ function operationCommand(command: string, args: string[]): number {
     gather: `${BINARY_NAME} gather <id> [--card <nodo>]`,
     arrange: `${BINARY_NAME} arrange --by kind|tag`,
     compose: `${BINARY_NAME} compose <id>… --title "…" [--id <id>]`,
+    'turn-into': `${BINARY_NAME} turn-into <id> [--line <riga>] [--type <campo>:<tipo>]… [--key <campo> | --no-key]`,
   };
   const options = new Map<string, string>();
   const positional: string[] = [];
   let dryRun = false;
-  const valued = ['--in', '--after', '--before', '--text', '--id', '--asset', '--to', '--folder', '--at', '--title', '--card', '--near', '--size', '--by'];
+  let noKey = false;
+  /** --field nome:tipo and --type campo:tipo may be repeated. */
+  const repeated = new Map<string, string[]>([['--field', []], ['--type', []]]);
+  const valued = ['--in', '--after', '--before', '--text', '--id', '--asset', '--to', '--folder', '--at', '--title', '--card', '--near', '--size', '--by', '--line', '--key'];
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;
     if (arg === '--dry-run') dryRun = true;
-    else if (valued.includes(arg)) {
+    else if (arg === '--no-key') noKey = true;
+    else if (repeated.has(arg)) {
+      const value = args[++i];
+      if (value === undefined || !/^[^:]+:[a-z]+$/.test(value)) return usage(`${arg} vuole <nome>:<tipo>, per esempio mese:string`);
+      repeated.get(arg)!.push(value);
+    } else if (valued.includes(arg)) {
       const value = args[++i];
       if (value === undefined || options.has(arg)) return usage(`uso: ${syntax[command]} [--dry-run] [--folder <cartella>]`);
       options.set(arg, value);
     } else if (arg.startsWith('--')) return usage(`uso: ${syntax[command]} [--dry-run] [--folder <cartella>]`);
     else positional.push(arg);
   }
-  const wanted = { create: 1, extract: 1, rename: 2, move: 1, recall: 1, place: 1, archive: 1, gather: 1, arrange: 0, compose: positional.length }[command as 'create'];
+  const wanted = { create: 1, extract: 1, rename: 2, move: 1, recall: 1, place: 1, archive: 1, gather: 1, arrange: 0, compose: positional.length, 'turn-into': 1 }[command as 'create'];
   if (positional.length !== wanted || (options.has('--after') && options.has('--before'))) return usage(`uso: ${syntax[command]} [--dry-run] [--folder <cartella>]`);
   // A place on the canvas: two integers, x and y, as JSON Canvas writes them.
   let at: { x: number; y: number } | undefined;
@@ -270,6 +285,7 @@ function operationCommand(command: string, args: string[]): number {
         ...(options.has('--in') ? { into: options.get('--in')! } : {}),
         ...(at !== undefined ? { at } : {}),
         ...(options.has('--near') ? { near: { id: options.get('--near')!, ...(options.has('--card') ? { card: options.get('--card')! } : {}) } } : {}),
+        ...(repeated.get('--field')!.length > 0 ? { fields: repeated.get('--field')!.map((pair) => ({ name: pair.slice(0, pair.lastIndexOf(':')), type: pair.slice(pair.lastIndexOf(':') + 1) })) } : {}),
         ...(options.has('--after') ? { after: options.get('--after')! } : {}),
         ...(options.has('--before') ? { before: options.get('--before')! } : {}),
         ...(options.has('--text') ? { text: options.get('--text')! } : {}),
@@ -285,7 +301,17 @@ function operationCommand(command: string, args: string[]): number {
       if (at === undefined && size === undefined) return usage(`uso: ${syntax.place}`);
       plan = planPlace(workspace, tree, positional[0]!, at, options.get('--card'), size);
     } else if (command === 'gather') plan = planGather(workspace, tree, positional[0]!, options.get('--card'));
-    else if (command === 'arrange') {
+    else if (command === 'turn-into') {
+      if (noKey && options.has('--key')) return usage(`uso: ${syntax['turn-into']}`);
+      const line = options.get('--line');
+      if (line !== undefined && !/^[1-9]\d*$/.test(line)) return usage('--line vuole un numero di riga, da 1');
+      plan = planTurnInto(workspace, tree, positional[0]!, {
+        ...(line !== undefined ? { line: Number(line) } : {}),
+        types: Object.fromEntries(repeated.get('--type')!.map((pair) => [pair.slice(0, pair.lastIndexOf(':')), pair.slice(pair.lastIndexOf(':') + 1)])),
+        ...(options.has('--key') ? { key: options.get('--key')! } : {}),
+        noKey,
+      });
+    } else if (command === 'arrange') {
       if (!['kind', 'tag'].includes(options.get('--by') ?? '')) return usage(`uso: ${syntax.arrange}`);
       plan = planArrange(workspace, tree, options.get('--by') as 'kind' | 'tag');
     } else if (command === 'archive') plan = planArchive(workspace, tree, positional[0]!, options.get('--card'));
