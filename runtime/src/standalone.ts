@@ -20,12 +20,12 @@ export interface Standalone {
  * images) counts as in the object alone. An object that cannot be embedded (a concept,
  * an article) has none.
  */
-export function standaloneTree(folder: string, overlay: ReadonlyMap<string, string | null>, ids: string[], positions = true): Standalone {
+export function standaloneTree(folder: string, overlay: ReadonlyMap<string, string | null>, ids: string[], positions = true, records?: number): Standalone {
   const holder = `standalone-${randomBytes(6).toString('hex')}`;
   const wanted = [...new Set(ids.filter((id) => ID_FORM.test(id)))];
   const files = new Map(wanted.map((id, index) => [`${holder}-${index + 1}.article.md`, id]));
   const texts = [...files].map(([file, id], index) => [file, `---\nid: ${holder}-${index + 1}\nkind: article\n---\n![[${id}]]\n`] as [string, string]);
-  const tree = resolveTree(folder, { positions, overlay: new Map([...overlay, ...texts]) });
+  const tree = resolveTree(folder, { positions, overlay: new Map([...overlay, ...texts]), records });
   const nodes: TreeNode[] = (tree.nodes ?? []).filter((node) => !files.has(node.file));
   const roots = new Map<string, string>();
   for (const article of tree.nodes ?? []) {

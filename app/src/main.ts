@@ -102,7 +102,9 @@ function createWindow(): void {
       }
     });
   });
-  void window.loadFile(join(here, 'renderer/index.html'));
+  // The visual direction, while it is chosen (DOC_APP_VARIANT, temporary): sobrio by default.
+  const variant = ['sobrio', 'denso', 'carta'].includes(process.env.DOC_APP_VARIANT ?? '') ? process.env.DOC_APP_VARIANT! : 'sobrio';
+  void window.loadFile(join(here, 'renderer/index.html'), { query: { variant } });
 }
 
 /** Every IPC call: the session must be open, and the arguments are checked by it. */

@@ -63,6 +63,7 @@ function styleSheet(options: ExportOptions): string {
     'img { max-width: 100%; height: auto; vertical-align: top; }\n' +
     '[data-number], [data-math-line], [data-math-line-invalid] { unicode-bidi: isolate; }\n' +
     'caption[data-description] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }\n' +
+    (options.preview !== undefined ? 'tr[data-more-records] td { font-style: italic; }\n' : '') +
     (options.allowErrors === true ? '[data-unresolved] { outline: 0.75pt dashed currentColor; }\n[data-invalid] { outline: 0.75pt dashed currentColor; }\n' : '')
   );
 }
@@ -586,6 +587,11 @@ function* pieces(
           context: { ...inner, cell: index === 0 ? ('th' as const) : ('td' as const) },
         }));
         if (rows.length > 1) afterOpen.splice(1, 0, { type: 'text', text: '</thead><tbody>' });
+        // A table cut short (the preview, a card): a last row says how many records are left (§12.4).
+        if (typeof attributes.moreRecords === 'number' && rows.length > 1) {
+          const width = Array.isArray(rows[0]) ? rows[0].length - (rows[0][1] !== null && typeof rows[0][1] === 'object' && !Array.isArray(rows[0][1]) ? 2 : 1) : 1;
+          afterOpen.push({ type: 'text', text: `<tr data-more-records><td colspan="${width}">${escapeHtml(String(attributes.moreLabel ?? ''))}</td></tr>` });
+        }
         // The description of a collection: a caption, which screen readers read with the table and the PDF keeps; hidden on screen and paper.
         afterOpen.unshift(
           ...(caption && caption.length > 0

@@ -6,6 +6,9 @@ import type { ResolvedTree } from './tree.js';
 
 /** Saves come in bursts: the recomputation waits this long after the last change. */
 export const SETTLE_MS = 60;
+/** The records of a collection the preview shows (§11.6), and a card of the canvas. */
+export const PREVIEW_RECORDS = 1000;
+export const CARD_RECORDS = 20;
 
 export class LiveFolder {
   /** Texts that hold in place of the files on disk: the buffers open in an editor. */
@@ -33,7 +36,7 @@ export class LiveFolder {
   recompute(): boolean {
     const start = performance.now();
     try {
-      this.tree = resolveTree(this.folder, { positions: true, overlay: this.overlay });
+      this.tree = resolveTree(this.folder, { positions: true, overlay: this.overlay, records: PREVIEW_RECORDS });
       this.listed = listDocumentFiles(this.folder);
     } catch (error) {
       this.log(`errore interno nel ricalcolo: ${error instanceof Error ? error.message : String(error)}`);

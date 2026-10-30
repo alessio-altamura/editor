@@ -5,6 +5,7 @@
 // keeps the values as written in the file, with undo and redo.
 import { TYPE_WORDS } from 'doc-runtime/dist/src/collection.js';
 import { GridModel } from '../grid-model.js';
+import { decorate } from './icons.js';
 import type { DocApp } from '../preload.js';
 
 const ROW = 28;
@@ -31,13 +32,14 @@ export function createGrid(api: DocApp, root: HTMLElement, hooks: GridHooks) {
   root.replaceChildren();
   root.innerHTML = `
     <div class="grid-bar" role="toolbar" aria-label="Record e campi">
-      <span class="grid-group">Record <button data-do="append" title="Aggiungi in fondo">+ in fondo</button><button data-do="insert" title="Aggiungi dopo quello scelto">+ dopo</button><button data-do="remove" title="Togli il record scelto">− togli</button><button data-do="up" title="Sposta su">↑</button><button data-do="down" title="Sposta giù">↓</button></span>
-      <span class="grid-group">Campo <input class="field-title" aria-label="Titolo del campo scelto"><select class="field-type" aria-label="Tipo del campo scelto">${TYPES.map((type) => `<option>${type}</option>`).join('')}</select><button data-do="remove-field" title="Togli il campo scelto">− togli</button></span>
-      <span class="grid-group">Nuovo campo <input class="new-title" placeholder="Titolo" aria-label="Titolo del campo nuovo"><select class="new-type" aria-label="Tipo del campo nuovo">${TYPES.map((type) => `<option>${type}</option>`).join('')}</select><button data-do="add-field">+ campo</button></span>
-      <span class="grid-group"><button data-do="undo" title="Annulla (Cmd-Z)">↶</button><button data-do="redo" title="Ripeti (Cmd-Maiusc-Z)">↷</button></span>
+      <span class="grid-group"><span class="grid-label">Record</span><button data-do="append" data-icon="plus" aria-label="Aggiungi in fondo">+ in fondo</button><button data-do="insert" data-icon="list-plus" aria-label="Aggiungi dopo quello scelto">+ dopo</button><button data-do="remove" data-icon="trash-2" aria-label="Togli il record scelto">− togli</button><button data-do="up" data-icon="arrow-up" aria-label="Sposta su">↑</button><button data-do="down" data-icon="arrow-down" aria-label="Sposta giù">↓</button></span>
+      <span class="grid-group"><span class="grid-label">Campo</span><input class="field-title" aria-label="Titolo del campo scelto"><select class="field-type" aria-label="Tipo del campo scelto">${TYPES.map((type) => `<option>${type}</option>`).join('')}</select><button data-do="remove-field" data-icon="trash-2" aria-label="Togli il campo scelto">− togli</button></span>
+      <span class="grid-group"><span class="grid-label">Nuovo campo</span><input class="new-title" placeholder="Titolo" aria-label="Titolo del campo nuovo"><select class="new-type" aria-label="Tipo del campo nuovo">${TYPES.map((type) => `<option>${type}</option>`).join('')}</select><button data-do="add-field" data-icon="plus" aria-label="Aggiungi il campo">+ campo</button></span>
+      <span class="grid-group"><button data-do="undo" data-icon="undo-2" aria-label="Annulla" title="Annulla (Cmd-Z)">↶</button><button data-do="redo" data-icon="redo-2" aria-label="Ripeti" title="Ripeti (Cmd-Maiusc-Z)">↷</button></span>
       <span class="grid-status" role="status"></span>
     </div>
     <div class="grid-scroll"><div class="grid-table" role="grid" tabindex="0" aria-multiselectable="true"><div class="grid-head" role="row" aria-rowindex="1"></div><div class="grid-space"></div></div></div>`;
+  decorate(root);
   const scroll = root.querySelector<HTMLElement>('.grid-scroll')!;
   const table = root.querySelector<HTMLElement>('.grid-table')!;
   const head = root.querySelector<HTMLElement>('.grid-head')!;

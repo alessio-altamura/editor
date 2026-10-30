@@ -84,6 +84,9 @@ cartella: File → Apri cartella (Cmd-O). Si può anche dire da riga di comando:
   a quella riga. Con il cursore in una tabella di un `text` o di uno
   `scratch` compare «Trasforma in collection» (`turn-into`); se la tabellina
   perde qualcosa (formattazione, allineamento) l'avviso compare nella barra.
+  Una tabella grande si taglia: l'anteprima mostra i primi 1000 `record`,
+  una scheda del `canvas` i primi 20, con un'ultima riga «… altri N
+  record»; l'`export` e la stampa hanno la tabella intera (§11.6).
 - **La `grid`**: aprendo una `collection` l'editor mostra i suoi dati in una
   griglia; «Testo» porta al `descriptor` come testo, «Griglia» torna. Niente
   coordinate: l'intestazione mostra il `title`, o il `name`, e il tipo.
@@ -141,6 +144,20 @@ cartella: File → Apri cartella (Cmd-O). Si può anche dire da riga di comando:
   nell'editor il file del suo `data-source` e porta il cursore all'inizio
   del range.
 - Il tema è quello del sistema, chiaro o scuro.
+- **L'aspetto**, solo dell'`app` (la resa del documento resta quella del suo
+  stylesheet): tre direzioni visive da scegliere, ciascuna un insieme di
+  token CSS in `src/renderer/style.css`, chiari e scuri: «sobrio», il
+  default (neutri chiari, Inter a 13 px, bordi sottili, raggio 6 px, accento
+  blu, `canvas` a puntini), «denso» (pensata per lo scuro, barra laterale
+  compatta, accento viola, pannelli divisi dal tono) e «carta» (bianco caldo,
+  spazi ampi, schede come fogli con ombra, titoli dell'interfaccia in Source
+  Serif 4). La variabile d'ambiente temporanea
+  `DOC_APP_VARIANT=sobrio|denso|carta` sceglie la direzione; scelta una, le
+  altre due si tolgono. I pulsanti comuni hanno un'icona di Lucide, con
+  tooltip e `aria-label`; il testo dei token rispetta il contrasto WCAG AA
+  (almeno 4,5:1) in tutte e sei le tavolozze. Font e icone sono in
+  `assets/`, con versione e sha256 (`assets/README.md`), incorporati senza
+  CDN.
 
 ## Sicurezza
 
@@ -175,14 +192,22 @@ l'app, il suo testo si perde.
 ```
 npm test            # le funzioni dietro l'IPC, senza Electron
 npm run test:e2e    # end to end, con l'Electron del pacchetto e playwright-core
+npm run test:variants  # le tre direzioni visive si aprono senza errori
 ```
+
+`npm run test:variants` apre l'`app` con ciascuna direzione e controlla
+che non ci siano errori nella console, che ci siano i token, Inter e le
+icone con la loro etichetta. Con `VARIANT_SCREENSHOTS=<cartella>` salva
+anche, in chiaro e in scuro, le immagini del `canvas`, della pagina e della
+griglia (la finestra, senza la vista dell'anteprima).
 
 `npm run measure:grid` apre una `collection` di 100 000 `record` e stampa
 i tempi di apertura, di scorrimento, della modifica di una cella e
 dell'anteprima che la segue. Misura del 2026-10-30, in un contenitore
-Linux a 4 core: apertura 653 ms, scorrimento 16,7 ms per frame (il
-peggiore 21,4 ms), modifica 312 ms; l'anteprima di un articolo con la
-tabella intera invece arriva in 61 s, con ricalcoli di 7-9 s.
+Linux a 4 core: apertura 430-570 ms, scorrimento 16,7 ms per frame (il
+peggiore 19-30 ms), modifica 170-210 ms; l'anteprima di un articolo con la
+tabella, che ne mostra i primi 1000 `record`, arriva in 1,6-1,7 s, con
+ricalcoli di 0,4-0,7 s (prima del taglio: 61-80 s, con ricalcoli di 7-9 s).
 
 Su Linux l'end to end gira sulla piattaforma headless di Chromium, senza
 schermo e senza `xvfb`; `node dist-test/e2e.js` da solo va bene dopo
@@ -226,10 +251,13 @@ end che fallisce salva anche l'immagine della finestra.
 - `src/offset.ts`: dove va il cursore dopo il formatter.
 - `src/grid-model.ts`: il modello della griglia, senza DOM (valori, incolla,
   `record` e campi, annulla); `src/renderer/grid.ts`: la sua vista.
+- `src/renderer/style.css`: i token delle tre direzioni e le regole;
+  `src/renderer/icons.ts`: le icone, dai file di `assets/icons`.
 
 Dipendenze, con versione esatta: CodeMirror 6 (`@codemirror/state` 6.7.6,
 `view` 6.43.14, `language` 6.13.1, `lang-markdown` 6.5.2, `autocomplete`
 6.20.3, `lint` 6.9.7, `commands` 6.11.1, `search` 6.7.2, `theme-one-dark`
 6.1.3; MIT). Per lo sviluppo `electron` 44.9.3 (MIT), `esbuild` 0.28.2
 (MIT), `typescript` 5.9.3 (Apache-2.0), `playwright-core` 1.56.1
-(Apache-2.0), `@types/node` (MIT).
+(Apache-2.0), `@types/node` (MIT). Incorporati: Inter 4.1 (OFL 1.1) e le
+icone di Lucide 1.65.0 (ISC), in `assets/`.

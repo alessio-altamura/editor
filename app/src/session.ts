@@ -10,7 +10,7 @@ import { planTurnInto, tableAtLine } from 'doc-runtime/dist/src/collection-opera
 import { formatText, writeHeader } from 'doc-runtime/dist/src/format.js';
 import { parseYamlMap, splitFrontMatter, type RawValue } from 'doc-runtime/dist/src/front-matter.js';
 import { completions, definitionOf, describe, hoverAt, referenceAt, type Completion, type Position, type Range } from 'doc-runtime/dist/src/language-services.js';
-import { LiveFolder } from 'doc-runtime/dist/src/live.js';
+import { CARD_RECORDS, LiveFolder } from 'doc-runtime/dist/src/live.js';
 import { diskWorkspace, evaluate, OperationError, planCreate, planExtract, shape, write, type Plan, type Workspace } from 'doc-runtime/dist/src/operations.js';
 import { listDocumentFiles, resolveTree } from 'doc-runtime/dist/src/resolve-tree.js';
 import { serve } from 'doc-runtime/dist/src/serve.js';
@@ -221,7 +221,7 @@ export class Session {
   canvas(): { canvas: string | null; cards: CardView[]; groups: CanvasGroup[] } {
     const { canvas, cards, groups } = canvasCards(this.workspace(), this.live.tree);
     const ids = cards.flatMap((card) => (card.id === null ? [] : [card.id]));
-    const standalone = standaloneTree(this.folder, this.live.overlay, ids, false);
+    const standalone = standaloneTree(this.folder, this.live.overlay, ids, false, CARD_RECORDS);
     const url = (path: string) => `${this.base}${path}?token=${encodeURIComponent(this.token)}`;
     const preview = {
       assetUrl: (path: string) => url(`/asset/${path.split('/').map(encodeURIComponent).join('/')}`),

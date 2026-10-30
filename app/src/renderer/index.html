@@ -15,12 +15,12 @@
 </nav>
 <main id="board" aria-label="Foglio">
   <header class="bar">
-    <button data-show="page" title="Vista pagina (Cmd-2)">Pagina</button>
-    <button id="sequence-start" disabled>Metti in sequenza</button>
-    <button id="archive" disabled title="Archivia le schede scelte (Canc)">Archivia</button>
+    <button data-show="page" data-icon="file-text" aria-label="Pagina" title="Vista pagina (Cmd-2)">Pagina</button>
+    <button id="sequence-start" data-icon="list-ordered" data-icon-text disabled>Metti in sequenza</button>
+    <button id="archive" data-icon="archive" aria-label="Archivia" disabled title="Archivia le schede scelte (Canc)">Archivia</button>
     <span class="arrange">Metti in ordine: <button id="arrange-kind">per tipo</button> <button id="arrange-tag">per tag</button></span>
     <input id="find" type="search" placeholder="Trova sul foglio" aria-label="Trova sul foglio">
-    <button id="find-previous" title="Precedente (Maiusc-Invio)">↑</button><button id="find-next" title="Successivo (Invio)">↓</button>
+    <button id="find-previous" data-icon="chevron-up" aria-label="Precedente" title="Precedente (Maiusc-Invio)">↑</button><button id="find-next" data-icon="chevron-down" aria-label="Successivo" title="Successivo (Invio)">↓</button>
     <span id="find-count" role="status"></span>
     <span id="notice" role="status"></span>
     <span id="zoom">100%</span>
@@ -37,7 +37,7 @@
   </div>
 </main>
 <main id="source">
-  <header id="bar" class="bar"><button data-show="canvas" title="Vista foglio (Cmd-1)">Foglio</button><span id="file">Nessun file aperto</span><span id="page-notice" role="status"></span><button id="extract" hidden>Estrai in un oggetto</button><button id="turn-into" hidden>Trasforma in collection</button><button id="data" hidden>Dati</button><button id="mode" hidden>Testo</button></header>
+  <header id="bar" class="bar"><button data-show="canvas" data-icon="layout-dashboard" aria-label="Foglio" title="Vista foglio (Cmd-1)">Foglio</button><span id="file">Nessun file aperto</span><span id="page-notice" role="status"></span><button id="extract" data-icon="scissors" data-icon-text hidden>Estrai in un oggetto</button><button id="turn-into" data-icon="table-properties" data-icon-text hidden>Trasforma in collection</button><button id="data" data-icon="table" aria-label="Dati" title="Il file dei dati" hidden>Dati</button><button id="mode" data-icon="file-code" aria-label="Testo" hidden>Testo</button></header>
   <div id="editor"></div>
   <div id="grid" hidden></div>
 </main>

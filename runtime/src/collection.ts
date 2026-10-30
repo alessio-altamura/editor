@@ -308,17 +308,25 @@ export function readValue(field: Field, written: string, schema: Schema): Value 
 /**
  * The strings of a column of numbers: half-even to `decimals` places, as the math lines,
  * then all with the decimals of the value that shows the most, zeros kept, so the digits
- * line up (1,50 over 2,25). An integer column has none.
+ * line up (1,50 over 2,25). An integer column has none. The whole column decides the
+ * decimals and the groups; only the first `count` strings are made (a table cut short).
  */
-export function columnDisplays(values: Array<DecimalValue | undefined>, lang: string | undefined, decimals: number, integer: boolean): string[] {
+export function columnDisplays(values: Array<DecimalValue | undefined>, lang: string | undefined, decimals: number, integer: boolean, count = values.length): string[] {
   const format = lang === undefined ? undefined : langFormat(lang);
-  const rounded = values.map((value) => (value === undefined ? undefined : integer ? value : roundHalfEven(value, decimals)));
-  const places = integer ? 0 : Math.max(0, ...rounded.map((value) => (value === undefined ? 0 : (plainString(value).split('.')[1] ?? '').length)));
-  const plain = rounded.map((value) => (value === undefined ? undefined : value.isZero() ? (0).toFixed(places) : value.toFixed(places)));
+  // Rounded only when it has more decimals than asked: the others stay as they are.
+  const rounded = values.map((value) => (value === undefined || integer || value.decimalPlaces() <= decimals ? value : roundHalfEven(value, decimals)));
+  let places = 0;
+  let digits = 0;
+  for (const value of rounded) {
+    if (value === undefined) continue;
+    if (!integer) places = Math.max(places, value.decimalPlaces());
+    // The digits of the integer part, from the exponent: the longest one decides the groups.
+    digits = Math.max(digits, value.e + 1);
+  }
   // In a column, if one value has the group separator they all have it (9.875,26 under 21.300,00); outside tables CLDR holds.
-  const grouped = format !== undefined && plain.some((text) => text !== undefined && localize(text, format) !== localize(text, { ...format, group: '' }));
+  const grouped = format !== undefined && digits >= 3 + format.minimumGroupingDigits;
   const columnFormat = grouped ? { ...format!, minimumGroupingDigits: 1 } : format;
-  return plain.map((text) => (text === undefined ? '' : localize(text, columnFormat)));
+  return rounded.slice(0, count).map((value) => (value === undefined ? '' : localize(value.isZero() ? (0).toFixed(places) : value.toFixed(places), columnFormat)));
 }
 
 /** The string to show of a value that is not a number: as written; a boolean as written too. */

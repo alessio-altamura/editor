@@ -10,6 +10,7 @@ import type { DocApp } from '../preload.js';
 import type { CanvasGroup } from 'doc-runtime/dist/src/canvas.js';
 import type { CardView, ObjectSource } from '../session.js';
 import { editorExtensions, filePosition } from './editor.js';
+import { setIcon } from './icons.js';
 
 type At = { x: number; y: number };
 
@@ -146,13 +147,13 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
     // The commands of a card: a new thought next to it, and the objects tied to it.
     const plus = document.createElement('button');
     plus.className = 'card-plus';
-    plus.textContent = '+';
     plus.title = 'Nuovo pensiero vicino';
+    setIcon(plus, 'plus', 'Nuovo pensiero vicino');
     plus.addEventListener('click', () => void newText(null, key));
     const gather = document.createElement('button');
     gather.className = 'card-gather';
-    gather.textContent = '⊕';
     gather.title = 'Raccogli vicino gli oggetti legati';
+    setIcon(gather, 'group', 'Raccogli vicino gli oggetti legati');
     gather.addEventListener('click', () => void gatherAround(key));
     head.append(kindLabel, idLabel, gather, plus);
     const body = document.createElement('div');
@@ -437,13 +438,11 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
       const label = document.createElement('span');
       label.textContent = cardOf(node)?.title || node;
       const up = document.createElement('button');
-      up.textContent = '↑';
-      up.title = 'Prima';
+      setIcon(up, 'arrow-up', 'Prima');
       up.disabled = index === 0;
       up.addEventListener('click', () => move(index, -1));
       const down = document.createElement('button');
-      down.textContent = '↓';
-      down.title = 'Dopo';
+      setIcon(down, 'arrow-down', 'Dopo');
       down.disabled = index === sequence!.length - 1;
       down.addEventListener('click', () => move(index, 1));
       item.append(label, up, down);

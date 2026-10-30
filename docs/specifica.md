@@ -3244,6 +3244,19 @@ dell'`export` sarà usato anche come anteprima»]:
   appartiene (per un `embed`, quello dell'oggetto incluso), e `data-source`,
   la sua `source position`.
 
+*(proposta)* Una tabella grande si taglia [C: «Dati e `collection`»]: nella
+`preview`, anche di un oggetto da solo, una `collection` mostra i primi 1000
+`record`, in una scheda del `canvas` i primi 20; segue una riga, l'ultima del
+corpo della tabella, «… altri N record» nella lingua del documento
+(`… N more records` in inglese, l'italiano senza lingua), con N scritto come
+i numeri del documento. L'`export` e la stampa hanno sempre la tabella
+intera. Il taglio sta già nel `resolved tree` che il `runtime` acceso tiene
+(§12.4), così il ricalcolo resta breve anche per il `language server`: con
+100 000 `record` il ricalcolo scende da 12-13 s a 0,6-0,9 s e l'HTML della
+`preview` da 179 MB in 16-19 s a 1,8 MB in 0,2 s (`npm run measure:records`
+nel `runtime`, un contenitore Linux a 4 core). Le stringhe dei numeri si
+decidono sempre sulla colonna intera (§12.3).
+
 *(proposta)* Un oggetto si vede anche da solo, all'indirizzo
 `/object/<id>`: la stessa `preview`, come se l'oggetto fosse l'unico
 `embed` di un `article` senza titolo e con il foglio di partenza, che non
@@ -3743,6 +3756,13 @@ la `<table>` dentro.
   `--allow-errors` ha un contorno tratteggiato, come `data-unresolved`.
 - **Un oggetto da solo** (`/object/<id>`, le schede) ha la sua tabella con i
   suoi numeri, come in un `article` che lo includa da solo.
+- **Una tabella tagliata** (la `preview`, una scheda, §11.6): il `resolved
+  tree` del `runtime` acceso tiene solo i primi `record`, e la `table` porta
+  `moreRecords`, quanti ne restano, e `moreLabel`, la riga da mostrare;
+  l'HTML la scrive come ultima riga del corpo, `<tr data-more-records><td
+  colspan="…">… altri 99.000 record</td></tr>`, in corsivo. I `diagnostic`
+  restano quelli di tutto il file. `resolve-tree` e l'`export` non tagliano
+  mai, e un albero senza taglio non ha i due attributi.
 
 ### 12.5 Le operazioni
 

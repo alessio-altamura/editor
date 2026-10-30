@@ -10,6 +10,7 @@ import type { DocApp } from '../preload.js';
 import { createBoard } from './board.js';
 import { createGrid } from './grid.js';
 import { editorExtensions, offsetOf, position } from './editor.js';
+import { decorate, setIcon } from './icons.js';
 
 declare global {
   interface Window {
@@ -20,6 +21,8 @@ declare global {
 }
 
 const api = window.docApp;
+// The visual direction (DOC_APP_VARIANT, temporary): its tokens in style.css.
+document.documentElement.dataset.variant = new URLSearchParams(location.search).get('variant') ?? 'sobrio';
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 let file: string | null = null;
 /** The text of the file as it is on disk: what the editor shows differs if it is not saved. */
@@ -158,8 +161,8 @@ async function showMode(next: 'text' | 'grid'): Promise<void> {
   $('editor').hidden = next === 'grid';
   $('grid').hidden = next === 'text';
   $('mode').hidden = !$('data').dataset.file;
-  $('mode').textContent = next === 'grid' ? 'Testo' : 'Griglia';
   $('mode').title = next === 'grid' ? 'Il descrittore come testo' : 'I dati in una griglia';
+  setIcon($('mode'), next === 'grid' ? 'file-code' : 'table', next === 'grid' ? 'Testo' : 'Griglia');
   updateState();
 }
 
@@ -239,6 +242,7 @@ const grid = createGrid(api, $('grid'), { changed: () => tellDirty() });
 
 async function start(): Promise<void> {
   document.body.dataset.view = current;
+  decorate(document);
   view = new EditorView({ parent: $('editor'), state: pageState('') });
   updateState();
   new ResizeObserver(placePreview).observe($('preview'));

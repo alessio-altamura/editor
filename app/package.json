@@ -15,6 +15,7 @@
     "start": "electron .",
     "test": "npm run runtime && npm run build && node dist-test/unit.js",
     "test:e2e": "npm run runtime && npm run build && node dist-test/e2e.js",
+    "test:variants": "npm run build && node dist-test/variants.js",
     "measure:grid": "npm run build && node dist-test/grid-measure.js",
     "postinstall": "install-electron"
   },
