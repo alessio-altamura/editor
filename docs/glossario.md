@@ -265,7 +265,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 |---|---|---|---|---|
 | `collection` | tabella, lista moderna | Insieme con nome di `record` con identità e `field` tipizzati; può avere più `dimension` | deciso | list, table, array, sheet |
 | `record` | elemento | Un elemento di una `collection` | concetto deciso, nome proposto | item, row, element |
-| `field` | proprietà, colonna | Proprietà con nome e `type` di un `record`; nello `schema` si scrive con i nomi di Frictionless: fields, e per ciascuno name, type e title facoltativo | concetto deciso, nome proposto | column, attribute, property |
+| `field` | proprietà, colonna | Proprietà con nome e `type` di un `record`; nello `schema` si scrive con i nomi di Frictionless: fields, e per ciascuno name, type e title facoltativo; con `turn into` il name si ricava dall'intestazione come l'`id` e il title è l'intestazione (deciso il 2026-10-30) | concetto deciso, nome proposto | column, attribute, property |
 | `type` | tipo | Tipo di un `field`: numero, testo, data, categoria e altri | concetto deciso, nome proposto | kind |
 | `unit` | unità di misura | Unità facoltativa di un `field` numerico | proposto | measure |
 | `field value` | valore | Valore di un `field` in un `record`, senza coordinate | concetto deciso, nome proposto | cell |

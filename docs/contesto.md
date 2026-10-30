@@ -562,6 +562,21 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     Regole dell'orchestratore presentate senza domanda e non contestate: i
     file di dati sono in UTF-8; un valore vuoto è un valore mancante; il
     `formatter` riscrive il `descriptor`, mai il file dei dati.
+    Poi, dopo la verifica del primo passo (2026-10-30, Alessio, «1A 2A
+    3A», le raccomandazioni dell'orchestratore):
+    1. `turn into` che perde qualcosa della tabellina (la formattazione
+       nelle celle, l'allineamento scritto) avvisa e procede; i dati restano
+       valori, senza Markdown nelle celle.
+    2. Il `name` di un campo si ricava dall'intestazione come l'`id` dalle
+       prime parole (`mese`, `vendite-in-euro`), e il `title` è
+       l'intestazione come scritta, così la tabella si vede uguale. Nota
+       dell'orchestratore, da decidere con le formule: un nome con il
+       trattino, dentro un'espressione, va scritto in una forma citata,
+       perché il trattino è anche il meno.
+    3. In una colonna, se un valore ha il separatore delle migliaia lo hanno
+       tutti («9.875,26» sotto «21.300,00»); la regola di CLDR, che in `it`
+       raggruppa da cinque cifre, resta per i numeri fuori dalle tabelle.
+    Prossimo passo, già deciso: la `grid` modificabile nell'`app`.
   - Creazione degli oggetti e file (2026-10-23, Alessio, «1A, 2A, 3A, 4D»):
     1. Un capoverso scritto direttamente in una `composition` resta un
        errore, con una correzione automatica, «estrai in un oggetto», che crea
