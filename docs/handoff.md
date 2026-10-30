@@ -415,8 +415,13 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      conta come archiviato;
      l'`article` di `compose` va accanto al descrittore del canvas. Una
      scheda di un `image` punta al descrittore, non all'immagine: in
-     Obsidian si vedrebbe il descrittore. Prossimo: «fai spazio vicino» e
-     «metti in ordine per tipo», con le posizioni come relazioni.
+     Obsidian si vedrebbe il descrittore. Mettere ordine c'è (2026-10-30,
+     contesto.md «Mettere ordine sul canvas»): trova sul foglio, fare spazio
+     senza sovrapposizioni e deterministico, `create --near`, `gather`,
+     `arrange --by kind|tag` con i gruppi di JSON Canvas (chiave in più
+     `arrange` nei gruppi creati da lui), `place --size`. Difetto aperto: le
+     schede dei capitoli si numerano fra loro come un documento solo («2 Le
+     cause del calo»).
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
