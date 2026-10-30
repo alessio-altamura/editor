@@ -491,9 +491,11 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     sul foglio quando voglio». Quindi lo stesso oggetto può avere più
     schede sul foglio, tutte lo stesso oggetto e non copie: trascinarlo di
     nuovo aggiunge una scheda, archiviare toglie solo quella scelta, e
-    l'oggetto è sul foglio finché ne resta una. Non commentate le altre due
-    letture (tutto ciò che non è sul foglio conta come archiviato;
-    l'`article` di `compose` va accanto al descrittore del canvas).
+    l'oggetto è sul foglio finché ne resta una. Le altre due letture
+    confermate il 2026-10-30 («ok vanno bene»): tutto ciò che non è sul
+    foglio conta come archiviato; l'`article` di `compose` va accanto al
+    descrittore del canvas. Le raccomandazioni del primo canvas valgono
+    quindi come accettate.
     Poi (2026-10-24, Alessio, «ok» sulla strada A): non esiste un Electron
     con il Chromium 141 della stampa, e l'Electron più vicino (39) non è più
     supportato e ha avvisi di sicurezza; quindi un Electron supportato, e la
