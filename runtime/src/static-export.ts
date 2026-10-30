@@ -364,7 +364,11 @@ function diagnosticsList(diagnostics: Diagnostic[]): string {
 
 /** The fixed drawing of the diagnostics list, in the preview only. */
 const PREVIEW_RULES =
-  '[data-diagnostics] { font-family: "Source Sans 3", sans-serif; font-size: 10pt; line-height: 1.4; margin-bottom: 18pt; padding: 6pt 9pt; border: 0.75pt solid currentColor; }\n' +
+  '[data-diagnostics] { font-family: "Source Sans 3", sans-serif; font-size: 10pt; line-height: 1.4; margin-bottom: 18pt; padding: 6pt 9pt; border: 0.75pt solid #c9ccd1; border-radius: 4pt; color: #1f2328; background: #f6f7f9; }\n' +
+  '[data-diagnostics] [data-severity="error"] strong { color: #b42318; }\n' +
+  '[data-diagnostics] [data-severity="warning"] strong { color: #8a4b00; }\n' +
+  // The frame of the preview, not the document: its own colors in the two themes, readable on the dark page.
+  '@media (prefers-color-scheme: dark) { [data-diagnostics] { color: #e6e6ea; background: #232327; border-color: #3f3f46; } [data-diagnostics] [data-severity="error"] strong { color: #ff8a80; } [data-diagnostics] [data-severity="warning"] strong { color: #f0b060; } }\n' +
   '[data-diagnostics] ul { margin-left: 18pt; }\n' +
   '[data-diagnostics] code { font-family: "Source Code Pro", monospace; }\n' +
   '[data-gone] { font-family: "Source Sans 3", sans-serif; font-weight: 700; margin-bottom: 12pt; }\n';

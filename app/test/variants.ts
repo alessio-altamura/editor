@@ -15,7 +15,7 @@ const appFolder = resolve(fileURLToPath(new URL('.', import.meta.url)), '..');
 const shots = process.env.VARIANT_SCREENSHOTS;
 let failed = 0;
 
-for (const variant of ['sobrio', 'denso', 'carta']) {
+for (const variant of ['lavagna', 'documento', 'studio']) {
   const problems: string[] = [];
   const folder = writeFixture({ collection: true });
   const userData = mkdtempSync(join(tmpdir(), 'doc-app-user-'));
