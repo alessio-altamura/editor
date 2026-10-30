@@ -814,6 +814,22 @@ passo del `canvas` [C: «Il canvas»]:
   `canvas` si rifiutano.
 - **Il `document file` e il `canvas file`** non hanno nodo: non sono
   oggetti da mettere sul `canvas`.
+- **I `canvas group`** sono i nodi `group` di JSON Canvas 1.0, con
+  `label` [C: «Mettere ordine sul canvas»]. Un nodo è in un gruppo se il
+  rettangolo del gruppo lo contiene tutto, come lo legge Obsidian; il più
+  piccolo, se sono più d'uno. Un gruppo fatto da `arrange` porta una chiave
+  in più, `"arrange": "kind"` o `"tag"`, che il `runtime` conserva, come
+  ogni chiave che non conosce; se un altro programma la toglie, il gruppo
+  diventa uno fatto a mano.
+- **Fare spazio.** Quando una `card` si mette, si crea o cambia misura, i
+  nodi che si sovrappongono a lei si spostano. Ognuno esce dalla strada più
+  corta, a destra, in basso, a sinistra o in alto (in quest'ordine a parità),
+  fino a 40 di distanza, e spinge nella stessa direzione i nodi che a sua
+  volta copre. Un gruppo si sposta con i nodi che contiene. Una `card` in un
+  gruppo fa spazio dentro il gruppo, che poi si allarga per contenerla e fa
+  spazio fuori; un gruppo non si restringe mai. Lo stesso `canvas file` e
+  la stessa operazione danno sempre le stesse posizioni. Le
+  sovrapposizioni che c'erano prima, lontano, restano.
 
 ### 0.12 Deciso: `tags`
 
@@ -3353,8 +3369,11 @@ la più vicina, risalendo, con un `document file`, o quella di `--folder`.
 canvas»]. Scrivono il `canvas file` come dice il §0.11, e valgono le
 stesse regole: `formatter`, nessun errore nuovo, `--dry-run`, riassunto
 JSON. Le posizioni sono nelle coordinate di JSON Canvas, interi.
-- `create <kind> --at <x>,<y> [--text "…"] [--id <id>] [--asset <file>]`
-  crea un oggetto con il suo nodo in quel punto, senza `embed`. Un `text`
+- `create <kind> (--at <x>,<y> | --near <id> [--card <nodo>]) [--text "…"]
+  [--id <id>] [--asset <file>]` crea un oggetto con il suo nodo in quel
+  punto, o accanto a una `card` di un altro oggetto, senza `embed`. Accanto è
+  a destra o sotto, a 40 di distanza: dove la `card` nuova copre meno area di
+  altre `card`, a destra a parità [C: «Mettere ordine sul canvas»]. Un `text`
   va nel `multi-object file` dei testi del `canvas`, accanto al suo
   descrittore, con la stessa regola delle `composition`:
   `foglio-texts.text.md` per `foglio.canvas-file.md`. Un `image` e gli
@@ -3365,11 +3384,29 @@ JSON. Le posizioni sono nelle coordinate di JSON Canvas, interi.
   mai stato sul `canvas` è archiviato come gli altri, e `recall` lo mette per
   la prima volta. Un oggetto che ha già una `card` ne riceve un'altra [C:
   «Il canvas»].
-- `place <id> --at <x>,<y> [--card <nodo>]` sposta una `card` di un
-  oggetto.
+- `place <id> [--at <x>,<y>] [--size <larghezza>,<altezza>] [--card
+  <nodo>]` sposta una `card` di un oggetto, o le cambia misura.
 - `archive <id> [--card <nodo>]` toglie una `card` dell'oggetto, e gli
   archi che la toccano; l'oggetto, i suoi file e le altre `card` restano.
-- Con più `card` dello stesso oggetto, `place` e `archive` vogliono
+- `gather <id> [--card <nodo>]` porta intorno a una `card` gli oggetti legati
+  al suo [C: «Mettere ordine sul canvas»]: i `[[…]]` e gli `![[…]]` scritti
+  nell'oggetto e quelli scritti negli altri verso di lui (solo quelli che
+  ciascuno scrive, non quelli degli oggetti che include), e le sue
+  `association`. Gli oggetti vanno in ordine di `id` nei posti intorno, a
+  destra, sotto, a sinistra, sopra, poi gli angoli, poi il giro dopo. Un
+  oggetto che ha `card` sul `canvas` porta la più vicina; uno senza ne
+  riceve una (`recall`). Poi si fa spazio.
+- `arrange --by kind|tag` mette le `card` in un `canvas group` per ogni
+  `kind`, o per ogni tag [C: «Mettere ordine sul canvas»]: un oggetto con
+  più tag va nel primo in ordine alfabetico, quelli senza tag nel gruppo
+  «senza tag», l'ultimo. Le `card` stanno in griglia, quasi quadrata,
+  nell'ordine del `navigator`; i gruppi stanno affiancati, nell'ordine del
+  `navigator` per i `kind` (prima `article` e `chapter`) e alfabetico per i
+  tag, a partire dall'angolo in alto a sinistra delle `card` di prima.
+  Rifarlo toglie i gruppi fatti da `arrange` e ne fa di nuovi; i gruppi
+  fatti a mano, con le `card` che contengono, restano, e fanno spazio.
+- Con più `card` dello stesso oggetto, `place`, `archive`, `gather` e
+  `create --near` vogliono
   `--card` con l'`id` del nodo; senza, o con l'`id` di un nodo che non è
   una `card` di quell'oggetto, è uso sbagliato e il codice è 2.
 - `compose <id>… --title "…" [--id <id>]` fa un `article` con quel titolo

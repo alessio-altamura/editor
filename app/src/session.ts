@@ -4,7 +4,8 @@
 import { closeSync, openSync, readFileSync, renameSync, unlinkSync, writeSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, sep } from 'node:path';
 import { readAsset } from 'doc-runtime/dist/src/assets.js';
-import { canvasCards, planArchive, planCompose, planPlace, planRecall, readingOrder } from 'doc-runtime/dist/src/canvas.js';
+import { CARD_SIZE, canvasCards, planArchive, planArrange, planCompose, planGather, planPlace, planRecall, readingOrder, type ArrangeBy, type CanvasGroup } from 'doc-runtime/dist/src/canvas.js';
+import { besidePlace } from 'doc-runtime/dist/src/canvas-layout.js';
 import { formatText } from 'doc-runtime/dist/src/format.js';
 import { completions, definitionOf, describe, hoverAt, referenceAt, type Completion, type Position, type Range } from 'doc-runtime/dist/src/language-services.js';
 import { LiveFolder } from 'doc-runtime/dist/src/live.js';
@@ -215,8 +216,8 @@ export class Session {
   }
 
   /** The cards of the canvas, each with its object drawn by the renderer of the preview, with the base stylesheet. */
-  canvas(): { canvas: string | null; cards: CardView[] } {
-    const { canvas, cards } = canvasCards(this.workspace(), this.live.tree);
+  canvas(): { canvas: string | null; cards: CardView[]; groups: CanvasGroup[] } {
+    const { canvas, cards, groups } = canvasCards(this.workspace(), this.live.tree);
     const ids = cards.flatMap((card) => (card.id === null ? [] : [card.id]));
     const standalone = standaloneTree(this.folder, this.live.overlay, ids, false);
     const url = (path: string) => `${this.base}${path}?token=${encodeURIComponent(this.token)}`;
@@ -229,6 +230,7 @@ export class Session {
     const listed = this.live.listed;
     return {
       canvas,
+      groups,
       cards: cards.map((card) => {
         const node = card.id === null ? undefined : (this.live.tree.nodes ?? []).find((n) => n.id === card.id);
         return {
@@ -269,9 +271,30 @@ export class Session {
     return this.operate((workspace, tree) => planRecall(workspace, tree, id, at));
   }
 
-  /** `card` is the id of the node, needed when the object has several cards. */
-  place(id: string, at: At, card?: string): Done {
-    return this.operate((workspace, tree) => planPlace(workspace, tree, id, at, card));
+  /** `card` is the id of the node, needed when the object has several cards; a size enlarges or shrinks it. */
+  place(id: string, at: At | undefined, card?: string, size?: { width: number; height: number }): Done {
+    return this.operate((workspace, tree) => planPlace(workspace, tree, id, at, card, size));
+  }
+
+  /** Where a new text next to a card goes: to the right or below, where there is more room. */
+  besidePlace(node: string): At | null {
+    const boxes = canvasCards(this.workspace(), this.live.tree);
+    const all = [...boxes.cards.map((c) => ({ id: c.node, x: c.x, y: c.y, width: c.width, height: c.height, group: false })), ...boxes.groups.map((g) => ({ id: g.node, x: g.x, y: g.y, width: g.width, height: g.height, group: true }))];
+    const target = all.find((box) => box.id === node);
+    return target === undefined ? null : besidePlace(target, CARD_SIZE, all);
+  }
+
+  /** A new text next to a card of an object. */
+  createNear(id: string, card: string, text: string): Done {
+    return this.operate((workspace, tree) => planCreate(workspace, tree, { kind: 'text', near: { id, card }, text }));
+  }
+
+  gather(id: string, card?: string): Done {
+    return this.operate((workspace, tree) => planGather(workspace, tree, id, card));
+  }
+
+  arrange(by: ArrangeBy): Done {
+    return this.operate((workspace, tree) => planArrange(workspace, tree, by));
   }
 
   archive(id: string, card?: string): Done {

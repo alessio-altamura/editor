@@ -151,6 +151,27 @@ try {
     if (page.status !== 200 || !(await page.text()).includes('Un pensiero sul foglio.')) problems.push(`the preview of the object alone: ${page.status}`);
     check('the canvas: create, cards, source of an object, place, archive, recall, reading order, compose', problems);
   }
+  {
+    // Order on the canvas: a text next to a card, gather, arrange by kind with its groups, a card enlarged.
+    const problems: string[] = [];
+    const nodeOf = (object: string) => session.canvas().cards.find((c) => c.id === object)!.node;
+    const nota = nodeOf('nota');
+    const beside = session.besidePlace(nota);
+    const near = session.createNear('nota', nota, 'Vicino alla nota.');
+    const made = session.canvas().cards.find((c) => c.id === near.summary?.id);
+    if (near.error || made?.x !== beside?.x || made?.y !== beside?.y) problems.push(`createNear ${JSON.stringify({ near, beside, made: made && [made.x, made.y] })}`);
+    // nota links to cap: gather brings a card of cap (recalled) around nota.
+    const gathered = session.gather('nota', nota);
+    if (gathered.error || !JSON.stringify(gathered.summary?.gathered).includes('"cap"')) problems.push(`gather ${JSON.stringify(gathered)}`);
+    if (!session.canvas().cards.some((c) => c.id === 'cap')) problems.push('gather did not recall cap');
+    const arranged = session.arrange('kind');
+    const groups = session.canvas().groups;
+    if (arranged.error || !groups.some((g) => g.label === 'text' && g.arrange === 'kind') || !groups.some((g) => g.label === 'chapter')) problems.push(`arrange ${JSON.stringify({ arranged, groups })}`);
+    const enlarged = session.place('nota', undefined, nota, { width: 500, height: 400 });
+    const card = session.canvas().cards.find((c) => c.node === nota);
+    if (enlarged.error || card?.width !== 500 || card.height !== 400) problems.push(`place with a size ${JSON.stringify(enlarged)}`);
+    check('order on the canvas: a text near, gather, arrange, a card enlarged', problems);
+  }
 } finally {
   await session.close();
   rmSync(folder, { recursive: true, force: true });

@@ -36,10 +36,12 @@ node dist/src/cli.js create <kind> --in <id> [--after <id> | --before <id>] [--t
 node dist/src/cli.js extract <file della composition>
 node dist/src/cli.js rename <id> <nuovo-id>
 node dist/src/cli.js move <id> --to <file>
-node dist/src/cli.js create <kind> --at <x>,<y> [--text "…"] [--id <id>] [--asset <file>]
+node dist/src/cli.js create <kind> (--at <x>,<y> | --near <id> [--card <nodo>]) [--text "…"] [--id <id>] [--asset <file>]
 node dist/src/cli.js recall <id> [--at <x>,<y>]
-node dist/src/cli.js place <id> --at <x>,<y> [--card <nodo>]
+node dist/src/cli.js place <id> [--at <x>,<y>] [--size <larghezza>,<altezza>] [--card <nodo>]
 node dist/src/cli.js archive <id> [--card <nodo>]
+node dist/src/cli.js gather <id> [--card <nodo>]
+node dist/src/cli.js arrange --by kind|tag
 node dist/src/cli.js compose <id>… --title "…" [--id <id>]
 node dist/src/cli.js --help
 ```
@@ -302,8 +304,24 @@ file dei testi del `canvas`, `foglio-texts.text.md`), `recall` mette sul
 una `card`, `archive` la toglie con i suoi archi, `compose` fa un `article`
 con gli oggetti nell'ordine dato, due `embed` se un oggetto c'è due volte.
 Le `card` dello stesso oggetto sono tutte lo stesso oggetto; con più di una,
-`place` e `archive` vogliono `--card` con l'`id` del nodo, altrimenti
-escono con 2. Un oggetto è un nodo `file` con il percorso del suo file, e per un
+`place`, `archive`, `gather` e `create --near` vogliono `--card` con l'`id`
+del nodo, altrimenti escono con 2.
+
+Mettere ordine (`src/canvas-layout.ts`, la geometria senza file, e
+`src/canvas.ts`). Quando una `card` si mette, si crea o cambia misura
+(`create --at`, `create --near`, `recall`, `place` con `--at` o `--size`),
+i nodi che la coprono si spostano per la strada più corta, a 40 di
+distanza, e spingono nella stessa direzione quelli che coprono a loro volta;
+un `canvas group` (un nodo `group`) si sposta con i nodi che contiene, e
+quando una `card` gli fa spazio dentro si allarga e fa spazio fuori. Il
+riassunto elenca in `moved` i nodi spostati. Le stesse posizioni danno lo
+stesso risultato. `create --near` mette la `card` nuova a destra o sotto,
+dove copre meno. `gather` porta intorno a una `card` gli oggetti legati
+(`[[…]]` e `![[…]]` nei due sensi, `association`): la `card` più vicina di
+ciascuno, o una nuova. `arrange --by kind|tag` fa un gruppo per `kind` o per
+tag, con le `card` in griglia nell'ordine del `navigator`; i gruppi fatti da
+un `arrange` precedente, riconosciuti dalla chiave `arrange` nel nodo, si
+rifanno, quelli fatti a mano restano. Un oggetto è un nodo `file` con il percorso del suo file, e per un
 oggetto di un `multi-object file` `subpath` `"#<id>"`; `rename` e `move`
 riscrivono i nodi che nominano l'oggetto. Un documento senza `canvas file`
 ne riceve uno alla prima operazione: `foglio.canvas` e
@@ -422,7 +440,13 @@ uguale tranne `file`, e il file svuotato che si cancella; le operazioni del
 `recall` e `place` con e senza `--at`, i nodi che seguono `move` e `rename`,
 due `card` dello stesso oggetto (`--card` richiesto, `place` e `archive` di
 una sola, `compose` con due `embed`), `archive`, e `compose` che dà un `article` senza errori nell'ordine dato e
-si rifiuta con un `concept`; alla fine i file sono già canonici. `npm test` lancia infine `test/language-server-suite.ts`, che parla JSON-RPC
+si rifiuta con un `concept`; mettere ordine, in una cartella sua: fare spazio
+con gli spostamenti più corti attesi, senza sovrapposizioni e uguale due
+volte, dentro un gruppo che si allarga e con `--size`, `create --near`,
+`gather` con legami nei due sensi e `card` già presenti (la più vicina) o
+richiamate, `arrange` per `kind` e per tag, rifatto, con il gruppo fatto a
+mano che resta, e il JSON Canvas valido con i gruppi; alla fine i file sono
+già canonici. `npm test` lancia infine `test/language-server-suite.ts`, che parla JSON-RPC
 su stdio con il server: `initialize`; un errore in un buffer aperto, con il
 range giusto, e i diagnostic vuoti quando un `didChange` lo corregge; il
 completamento dopo `![[` e `[[`; la definizione, l'hover su un `id` e su una
@@ -454,7 +478,8 @@ Solo il typecheck: `npm run typecheck`.
 - `src/live.ts`: il `runtime` acceso su una cartella, per `serve` e il
   language server.
 - `src/language-server.ts`: il language server.
-- `src/operations.ts`: le operazioni; `src/canvas.ts`: quelle del `canvas`.
+- `src/operations.ts`: le operazioni; `src/canvas.ts`: quelle del `canvas`;
+  `src/canvas-layout.ts`: gruppi e fare spazio, solo geometria.
 - `src/standalone.ts`: un oggetto da solo, per `/object/<id>` e le schede.
 - `src/format.ts` e `src/diff.ts`: il formatter e le differenze;
   `src/attribute-line.ts`: la `attribute line` dei `multi-object file`.

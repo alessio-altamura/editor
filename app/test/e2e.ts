@@ -2,6 +2,8 @@
 // a test folder, on the canvas; two texts are written with a double click, one is moved,
 // archived and recalled from the navigator; the other gets a second card, which shows a
 // change made from it on the first and is archived alone; the two are composed into an article.
+// Back on the canvas: a search brings the view to a card, «+» writes a text next to a card,
+// «Raccogli» brings the article near, «Metti in ordine per tipo» makes the groups.
 // Then, in the page, a line typed in the editor reaches the preview, and a click on the
 // preview brings the editor to the line where the element is written; changes not saved
 // are asked about before changing file and before closing. On Linux it runs on the
@@ -152,6 +154,54 @@ try {
     .catch(async () => problems.push(`compose did not open the article: ${JSON.stringify(await main.evaluate(() => ({ ...window.docAppState, text: undefined })))}`));
   const article = readFileSync(join(folder, 'dal-foglio.article.md'), 'utf8');
   if (!article.endsWith('---\n![[secondo-pensiero]]\n\n![[primo-pensiero-sul-foglio]]\n') || !article.includes('title: Dal foglio')) problems.push(`the article ${JSON.stringify(article)}`);
+
+  // Back on the canvas: the search brings the view to a card and marks it.
+  await main.click('[data-show="canvas"]');
+  await main.waitForSelector('#board .card[data-id="secondo-pensiero"]', { state: 'visible' });
+  type Node = { id: string; type: string; x: number; y: number; width: number; height: number; label?: string; arrange?: string; subpath?: string; file?: string };
+  const nodes = () => (canvasFile() as unknown as { nodes: Node[] }).nodes;
+  const hit = (a: Node, b: Node) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+  const holds = (g: Node, n: Node) => n.x >= g.x && n.y >= g.y && n.x + n.width <= g.x + g.width && n.y + n.height <= g.y + g.height;
+  const overlapping = () => nodes().flatMap((a, i, all) => all.slice(i + 1).filter((b) => hit(a, b) && !(a.type === 'group' && holds(a, b)) && !(b.type === 'group' && holds(b, a))).map((b) => `${a.id}/${b.id}`));
+  await main.fill('#find', 'ovunque');
+  await main.waitForSelector('.card.found-current[data-id="secondo-pensiero"]', { timeout: 5000 });
+  const centered = await main.evaluate(() => {
+    const card = document.querySelector('.card.found-current')!.getBoundingClientRect();
+    const view = document.getElementById('viewport')!.getBoundingClientRect();
+    return [card.left + card.width / 2 - (view.left + view.width / 2), card.top + card.height / 2 - (view.top + view.height / 2)];
+  });
+  if (centered.some((d) => Math.abs(d) > 2)) problems.push(`the card found is not in the middle: ${centered.join()}`);
+  if ((await main.textContent('#find-count')) !== '1/1') problems.push(`the count of the search: ${await main.textContent('#find-count')}`);
+  await main.fill('#find', '');
+
+  // «+» on a card: a new text next to it, and no card overlaps another.
+  await main.click('.card[data-id="secondo-pensiero"] .card-plus');
+  await main.waitForSelector('.card.editing .cm-content');
+  await main.keyboard.type('Accanto al secondo.');
+  await main.keyboard.press('Escape');
+  await main.waitForSelector('.card[data-id="accanto-al-secondo"]', { timeout: 5000 });
+  const second = nodes().find((n) => n.subpath === '#secondo-pensiero')!;
+  const beside = nodes().find((n) => n.subpath === '#accanto-al-secondo');
+  if (!beside || !((beside.x === second.x + second.width + 40 && beside.y === second.y) || (beside.x === second.x && beside.y === second.y + second.height + 40))) problems.push(`«+» not next to the card: ${JSON.stringify(beside)}`);
+  if (overlapping().length > 0) problems.push(`overlaps after «+»: ${overlapping().join()}`);
+
+  // «Raccogli» on the first text: the article that embeds it comes with a card of its own.
+  await main.fill('#find', 'primo pensiero');
+  await main.waitForSelector('.card.found-current[data-id="primo-pensiero-sul-foglio"]');
+  await main.click('.card[data-id="primo-pensiero-sul-foglio"] .card-gather');
+  await main.waitForSelector('.card[data-id="dal-foglio"]', { timeout: 5000 });
+  const hub = nodes().find((n) => n.subpath === '#primo-pensiero-sul-foglio')!;
+  const tied = nodes().find((n) => n.file === 'dal-foglio.article.md')!;
+  if (Math.abs(tied.x - hub.x) > 800 || Math.abs(tied.y - hub.y) > 600) problems.push(`gather: not near ${JSON.stringify([hub, tied])}`);
+  if (overlapping().length > 0) problems.push(`overlaps after gather: ${overlapping().join()}`);
+
+  // «Metti in ordine per tipo»: a group for each kind, drawn on the canvas.
+  await main.click('#arrange-kind');
+  await main.waitForSelector('.group.arranged[data-label="text"]', { timeout: 5000 });
+  const labels = nodes().filter((n) => n.arrange === 'kind').map((n) => n.label);
+  if (JSON.stringify(labels) !== '["article","text"]') problems.push(`arrange by kind: ${JSON.stringify(labels)}`);
+  if (overlapping().length > 0) problems.push(`overlaps after arrange: ${overlapping().join()}`);
+  await main.click('[data-show="page"]');
   // The preview is a view of its own: find its page among those of the app.
   const preview = async (): Promise<Page> => {
     for (let i = 0; i < 100; i++) {
@@ -218,7 +268,7 @@ try {
   rmSync(folder, { recursive: true, force: true });
   rmSync(userData, { recursive: true, force: true });
 }
-if (problems.length === 0) console.log('ok   the canvas: write, move, archive, recall, two cards of one object, compose; the page: typing reaches the preview, a click on it brings the editor to the line\n\napp end-to-end: all pass');
+if (problems.length === 0) console.log('ok   the canvas: write, move, archive, recall, two cards of one object, compose, search, «+», gather, arrange; the page: typing reaches the preview, a click on it brings the editor to the line\n\napp end-to-end: all pass');
 else {
   console.log(`FAIL the app end to end\n  ${problems.join('\n  ')}\n\napp end-to-end: 1 failed`);
   process.exitCode = 1;
