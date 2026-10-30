@@ -419,9 +419,8 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      contesto.md «Mettere ordine sul canvas»): trova sul foglio, fare spazio
      senza sovrapposizioni e deterministico, `create --near`, `gather`,
      `arrange --by kind|tag` con i gruppi di JSON Canvas (chiave in più
-     `arrange` nei gruppi creati da lui), `place --size`. Difetto aperto: le
-     schede dei capitoli si numerano fra loro come un documento solo («2 Le
-     cause del calo»).
+     `arrange` nei gruppi creati da lui), `place --size`. Ogni scheda è resa da
+     sola, con la numerazione che l'oggetto avrebbe da solo.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
