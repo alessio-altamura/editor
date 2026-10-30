@@ -481,9 +481,21 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      `print`. Decisa così da Alessio (contesto.md, «Dati e `collection`»,
      «Poi, dopo la `grid`»), che ha confermato anche la `grid` com'è e ha
      chiesto di svecchiare l'aspetto dell'`app` («sembra un'app anni 80»).
-     In corso nella stessa sottosessione: il limite di righe, il ricalcolo
-     lento di una tabella grande, e tre direzioni visive da mostrare ad
-     Alessio in immagini.
+     Fatti e uniti (2026-10-30): il limite di righe (1000 nell'anteprima, 20
+     in una scheda, «… altri N record»; `export` e `print` intere; §11.6 e
+     §12.4) e il ricalcolo più veloce (la cascata degli stili calcolata una
+     volta per forma di nodo). Misure dell'orchestratore con 100 000
+     record: ricalcolo dell'anteprima 0,6-1,4 s (`npm run measure:records`
+     in runtime/, `npm run measure:grid` in app/), anteprima dell'articolo
+     2,3 s (prima 80 s). Resta: l'`export` di 100 000 record pesa 179 MB e
+     richiede circa 30 s, per lo stile inline su ogni cella; ridurlo vuol
+     dire classi al posto dello stile inline, un cambio del §11.4.
+     Tre direzioni visive dell'`app` (sobrio, denso, carta) in
+     DOC_APP_VARIANT, con token CSS, Inter 4.1 (OFL) e icone Lucide 1.65.0
+     (ISC) in app/assets/; aspettano la scelta di Alessio, poi le altre due
+     si tolgono. Nelle immagini in headless il tema scuro arriva solo con
+     emulateMedia. Visto: in scuro il riquadro degli errori in cima
+     all'anteprima si legge a fatica.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
