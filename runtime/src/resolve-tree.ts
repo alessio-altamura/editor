@@ -9,8 +9,9 @@ import { gfmTable } from 'micromark-extension-gfm-table';
 import { wikiReference, wikiReferenceFromMarkdown } from './wiki-reference.js';
 import { isAttributeLine, parseAttributeLine } from './attribute-line.js';
 import { appendChildren, element, toJsonML, type Child, type Element, type SourcePosition } from './content.js';
-import { compareCodePoints, report, sortDiagnostics, type Diagnostic, type DiagnosticSink } from './diagnostic.js';
+import { compareCodePoints, makeDiagnostic, report, sortDiagnostics, type Diagnostic, type DiagnosticSink } from './diagnostic.js';
 import { parseYamlMap, splitFrontMatter, type RawValue } from './front-matter.js';
+import { columnDisplays, MAX_DATA_BYTES, MAX_RECORDS, readRecords, readSchema, readValue, type Field, type Value } from './collection.js';
 import { displayString, evaluateMathLine, langFormat, plainString } from './math-line.js';
 import {
   computeStyle,
@@ -34,8 +35,10 @@ export const SPEC_VERSION = '0.1';
 const RETIRED_IDS_FILE = 'retired-ids.yaml';
 
 /** The `kind`s of the `core` and of class 1; any other `kind` is read as a `directive`. */
-const KNOWN_KINDS = new Set(['concept', 'document', 'text', 'image', 'scratch', 'chapter', 'article', 'stylesheet', 'canvas-file']);
-const VISIBLE_KINDS = new Set(['concept', 'text', 'image', 'scratch', 'chapter', 'article']);
+const KNOWN_KINDS = new Set(['concept', 'document', 'text', 'image', 'scratch', 'chapter', 'article', 'stylesheet', 'canvas-file', 'collection']);
+const VISIBLE_KINDS = new Set(['concept', 'text', 'image', 'scratch', 'chapter', 'article', 'collection']);
+/** The keys of the schema of a collection, with the names of Frictionless (class 2). */
+const SCHEMA_KEYS = new Set(['fields', 'primary-key', 'primaryKey', 'missing-values', 'missingValues', 'dialect']);
 const COMPOSITION_KINDS = new Set(['chapter', 'article', 'deck']);
 /** §8 lists concept, scratch, article, deck and the document file; stylesheet and canvas file are added (reading). */
 const EMBED_FORBIDDEN_KINDS = new Set(['concept', 'scratch', 'article', 'deck', 'document', 'stylesheet', 'canvas-file']);
@@ -48,8 +51,8 @@ function knowsAttribute(kind: string, key: string): boolean {
     case 'class': return VISIBLE_KINDS.has(kind);
     case 'lang': return VISIBLE_KINDS.has(kind) || kind === 'document';
     case 'title': return kind === 'chapter' || kind === 'article';
-    case 'asset': return kind === 'image' || kind === 'canvas-file';
-    case 'associations': return ['concept', 'text', 'image', 'scratch', 'canvas-file'].includes(kind);
+    case 'asset': return kind === 'image' || kind === 'canvas-file' || kind === 'collection';
+    case 'associations': return ['concept', 'text', 'image', 'scratch', 'canvas-file', 'collection'].includes(kind);
     case 'stylesheet': return kind === 'article' || kind === 'chapter';
     case 'spec-version': return kind === 'document';
     case 'recursion': return kind === 'chapter';
@@ -87,6 +90,9 @@ interface SourceNode {
   assetPath?: string;
   /** How many times a chapter may appear inside itself (§0.17); undefined without `recursion`. */
   recursion?: number;
+  /** A collection: its schema as written, then its data as read (class 2). */
+  schemaRaw?: Record<string, unknown>;
+  data?: CollectionData;
   items?: CompositionItem[];
 }
 
@@ -107,10 +113,20 @@ type Resolution =
   | { status: 'unresolved' }
   | { status: 'duplicate' };
 
+/** The data of a collection, read from its file: the fields of the schema and the values of each record. */
+interface CollectionData {
+  path: string;
+  text: string;
+  fields: Field[];
+  header: { start: number; end: number } | null;
+  records: Array<{ start: number; end: number; values: Value[]; written: string[] }>;
+}
+
 /** Numbering inside a root composition (§0.10). */
 interface RootState {
   chapterCounters: number[];
   images: number;
+  collections: number;
   /** The `number` of the first `embed` of each id, for the `number slot`. */
   firstNumbers: Map<string, string>;
 }
@@ -209,6 +225,18 @@ function readText(path: string): string | null {
     return null;
   }
 }
+
+/** The size of a file in bytes; 0 when it does not read. */
+function statSize(path: string): number {
+  try {
+    return lstatSync(path).size;
+  } catch {
+    return 0;
+  }
+}
+
+/** Numbers and integers are right-aligned, with their own strings (class 2). */
+const isNumeric = (field: Field) => !field.asWritten && (field.type === 'number' || field.type === 'integer');
 
 /** Limits of the resolved tree (§11.1), past which embeds are cut with `tree-limit`. */
 const MAX_EMBED_DEPTH = 1000;
@@ -450,7 +478,7 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
 
   function genericValue(node: SourceNode, key: string, raw: RawValue): unknown {
     if (raw.type === 'list') return raw.value;
-    if (raw.type === 'invalid') {
+    if (raw.type === 'invalid' || raw.type === 'structure') {
       report(diagnostics, 'attribute-invalid', node.file, key, `scrivi ${key} come stringa o lista di stringhe`);
       return undefined;
     }
@@ -493,6 +521,13 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
         out[name] = value;
         if (typeof value === 'string' && key === 'title' && value !== '') node.title = value;
         if (typeof value === 'string' && key === 'lang' && LANG_FORM.test(value)) node.lang = value;
+        continue;
+      }
+      // The schema of a collection: kept as written, read with its data file (class 2).
+      if (node.kind === 'collection' && SCHEMA_KEYS.has(key)) {
+        const value = raw.type === 'invalid' ? undefined : raw.value;
+        node.schemaRaw = { ...node.schemaRaw, [name]: value };
+        out[name] = value;
         continue;
       }
       if (!knowsAttribute(node.kind, key)) {
@@ -601,6 +636,7 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
       return;
     }
     node.assetPath = path;
+    if (node.kind === 'collection') return readCollection(node, path);
     if (node.kind !== 'canvas-file') return;
     // JSON Canvas names files by their path within the system: here, the document root (§0.11).
     const invalid = () => report(diagnostics, 'syntax', node.file, undefined, `correggi il JSON Canvas di ${node.asset}`);
@@ -628,6 +664,137 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
         }
       }
     }
+  }
+
+  /**
+   * The data of a collection (class 2): the schema from the descriptor, the records from
+   * the TSV or CSV, each value read with its type. The problems of the data file go on
+   * that file, with their place in it.
+   */
+  function readCollection(node: SourceNode, path: string): void {
+    const extension = /\.(tsv|csv)$/i.exec(path)?.[1]?.toLowerCase() as 'tsv' | 'csv' | undefined;
+    if (extension === undefined) {
+      report(diagnostics, 'collection-schema-invalid', node.file, node.asset, 'usa un file .tsv o .csv');
+      return;
+    }
+    const { schema, problems } = readSchema(node.schemaRaw ?? {}, extension);
+    for (const problem of problems) report(diagnostics, problem.code, node.file, problem.target, problem.fix);
+    const size = statSize(join(folder, path));
+    if (size > MAX_DATA_BYTES) {
+      report(diagnostics, 'collection-too-large', path, undefined, `resta sotto ${MAX_DATA_BYTES / 1024 / 1024} MiB e ${MAX_RECORDS} record`);
+      return;
+    }
+    const text = read(path);
+    if (text === null) {
+      report(diagnostics, 'syntax', path, undefined, 'scrivi il file in UTF-8');
+      return;
+    }
+    let starts: number[] | undefined;
+    const at = (code: string, target: string | undefined, fix: string | undefined, start: number, end: number) => {
+      const diagnostic = makeDiagnostic(code, path, target, fix);
+      if (options.positions) {
+        starts ??= lineStarts(text);
+        diagnostic.range = { start: lspPoint(starts, start), end: lspPoint(starts, end) };
+      }
+      diagnostics.push(diagnostic);
+    };
+    const { records, problems: recordProblems } = readRecords(text, schema);
+    for (const problem of recordProblems) at(problem.code, problem.target, problem.fix, problem.start ?? 0, problem.end ?? 0);
+    if (records.length > MAX_RECORDS + 1) {
+      report(diagnostics, 'collection-too-large', path, undefined, `resta sotto ${MAX_DATA_BYTES / 1024 / 1024} MiB e ${MAX_RECORDS} record`);
+      return;
+    }
+    const header = records.shift();
+    const names = header?.cells.map((cell) => cell.text) ?? [];
+    const columns = schema.fields.map((field) => names.indexOf(field.name));
+    schema.fields.forEach((field, index) => {
+      if (columns[index]! < 0) at('collection-field-missing', field.name, `aggiungi la colonna ${field.name} al file, o toglila dai fields`, header?.start ?? 0, header?.end ?? 0);
+    });
+    header?.cells.forEach((cell, index) => {
+      if (!schema.fields.some((field) => field.name === cell.text) || names.indexOf(cell.text) !== index) {
+        at('collection-field-extra', cell.text, `aggiungi ${cell.text} ai fields, o togli la colonna`, cell.start, cell.end);
+      }
+    });
+    const data: CollectionData = { path, text, fields: schema.fields, header: header ? { start: header.start, end: header.end } : null, records: [] };
+    const keys = new Map<string, number>();
+    for (const record of records) {
+      if (record.cells.length !== names.length) {
+        at('collection-record-invalid', text.slice(record.start, Math.min(record.end, record.start + 60)), `scrivi ${names.length} valori, uno per colonna`, record.start, record.end);
+        continue;
+      }
+      const values: Value[] = [];
+      const written: string[] = [];
+      schema.fields.forEach((field, index) => {
+        const cell = columns[index]! < 0 ? undefined : record.cells[columns[index]!];
+        const value = cell === undefined ? { missing: true as const } : readValue(field, cell.text, schema);
+        if ('invalid' in value) {
+          const fix = field.categories ? `usa uno di: ${field.categories.join(', ')}` : `scrivi un valore ${field.type}`;
+          at('collection-value-invalid', cell!.text, fix, cell!.start, cell!.end);
+        }
+        values.push(value);
+        written.push(cell?.text ?? '');
+      });
+      if (schema.primaryKey.length > 0) {
+        const positions = schema.primaryKey.map((name) => schema.fields.findIndex((field) => field.name === name));
+        const parts = positions.map((index) => values[index]!);
+        const cells = positions.map((index) => (columns[index]! < 0 ? undefined : record.cells[columns[index]!]));
+        const start = Math.min(...cells.map((cell) => cell?.start ?? record.start));
+        const end = Math.max(...cells.map((cell) => cell?.end ?? record.end));
+        const key = positions.map((index) => written[index]).join('\t');
+        if (parts.some((part) => 'missing' in part)) at('collection-key-empty', key === '' ? undefined : key, 'scrivi la chiave in ogni record', start, end);
+        else {
+          const canonical = JSON.stringify(parts.map((part) => ('value' in part ? part.value : written)));
+          if (keys.has(canonical)) at('collection-key-duplicate', key, `cambia la chiave: c'è già alla riga ${keys.get(canonical)! + 1}`, start, end);
+          else keys.set(canonical, lspPoint(starts ??= lineStarts(text), record.start).line);
+        }
+      }
+      data.records.push({ start: record.start, end: record.end, values, written });
+    }
+    node.data = data;
+  }
+
+  /** The table of a collection (class 2): a header row with title or name, a row per record with typed values and the strings to show. */
+  function collectionTable(data: CollectionData, context: BuildContext): Element {
+    const source = { file: data.path, source: data.text };
+    const header = element('tableRow', {}, data.fields.map((field) => {
+      const cell = element('tableCell', {}, [field.title ?? field.name]);
+      cell.meta = { declarations: [['font-weight', '700'], ...(isNumeric(field) ? [['text-align', 'right'] as [string, string]] : [])] };
+      return cell;
+    }));
+    if (data.header) mark(header, data.header, source);
+    const rows = data.records.map((record) => {
+      const row = element('tableRow', {}, record.values.map((value, index) => {
+        const attributes: Record<string, unknown> = 'missing' in value ? { missing: true } : 'invalid' in value ? { invalid: true } : { value: value.value };
+        const cell = element('tableCell', attributes, 'missing' in value ? [] : [record.written[index]!]);
+        if (isNumeric(data.fields[index]!)) cell.meta = { declarations: [['text-align', 'right']] };
+        return cell;
+      }));
+      mark(row, { start: record.start, end: record.end }, source);
+      return row;
+    });
+    const table = element('table', { fields: data.fields.map((field) => ({ name: field.name, type: field.type, ...(field.title !== undefined ? { title: field.title } : {}) })) }, [header, ...rows]);
+    table.meta = { collection: { lang: context.lang, data } };
+    setCollectionDisplays(table, data, DEFAULT_DECIMALS);
+    return table;
+  }
+
+  /** The strings of the numbers of a table: fixed decimals per column (class 2). */
+  function setCollectionDisplays(table: Element, data: CollectionData, decimals: number): void {
+    const lang = table.meta?.collection?.lang;
+    data.fields.forEach((field, index) => {
+      if (!isNumeric(field)) return;
+      const values = data.records.map((record) => {
+        const value = record.values[index]!;
+        return 'number' in value ? value.number : undefined;
+      });
+      const shown = columnDisplays(values, lang, decimals, field.type === 'integer');
+      data.records.forEach((record, row) => {
+        const cell = table.children[row + 1] as Element;
+        const target = cell.children[index] as Element;
+        if (values[row] !== undefined) target.children = [shown[row]!];
+        else if ('invalid' in record.values[index]!) target.children = [record.written[index]!];
+      });
+    });
   }
 
   /** Splits the body of a composition (or directive) into embeds and other blocks; reports bad class signs. */
@@ -858,7 +1025,7 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
     }
     let shown = label ?? '';
     if (label?.includes('{n}')) {
-      if (target.kind !== 'chapter' && target.kind !== 'image') {
+      if (target.kind !== 'chapter' && target.kind !== 'image' && target.kind !== 'collection') {
         report(context.sink, 'number-slot-kind', context.file, resolution.id);
       }
       if (context.root) {
@@ -893,7 +1060,16 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
       if (typeof child === 'string') textSize += child.length;
       else if (child.type !== 'embed') for (const grandchild of child.children) stack.push(grandchild);
     }
+    if (node.kind === 'collection') appendTable(node, context, content);
     return content;
+  }
+
+  /** A collection: its description, then its table (class 2); without data, only the description. */
+  function appendTable(node: SourceNode, context: BuildContext, content: Child[]): void {
+    if (!node.data) return;
+    const table = collectionTable(node.data, context);
+    for (const row of table.children) for (const cell of (row as Element).children) for (const text of (cell as Element).children) if (typeof text === 'string') textSize += text.length;
+    content.push(table);
   }
 
   function buildItems(node: SourceNode, items: CompositionItem[], context: BuildContext): Child[] {
@@ -1004,6 +1180,9 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
       }
     } else if (target.kind === 'image' && context.root) {
       attributes.number = String(++context.root.images);
+    } else if (target.kind === 'collection' && context.root) {
+      // A sequence of its own, for the cross-refs only: no visible caption (class 2).
+      attributes.number = String(++context.root.collections);
     }
     if (context.root && typeof attributes.number === 'string' && !context.root.firstNumbers.has(resolution.id)) {
       context.root.firstNumbers.set(resolution.id, attributes.number);
@@ -1134,7 +1313,7 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
       definitions: node.definitions,
       inComposition: true,
     });
-    const root: RootState = { chapterCounters: [], images: 0, firstNumbers: new Map() };
+    const root: RootState = { chapterCounters: [], images: 0, collections: 0, firstNumbers: new Map() };
     const content = buildContent(node, contextFor(root));
     // The title of the article is the first child of its content, of type title-0 (§0.7).
     if (node.title !== undefined) {
@@ -1215,6 +1394,10 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
         if (darkDifference) child.attributes.darkComputedStyle = darkDifference;
         pass.checkDark(finalDark);
       }
+      const collection = child.meta?.collection;
+      if (child.type === 'table' && collection && numberDecimals(final) !== DEFAULT_DECIMALS) {
+        setCollectionDisplays(child, collection.data as CollectionData, numberDecimals(final));
+      }
       if (child.type === 'mathLine' && child.meta?.value && (numberNotation(final) === 'compact' || numberDecimals(final) !== DEFAULT_DECIMALS)) {
         child.attributes.display = displayString(child.meta.value, child.meta.lang, numberNotation(final), numberDecimals(final));
       }
@@ -1230,7 +1413,8 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
    * or the start of the file. The folder itself (`.`) has no range.
    */
   function placeDiagnostic(diagnostic: Diagnostic): void {
-    if (diagnostic.file === '.') return;
+    // Placed where it was found, as in a data file.
+    if (diagnostic.file === '.' || diagnostic.range !== undefined) return;
     const text = texts.get(diagnostic.file) ?? '';
     let starts = lineIndex.get(diagnostic.file);
     if (starts === undefined) lineIndex.set(diagnostic.file, (starts = lineStarts(text)));

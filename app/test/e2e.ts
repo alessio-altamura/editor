@@ -3,12 +3,14 @@
 // archived and recalled from the navigator; the other gets a second card, which shows a
 // change made from it on the first and is archived alone; the two are composed into an article.
 // Back on the canvas: a search brings the view to a card, «+» writes a text next to a card,
-// «Raccogli» brings the article near, «Metti in ordine per tipo» makes the groups.
+// «Raccogli» brings the article near, «Metti in ordine per tipo» makes the groups, a collection
+// shows its table on a card. In the page, a click on a record of the table opens the TSV at its
+// line, and «Trasforma in collection» turns a text table into a collection.
 // Then, in the page, a line typed in the editor reaches the preview, and a click on the
 // preview brings the editor to the line where the element is written; changes not saved
 // are asked about before changing file and before closing. On Linux it runs on the
 // headless platform, without a screen.
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -17,7 +19,7 @@ import { _electron as electron, type Page } from 'playwright-core';
 import { writeFixture } from './fixture.js';
 
 const appFolder = resolve(fileURLToPath(new URL('.', import.meta.url)), '..');
-const folder = writeFixture();
+const folder = writeFixture({ collection: true });
 const userData = mkdtempSync(join(tmpdir(), 'doc-app-user-'));
 const problems: string[] = [];
 // As root, as in a container, Chromium wants --no-sandbox.
@@ -201,6 +203,12 @@ try {
   const labels = nodes().filter((n) => n.arrange === 'kind').map((n) => n.label);
   if (JSON.stringify(labels) !== '["article","text"]') problems.push(`arrange by kind: ${JSON.stringify(labels)}`);
   if (overlapping().length > 0) problems.push(`overlaps after arrange: ${overlapping().join()}`);
+
+  // A collection on the canvas: its card shows the table, numbers on the right with fixed decimals.
+  await main.dragAndDrop('#shelves button[data-id="vendite"]', '#viewport', { targetPosition: { x: 300, y: 300 } });
+  await main.waitForSelector('.card[data-id="vendite"]', { timeout: 5000 });
+  const table = await main.evaluate(() => [...(document.querySelector('.card[data-id="vendite"] .card-body')?.shadowRoot?.querySelectorAll('tbody td') ?? [])].map((td) => `${td.textContent}|${getComputedStyle(td).textAlign}`));
+  if (JSON.stringify(table.slice(0, 6)) !== '["gennaio|left","1250,50|right","12|right","febbraio|left","2,26|right","1300|right"]') problems.push(`the card of the collection: ${JSON.stringify(table)}`);
   await main.click('[data-show="page"]');
   // The preview is a view of its own: find its page among those of the app.
   const preview = async (): Promise<Page> => {
@@ -240,6 +248,21 @@ try {
   await page.click('[data-node="nota"] p');
   await main.waitForFunction(() => window.docAppState?.file === 'nota.text.md' && window.docAppState.line === 5, undefined, { timeout: 5000 })
     .catch(async () => problems.push(`the click on the paragraph: ${JSON.stringify(await main.evaluate(() => ({ ...window.docAppState, text: undefined })))}`));
+  // The table of the collection in the preview: a click on a record opens the TSV at its line.
+  await page.click('[data-node="vendite"] tbody tr:nth-child(2) td');
+  await main.waitForFunction(() => window.docAppState?.file === 'vendite.tsv' && window.docAppState.line === 2, undefined, { timeout: 5000 })
+    .catch(async () => problems.push(`the click on a record: ${JSON.stringify(await main.evaluate(() => ({ ...window.docAppState, text: undefined })))}`));
+  // «Trasforma in collection» from the editor, with the cursor in the table of a text.
+  await main.click('#shelves button[data-id="prezzi"]');
+  await main.waitForFunction(() => window.docAppState?.file === 'prezzi.text.md');
+  await main.click('.cm-content .cm-line >> nth=7');
+  await main.waitForSelector('#turn-into:not([hidden])', { timeout: 5000 });
+  await main.click('#turn-into');
+  await main.waitForFunction(() => window.docAppState?.file === 'prezzi.collection.md', undefined, { timeout: 5000 })
+    .catch(() => problems.push('«Trasforma in collection» did not open the collection'));
+  if (existsSync(join(folder, 'prezzi.text.md')) || !existsSync(join(folder, 'prezzi.tsv'))) problems.push('the files of «Trasforma in collection»');
+  await main.click('#shelves button[data-id="nota"]');
+  await main.waitForFunction(() => window.docAppState?.file === 'nota.text.md');
   // Closing with a change not saved: asked once, and saved.
   await main.click('.cm-content');
   await main.keyboard.press('Control+End');
@@ -268,7 +291,7 @@ try {
   rmSync(folder, { recursive: true, force: true });
   rmSync(userData, { recursive: true, force: true });
 }
-if (problems.length === 0) console.log('ok   the canvas: write, move, archive, recall, two cards of one object, compose, search, «+», gather, arrange; the page: typing reaches the preview, a click on it brings the editor to the line\n\napp end-to-end: all pass');
+if (problems.length === 0) console.log('ok   the canvas: write, move, archive, recall, two cards of one object, compose, search, «+», gather, arrange, a collection; the page: typing reaches the preview, a click on it brings the editor to the line\n\napp end-to-end: all pass');
 else {
   console.log(`FAIL the app end to end\n  ${problems.join('\n  ')}\n\napp end-to-end: 1 failed`);
   process.exitCode = 1;

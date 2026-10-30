@@ -24,6 +24,7 @@ import {
 import { LiveFolder } from './live.js';
 import { completions, definitionOf, hoverAt, referenceAt as referenceInLine, REFERENCE } from './language-services.js';
 import { evaluate, OperationError, planExtract, planRename, type Outcome, type Plan, type Workspace } from './operations.js';
+import { planTurnInto, tableAtLine } from './collection-operations.js';
 import type { JsonML, ResolvedTree, TreeNode } from './tree.js';
 
 /** The folder of the document: the nearest one, from `start` up, with a document file. */
@@ -123,7 +124,7 @@ export function startLanguageServer(): void {
         hoverProvider: true,
         referencesProvider: true,
         renameProvider: true,
-        codeActionProvider: { codeActionKinds: [CodeActionKind.QuickFix] },
+        codeActionProvider: { codeActionKinds: [CodeActionKind.QuickFix, CodeActionKind.RefactorRewrite] },
       },
       serverInfo: { name: 'doc-runtime' },
     };
@@ -258,10 +259,21 @@ export function startLanguageServer(): void {
     return asEdit((workspace) => planRename(workspace, live!.tree, id, newName));
   });
 
-  connection.onCodeAction(({ textDocument, context }) => {
+  connection.onCodeAction(({ textDocument, context, range }) => {
     const file = pathOf(textDocument.uri);
     const wanted = context.diagnostics.filter((d) => d.code === 'composition-content');
-    if (live === null || file === null || wanted.length === 0) return [];
+    if (live === null || file === null) return [];
+    // A table of a text or of a scratch under the cursor: «Trasforma in collection» (class 2).
+    const table = tableAtLine(live.tree, file, documents.get(textDocument.uri)?.getText() ?? textOf(file), range.start.line + 1);
+    if (table !== null) {
+      try {
+        return [{ title: 'Trasforma in collection', kind: CodeActionKind.RefactorRewrite, edit: asEdit((workspace) => planTurnInto(workspace, live!.tree, table.id, { line: table.line })) }];
+      } catch (error) {
+        log(`trasforma in collection: ${error instanceof Error ? error.message : String(error)}`);
+        return [];
+      }
+    }
+    if (wanted.length === 0) return [];
     try {
       return [{
         title: 'Estrai in un oggetto',

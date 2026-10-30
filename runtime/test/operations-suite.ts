@@ -323,6 +323,65 @@ try {
     report('order on the canvas: making room, create --near, gather, arrange', problems);
   }
 
+  // Collections (class 2): create, turn-into from a text and from a scratch, the refusal; rename and move; in a folder of their own.
+  {
+    const problems: string[] = [];
+    const base = mkdtempSync(join(tmpdir(), 'collections-'));
+    const runIn = (...args: string[]) => spawnSync(process.execPath, [cliPath, ...args, '--folder', base], { encoding: 'utf8' });
+    /** With --dry-run first, which writes nothing, then for real. */
+    const operateIn = (...args: string[]) => {
+      const before = readdirSync(base).map((name) => `${name}:${readFileSync(join(base, name), 'utf8')}`).join();
+      const dry = runIn(...args, '--dry-run');
+      if (dry.status !== 0 || !JSON.parse(dry.stdout).diff) problems.push(`${args[0]} --dry-run: ${dry.status} ${dry.stderr}`);
+      if (readdirSync(base).map((name) => `${name}:${readFileSync(join(base, name), 'utf8')}`).join() !== before) problems.push(`${args[0]} --dry-run wrote`);
+      const real = runIn(...args);
+      if (real.status !== 0) problems.push(`${args.join(' ')}: ${real.status} ${real.stderr}`);
+      return real.status === 0 ? (JSON.parse(real.stdout) as Record<string, unknown>) : {};
+    };
+    const treeIn = () => JSON.parse(spawnSync(process.execPath, [cliPath, 'resolve-tree', base], { encoding: 'utf8' }).stdout) as Tree;
+    writeFileSync(join(base, 'doc.document.md'), '---\nid: doc\nkind: document\ntags: []\nlang: it\nspec-version: "0.1"\n---\n');
+    writeFileSync(join(base, 'rapporto.article.md'), front('rapporto', 'article', 'title: Rapporto\n') + '![[prezzi]]\n');
+    writeFileSync(join(base, 'prezzi.text.md'), front('prezzi', 'text') + '| Prodotto | Prezzo | Pezzi |\n|---|--:|--:|\n| penna | 1,50 | 1.200 |\n| quaderno | 2,25 | 3 |\n');
+    writeFileSync(join(base, 'altro.text.md'), front('altro', 'text') + 'Vedi [[prezzi|la tabella {n}]].\n');
+    writeFileSync(join(base, 'appunti.scratch.md'), front('appunti', 'scratch') + 'Prima.\n\n| Città | Abitanti |\n|---|---|\n| Roma | 2.750.000 |\n| Roma | 2.750.000 |\n\nDopo.\n');
+
+    // create: a descriptor and a TSV with only the header; without a field it is a wrong request.
+    const made = operateIn('create', 'collection', '--field', 'nome:string', '--field', 'anni:integer', '--in', 'rapporto', '--text', 'Le persone.');
+    if (readFileSync(join(base, `${String(made.id)}.tsv`), 'utf8') !== 'nome\tanni\n') problems.push(`create: ${JSON.stringify(made)}`);
+    if (runIn('create', 'collection', '--in', 'rapporto').status !== 2) problems.push('create without --field');
+
+    // turn-into from a text: the same id, its embed and its cross-ref still resolve; numbers with the point.
+    const turned = operateIn('turn-into', 'prezzi');
+    const t = treeIn();
+    if (node(t, 'prezzi')?.kind !== 'collection' || existsSync(join(base, 'prezzi.text.md'))) problems.push(`turn-into from a text: ${JSON.stringify(turned)}`);
+    if (readFileSync(join(base, 'prezzi.tsv'), 'utf8') !== 'Prodotto\tPrezzo\tPezzi\npenna\t1.5\t1200\nquaderno\t2.25\t3\n') problems.push(`the TSV: ${readFileSync(join(base, 'prezzi.tsv'), 'utf8')}`);
+    if (JSON.stringify(turned.fields) !== '[{"name":"Prodotto","type":"string"},{"name":"Prezzo","type":"number"},{"name":"Pezzi","type":"integer"}]' || turned.primaryKey !== 'Prodotto') problems.push(`types and key: ${JSON.stringify(turned)}`);
+    if (!JSON.stringify(node(t, 'altro')?.content).includes('la tabella 1') && !JSON.stringify(node(t, 'rapporto')?.content).includes('"number":"')) problems.push('the embed or the cross-ref');
+    if (errors(t).length !== 0) problems.push(`errors after turn-into: ${JSON.stringify(errors(t))}`);
+
+    // From a scratch: the same record twice, so no key; a new id from the header, and a link in place of the table.
+    const fromScratch = operateIn('turn-into', 'appunti');
+    const scratch = readFileSync(join(base, 'appunti.scratch.md'), 'utf8');
+    if (fromScratch.id !== 'citta-abitanti' || fromScratch.primaryKey !== undefined || !scratch.includes('Prima.\n\n[[citta-abitanti|Città, Abitanti]]\n\nDopo.')) problems.push(`turn-into from a scratch: ${JSON.stringify(fromScratch)} ${scratch}`);
+    // --key on a column with a value twice brings collection-key-duplicate: refused, nothing written.
+    writeFileSync(join(base, 'altri.scratch.md'), front('altri', 'scratch') + '| a | b |\n|---|---|\n| x | 1 |\n| x | 2 |\n');
+    const before = readdirSync(base).sort().join();
+    const refused = runIn('turn-into', 'altri', '--key', 'a');
+    if (refused.status !== 1 || !refused.stderr.includes('collection-key-duplicate') || readdirSync(base).sort().join() !== before) problems.push(`refusal: ${refused.status} ${refused.stderr}`);
+    if (runIn('turn-into', 'altri', '--type', 'a:number').status !== 1) problems.push('--type a:number on text is not refused');
+
+    // rename and move, as for an image: the descriptor changes, the data file stays.
+    operateIn('rename', 'prezzi', 'listino');
+    operateIn('move', 'listino', '--to', 'listino.collection.md');
+    const after = treeIn();
+    if (node(after, 'listino')?.file !== 'listino.collection.md' || errors(after).length !== 0) problems.push(`rename and move: ${JSON.stringify(node(after, 'listino'))} ${JSON.stringify(errors(after))}`);
+    if (runIn('move', 'listino', '--to', 'tabelle.collection.md').status !== 2) problems.push('a collection moved into a multi-object file');
+    const check = spawnSync(process.execPath, [cliPath, 'format', base, '--check'], { encoding: 'utf8' });
+    if (check.status !== 0) problems.push(`not canonical: ${check.stdout}`);
+    rmSync(base, { recursive: true, force: true });
+    report('collections: create, turn-into from a text and a scratch, refusal, rename and move', problems);
+  }
+
   // Every file written is canonical.
   {
     const check = spawnSync(process.execPath, [cliPath, 'format', folder, '--check'], { encoding: 'utf8' });

@@ -6,6 +6,7 @@ import { dirname, isAbsolute, join, relative, sep } from 'node:path';
 import { readAsset } from 'doc-runtime/dist/src/assets.js';
 import { CARD_SIZE, canvasCards, planArchive, planArrange, planCompose, planGather, planPlace, planRecall, readingOrder, type ArrangeBy, type CanvasGroup } from 'doc-runtime/dist/src/canvas.js';
 import { besidePlace } from 'doc-runtime/dist/src/canvas-layout.js';
+import { planTurnInto, tableAtLine } from 'doc-runtime/dist/src/collection-operations.js';
 import { formatText } from 'doc-runtime/dist/src/format.js';
 import { completions, definitionOf, describe, hoverAt, referenceAt, type Completion, type Position, type Range } from 'doc-runtime/dist/src/language-services.js';
 import { LiveFolder } from 'doc-runtime/dist/src/live.js';
@@ -334,6 +335,29 @@ export class Session {
   /** Whether an address is one of this preview's: the window lets nothing else load. */
   isPreview(url: string): boolean {
     return url.startsWith(`${this.base}/`);
+  }
+
+  /** The text or scratch whose table holds a line (from 0) of a file: «Trasforma in collection» can run there. */
+  tableAt(path: string, text: string, line: number): string | null {
+    return tableAtLine(this.live.tree, this.safe(path), text, line + 1)?.id ?? null;
+  }
+
+  /** «Trasforma in collection» on the table at a line (from 0), the file saved first. */
+  turnInto(path: string, text: string, line: number): Done {
+    const file = this.safe(path);
+    this.save(file, text);
+    this.live.recompute();
+    const table = tableAtLine(this.live.tree, file, this.read(file), line + 1);
+    if (table === null) return { error: 'qui non c\'è una tabella di un text o di uno scratch' };
+    return this.operate((workspace, tree) => planTurnInto(workspace, tree, table.id, { line: table.line }));
+  }
+
+  /** The data file of a collection descriptor, or null. */
+  dataFile(path: string): string | null {
+    const node = (this.live.tree.nodes ?? []).find((each) => each.file === this.safe(path) && each.kind === 'collection');
+    const asset = node?.attributes?.asset;
+    if (typeof asset !== 'string') return null;
+    return this.file(join(dirname(node!.file), asset).split(sep).join('/'));
   }
 
   /** «Estrai in un oggetto» on a composition file, saved first; the files written, or why not. */

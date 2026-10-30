@@ -68,7 +68,7 @@ export function langFormat(lang: string): LangFormat | undefined {
   return LANGS.get(tag) ?? LANGS.get(tag.split('-')[0]!);
 }
 
-function localize(plain: string, format: LangFormat | undefined): string {
+export function localize(plain: string, format: LangFormat | undefined): string {
   if (!format) return plain;
   const negative = plain.startsWith('-');
   const [intPart = '', fracPart] = (negative ? plain.slice(1) : plain).split('.');

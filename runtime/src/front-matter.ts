@@ -1,8 +1,15 @@
 // The front matter (§0.6): YAML read with the failsafe schema, so every scalar is a string.
 import { CST, isMap, isScalar, isSeq, Lexer, parseDocument, type Node as YamlNode } from 'yaml';
 
-/** A value as written: a string, a list of strings, or something else (`attribute-invalid`). */
-export type RawValue = { type: 'string'; value: string; plain: boolean } | { type: 'list'; value: string[] } | { type: 'invalid' };
+/**
+ * A value as written: a string, a list of strings, a structure of maps and lists (the
+ * schema of a collection, every scalar a string), or something else (`attribute-invalid`).
+ */
+export type RawValue =
+  | { type: 'string'; value: string; plain: boolean }
+  | { type: 'list'; value: string[] }
+  | { type: 'structure'; value: unknown }
+  | { type: 'invalid' };
 
 export interface YamlMap {
   entries: Array<[string, RawValue]>;
@@ -24,12 +31,22 @@ function rawValue(node: unknown): RawValue {
   if (isSeq(node)) {
     const items: string[] = [];
     for (const item of node.items) {
-      if (!isScalar(item)) return { type: 'invalid' };
+      if (!isScalar(item)) return structure(node);
       items.push(String(item.value));
     }
     return { type: 'list', value: items };
   }
+  if (isMap(node)) return structure(node);
   return { type: 'invalid' };
+}
+
+/** A map, or a list with maps: as plain values, each scalar a string; an alias or a tag is invalid. */
+function structure(node: { toJSON: () => unknown }): RawValue {
+  try {
+    return { type: 'structure', value: node.toJSON() };
+  } catch {
+    return { type: 'invalid' };
+  }
 }
 
 /**

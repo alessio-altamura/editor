@@ -1,7 +1,7 @@
 // The browser suite, outside `npm test`: opens the pages of the export suite in
 // Chromium and checks what it computes against the values rebuilt by the tests.
 // Run with `npm run test:browser`; Chromium comes from playwright-core.
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { launchBrowser } from './electron-browser.js';
@@ -186,6 +186,37 @@ try {
     else {
       failed++;
       console.log(`FAIL ${label}\n  ${problems.slice(0, 30).join('\n  ')}`);
+    }
+  }
+  // A collection (class 2): numbers on the right with the same decimals in a column, the header bold, the description in the caption, not seen.
+  {
+    const problems: string[] = [];
+    const folder = mkdtempSync(join(base, 'collection-'));
+    writeFileSync(join(folder, 'doc.document.md'), '---\nid: doc\nkind: document\ntags: []\nspec-version: "0.1"\nlang: it\n---\n');
+    writeFileSync(join(folder, 'vendite.collection.md'), '---\nid: vendite\nkind: collection\ntags: []\nasset: vendite.tsv\nfields:\n  - name: mese\n    type: string\n    title: Mese\n  - name: euro\n    type: number\n  - name: pezzi\n    type: integer\n---\nVendite per mese.\n');
+    writeFileSync(join(folder, 'vendite.tsv'), 'mese\teuro\tpezzi\ngennaio\t1.5\t12\nfebbraio\t2.25\t1300\nmarzo\t1250\t7\n');
+    writeFileSync(join(folder, 'report.article.md'), '---\nid: report\nkind: article\ntags: []\ntitle: Rapporto\n---\n![[vendite]]\n');
+    const html = runCli(['export', folder, '--root', 'report']).stdout.toString('utf8');
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'load' });
+    const seen = await page.evaluate(() => {
+      const cells = [...document.querySelectorAll('tbody tr')].map((row) => [...row.querySelectorAll('td')].map((td) => ({ text: td.textContent, align: getComputedStyle(td).textAlign, right: td.getBoundingClientRect().right - parseFloat(getComputedStyle(td).paddingRight) })));
+      const heads = [...document.querySelectorAll('th')].map((th) => `${th.textContent}|${getComputedStyle(th).fontWeight}`);
+      const caption = document.querySelector('caption')!;
+      return { cells, heads, caption: caption.textContent, captionWidth: caption.getBoundingClientRect().width };
+    });
+    if (JSON.stringify(seen.heads) !== '["Mese|700","euro|700","pezzi|700"]') problems.push(`header ${JSON.stringify(seen.heads)}`);
+    if (JSON.stringify(seen.cells.map((row) => row.map((cell) => cell.text))) !== '[["gennaio","1,50","12"],["febbraio","2,25","1300"],["marzo","1250,00","7"]]') problems.push(`strings ${JSON.stringify(seen.cells)}`);
+    if (!seen.cells.every((row) => row[0]!.align === 'left' && row[1]!.align === 'right' && row[2]!.align === 'right')) problems.push('alignment');
+    // Fixed decimals on the right: the digits line up, the last of each value on the same edge.
+    const edges = new Set(seen.cells.map((row) => Math.round(row[1]!.right * 100)));
+    if (edges.size !== 1) problems.push(`the numbers do not line up: ${[...edges].join()}`);
+    if (seen.caption !== 'Vendite per mese.' || seen.captionWidth > 1) problems.push(`caption ${seen.caption} ${seen.captionWidth}`);
+    await page.close();
+    if (problems.length === 0) console.log('ok   a collection: alignment, fixed decimals, header, caption');
+    else {
+      failed++;
+      console.log(`FAIL a collection\n  ${problems.join('\n  ')}`);
     }
   }
 } finally {

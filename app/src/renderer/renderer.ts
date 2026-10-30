@@ -63,9 +63,11 @@ const pageState = (doc: string) =>
       definition: (from) => void goToDefinition(from),
       diagnosed: (codes) => ($('extract').hidden = !codes.includes('composition-content')),
       gutter: true,
+      data: /\.(tsv|csv)$/i.test(file ?? ''),
       // A change holds at once for the tree and the preview, before it is saved.
       changed: (update) => {
         updateState();
+        if (update.selectionSet || update.docChanged) checkTable();
         if (!update.docChanged || file === null) return;
         tellDirty();
         const target = file;
@@ -74,6 +76,20 @@ const pageState = (doc: string) =>
       },
     }),
   });
+
+/** «Trasforma in collection» shows when the cursor is in a table of a text or of a scratch. */
+let tableTimer: ReturnType<typeof setTimeout> | undefined;
+function checkTable(): void {
+  clearTimeout(tableTimer);
+  tableTimer = setTimeout(async () => {
+    const button = $('turn-into');
+    if (file === null || !/\.(text|scratch)\.md$/.test(file)) {
+      button.hidden = true;
+      return;
+    }
+    button.hidden = (await api.tableAt(file, view.state.doc.toString(), position(view.state, view.state.selection.main.head).line)) === null;
+  }, 150);
+}
 
 /** Changes not saved in the page: save them, forget them, or stay; false to stay. */
 async function settlePage(): Promise<boolean> {
@@ -100,6 +116,10 @@ async function open(target: string, line: number, character: number, alone?: str
     file = target;
     view.setState(pageState(text));
     $('file').textContent = target;
+    // A collection: a button opens its data file.
+    const data = /\.collection\.md$/.test(target) ? await api.dataFile(target) : null;
+    $('data').hidden = data === null;
+    $('data').dataset.file = data ?? '';
     if (alone === undefined) await api.showPreview(target);
     void renderNavigator();
   }
@@ -194,6 +214,21 @@ async function start(): Promise<void> {
   for (const button of document.querySelectorAll<HTMLButtonElement>('[data-show]')) {
     button.addEventListener('click', () => void setView(button.dataset.show as 'canvas' | 'page'));
   }
+  $('turn-into').addEventListener('click', async () => {
+    if (file === null) return;
+    const done = await api.turnInto(file, view.state.doc.toString(), position(view.state, view.state.selection.main.head).line);
+    if (done.error) {
+      alert(`Non si può trasformare: ${done.error}`);
+      return;
+    }
+    // The text has gone, or the scratch has a link now: open the new collection.
+    saved = view.state.doc.toString();
+    file = null;
+    await open(String(done.summary?.file), 0, 0);
+  });
+  $('data').addEventListener('click', () => {
+    if ($('data').dataset.file) void open($('data').dataset.file!, 0, 0);
+  });
   $('extract').addEventListener('click', async () => {
     if (file === null) return;
     const result = (await api.extract(file, view.state.doc.toString())) as { written: string[]; error?: string };

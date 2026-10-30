@@ -14,7 +14,7 @@ body[data-view="page"] #board { display: none; }
 .shelf .id { color: var(--muted); font-size: 11px; display: block; }
 .bar { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-bottom: 1px solid var(--line); color: var(--muted); }
 #source { display: flex; flex-direction: column; min-width: 0; border-right: 1px solid var(--line); }
-#extract { margin-left: auto; }
+#file { flex: 1; }
 #editor { flex: 1; min-height: 0; }
 #editor .cm-editor { height: 100%; }
 #preview { min-width: 0; }

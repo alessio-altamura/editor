@@ -20,6 +20,8 @@ export interface Element {
     numberSlot?: { label: string; id: string; fallback: string };
     /** Where the node is written (§11.6), for `resolve-tree --positions` and the preview. */
     position?: SourcePosition;
+    /** The table of a collection: the language of its numbers and its data, for the decimals of the style pass (class 2). */
+    collection?: { lang: string | undefined; data: unknown };
     /** Declarations the runtime adds to the node itself (§0.5): column alignment, table header, tight list. */
     declarations?: Array<[string, string]>;
   };

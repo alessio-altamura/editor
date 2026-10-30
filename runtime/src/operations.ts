@@ -13,6 +13,7 @@ import { parseYamlMap, splitFrontMatter, type RawValue } from './front-matter.js
 import { parseMarkdown, resolveTree } from './resolve-tree.js';
 import { ID_FORM, type Diagnostic, type ResolvedTree } from './tree.js';
 import { planCreateOnCanvas, retargetCanvas } from './canvas.js';
+import { collectionFiles } from './collection-operations.js';
 
 /** A problem with the request itself, not with the document: exit 2. */
 export class OperationError extends Error {}
@@ -40,13 +41,13 @@ const COMPOSITIONS = new Set(['chapter', 'article']);
 
 const normalize = (text: string) => text.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
 
-interface Block {
+export interface Block {
   start: number;
   end: number;
   node: RootContent;
   text: string;
 }
-interface FileObject {
+export interface FileObject {
   id?: string;
   /** The attribute line of a multi-object file, with its attributes. */
   line?: { start: number; end: number; entries: Array<[string, RawValue]> };
@@ -179,7 +180,7 @@ export function nodeOf(tree: ResolvedTree, id: string) {
   return nodes[0]!;
 }
 
-function objectIn(workspace: Workspace, file: string, id: string): { shape: Shape; object: FileObject } {
+export function objectIn(workspace: Workspace, file: string, id: string): { shape: Shape; object: FileObject } {
   const text = workspace.read(file);
   if (text === null) throw new OperationError(`${file} non si legge`);
   const fileShape = shape(file, text);
@@ -193,6 +194,8 @@ export interface CreateRequest {
   /** The composition that gets the embed; or `at`, a place on the canvas. */
   into?: string;
   at?: { x: number; y: number };
+  /** For a collection: its fields, each with a name and a type (class 2). */
+  fields?: Array<{ name: string; type: string }>;
   /** Or next to a card of an object, on the canvas: the id, and the node when it has several. */
   near?: { id: string; card?: string };
   after?: string;
@@ -252,7 +255,11 @@ export function addObject(workspace: Workspace, plan: Plan, beside: string, requ
   const text = (request.text ?? '').trim();
   const folderOf = posix.dirname(beside);
   const at = (name: string) => (folderOf === '.' ? name : `${folderOf}/${name}`);
-  if (request.kind === 'text') {
+  if (request.kind === 'collection') {
+    const { descriptor, data } = collectionFiles(workspace, plan, at, id, request);
+    plan.summary.file = descriptor;
+    plan.summary.data = data;
+  } else if (request.kind === 'text') {
     const file = textsFileOf(beside);
     appendTexts(workspace, plan, file, [{ id, content: text }]);
     plan.summary.file = file;
@@ -437,17 +444,21 @@ export function planMove(workspace: Workspace, tree: ResolvedTree, id: string, t
     }
     return writeAttributeLine(entries);
   };
-  const entry = `${line()}${content === '' ? '' : `\n\n${content}`}`;
+  const entry = () => {
+    // A collection carries its schema, which does not fit in an attribute line (class 2).
+    if (attributes.some(([, value]) => value.type === 'structure')) throw new OperationError(`${id} ha uno schema: va in un file suo, ${id}.${node.kind}.md`);
+    return `${line()}${content === '' ? '' : `\n\n${content}`}`;
+  };
   if (existing !== null) {
     const targetShape = shape(target, existing);
     if (!targetShape.multi && targetShape.objects[0]?.id !== undefined) throw new OperationError(`${target} è il file di un oggetto, non un multi-object file`);
-    plan.files.set(target, `${targetShape.text.replace(/\n*$/, '')}\n\n${entry}\n`);
+    plan.files.set(target, `${targetShape.text.replace(/\n*$/, '')}\n\n${entry()}\n`);
   } else if (posix.basename(target).startsWith(`${id}.`)) {
     // Named after the object: a file of its own, with the attributes in the front matter.
     const entries: Array<[string, RawValue]> = [...attributes.filter(([key]) => key !== 'id'), ['id', { type: 'string', value: id, plain: true }], ['kind', { type: 'string', value: node.kind, plain: true }]];
     plan.files.set(target, `---\n${writeHeader(entries)}\n---\n${content}\n`);
   } else {
-    plan.files.set(target, `---\nkind: ${node.kind}\n---\n${entry}\n`);
+    plan.files.set(target, `---\nkind: ${node.kind}\n---\n${entry()}\n`);
   }
   // The card of the object follows it: a file of its own without subpath, a multi-object file with one.
   const ownTarget = existing === null && posix.basename(target).startsWith(`${id}.`);

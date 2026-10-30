@@ -19,6 +19,10 @@ const api = {
   showPreview: (file: string | null) => ipcRenderer.invoke('doc:preview', file) as Promise<string | null>,
   previewBounds: (bounds: { x: number; y: number; width: number; height: number }) => ipcRenderer.send('doc:preview-bounds', bounds),
   extract: (file: string, text: string) => ipcRenderer.invoke('doc:extract', file, text),
+  /** The id of the text or scratch whose table holds a line, from 0; null where there is none. */
+  tableAt: (file: string, text: string, line: number) => ipcRenderer.invoke('doc:table-at', file, text, line) as Promise<string | null>,
+  turnInto: (file: string, text: string, line: number) => ipcRenderer.invoke('doc:turn-into', file, text, line) as Promise<Done>,
+  dataFile: (file: string) => ipcRenderer.invoke('doc:data-file', file) as Promise<string | null>,
   /** The preview of one object alone. */
   showObject: (id: string) => ipcRenderer.invoke('doc:preview-object', id),
   canvas: () => ipcRenderer.invoke('doc:canvas') as Promise<{ canvas: string | null; cards: CardView[]; groups: CanvasGroup[] }>,

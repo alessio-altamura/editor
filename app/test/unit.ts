@@ -4,7 +4,7 @@ import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { mapOffset } from '../src/offset.js';
 import { Session } from '../src/session.js';
-import { writeFixture } from './fixture.js';
+import { PRICES, SALES, SALES_TSV, writeFixture } from './fixture.js';
 
 let failed = 0;
 const check = (label: string, problems: string[]) => {
@@ -185,6 +185,26 @@ try {
     if (JSON.stringify(numbers('altro')) !== '["1","1.1"]') problems.push(`altro ${JSON.stringify(numbers('altro'))}`);
     if (JSON.stringify(numbers('sotto')) !== '["1"]') problems.push(`sotto ${JSON.stringify(numbers('sotto'))}`);
     check('each card numbers as its object alone', problems);
+  }
+  {
+    // Collections: the data file of a descriptor, the card with its table, a diagnostic in the TSV, «Trasforma in collection».
+    const problems: string[] = [];
+    writeFileSync(join(folder, 'vendite.collection.md'), SALES);
+    writeFileSync(join(folder, 'vendite.tsv'), SALES_TSV.replace('marzo\t\t7', 'marzo\tmolte\t7'));
+    writeFileSync(join(folder, 'prezzi.text.md'), PRICES);
+    session.live.recompute();
+    if (session.dataFile('vendite.collection.md') !== 'vendite.tsv') problems.push(`dataFile ${session.dataFile('vendite.collection.md')}`);
+    if (!session.navigator().some((shelf) => shelf.kind === 'collection' && shelf.items.some((item) => item.id === 'vendite'))) problems.push('no shelf for the collections');
+    session.recall('vendite');
+    const html = session.canvas().cards.find((c) => c.id === 'vendite')?.html ?? '';
+    if (!html.includes('<table') || !/text-align: right[^>]*>1250,50</.test(html) || !/<caption data-description><p[^>]*>Vendite e pezzi/.test(html)) problems.push(`the card of the collection: ${html.slice(html.indexOf('<table')).replace(/ style="[^"]*"/g, '').slice(0, 400)}`);
+    const wrong = session.diagnostics('vendite.tsv').find((d) => d.code === 'collection-value-invalid');
+    if (wrong?.range.start.line !== 3 || wrong.range.start.character !== 6) problems.push(`the diagnostic in the TSV: ${JSON.stringify(session.diagnostics('vendite.tsv'))}`);
+    const text = session.read('prezzi.text.md');
+    if (session.tableAt('prezzi.text.md', text, 6) !== 'prezzi' || session.tableAt('nota.text.md', session.read('nota.text.md'), 5) !== null) problems.push('tableAt');
+    const turned = session.turnInto('prezzi.text.md', text, 6);
+    if (turned.error || turned.summary?.file !== 'prezzi.collection.md' || readFileSync(join(folder, 'prezzi.tsv'), 'utf8') !== 'Prodotto\tPrezzo\npenna\t1.5\nquaderno\t2.25\n') problems.push(`turnInto ${JSON.stringify(turned)}`);
+    check('collections: data file, card with the table, diagnostics in the TSV, «Trasforma in collection»', problems);
   }
 } finally {
   await session.close();

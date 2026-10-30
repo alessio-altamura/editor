@@ -34,7 +34,7 @@ type Style = Record<string, string>;
 
 const RESET_ELEMENTS = [
   'html', 'body', 'article', 'section', 'div', 'figure', 'img', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'ul', 'ol',
-  'li', 'blockquote', 'br', 'hr', 'pre', 'code', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'em', 'strong', 'a', 'span',
+  'li', 'blockquote', 'br', 'hr', 'pre', 'code', 'table', 'caption', 'thead', 'tbody', 'tr', 'th', 'td', 'em', 'strong', 'a', 'span',
 ];
 
 /** The page background of each theme, and with both themes the choice of the node colors. */
@@ -62,7 +62,8 @@ function styleSheet(options: ExportOptions): string {
     'th, td { border: 0.75pt solid currentColor; padding: 2pt 6pt; vertical-align: top; }\n' +
     'img { max-width: 100%; height: auto; vertical-align: top; }\n' +
     '[data-number], [data-math-line], [data-math-line-invalid] { unicode-bidi: isolate; }\n' +
-    (options.allowErrors === true ? '[data-unresolved] { outline: 0.75pt dashed currentColor; }\n' : '')
+    'caption[data-description] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }\n' +
+    (options.allowErrors === true ? '[data-unresolved] { outline: 0.75pt dashed currentColor; }\n[data-invalid] { outline: 0.75pt dashed currentColor; }\n' : '')
   );
 }
 
@@ -338,6 +339,8 @@ interface Context {
   cell?: 'th' | 'td';
   /** The object whose content this is, for data-node in the preview. */
   node?: string;
+  /** The description of a collection, for the caption of its table (class 2). */
+  caption?: JsonML[];
 }
 
 /** A source position as data-source: file:line:character-line:character, counted as in LSP. */
@@ -530,6 +533,17 @@ function* pieces(
             open = `<figure data-kind="image" data-image-fallback="${fallback}"${common}>`;
           }
           close = '</figure>';
+        } else if (kind === 'collection') {
+          // The table, with the description in its caption for screen readers; without data, the description as fallback.
+          const table = children.find((child) => Array.isArray(child) && child[0] === 'table');
+          if (table !== undefined) {
+            open = `<div data-kind="collection"${common}>`;
+            context = { ...context, caption: children.filter((child) => child !== table) };
+            children = [table];
+          } else {
+            open = `<figure data-kind="collection" data-collection-fallback${common}>`;
+          }
+          close = table !== undefined ? '</div>' : '</figure>';
         } else {
           open = `<div data-kind="${escapeHtml(kind)}"${common}>`;
           close = '</div>';
@@ -559,18 +573,26 @@ function* pieces(
         break;
       }
       case 'table': {
-        open = `<table${styled}><thead>`;
+        open = `<table${styled}>`;
         close = children.length > 1 ? '</tbody></table>' : '</thead></table>';
         // The first row is the header: the others go in tbody, with td.
         const rows = children;
         children = [];
+        const { caption, ...inner } = context;
         afterOpen = rows.map((row, index) => ({
           type: 'node' as const,
           item: row,
           parent: style,
-          context: { ...context, cell: index === 0 ? ('th' as const) : ('td' as const) },
+          context: { ...inner, cell: index === 0 ? ('th' as const) : ('td' as const) },
         }));
         if (rows.length > 1) afterOpen.splice(1, 0, { type: 'text', text: '</thead><tbody>' });
+        // The description of a collection: a caption, which screen readers read with the table and the PDF keeps; hidden on screen and paper.
+        afterOpen.unshift(
+          ...(caption && caption.length > 0
+            ? [{ type: 'text' as const, text: '<caption data-description>' }, ...caption.map((item) => ({ type: 'node' as const, item, parent: style, context: inner })), { type: 'text' as const, text: '</caption>' }]
+            : []),
+          { type: 'text', text: '<thead>' },
+        );
         break;
       }
       case 'tableRow': {
@@ -579,7 +601,8 @@ function* pieces(
       }
       case 'tableCell': {
         const cell = task.context.cell ?? 'td';
-        [open, close] = [`<${cell}${styled}>`, `</${cell}>`];
+        // A value of a collection that is not of its type is shown as written, and marked (class 2).
+        [open, close] = [`<${cell}${attributes.invalid === true ? ' data-invalid' : ''}${styled}>`, `</${cell}>`];
         break;
       }
       case 'emphasis': [open, close] = [`<em${styled}>`, '</em>']; break;

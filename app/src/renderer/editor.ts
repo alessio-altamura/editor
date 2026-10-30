@@ -2,14 +2,14 @@
 // and for a card of the canvas. A card shows one object of a file: `before` is the text
 // of the file before it, and the services see the whole file.
 import { autocompletion, type CompletionContext } from '@codemirror/autocomplete';
-import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
+import { defaultKeymap, history, historyKeymap, insertTab } from '@codemirror/commands';
 import { markdown } from '@codemirror/lang-markdown';
 import { bracketMatching, defaultHighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { linter, lintGutter, type Diagnostic } from '@codemirror/lint';
 import { highlightSelectionMatches, searchKeymap } from '@codemirror/search';
 import type { EditorState, Extension } from '@codemirror/state';
 import { oneDark } from '@codemirror/theme-one-dark';
-import { EditorView, hoverTooltip, keymap, lineNumbers, drawSelection, highlightActiveLine, type ViewUpdate } from '@codemirror/view';
+import { EditorView, hoverTooltip, keymap, lineNumbers, drawSelection, highlightActiveLine, highlightWhitespace, type ViewUpdate } from '@codemirror/view';
 import type { DocApp } from '../preload.js';
 
 type Position = { line: number; character: number };
@@ -26,6 +26,8 @@ export interface EditorContext {
   /** The codes of the diagnostics of the file, each time they come. */
   diagnosed?: (codes: string[]) => void;
   gutter: boolean;
+  /** A data file of a collection, TSV or CSV: no Markdown, tabs shown, Tab writes a tab. */
+  data?: boolean;
 }
 
 export const position = (state: EditorState, offset: number): Position => {
@@ -106,7 +108,7 @@ export function editorExtensions(api: DocApp, context: EditorContext): Extension
     highlightActiveLine(),
     bracketMatching(),
     highlightSelectionMatches(),
-    markdown(),
+    ...(context.data ? [highlightWhitespace(), keymap.of([{ key: 'Tab', run: insertTab }])] : [markdown()]),
     syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
     EditorView.lineWrapping,
     ...(matchMedia('(prefers-color-scheme: dark)').matches ? [oneDark] : []),
