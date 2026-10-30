@@ -728,6 +728,13 @@ quando due rami lavorano in parallelo.
   applicata con prudenza: cambia l'aspetto dell'`app`, anche la
   disposizione dei suoi elementi; restano le stesse funzioni, e la resa del
   documento (schede, anteprima, HTML e PDF) non cambia.
+  Sulle tre direzioni diverse nella disposizione (lavagna, documento,
+  studio), Alessio (2026-10-30): «tra questi tre forse il primo ma le barre
+  degli strumenti le vorrei fisse non fluttuanti». Quindi lavagna, con le
+  barre degli strumenti fisse sul bordo invece che fluttuanti; documento e
+  studio si tolgono. Lettura dell'orchestratore: il navigator non è una
+  barra degli strumenti e resta com'è in lavagna, salvo indicazione
+  diversa.
 
 
 - Estensibilità: estensioni e connettori distribuiti da un marketplace, per
