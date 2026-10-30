@@ -35,7 +35,7 @@ body[data-view="page"] #board { display: none; }
 .card.editing .card-body { display: none; }
 .card-editor { flex: 1; min-height: 0; overflow: auto; }
 .card-editor .cm-editor { min-height: 200px; }
-.card-order { position: absolute; bottom: 6px; right: 6px; min-width: 22px; height: 22px; border-radius: 11px; background: var(--accent); color: var(--card); font-weight: 700; text-align: center; line-height: 22px; }
+.card-order { position: absolute; bottom: 6px; right: 20px; min-width: 22px; height: 22px; border-radius: 11px; background: var(--accent); color: var(--card); font-weight: 700; text-align: center; line-height: 22px; }
 #sequence { position: absolute; top: 12px; right: 12px; width: 280px; padding: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 2px 8px rgb(0 0 0 / 0.2); }
 #sequence h2 { font-size: 13px; margin: 0 0 8px; }
 #order { padding-left: 22px; margin: 0 0 8px; }
@@ -43,3 +43,13 @@ body[data-view="page"] #board { display: none; }
 #order li span { display: inline-block; width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
 #compose-title { width: 100%; box-sizing: border-box; margin-bottom: 8px; }
 #sequence .actions { display: flex; gap: 8px; }
+#find { width: 180px; }
+#find-count { min-width: 50px; font-variant-numeric: tabular-nums; }
+.group { position: absolute; box-sizing: border-box; border: 1px dashed var(--muted); border-radius: 8px; background: color-mix(in srgb, var(--accent) 4%, transparent); pointer-events: none; }
+.group-label { position: absolute; top: 6px; left: 10px; color: var(--muted); font-size: 12px; font-weight: 600; }
+.card-head button { border: 0; background: none; color: inherit; font: inherit; padding: 0 3px; cursor: pointer; line-height: 1; }
+.card-head button:hover { color: var(--accent); }
+.card-head .id { margin-left: auto; }
+.card-resize { position: absolute; right: 0; bottom: 0; width: 14px; height: 14px; cursor: nwse-resize; background: linear-gradient(135deg, transparent 50%, var(--line) 50%); }
+.card.found { outline: 2px dashed #c77700; }
+.card.found-current { outline: 3px solid #c77700; }

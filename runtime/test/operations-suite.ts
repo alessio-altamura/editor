@@ -222,6 +222,107 @@ try {
     report('canvas', problems);
   }
 
+  // Order on the canvas: making room, create --near, gather, arrange; in a folder of its own.
+  {
+    const problems: string[] = [];
+    const base = mkdtempSync(join(tmpdir(), 'canvas-order-'));
+    const run = (...args: string[]) => {
+      const done = spawnSync(process.execPath, [cliPath, ...args, '--folder', base], { encoding: 'utf8' });
+      if (done.status !== 0) problems.push(`${args.join(' ')}: ${done.status} ${done.stderr}`);
+      return done.status === 0 ? (JSON.parse(done.stdout) as Record<string, unknown>) : {};
+    };
+    type Node = { id: string; type: string; x: number; y: number; width: number; height: number; file?: string; subpath?: string; label?: string; arrange?: string };
+    const read = () => JSON.parse(readFileSync(join(base, 'foglio.canvas'), 'utf8')) as { nodes: Node[]; edges: unknown[] };
+    const write = (nodes: Node[]) => writeFileSync(join(base, 'foglio.canvas'), `${JSON.stringify({ nodes, edges: [] }, null, '\t')}\n`);
+    const card = (id: string, x: number, y: number, file = `${id}.text.md`): Node => ({ id: `n-${id}`, type: 'file', file, x, y, width: 360, height: 240 });
+    const hit = (a: Node, b: Node) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+    const holds = (g: Node, n: Node) => n.x >= g.x && n.y >= g.y && n.x + n.width <= g.x + g.width && n.y + n.height <= g.y + g.height;
+    /** Overlaps between nodes, but for a node and a group that holds it. */
+    const overlapping = (nodes: Node[]) => nodes.flatMap((a, i) => nodes.slice(i + 1).filter((b) => hit(a, b) && !(a.type === 'group' && holds(a, b)) && !(b.type === 'group' && holds(b, a))).map((b) => `${a.id}/${b.id}`));
+    const valid = (nodes: Node[]) => nodes.every((n) => typeof n.id === 'string' && ['file', 'group', 'text', 'link'].includes(n.type) && [n.x, n.y, n.width, n.height].every(Number.isInteger) && (n.type !== 'group' || n.label === undefined || typeof n.label === 'string'));
+    const text = (id: string, body: string, tags = '[]') => writeFileSync(join(base, `${id}.text.md`), `---\nid: ${id}\nkind: text\ntags: ${tags}\n---\n${body}\n`);
+    writeFileSync(join(base, 'doc.document.md'), '---\nid: doc\nkind: document\ntags: []\nspec-version: "0.1"\n---\n');
+    writeFileSync(join(base, 'foglio.canvas-file.md'), '---\nid: foglio\nkind: canvas-file\ntags: []\nasset: foglio.canvas\n---\n');
+    for (const id of ['a', 'b', 'c', 'd', 'x', 'y']) text(id, `Il testo ${id}.`);
+
+    // Making room: x at 300,0 overlaps a and b; a moves left, b down, by the shortest way; c stays.
+    write([card('a', 0, 0), card('b', 400, 0), card('c', 800, 0)]);
+    const start = readFileSync(join(base, 'foglio.canvas'), 'utf8');
+    const first = spawnSync(process.execPath, [cliPath, 'recall', 'x', '--at', '300,0', '--dry-run', '--folder', base], { encoding: 'utf8' }).stdout;
+    const again = spawnSync(process.execPath, [cliPath, 'recall', 'x', '--at', '300,0', '--dry-run', '--folder', base], { encoding: 'utf8' }).stdout;
+    if (JSON.stringify(JSON.parse(first).moved) !== JSON.stringify(JSON.parse(again).moved) || readFileSync(join(base, 'foglio.canvas'), 'utf8') !== start) problems.push('making room is not deterministic');
+    run('recall', 'x', '--at', '300,0');
+    const room = read().nodes;
+    const at = (id: string) => room.find((n) => n.id === `n-${id}`)!;
+    if (overlapping(room).length > 0) problems.push(`overlaps after recall: ${overlapping(room).join()}`);
+    if (at('a').x !== -100 || at('a').y !== 0 || at('b').x !== 400 || at('b').y !== 280 || at('c').x !== 800 || at('c').y !== 0) problems.push(`the shortest moves: ${JSON.stringify(room.map(({ id, x, y }) => [id, x, y]))}`);
+
+    // In a group: the card pushed stays in it, and the group grows; what the group then overlaps moves.
+    write([{ id: 'g', type: 'group', x: 0, y: 0, width: 440, height: 320, label: 'a mano' }, card('d', 40, 40), card('c', 520, 0)]);
+    run('recall', 'y', '--at', '60,60');
+    const grouped = read().nodes;
+    const group = grouped.find((n) => n.id === 'g')!;
+    const y = grouped.find((n) => n.subpath === undefined && n.file === 'y.text.md')!;
+    if (!holds(group, grouped.find((n) => n.id === 'n-d')!) || !holds(group, y)) problems.push(`the group does not hold its cards: ${JSON.stringify(grouped)}`);
+    if (overlapping(grouped).length > 0) problems.push(`overlaps in the group: ${overlapping(grouped).join()}`);
+    // place --size: an enlarged card makes room too.
+    run('place', 'd', '--size', '600,500');
+    if (overlapping(read().nodes).length > 0) problems.push(`overlaps after --size: ${overlapping(read().nodes).join()}`);
+
+    // create --near: to the right of a, or below where it is freer; no overlaps.
+    write([card('a', 0, 0), card('b', 400, 0)]);
+    const near = run('create', 'text', '--near', 'a', '--text', 'Un pensiero vicino.');
+    const made = read().nodes.find((n) => n.subpath === `#${String(near.id)}`);
+    if (made?.x !== 0 || made.y !== 280) problems.push(`create --near: ${JSON.stringify(made)}`);
+    if (overlapping(read().nodes).length > 0) problems.push(`overlaps after create --near: ${overlapping(read().nodes).join()}`);
+
+    // gather: h links to a, b links to h, the chapter k embeds h, the concept m is associated; b has two cards, the nearer comes.
+    text('h', 'Il centro, vedi [[a]].');
+    text('b', 'Torna a [[h]].');
+    writeFileSync(join(base, 'k.chapter.md'), '---\nid: k\nkind: chapter\ntags: []\ntitle: Capitolo\n---\n![[h]]\n');
+    writeFileSync(join(base, 'm.concept.md'), '---\nid: m\nkind: concept\ntags: []\nassociations: [h]\n---\nUn concetto.\n');
+    write([card('h', 0, 0), card('a', 3000, 3000), { ...card('b', 0, 1200), id: 'n-b-near' }, { ...card('b', 5000, 0), id: 'n-b-far' }, card('c', 400, 0)]);
+    const gathered = run('gather', 'h');
+    const list = (gathered.gathered ?? []) as Array<{ id: string; node: string; recalled: boolean }>;
+    if (JSON.stringify(list.map((g) => g.id)) !== '["a","b","k","m"]') problems.push(`gather ids ${JSON.stringify(list)}`);
+    if (list.find((g) => g.id === 'b')?.node !== 'n-b-near' || list.find((g) => g.id === 'k')?.recalled !== true || list.find((g) => g.id === 'a')?.recalled !== false) problems.push(`gather cards ${JSON.stringify(list)}`);
+    const after = read().nodes;
+    const hub = after.find((n) => n.id === 'n-h')!;
+    for (const g of list) {
+      const n = after.find((each) => each.id === g.node)!;
+      if (Math.abs(n.x - hub.x) > 800 || Math.abs(n.y - hub.y) > 600) problems.push(`${g.id} not near: ${n.x},${n.y}`);
+    }
+    if (after.find((n) => n.id === 'n-b-far')?.x !== 5000) problems.push('the farther card of b moved');
+    if (overlapping(after).length > 0) problems.push(`overlaps after gather: ${overlapping(after).join()}`);
+
+    // arrange by kind: a group per kind, compositions first; again, the same groups replaced; the group by hand stays.
+    write([{ id: 'mano', type: 'group', x: 0, y: 0, width: 440, height: 320, label: 'a mano' }, card('d', 40, 40), card('a', 600, 0), card('b', 1000, 0), card('h', 1400, 0), { ...card('k', 0, 600, 'k.chapter.md') }, { ...card('m', 400, 600, 'm.concept.md') }]);
+    run('arrange', '--by', 'kind');
+    const once = read().nodes;
+    const labels = (nodes: Node[]) => nodes.filter((n) => n.arrange === 'kind').map((n) => n.label);
+    if (JSON.stringify(labels(once)) !== '["chapter","concept","text"]') problems.push(`arrange by kind ${JSON.stringify(labels(once))}`);
+    const textGroup = once.find((n) => n.label === 'text' && n.arrange)!;
+    if (!['n-a', 'n-b', 'n-h'].every((id) => holds(textGroup, once.find((n) => n.id === id)!))) problems.push('the texts are not in their group');
+    const hand = once.find((n) => n.id === 'mano');
+    if (!hand || !holds(hand, once.find((n) => n.id === 'n-d')!)) problems.push('the group by hand changed');
+    if (overlapping(once).length > 0 || !valid(once)) problems.push(`arrange by kind: ${overlapping(once).join()} ${valid(once)}`);
+    run('arrange', '--by', 'kind');
+    if (read().nodes.filter((n) => n.type === 'group').length !== 4) problems.push(`arrange again: ${read().nodes.filter((n) => n.type === 'group').length} groups`);
+
+    // arrange by tag: the first tag in alphabetical order, then «senza tag».
+    text('a', 'Il testo a.', '[vendite, alfa]');
+    text('b', 'Torna a [[h]].', '[vendite]');
+    run('arrange', '--by', 'tag');
+    const tagged = read().nodes;
+    if (JSON.stringify(tagged.filter((n) => n.arrange === 'tag').map((n) => n.label)) !== '["alfa","vendite","senza tag"]') problems.push(`arrange by tag ${JSON.stringify(tagged.filter((n) => n.type === 'group').map((n) => n.label))}`);
+    if (tagged.some((n) => n.arrange === 'kind')) problems.push('the groups by kind were not replaced');
+    if (overlapping(tagged).length > 0 || !valid(tagged)) problems.push(`arrange by tag: ${overlapping(tagged).join()}`);
+    const tree = JSON.parse(spawnSync(process.execPath, [cliPath, 'resolve-tree', base], { encoding: 'utf8' }).stdout) as Tree;
+    if (errors(tree).length !== 0) problems.push(`errors: ${JSON.stringify(errors(tree))}`);
+    rmSync(base, { recursive: true, force: true });
+    report('order on the canvas: making room, create --near, gather, arrange', problems);
+  }
+
   // Every file written is canonical.
   {
     const check = spawnSync(process.execPath, [cliPath, 'format', folder, '--check'], { encoding: 'utf8' });

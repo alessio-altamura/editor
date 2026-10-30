@@ -1,5 +1,6 @@
 // The preload of the window: a small API over IPC, nothing of Node reaches the page.
 import { contextBridge, ipcRenderer } from 'electron';
+import type { CanvasGroup } from 'doc-runtime/dist/src/canvas.js';
 import type { CardView, Done, ObjectSource } from './session.js';
 
 type Position = { line: number; character: number };
@@ -20,13 +21,18 @@ const api = {
   extract: (file: string, text: string) => ipcRenderer.invoke('doc:extract', file, text),
   /** The preview of one object alone. */
   showObject: (id: string) => ipcRenderer.invoke('doc:preview-object', id),
-  canvas: () => ipcRenderer.invoke('doc:canvas') as Promise<{ canvas: string | null; cards: CardView[] }>,
+  canvas: () => ipcRenderer.invoke('doc:canvas') as Promise<{ canvas: string | null; cards: CardView[]; groups: CanvasGroup[] }>,
   objectSource: (id: string) => ipcRenderer.invoke('doc:object-source', id) as Promise<ObjectSource>,
   /** The cards in their order of reading, by node. */
   readingOrder: (nodes: string[]) => ipcRenderer.invoke('doc:reading-order', nodes) as Promise<string[]>,
   recall: (id: string, at?: At) => ipcRenderer.invoke('doc:recall', id, at) as Promise<Done>,
   /** `card`: the id of the node, for an object with several cards. */
-  place: (id: string, at: At, card?: string) => ipcRenderer.invoke('doc:place', id, at, card) as Promise<Done>,
+  place: (id: string, at: At | undefined, card?: string, size?: { width: number; height: number }) => ipcRenderer.invoke('doc:place', id, at, card, size) as Promise<Done>,
+  /** Where a new text next to a card goes. */
+  besidePlace: (node: string) => ipcRenderer.invoke('doc:beside-place', node) as Promise<At | null>,
+  createNear: (id: string, card: string, text: string) => ipcRenderer.invoke('doc:create-near', id, card, text) as Promise<Done>,
+  gather: (id: string, card?: string) => ipcRenderer.invoke('doc:gather', id, card) as Promise<Done>,
+  arrange: (by: 'kind' | 'tag') => ipcRenderer.invoke('doc:arrange', by) as Promise<Done>,
   archive: (id: string, card?: string) => ipcRenderer.invoke('doc:archive', id, card) as Promise<Done>,
   createText: (at: At, text: string) => ipcRenderer.invoke('doc:create-text', at, text) as Promise<Done>,
   compose: (ids: string[], title: string) => ipcRenderer.invoke('doc:compose', ids, title) as Promise<Done>,

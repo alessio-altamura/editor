@@ -193,6 +193,8 @@ export interface CreateRequest {
   /** The composition that gets the embed; or `at`, a place on the canvas. */
   into?: string;
   at?: { x: number; y: number };
+  /** Or next to a card of an object, on the canvas: the id, and the node when it has several. */
+  near?: { id: string; card?: string };
   after?: string;
   before?: string;
   text?: string;
@@ -216,7 +218,7 @@ export function newId(workspace: Workspace, tree: ResolvedTree, request: CreateR
 
 /** `create`: the object, and its embed in the composition; with `at`, its card on the canvas. */
 export function planCreate(workspace: Workspace, tree: ResolvedTree, request: CreateRequest): Plan {
-  if (request.at !== undefined) return planCreateOnCanvas(workspace, tree, request);
+  if (request.at !== undefined || request.near !== undefined) return planCreateOnCanvas(workspace, tree, request);
   if (request.into === undefined) throw new OperationError('create vuole --in <id> o --at <x>,<y>');
   const composition = nodeOf(tree, request.into);
   if (!COMPOSITIONS.has(composition.kind)) throw new OperationError(`${request.into} non è un chapter né un article`);

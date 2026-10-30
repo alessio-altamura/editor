@@ -60,6 +60,19 @@ cartella: File → Apri cartella (Cmd-O). Si può anche dire da riga di comando:
     dall'alto in basso e poi da sinistra a destra; nel pannello l'ordine si
     corregge con ↑ e ↓, e con un titolo nasce l'`article` (`compose`), che si
     apre nella pagina.
+  - «Trova sul foglio» cerca nell'`id`, nel titolo e nel testo delle schede:
+    la vista va sulla prima, dall'alto, al centro, e la segna; Invio, o ↓, va
+    alla seguente, Maiusc-Invio, o ↑, alla precedente.
+  - Quando una scheda si mette, si crea o si ingrandisce (con l'angolo in
+    basso a destra), le altre che la coprono si spostano quanto basta (lo fa
+    il `runtime`, uguale per la `cli`); i gruppi si disegnano sotto le
+    schede, con l'etichetta.
+  - «+» sull'intestazione di una scheda apre un testo nuovo accanto, a destra
+    o sotto dove c'è più spazio (`create --near`); «⊕» porta vicino gli
+    oggetti legati alla scheda (`gather`).
+  - «Metti in ordine per tipo» o «per tag» (`arrange`) mette le schede in un
+    gruppo per `kind` o per tag; rifarlo sostituisce quei gruppi e lascia
+    quelli fatti a mano.
   - Gli errori di un'operazione si leggono nella barra in alto; un'operazione
     che porterebbe errori non scrive niente.
 - **La pagina** (Vista → Pagina, Cmd-2, o il pulsante «Pagina»):
@@ -107,9 +120,8 @@ parte, nemmeno sul Mac.
 
 ## Cosa manca
 
-L'editing grafico sopra l'anteprima; sul `canvas` «fai spazio vicino», «metti
-in ordine per tipo», le relazioni al posto delle coordinate, gli archi e più
-`canvas` per documento; la creazione di oggetti diversi dal `text`
+L'editing grafico sopra l'anteprima; sul `canvas` l'ordine per data, gli
+archi, spostare e modificare i gruppi a mano e più `canvas` per documento; la creazione di oggetti diversi dal `text`
 dall'interfaccia (tranne «Estrai in un oggetto»), la rinomina
 dall'interfaccia, più file aperti insieme, il pacchetto firmato. Una scheda
 nuova non ancora creata non conta come modifica non salvata: chiudendo
@@ -131,7 +143,11 @@ doppio clic, sposta l'altro, lo archivia e lo richiama trascinandolo dal
 `navigator`; trascina di nuovo l'altro per avere una sua seconda scheda, ci
 scrive e controlla che la modifica si veda sull'altra, e la archivia
 lasciando l'altra; poi li sceglie con un riquadro, corregge l'ordine proposto e ne fa
-un `article`, controllando ogni volta il `canvas file` sul disco. Poi, nella
+un `article`, controllando ogni volta il `canvas file` sul disco. Tornata sul
+foglio, cerca una scheda e controlla che sia al centro della vista, scrive un
+testo con «+» accanto a una scheda, raccoglie l'`article` vicino al testo che
+include e mette in ordine per tipo, controllando che nessuna scheda ne copra
+un'altra. Poi, nella
 pagina, scrive nell'editor e aspetta il testo
 nell'anteprima, che non deve ricaricarsi, poi fa clic su un titolo e su un
 capoverso dell'anteprima e controlla file, riga e colonna del cursore;

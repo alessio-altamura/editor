@@ -151,7 +151,15 @@ handle('doc:object-source', (current, id: string) => current.objectSource(String
 handle('doc:reading-order', (current, nodes: string[]) => current.readingOrder(Array.isArray(nodes) ? nodes.map(String) : []));
 handle('doc:recall', (current, id: string, point: unknown) => current.recall(String(id), at(point)));
 const card = (value: unknown) => (typeof value === 'string' ? value : undefined);
-handle('doc:place', (current, id: string, point: unknown, which: unknown) => current.place(String(id), at(point)!, card(which)));
+const size = (value: unknown) => {
+  const box = value as { width?: unknown; height?: unknown } | undefined | null;
+  return box === undefined || box === null ? undefined : { width: Number(box.width), height: Number(box.height) };
+};
+handle('doc:place', (current, id: string, point: unknown, which: unknown, box: unknown) => current.place(String(id), at(point), card(which), size(box)));
+handle('doc:beside-place', (current, node: string) => current.besidePlace(String(node)));
+handle('doc:create-near', (current, id: string, which: string, text: string) => current.createNear(String(id), String(which), String(text)));
+handle('doc:gather', (current, id: string, which: unknown) => current.gather(String(id), card(which)));
+handle('doc:arrange', (current, by: unknown) => current.arrange(by === 'tag' ? 'tag' : 'kind'));
 handle('doc:archive', (current, id: string, which: unknown) => current.archive(String(id), card(which)));
 handle('doc:create-text', (current, point: unknown, text: string) => current.createText(at(point)!, String(text)));
 handle('doc:compose', (current, ids: string[], title: string) => current.compose(Array.isArray(ids) ? ids.map(String) : [], String(title)));

@@ -7,6 +7,7 @@ import { completionStatus } from '@codemirror/autocomplete';
 import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import type { DocApp } from '../preload.js';
+import type { CanvasGroup } from 'doc-runtime/dist/src/canvas.js';
 import type { CardView, ObjectSource } from '../session.js';
 import { editorExtensions, filePosition } from './editor.js';
 
@@ -24,6 +25,8 @@ export interface BoardHooks {
 interface Editing {
   /** The object, or null for a new text not yet created. */
   id: string | null;
+  /** For a new text made with «+»: the card it is next to. */
+  near?: string;
   element: HTMLElement;
   view: EditorView;
   source: ObjectSource;
@@ -46,6 +49,12 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
   let zoom = 1;
   let cards: CardView[] = [];
   const elements = new Map<string, HTMLElement>();
+  const groupElements = new Map<string, HTMLElement>();
+  /** The text of each card, for the search: id, title and what it shows. */
+  const texts = new Map<string, string>();
+  /** The search: the cards found, and the one shown. */
+  let found: string[] = [];
+  let current = 0;
   /** The cards chosen, by the id of their node: an object may have several cards. */
   const selected = new Set<string>();
   let editing: Editing | null = null;
@@ -94,11 +103,13 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
     body.dataset.key = key;
     const shadow = body.shadowRoot ?? body.attachShadow({ mode: 'open' });
     if (card.html === null) {
+      texts.set(card.node, `${card.id ?? ''} ${card.title}`.toLowerCase());
       shadow.innerHTML = '<style>:host { display: block; padding: 12px; font-style: italic; }</style>';
       shadow.append(card.id === null ? `${card.title}: nessun oggetto` : card.title);
       return;
     }
     const page = new DOMParser().parseFromString(card.html, 'text/html');
+    texts.set(card.node, `${card.id ?? ''} ${card.title} ${page.querySelector('article')?.textContent ?? ''}`.toLowerCase());
     let css = page.querySelector('style')?.textContent ?? '';
     // A font face holds only in the document, not in a shadow root.
     for (const face of css.match(/@font-face\s*\{[^}]*\}/g) ?? []) {
@@ -132,13 +143,27 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
     const idLabel = document.createElement('span');
     idLabel.className = 'id';
     idLabel.textContent = id;
-    head.append(kindLabel, idLabel);
+    // The commands of a card: a new thought next to it, and the objects tied to it.
+    const plus = document.createElement('button');
+    plus.className = 'card-plus';
+    plus.textContent = '+';
+    plus.title = 'Nuovo pensiero vicino';
+    plus.addEventListener('click', () => void newText(null, key));
+    const gather = document.createElement('button');
+    gather.className = 'card-gather';
+    gather.textContent = '⊕';
+    gather.title = 'Raccogli vicino gli oggetti legati';
+    gather.addEventListener('click', () => void gatherAround(key));
+    head.append(kindLabel, idLabel, gather, plus);
     const body = document.createElement('div');
     body.className = 'card-body';
     const order = document.createElement('span');
     order.className = 'card-order';
     order.hidden = true;
-    element.append(head, body, order);
+    const resize = document.createElement('span');
+    resize.className = 'card-resize';
+    resize.title = 'Ingrandisci';
+    element.append(head, body, order, resize);
     plane.append(element);
     return element;
   };
@@ -156,9 +181,38 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
     ($('sequence-start') as HTMLButtonElement).disabled = selected.size === 0;
   };
 
+  /** The groups of the canvas, under the cards: a frame with its label. */
+  const drawGroups = (groups: CanvasGroup[]) => {
+    const seen = new Set<string>();
+    for (const group of groups) {
+      seen.add(group.node);
+      let element = groupElements.get(group.node);
+      if (!element) {
+        element = document.createElement('div');
+        element.className = 'group';
+        element.dataset.node = group.node;
+        const label = document.createElement('span');
+        label.className = 'group-label';
+        element.append(label);
+        plane.prepend(element);
+        groupElements.set(group.node, element);
+      }
+      element.querySelector('.group-label')!.textContent = group.label;
+      element.dataset.label = group.label;
+      element.classList.toggle('arranged', group.arrange !== undefined);
+      place(element, group);
+    }
+    for (const [node, element] of groupElements) {
+      if (seen.has(node)) continue;
+      element.remove();
+      groupElements.delete(node);
+    }
+  };
+
   async function refresh(): Promise<void> {
     const state = await api.canvas();
     cards = state.cards;
+    drawGroups(state.groups);
     const seen = new Set<string>();
     for (const card of cards) {
       seen.add(card.node);
@@ -182,6 +236,7 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
     $('empty').hidden = cards.length > 0 || editing !== null;
     mark();
     renderSequence();
+    if (($('find') as HTMLInputElement).value !== '') search(false);
   }
 
   // Editing a card: the source of the object in CodeMirror, with the services of the page.
@@ -268,8 +323,9 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
     const text = current.view.state.doc.toString();
     clearTimeout(pushing);
     if (current.id === null) {
+      const near = current.near === undefined ? undefined : cardOf(current.near);
       if (text.trim() !== '') {
-        const done = await api.createText(current.at, text.trim());
+        const done = near?.id ? await api.createNear(near.id, near.node, text.trim()) : await api.createText(current.at, text.trim());
         if (done.error) {
           notice(`Il testo non si può creare: ${done.error}`);
           current.view.focus();
@@ -290,15 +346,68 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
     return true;
   }
 
-  /** A new text where the plane was double-clicked: created when its editor is left with something written. */
-  async function newText(at: At): Promise<void> {
+  /**
+   * A new text where the plane was double-clicked, or next to a card with «+» (to the
+   * right or below, where there is more room): created when its editor is left with
+   * something written, and the others make room.
+   */
+  async function newText(point: At | null, near?: string): Promise<void> {
     if (!(await finish())) return;
+    const at = point ?? (near === undefined ? null : await api.besidePlace(near));
+    if (at === null) return;
     const element = newCard(`new-${Date.now()}`, 'text', 'nuovo testo');
     element.classList.add('new');
     place(element, { ...at, ...NEW_TEXT });
     $('empty').hidden = true;
     openEditor(element, null, { file: '', before: '', text: '', after: '' }, at);
+    if (near !== undefined && editing !== null) editing.near = near;
   }
+
+  /** «Raccogli»: the objects tied to a card come around it. */
+  async function gatherAround(node: string): Promise<void> {
+    const id = cardOf(node)?.id;
+    if (!id || !(await finish())) return;
+    const done = await api.gather(id, node);
+    if (done.error) notice(`${id}: ${done.error}`);
+    else if (((done.summary?.gathered as unknown[]) ?? []).length === 0) notice(`${id} non ha oggetti legati`);
+    hooks.changed();
+    await refresh();
+  }
+
+  /** «Metti in ordine»: a group for each kind or tag. */
+  async function arrange(by: 'kind' | 'tag'): Promise<void> {
+    if (!(await finish())) return;
+    const done = await api.arrange(by);
+    if (done.error) notice(done.error);
+    await refresh();
+  }
+
+  /** The search: the cards whose id, title or text has the words, from the top; the view goes to one and marks it. */
+  function search(move: boolean): void {
+    const query = ($('find') as HTMLInputElement).value.trim().toLowerCase();
+    const previous = found[current];
+    found = query === '' ? [] : [...cards].sort((a, b) => a.y - b.y || a.x - b.x).filter((card) => (texts.get(card.node) ?? '').includes(query)).map((card) => card.node);
+    current = Math.max(0, previous === undefined ? 0 : found.indexOf(previous));
+    show(move);
+  }
+  function show(move: boolean): void {
+    for (const [node, element] of elements) {
+      element.classList.toggle('found', found.includes(node));
+      element.classList.toggle('found-current', found[current] === node);
+    }
+    $('find-count').textContent = ($('find') as HTMLInputElement).value.trim() === '' ? '' : found.length === 0 ? 'nessuna' : `${current + 1}/${found.length}`;
+    const card = found.length > 0 ? cardOf(found[current]!) : undefined;
+    if (!move || !card) return;
+    // The card in the middle of the view, at the zoom of now.
+    const box = viewport.getBoundingClientRect();
+    pan = { x: box.width / 2 - (card.x + card.width / 2) * zoom, y: box.height / 2 - (card.y + card.height / 2) * zoom };
+    transform();
+  }
+  const step = (by: number) => {
+    if (found.length === 0) return;
+    current = (current + by + found.length) % found.length;
+    show(true);
+  };
 
   async function archive(): Promise<void> {
     if (!(await finish())) return;
@@ -382,6 +491,7 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
     | { type: 'pan'; x: number; y: number; pan: At }
     | { type: 'band'; from: At; x: number; y: number; additive: boolean }
     | { type: 'card'; node: string; x: number; y: number; moved: boolean; shift: boolean; origins: Map<string, At> }
+    | { type: 'resize'; node: string; x: number; y: number; width: number; height: number }
     | null = null;
 
   viewport.addEventListener('pointerdown', (event) => {
@@ -391,11 +501,17 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
     notice('');
     const element = target.closest<HTMLElement>('.card');
     if (element?.classList.contains('editing')) return;
+    // The buttons of a card answer to their click.
+    if (target.closest('.card-plus, .card-gather')) return;
     if (editing !== null) void finish();
     if (event.button === 1 || (event.button === 0 && space)) {
       gesture = { type: 'pan', x: event.clientX, y: event.clientY, pan: { ...pan } };
     } else if (event.button !== 0) {
       return;
+    } else if (element && element.dataset.id && element.dataset.node && target.closest('.card-resize')) {
+      const card = cardOf(element.dataset.node);
+      if (!card) return;
+      gesture = { type: 'resize', node: card.node, x: event.clientX, y: event.clientY, width: card.width, height: card.height };
     } else if (element && element.dataset.id && element.dataset.node) {
       const node = element.dataset.node;
       const moving = selected.has(node) ? [...selected] : [node];
@@ -418,6 +534,10 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
     if (gesture.type === 'pan') {
       pan = { x: gesture.pan.x + event.clientX - gesture.x, y: gesture.pan.y + event.clientY - gesture.y };
       transform();
+    } else if (gesture.type === 'resize') {
+      const element = elements.get(gesture.node)!;
+      element.style.width = `${Math.max(120, gesture.width + (event.clientX - gesture.x) / zoom)}px`;
+      element.style.height = `${Math.max(80, gesture.height + (event.clientY - gesture.y) / zoom)}px`;
     } else if (gesture.type === 'card') {
       const dx = (event.clientX - gesture.x) / zoom;
       const dy = (event.clientY - gesture.y) / zoom;
@@ -442,7 +562,20 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
     const done = gesture;
     gesture = null;
     if (done === null) return;
-    if (done.type === 'card') {
+    if (done.type === 'resize') {
+      // A card enlarged: the others make room.
+      const size = {
+        width: Math.round(Math.max(120, done.width + (event.clientX - done.x) / zoom)),
+        height: Math.round(Math.max(80, done.height + (event.clientY - done.y) / zoom)),
+      };
+      const id = cardOf(done.node)?.id;
+      if (id && (size.width !== done.width || size.height !== done.height)) {
+        void api.place(id, undefined, done.node, size).then(async (result) => {
+          if (result.error) notice(`${id}: ${result.error}`);
+          await refresh();
+        });
+      }
+    } else if (done.type === 'card') {
       if (done.moved) {
         const dx = (event.clientX - done.x) / zoom;
         const dy = (event.clientY - done.y) / zoom;
@@ -548,6 +681,18 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
   });
 
   $('archive').addEventListener('click', () => void archive());
+  $('arrange-kind').addEventListener('click', () => void arrange('kind'));
+  $('arrange-tag').addEventListener('click', () => void arrange('tag'));
+  $('find').addEventListener('input', () => search(true));
+  $('find').addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') step(event.shiftKey ? -1 : 1);
+    if (event.key === 'Escape') {
+      ($('find') as HTMLInputElement).value = '';
+      search(false);
+    }
+  });
+  $('find-next').addEventListener('click', () => step(1));
+  $('find-previous').addEventListener('click', () => step(-1));
   $('sequence-start').addEventListener('click', () => void startSequence());
   $('compose').addEventListener('click', () => void compose());
   $('compose-title').addEventListener('keydown', (event) => {
