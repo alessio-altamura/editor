@@ -739,8 +739,9 @@ quando due rami lavorano in parallelo.
   accanto al canvas, non sopra, con le voci più alte e l'attiva a pillola.
   Lettura dell'orchestratore: anche le barre fisse prendono la forma della
   cornice di studio, superfici arrotondate separate, perché tutta la
-  cornice sia coerente; schede, ombre e sfondo a puntini restano di
-  lavagna.
+  cornice sia coerente; schede e ombre restano di lavagna. Poi Alessio:
+  «anche lo sfondo del canvas come il 3 senza nulla»: lo sfondo del canvas
+  è uniforme, senza puntini né linee, come in studio.
 
 
 - Estensibilità: estensioni e connettori distribuiti da un marketplace, per
