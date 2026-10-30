@@ -742,6 +742,13 @@ quando due rami lavorano in parallelo.
   cornice sia coerente; schede e ombre restano di lavagna. Poi Alessio:
   «anche lo sfondo del canvas come il 3 senza nulla»: lo sfondo del canvas
   è uniforme, senza puntini né linee, come in studio.
+  Poi Alessio cambia idea (2026-10-30): «il 3 mi piace di più, solo le
+  evidenziazioni dei pulsanti non mi piacciono a goccia, le preferisco come
+  1». Quindi l'aspetto dell'`app` è studio (fondo tinto, superfici
+  arrotondate separate e fisse, il file come percorso, voci del navigator
+  più alte, canvas uniforme), con le evidenziazioni di pulsanti e voci
+  (passaggio del mouse, voce attiva) come in lavagna: rettangoli con gli
+  angoli appena arrotondati, non a pillola. Lavagna e documento si tolgono.
 
 
 - Estensibilità: estensioni e connettori distribuiti da un marketplace, per
