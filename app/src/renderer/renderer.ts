@@ -10,7 +10,7 @@ import type { DocApp } from '../preload.js';
 import { createBoard } from './board.js';
 import { createGrid } from './grid.js';
 import { editorExtensions, offsetOf, position } from './editor.js';
-import { decorate, icon, KIND_ICONS, setIcon } from './icons.js';
+import { decorate, setIcon } from './icons.js';
 
 declare global {
   interface Window {
@@ -21,8 +21,6 @@ declare global {
 }
 
 const api = window.docApp;
-// The visual direction (DOC_APP_VARIANT, temporary): its tokens in style.css.
-document.documentElement.dataset.variant = new URLSearchParams(location.search).get('variant') ?? 'lavagna';
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 let file: string | null = null;
 /** The text of the file as it is on disk: what the editor shows differs if it is not saved. */
@@ -154,21 +152,17 @@ async function open(target: string, line: number, character: number, alone?: str
   tellDirty();
 }
 
-/** The file open in the page: its name, and its kind and id as a path, which a direction may show instead. */
+/** The file open in the page, as a path: its kind › its id; the name of the file in the tooltip. */
 function showFile(target: string): void {
   const [, id, kind] = /^(?:.*\/)?([^/]+?)\.([a-z-]+)\.md$/.exec(target) ?? [null, target.split('/').pop() ?? target, 'dati'];
-  const name = document.createElement('span');
-  name.className = 'file-name';
-  name.textContent = target;
   const path = document.createElement('span');
   path.className = 'file-path';
-  path.setAttribute('aria-hidden', 'true');
   const kindPart = document.createElement('span');
   kindPart.textContent = kind!;
   const idPart = document.createElement('span');
   idPart.textContent = id!;
   path.append(kindPart, idPart);
-  $('file').replaceChildren(name, path);
+  $('file').replaceChildren(path);
   $('file').title = target;
 }
 
@@ -224,14 +218,10 @@ async function renderNavigator(): Promise<void> {
       button.dataset.onCanvas = String(item.onCanvas);
       button.title = item.onCanvas ? 'Sul foglio' : 'Archiviato';
       button.setAttribute('aria-current', String(current === 'page' && item.file === file));
-      // The icon of the kind, which a direction may show, and the title.
-      const kindIcon = document.createElement('span');
-      kindIcon.className = 'kind-icon';
-      kindIcon.innerHTML = icon(KIND_ICONS[shelf.kind] ?? 'file');
       const title = document.createElement('span');
       title.className = 'title';
       title.textContent = item.title || item.id;
-      button.append(kindIcon, title);
+      button.append(title);
       const id = document.createElement('span');
       id.className = 'id';
       id.textContent = item.id;

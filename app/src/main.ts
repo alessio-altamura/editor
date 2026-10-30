@@ -67,8 +67,8 @@ function createWindow(): void {
     webPreferences: { preload: join(here, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true },
   });
   preview = new WebContentsView({ webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true } });
-  // Floating panels: the preview gets the rounded corners of the direction (its margin comes from the layout).
-  if (currentVariant() !== 'documento') preview.setBorderRadius(12);
+  // A floating panel, as the source: rounded corners (its margin comes from the layout).
+  preview.setBorderRadius(12);
   window.contentView.addChildView(preview);
   // Nothing opens or navigates elsewhere: links to the web go to the system browser.
   for (const contents of [window.webContents, preview.webContents]) {
@@ -104,13 +104,7 @@ function createWindow(): void {
       }
     });
   });
-  const variant = currentVariant();
-  void window.loadFile(join(here, 'renderer/index.html'), { query: { variant } });
-}
-
-/** The visual direction, while it is chosen (DOC_APP_VARIANT, temporary): lavagna by default. */
-function currentVariant(): string {
-  return ['lavagna', 'documento', 'studio'].includes(process.env.DOC_APP_VARIANT ?? '') ? process.env.DOC_APP_VARIANT! : 'lavagna';
+  void window.loadFile(join(here, 'renderer/index.html'));
 }
 
 /** Every IPC call: the session must be open, and the arguments are checked by it. */

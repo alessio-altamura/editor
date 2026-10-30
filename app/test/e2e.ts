@@ -54,12 +54,16 @@ try {
   main.on('console', (message) => message.type() === 'error' && problems.push(`console: ${message.text()}`));
   main.on('pageerror', (error) => problems.push(`page error: ${error.message}`));
   await main.waitForSelector('#shelves button[data-id="nota"]');
+  // The look of the app: Inter loaded, the icons of the buttons each with its label.
+  const look = await main.evaluate(async () => {
+    await document.fonts.ready;
+    return { inter: document.fonts.check('13px "Inter App"'), icons: document.querySelectorAll('button[data-icon] svg').length, unlabelled: document.querySelectorAll('button[data-icon]:not([aria-label])').length };
+  });
+  if (!look.inter || look.icons < 5 || look.unlabelled > 0) problems.push(`the look: ${JSON.stringify(look)}`);
 
   // The canvas, at the opening: empty, the document has no canvas file yet.
   const box = (await main.locator('#viewport').boundingBox())!;
-  // A navigator floating over the board (the direction lavagna) moves the start of the plane by its width.
-  const inset = await main.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--board-inset-left')) || 0);
-  const at = (x: number, y: number) => ({ x: box.x + inset + x, y: box.y + y });
+  const at = (x: number, y: number) => ({ x: box.x + x, y: box.y + y });
   const canvasFile = () => JSON.parse(readFileSync(join(folder, 'foglio.canvas'), 'utf8')) as { nodes: Array<{ file: string; subpath?: string; x: number; y: number }> };
   const nodeOf = (id: string) => canvasFile().nodes.find((n) => n.subpath === `#${id}`);
   if ((await main.evaluate(() => document.body.dataset.view)) !== 'canvas') problems.push('the app does not open on the canvas');
@@ -112,14 +116,14 @@ try {
   if (nodeOf('primo-pensiero-sul-foglio')) problems.push('archived but still in the canvas file');
 
   // Recalled by dragging it from the navigator onto the canvas: 700, 50 of the viewport is 660, 10.
-  await main.dragAndDrop('#shelves button[data-id="primo-pensiero-sul-foglio"]', '#viewport', { targetPosition: { x: inset + 700, y: 50 } });
+  await main.dragAndDrop('#shelves button[data-id="primo-pensiero-sul-foglio"]', '#viewport', { targetPosition: { x: 700, y: 50 } });
   await main.waitForSelector('.card[data-id="primo-pensiero-sul-foglio"]', { timeout: 5000 });
   if (nodeOf('primo-pensiero-sul-foglio')?.x !== 660 || nodeOf('primo-pensiero-sul-foglio')?.y !== 10) problems.push(`recalled at ${JSON.stringify(nodeOf('primo-pensiero-sul-foglio'))}`);
 
   // Dragged again from the navigator: a second card of the same object, not a move of the first.
   const cardsOf = (id: string) => main.evaluate((object) => [...document.querySelectorAll<HTMLElement>(`.card[data-id="${object}"]`)].map((c) => c.dataset.node!), id);
   const [first] = await cardsOf('secondo-pensiero');
-  await main.dragAndDrop('#shelves button[data-id="secondo-pensiero"]', '#viewport', { targetPosition: { x: inset + 700, y: 400 } });
+  await main.dragAndDrop('#shelves button[data-id="secondo-pensiero"]', '#viewport', { targetPosition: { x: 700, y: 400 } });
   await main.waitForFunction(() => document.querySelectorAll('.card[data-id="secondo-pensiero"]').length === 2, undefined, { timeout: 5000 });
   const other = (await cardsOf('secondo-pensiero')).find((node) => node !== first)!;
   if (canvasFile().nodes.filter((n) => n.subpath === '#secondo-pensiero').length !== 2) problems.push('two cards in the canvas file');
@@ -208,7 +212,7 @@ try {
   if (overlapping().length > 0) problems.push(`overlaps after arrange: ${overlapping().join()}`);
 
   // A collection on the canvas: its card shows the table, numbers on the right with fixed decimals.
-  await main.dragAndDrop('#shelves button[data-id="vendite"]', '#viewport', { targetPosition: { x: inset + 300, y: 300 } });
+  await main.dragAndDrop('#shelves button[data-id="vendite"]', '#viewport', { targetPosition: { x: 300, y: 300 } });
   await main.waitForSelector('.card[data-id="vendite"]', { timeout: 5000 });
   const table = await main.evaluate(() => [...(document.querySelector('.card[data-id="vendite"] .card-body')?.shadowRoot?.querySelectorAll('tbody td') ?? [])].map((td) => `${td.textContent}|${getComputedStyle(td).textAlign}`));
   if (JSON.stringify(table.slice(0, 6)) !== '["gennaio|left","1250,50|right","12|right","febbraio|left","2,26|right","1300|right"]') problems.push(`the card of the collection: ${JSON.stringify(table)}`);
