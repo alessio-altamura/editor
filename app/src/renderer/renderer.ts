@@ -132,8 +132,7 @@ async function open(target: string, line: number, character: number, alone?: str
     saved = text;
     file = target;
     view.setState(pageState(text));
-    $('file').textContent = target;
-    $('file').title = target;
+    showFile(target);
     // A collection: a button opens its data file, and the grid shows it.
     const data = /\.collection\.md$/.test(target) ? await api.dataFile(target) : null;
     $('data').hidden = data === null;
@@ -151,6 +150,20 @@ async function open(target: string, line: number, character: number, alone?: str
   }
   updateState();
   tellDirty();
+}
+
+/** The file open in the page, as a path: its kind › its id; the name of the file in the tooltip. */
+function showFile(target: string): void {
+  const [, id, kind] = /^(?:.*\/)?([^/]+?)\.([a-z-]+)\.md$/.exec(target) ?? [null, target.split('/').pop() ?? target, 'dati'];
+  const path = document.createElement('span');
+  path.className = 'file-path';
+  const kindPart = document.createElement('span');
+  kindPart.textContent = kind!;
+  const idPart = document.createElement('span');
+  idPart.textContent = id!;
+  path.append(kindPart, idPart);
+  $('file').replaceChildren(path);
+  $('file').title = target;
 }
 
 /** The grid or the text of a collection; the switch shows only for a collection with its data. */

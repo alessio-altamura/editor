@@ -145,17 +145,17 @@ cartella: File → Apri cartella (Cmd-O). Si può anche dire da riga di comando:
   del range.
 - Il tema è quello del sistema, chiaro o scuro.
 - **L'aspetto**, solo dell'`app` (la resa del documento resta quella del suo
-  stylesheet), la direzione «lavagna»: in ogni vista la barra degli
-  strumenti è fissa in cima, a tutta larghezza; sotto, il `navigator` è un
-  pannello fluttuante a sinistra, staccato dai bordi, sopra il `canvas` che
-  occupa il resto della finestra (il piano parte alla sua destra). Le schede
-  mostrano l'intestazione solo al passaggio del mouse o se scelte, con angoli
-  di 10 px, ombra morbida e uno sfondo a puntini. Nella pagina l'editor è un
-  pannello fluttuante; la barra della griglia è fissa sotto quella della
-  pagina, e la tabella un pannello; l'anteprima ha margine e angoli
-  arrotondati. I token CSS, chiari e scuri, sono in `src/renderer/style.css`;
-  il testo rispetta il contrasto WCAG AA (almeno 4,5:1), controllato dai test
-  di unità. I pulsanti comuni hanno un'icona di Lucide, con tooltip e
+  stylesheet), la direzione «studio» con le evidenziazioni di «lavagna»: un
+  fondo tinto; il `navigator`, le barre, il `canvas`, l'editor, la griglia e
+  l'anteprima sono superfici fisse con gli angoli arrotondati, separate da
+  8 px di fondo. La barra della pagina mostra il file come percorso, tipo ›
+  `id` (il nome del file nel tooltip); le voci del `navigator` sono alte,
+  le intestazioni delle schede sottili, la griglia a righe alterne, il
+  `canvas` uniforme. Il passaggio del mouse, la voce attiva e i pulsanti
+  hanno la forma di un rettangolo con gli angoli appena arrotondati. I
+  token CSS, chiari e scuri, sono in `src/renderer/style.css`; il testo
+  rispetta il contrasto WCAG AA (almeno 4,5:1), controllato dai test di
+  unità. I pulsanti comuni hanno un'icona di Lucide, con tooltip e
   `aria-label`. Font e icone sono in `assets/`, con versione e sha256
   (`assets/README.md`), incorporati senza CDN.
 
