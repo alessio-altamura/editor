@@ -245,6 +245,42 @@ try {
     if (grid.records[0]![0] !== 'tab\tin un valore' || !grid.dataText().includes('tab in un valore')) problems.push('a tab in a value is written as a space');
     check('the model of the grid: edit, paste, copy, records, fields, undo', problems);
   }
+  // The contrast of the tokens of the three directions, light and dark: text at least 4.5:1 (WCAG AA).
+  {
+    const problems: string[] = [];
+    const css = readFileSync(new URL('../src/renderer/style.css', import.meta.url), 'utf8');
+    const dark = css.indexOf('@media (prefers-color-scheme: dark)');
+    const tokens = (selector: string, inDark: boolean): Record<string, string> => {
+      const part = inDark ? css.slice(dark) : css.slice(0, dark);
+      const body = new RegExp(`${selector.replace(/[[\]"=]/g, (c) => `\\${c}`)}\\s*\\{([^}]*)\\}`).exec(part)?.[1] ?? '';
+      return Object.fromEntries([...body.matchAll(/--([\w-]+):\s*([^;]+);/g)].map((m) => [m[1]!, m[2]!.trim()]));
+    };
+    const luminance = (hex: string) => {
+      const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+      return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+    };
+    const ratio = (a: string, b: string) => {
+      const [x, y] = [luminance(a), luminance(b)].sort((p, q) => q - p);
+      return (x! + 0.05) / (y! + 0.05);
+    };
+    const grounds = ['ground', 'panel', 'surface', 'sheet', 'card', 'plane', 'head-bg', 'hover'];
+    const pairs = [...grounds.flatMap((g) => [['text', g], ['muted', g]]), ['active-text', 'active'], ['on-accent', 'accent'], ['accent', 'panel'], ['accent', 'sheet'], ['accent', 'surface'], ['danger', 'panel'], ['danger', 'sheet'], ['found', 'sheet']];
+    const base = tokens(':root', false);
+    let count = 0;
+    for (const [name, selector] of [['lavagna', ':root'], ['documento', ':root[data-variant="documento"]'], ['studio', ':root[data-variant="studio"]']] as const) {
+      const light = { ...base, ...tokens(selector, false) };
+      for (const [theme, palette] of [['light', light], ['dark', { ...light, ...tokens(selector, true) }]] as const) {
+        for (const [front, back] of pairs) {
+          const [f, b] = [palette[front!], palette[back!]];
+          if (!f?.startsWith('#') || !b?.startsWith('#')) continue;
+          count++;
+          if (ratio(f, b) < 4.5) problems.push(`${name} ${theme}: --${front} on --${back} ${ratio(f, b).toFixed(2)}`);
+        }
+      }
+    }
+    if (count < 144) problems.push(`only ${count} pairs read`);
+    check('the contrast of the tokens of the three directions, light and dark', problems);
+  }
 } finally {
   await session.close();
   rmSync(folder, { recursive: true, force: true });

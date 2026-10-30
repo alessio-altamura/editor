@@ -145,19 +145,29 @@ cartella: File → Apri cartella (Cmd-O). Si può anche dire da riga di comando:
   del range.
 - Il tema è quello del sistema, chiaro o scuro.
 - **L'aspetto**, solo dell'`app` (la resa del documento resta quella del suo
-  stylesheet): tre direzioni visive da scegliere, ciascuna un insieme di
-  token CSS in `src/renderer/style.css`, chiari e scuri: «sobrio», il
-  default (neutri chiari, Inter a 13 px, bordi sottili, raggio 6 px, accento
-  blu, `canvas` a puntini), «denso» (pensata per lo scuro, barra laterale
-  compatta, accento viola, pannelli divisi dal tono) e «carta» (bianco caldo,
-  spazi ampi, schede come fogli con ombra, titoli dell'interfaccia in Source
-  Serif 4). La variabile d'ambiente temporanea
-  `DOC_APP_VARIANT=sobrio|denso|carta` sceglie la direzione; scelta una, le
-  altre due si tolgono. I pulsanti comuni hanno un'icona di Lucide, con
-  tooltip e `aria-label`; il testo dei token rispetta il contrasto WCAG AA
-  (almeno 4,5:1) in tutte e sei le tavolozze. Font e icone sono in
-  `assets/`, con versione e sha256 (`assets/README.md`), incorporati senza
-  CDN.
+  stylesheet): tre direzioni visive da scegliere, diverse nella disposizione
+  e nella forma, ciascuna con i suoi token CSS chiari e scuri in
+  `src/renderer/style.css`, con le stesse funzioni:
+  - «lavagna», il default: il `canvas` occupa tutta la finestra, la barra
+    del foglio è una pillola fluttuante in basso al centro, il `navigator`
+    un pannello fluttuante a sinistra (il piano parte alla sua destra); le
+    schede mostrano l'intestazione solo al passaggio del mouse o se scelte;
+    nella pagina il sorgente e la griglia sono un pannello fluttuante, e
+    l'anteprima ha margine e angoli arrotondati;
+  - «documento»: barra laterale stretta e chiara, senza bordi, un'icona per
+    tipo accanto alle voci, sezioni in minuscolo, barre trasparenti; nella
+    pagina l'editor e la griglia sono un foglio centrato su un fondo grigio;
+    il `canvas` ha una griglia a linee;
+  - «studio»: fondo tinto, superfici arrotondate separate da 8 px; la barra
+    mostra il file come percorso (tipo › id), le voci del `navigator` sono
+    più alte con quella attiva a pillola, le intestazioni delle schede
+    sottili; l'anteprima ha margine e angoli arrotondati.
+  La variabile d'ambiente temporanea `DOC_APP_VARIANT=lavagna|documento|studio`
+  sceglie la direzione; scelta una, le altre due si tolgono. I pulsanti
+  comuni hanno un'icona di Lucide, con tooltip e `aria-label`; il testo dei
+  token rispetta il contrasto WCAG AA (almeno 4,5:1) in tutte e sei le
+  tavolozze, controllato dai test di unità. Font e icone sono in `assets/`,
+  con versione e sha256 (`assets/README.md`), incorporati senza CDN.
 
 ## Sicurezza
 

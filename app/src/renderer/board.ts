@@ -46,7 +46,9 @@ export function createBoard(api: DocApp, hooks: BoardHooks) {
   const viewport = $('viewport');
   const plane = $('plane');
   const band = $('band');
-  let pan = { x: 40, y: 40 };
+  // What floats over the left of the board (the navigator of a direction) moves the start of the plane to its right.
+  const inset = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--board-inset-left')) || 0;
+  let pan = { x: 40 + inset, y: 40 };
   let zoom = 1;
   let cards: CardView[] = [];
   const elements = new Map<string, HTMLElement>();
