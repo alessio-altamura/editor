@@ -490,23 +490,19 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      2,3 s (prima 80 s). Resta: l'`export` di 100 000 record pesa 179 MB e
      richiede circa 30 s, per lo stile inline su ogni cella; ridurlo vuol
      dire classi al posto dello stile inline, un cambio del §11.4.
-     Le prime tre direzioni visive (sobrio, denso, carta) cambiavano solo i
-     token, e per Alessio erano «solo colori leggermente diversi»; con la
-     sua indicazione «non modificare il contenuto solo lo stile» (contesto.md,
-     orientamento sull'aspetto dell'`app`) le hanno sostituite tre direzioni
-     diverse nella disposizione, unite il 2026-10-30: lavagna (default:
-     canvas a tutta finestra, navigator e barra fluttuanti, schede senza
-     intestazione a riposo), documento (barra laterale stretta con icone
-     per tipo, editor come foglio centrato, canvas a linee), studio (fondo
-     tinto, pannelli arrotondati separati, il file come percorso). Scelta
-     con DOC_APP_VARIANT; Inter 4.1 (OFL) e icone Lucide 1.65.0 (ISC) in
-     app/assets/; contrasto dei token controllato da un test (minimo
-     4,93:1). Aspettano la scelta di Alessio, poi le altre due si tolgono.
-     Corretto il riquadro degli errori dell'anteprima nel tema scuro. Limiti:
-     in lavagna una scheda trascinata a sinistra può finire sotto il
-     navigator; i puntini e le linee del canvas non seguono zoom e
-     spostamento. Nelle immagini in headless il tema scuro arriva solo con
-     emulateMedia.
+     L'aspetto dell'`app` è deciso e fatto (2026-10-30, contesto.md,
+     orientamento sull'aspetto dell'`app`): dopo tre direzioni di soli
+     colori («sembrano solo colori leggermente diversi») e tre diverse nella
+     disposizione, Alessio ha scelto studio con le evidenziazioni di
+     lavagna. Fondo tinto; navigator, barre, canvas, editor, grid e
+     anteprima come superfici fisse e arrotondate separate da 8 px; il file
+     come percorso «tipo › id»; canvas uniforme; evidenziazioni e casella di
+     ricerca a rettangoli con angoli di 6 px. Inter 4.1 (OFL) e icone Lucide
+     1.65.0 (ISC) in app/assets/; il contrasto dei token è un test di unità
+     (tutte le coppie almeno 4,5:1). Nessuna variante resta nel codice. Il
+     riquadro degli errori dell'anteprima ora si legge anche in scuro. Nelle
+     immagini in headless il tema scuro arriva solo con emulateMedia, e
+     l'anteprima, vista separata, va composta a parte.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
