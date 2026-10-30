@@ -166,7 +166,7 @@ try {
     const action = actions.find((a) => a.title === 'Trasforma in collection');
     const changes = action?.edit.documentChanges ?? [];
     const data = changes.find((c) => name(c.textDocument?.uri) === 'prezzi.tsv')?.edits?.[0]?.newText;
-    if (!changes.some((c) => c.kind === 'delete' && name(c.uri) === 'prezzi.text.md') || !changes.some((c) => c.kind === 'create' && name(c.uri) === 'prezzi.collection.md') || data !== 'Prodotto\tPrezzo\npenna\t1.5\n') {
+    if (!changes.some((c) => c.kind === 'delete' && name(c.uri) === 'prezzi.text.md') || !changes.some((c) => c.kind === 'create' && name(c.uri) === 'prezzi.collection.md') || data !== 'prodotto\tprezzo\npenna\t1.5\n') {
       problems.push(`turn-into: ${JSON.stringify(actions)}`);
     }
     const none = (await call('textDocument/codeAction', { textDocument: { uri: uri('nota.text.md') }, range: { start: { line: 4, character: 0 }, end: { line: 4, character: 0 } }, context: { diagnostics: [] } })) as unknown[];

@@ -40,7 +40,10 @@ export function firstWords(content: JsonML[] | undefined, words = 24): string {
 /** The title of a node, or its first words. */
 export const describe = (node: TreeNode): string => {
   const title = node.attributes?.title;
-  return typeof title === 'string' && title !== '' ? title : firstWords(node.content);
+  if (typeof title === 'string' && title !== '') return title;
+  // A collection: its description, not the text of its table; without one, its id (class 2).
+  if (node.kind === 'collection') return firstWords((node.content ?? []).filter((item) => !(Array.isArray(item) && item[0] === 'table'))) || (node.id ?? '');
+  return firstWords(node.content);
 };
 
 const within = (range: Range, position: Position) =>

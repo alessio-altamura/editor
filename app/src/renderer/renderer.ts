@@ -110,6 +110,7 @@ async function open(target: string, line: number, character: number, alone?: str
   if (current !== 'page' && !(await setView('page'))) return;
   if (target !== file) {
     if (!(await settlePage())) return;
+    $('page-notice').textContent = '';
     // No buffer is left unsaved here, so what read gives is the file on disk.
     const text = await api.read(target);
     saved = text;
@@ -225,6 +226,9 @@ async function start(): Promise<void> {
     saved = view.state.doc.toString();
     file = null;
     await open(String(done.summary?.file), 0, 0);
+    // What the table lost on the way: a notice, not a dialog that stops the page.
+    const warnings = (done.summary?.warnings as Array<{ message: string }> | undefined) ?? [];
+    $('page-notice').textContent = warnings.map((warning) => `Avviso: ${warning.message}`).join(' · ');
   });
   $('data').addEventListener('click', () => {
     if ($('data').dataset.file) void open($('data').dataset.file!, 0, 0);

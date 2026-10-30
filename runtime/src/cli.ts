@@ -343,6 +343,8 @@ function operationCommand(command: string, args: string[]): number {
   };
   if (!dryRun && !write(folder, outcome, (path, text) => writeFileAtomically(path, [text]))) return EXIT_USAGE;
   writeAll(1, JSON.stringify(summary) + '\n');
+  // What an operation lost on the way, as turn-into with formatting in the cells: it warns and goes on.
+  for (const warning of (plan.summary.warnings as Array<{ code: string; message: string }> | undefined) ?? []) writeAll(2, `avviso ${warning.code}: ${warning.message}\n`);
   return EXIT_OK;
 }
 

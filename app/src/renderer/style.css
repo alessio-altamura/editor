@@ -19,7 +19,7 @@ body[data-view="page"] #board { display: none; }
 #editor .cm-editor { height: 100%; }
 #preview { min-width: 0; }
 #board { grid-column: 2 / 4; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
-#notice { color: #b3261e; }
+#notice, #page-notice { color: #b3261e; }
 #zoom { margin-left: auto; font-variant-numeric: tabular-nums; }
 #viewport { position: relative; flex: 1; overflow: hidden; background: var(--plane); touch-action: none; cursor: default; }
 #plane { position: absolute; left: 0; top: 0; transform-origin: 0 0; }

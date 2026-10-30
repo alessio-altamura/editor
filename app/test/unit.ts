@@ -194,7 +194,7 @@ try {
     writeFileSync(join(folder, 'prezzi.text.md'), PRICES);
     session.live.recompute();
     if (session.dataFile('vendite.collection.md') !== 'vendite.tsv') problems.push(`dataFile ${session.dataFile('vendite.collection.md')}`);
-    if (!session.navigator().some((shelf) => shelf.kind === 'collection' && shelf.items.some((item) => item.id === 'vendite'))) problems.push('no shelf for the collections');
+    if (!session.navigator().some((shelf) => shelf.kind === 'collection' && shelf.items.some((item) => item.id === 'vendite' && item.title === 'Vendite e pezzi venduti per mese.'))) problems.push(`the label of a collection in the navigator: ${JSON.stringify(session.navigator().find((shelf) => shelf.kind === 'collection'))}`);
     session.recall('vendite');
     const html = session.canvas().cards.find((c) => c.id === 'vendite')?.html ?? '';
     if (!html.includes('<table') || !/text-align: right[^>]*>1250,50</.test(html) || !/<caption data-description><p[^>]*>Vendite e pezzi/.test(html)) problems.push(`the card of the collection: ${html.slice(html.indexOf('<table')).replace(/ style="[^"]*"/g, '').slice(0, 400)}`);
@@ -203,7 +203,7 @@ try {
     const text = session.read('prezzi.text.md');
     if (session.tableAt('prezzi.text.md', text, 6) !== 'prezzi' || session.tableAt('nota.text.md', session.read('nota.text.md'), 5) !== null) problems.push('tableAt');
     const turned = session.turnInto('prezzi.text.md', text, 6);
-    if (turned.error || turned.summary?.file !== 'prezzi.collection.md' || readFileSync(join(folder, 'prezzi.tsv'), 'utf8') !== 'Prodotto\tPrezzo\npenna\t1.5\nquaderno\t2.25\n') problems.push(`turnInto ${JSON.stringify(turned)}`);
+    if (turned.error || turned.summary?.file !== 'prezzi.collection.md' || readFileSync(join(folder, 'prezzi.tsv'), 'utf8') !== 'prodotto\tprezzo\npenna\t1.5\nquaderno\t2.25\n') problems.push(`turnInto ${JSON.stringify(turned)}`);
     check('collections: data file, card with the table, diagnostics in the TSV, «Trasforma in collection»', problems);
   }
 } finally {
