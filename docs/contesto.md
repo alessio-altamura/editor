@@ -720,7 +720,14 @@ quando due rami lavorano in parallelo.
 - L'aspetto dell'`app` va svecchiato (2026-10-30): «sembra un'app anni 80».
   Da precisare la direzione visiva; proposta dell'orchestratore: tre
   direzioni applicate alla stessa `app` e mostrate in immagini, poi la
-  scelta.
+  scelta. Le prime tre direzioni cambiavano solo i token (colori, misure,
+  caratteri); Alessio: «sembrano solo colori leggermente diversi». Sulla
+  proposta successiva, tre bozze diverse nella struttura più un aspetto del
+  documento più attuale (tabelle a righe orizzontali), Alessio: «non
+  modificare il contenuto solo lo stile». Lettura dell'orchestratore,
+  applicata con prudenza: cambia l'aspetto dell'`app`, anche la
+  disposizione dei suoi elementi; restano le stesse funzioni, e la resa del
+  documento (schede, anteprima, HTML e PDF) non cambia.
 
 
 - Estensibilità: estensioni e connettori distribuiti da un marketplace, per
