@@ -490,12 +490,23 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      2,3 s (prima 80 s). Resta: l'`export` di 100 000 record pesa 179 MB e
      richiede circa 30 s, per lo stile inline su ogni cella; ridurlo vuol
      dire classi al posto dello stile inline, un cambio del §11.4.
-     Tre direzioni visive dell'`app` (sobrio, denso, carta) in
-     DOC_APP_VARIANT, con token CSS, Inter 4.1 (OFL) e icone Lucide 1.65.0
-     (ISC) in app/assets/; aspettano la scelta di Alessio, poi le altre due
-     si tolgono. Nelle immagini in headless il tema scuro arriva solo con
-     emulateMedia. Visto: in scuro il riquadro degli errori in cima
-     all'anteprima si legge a fatica.
+     Le prime tre direzioni visive (sobrio, denso, carta) cambiavano solo i
+     token, e per Alessio erano «solo colori leggermente diversi»; con la
+     sua indicazione «non modificare il contenuto solo lo stile» (contesto.md,
+     orientamento sull'aspetto dell'`app`) le hanno sostituite tre direzioni
+     diverse nella disposizione, unite il 2026-10-30: lavagna (default:
+     canvas a tutta finestra, navigator e barra fluttuanti, schede senza
+     intestazione a riposo), documento (barra laterale stretta con icone
+     per tipo, editor come foglio centrato, canvas a linee), studio (fondo
+     tinto, pannelli arrotondati separati, il file come percorso). Scelta
+     con DOC_APP_VARIANT; Inter 4.1 (OFL) e icone Lucide 1.65.0 (ISC) in
+     app/assets/; contrasto dei token controllato da un test (minimo
+     4,93:1). Aspettano la scelta di Alessio, poi le altre due si tolgono.
+     Corretto il riquadro degli errori dell'anteprima nel tema scuro. Limiti:
+     in lavagna una scheda trascinata a sinistra può finire sotto il
+     navigator; i puntini e le linee del canvas non seguono zoom e
+     spostamento. Nelle immagini in headless il tema scuro arriva solo con
+     emulateMedia.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
