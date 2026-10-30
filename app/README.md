@@ -75,6 +75,15 @@ cartella: File → Apri cartella (Cmd-O). Si può anche dire da riga di comando:
     quelli fatti a mano.
   - Gli errori di un'operazione si leggono nella barra in alto; un'operazione
     che porterebbe errori non scrive niente.
+- **Le `collection`** (classe 2) hanno uno `shelf` nel `navigator`;
+  l'anteprima e le schede mostrano la loro tabella, come la scrive il
+  `runtime`. Il pulsante «Dati», sul `descriptor`, apre il file di dati, che si
+  modifica come testo: senza Markdown, con le tabulazioni visibili, e Tab
+  scrive una tabulazione; i `diagnostic` dei dati stanno al loro punto del
+  file. Un clic su una riga della tabella nell'anteprima apre il file di dati
+  a quella riga. Con il cursore in una tabella di un `text` o di uno
+  `scratch` compare «Trasforma in collection» (`turn-into`). La griglia
+  modificabile viene al passo dopo.
 - **La pagina** (Vista → Pagina, Cmd-2, o il pulsante «Pagina»):
 - **Il sorgente**, a sinistra nella pagina: CodeMirror 6 sul file aperto, con i servizi del
   language server, chiamati nel processo principale con le stesse funzioni
@@ -147,11 +156,14 @@ un `article`, controllando ogni volta il `canvas file` sul disco. Tornata sul
 foglio, cerca una scheda e controlla che sia al centro della vista, scrive un
 testo con «+» accanto a una scheda, raccoglie l'`article` vicino al testo che
 include e mette in ordine per tipo, controllando che nessuna scheda ne copra
-un'altra. Poi, nella
+un'altra, e che la scheda di una `collection` mostri la tabella con i numeri
+a destra e i decimali fissi. Poi, nella
 pagina, scrive nell'editor e aspetta il testo
 nell'anteprima, che non deve ricaricarsi, poi fa clic su un titolo e su un
-capoverso dell'anteprima e controlla file, riga e colonna del cursore;
-controlla anche che cambiando file e chiudendo l'app chieda di salvare, e
+capoverso dell'anteprima e controlla file, riga e colonna del cursore; fa
+clic su una riga della tabella di una `collection` e controlla che si apra il
+TSV a quella riga, e fa «Trasforma in collection» su un `text` che è una
+tabella; controlla anche che cambiando file e chiudendo l'app chieda di salvare, e
 che il testo finisca sul disco. Con `E2E_SCREENSHOT=<file.png>` un end to
 end che fallisce salva anche l'immagine della finestra.
 
