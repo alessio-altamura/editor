@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { WebSocketServer, type WebSocket } from 'ws';
 import { pageAssets, readAsset } from './assets.js';
 import { BASE_FONTS } from './base-stylesheet.js';
-import { LiveFolder } from './live.js';
+import { LiveFolder, PREVIEW_RECORDS } from './live.js';
 import type { FileIdentity } from './resolve-tree.js';
 import { escapeHtml, staticExport, type ExportAsset } from './static-export.js';
 import { sortDiagnostics } from './diagnostic.js';
@@ -179,7 +179,7 @@ export function serve(options: ServeOptions): Promise<{ url: string; close: () =
 
   /** The page of one object alone (§11.6): its own resolution, with the buffers of the runtime. */
   const renderObject = (id: string): string | null => {
-    const standalone = standaloneTree(folder, live.overlay, [id]);
+    const standalone = standaloneTree(folder, live.overlay, [id], true, PREVIEW_RECORDS);
     return standalonePage(standalone, id, {
       assetUrl: (path: string) => withToken(`/asset/${path.split('/').map(encodeURIComponent).join('/')}`),
       fontUrl: (file: string) => withToken(`/font/${encodeURIComponent(file)}`),

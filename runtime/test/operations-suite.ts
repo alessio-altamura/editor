@@ -397,6 +397,32 @@ try {
     report('collections: create, turn-into from a text and a scratch, refusal, rename and move', problems);
   }
 
+  // A big table: the preview keeps the first 1000 records, a card 20, each with a last row; the export has them all.
+  {
+    const problems: string[] = [];
+    const base = mkdtempSync(join(tmpdir(), 'doc-records-'));
+    writeFileSync(join(base, 'doc.document.md'), '---\nid: doc\nkind: document\ntags: []\nlang: it\nspec-version: "0.1"\n---\n');
+    writeFileSync(join(base, 'report.article.md'), front('report', 'article') + '![[righe]]\n');
+    writeFileSync(join(base, 'righe.collection.md'), front('righe', 'collection', 'asset: righe.tsv\nfields:\n  - name: n\n    type: integer\n') + 'Righe.\n');
+    writeFileSync(join(base, 'righe.tsv'), `n\n${Array.from({ length: 2003 }, (_, i) => i).join('\n')}\n`);
+    const { resolveTree } = await import('../src/resolve-tree.js');
+    const { staticExport } = await import('../src/static-export.js');
+    const { standaloneTree, standalonePage } = await import('../src/standalone.js');
+    const { LiveFolder, CARD_RECORDS } = await import('../src/live.js');
+    const preview = { assetUrl: (path: string) => path, fontUrl: (file: string) => file, scriptUrls: [], diagnostics: [] };
+    const rows = (html: string) => (html.match(/<tr/g) ?? []).length;
+    const live = new LiveFolder(base, () => undefined, () => undefined);
+    live.close();
+    const cut = [...staticExport(live.tree, 'report', new Map(), { allowErrors: true, preview })].join('');
+    if (rows(cut) !== 1002 || !cut.includes('<tr data-more-records><td colspan="1">… altri 1003 record</td></tr>')) problems.push(`preview: ${rows(cut)} rows`);
+    const card = standalonePage(standaloneTree(base, new Map(), ['righe'], false, CARD_RECORDS), 'righe', preview, () => ({ fallback: 'x' }) as never) ?? '';
+    if (rows(card) !== 22 || !card.includes('… altri 1983 record')) problems.push(`card: ${rows(card)} rows`);
+    const whole = [...staticExport(resolveTree(base), 'report', new Map(), { allowErrors: true, preview })].join('');
+    if (rows(whole) !== 2004 || whole.includes('<tr data-more-records')) problems.push(`export: ${rows(whole)} rows`);
+    rmSync(base, { recursive: true, force: true });
+    report('a big table: 1000 records in the preview, 20 in a card, all in the export', problems);
+  }
+
   // Every file written is canonical.
   {
     const check = spawnSync(process.execPath, [cliPath, 'format', folder, '--check'], { encoding: 'utf8' });

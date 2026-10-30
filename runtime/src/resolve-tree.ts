@@ -12,7 +12,7 @@ import { appendChildren, element, toJsonML, type Child, type Element, type Sourc
 import { compareCodePoints, makeDiagnostic, report, sortDiagnostics, type Diagnostic, type DiagnosticSink } from './diagnostic.js';
 import { parseYamlMap, splitFrontMatter, type RawValue } from './front-matter.js';
 import { columnDisplays, MAX_DATA_BYTES, MAX_RECORDS, readRecords, readSchema, readValue, TYPE_WORDS, type Field, type Value } from './collection.js';
-import { displayString, evaluateMathLine, langFormat, plainString } from './math-line.js';
+import { displayString, evaluateMathLine, langFormat, localize, plainString } from './math-line.js';
 import {
   computeStyle,
   contrastOnDark,
@@ -295,6 +295,19 @@ export interface ResolveOptions {
    * (§11.9). A path not on disk is added to the list; null removes a file.
    */
   overlay?: ReadonlyMap<string, string | null>;
+  /**
+   * The most records of a collection the tree keeps in its table, the first ones; the
+   * table says how many more there are (§12.4). The runtime kept on (the preview, the
+   * language server, the app) cuts; the export and the print never do.
+   */
+  records?: number;
+}
+
+/** The last row of a table cut short, in the language of the document: «… altri 99.000 record». */
+export function moreRecordsLabel(count: number, lang: string | undefined): string {
+  const number = localize(String(count), langFormat(lang?.toLowerCase().startsWith('en') ? 'en' : 'it'));
+  if (lang?.toLowerCase().startsWith('en')) return `… ${number} more ${count === 1 ? 'record' : 'records'}`;
+  return count === 1 ? '… un altro record' : `… altri ${number} record`;
 }
 
 /** The start of each line of a text, for positions counted as in LSP. */
@@ -316,6 +329,14 @@ function lspPoint(starts: number[], offset: number): { line: number; character: 
 }
 
 export function resolveTree(folder: string, options: ResolveOptions = {}): ResolvedTree {
+  /**
+   * The cascade of a node, shared by the nodes with the same parent style and the same
+   * type and classes: the computed styles are never changed once made, and what the
+   * cascade reports (out of range, contrast) is reported once anyway.
+   */
+  const cascades = new WeakMap<ComputedStyle, Map<string, ComputedStyle>>();
+  const differences = new WeakMap<ComputedStyle, Map<ComputedStyle, Record<string, string>>>();
+  const darkDifferences = new WeakMap<ComputedStyle, Map<ComputedStyle, { color: string } | null>>();
   const lineIndex = new Map<string, number[]>();
   /** How many diagnostics of each file and target have their range already. */
   const placed = new Map<string, number>();
@@ -717,6 +738,7 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
     });
     const data: CollectionData = { path, text, fields: schema.fields, header: header ? { start: header.start, end: header.end } : null, records: [] };
     const keys = new Map<string, number>();
+    const keyPositions = schema.primaryKey.map((name) => schema.fields.findIndex((field) => field.name === name));
     for (const record of records) {
       if (record.cells.length !== names.length) {
         at('collection-record-invalid', text.slice(record.start, Math.min(record.end, record.start + 60)), `scrivi ${names.length} valori, uno per colonna`, record.start, record.end);
@@ -735,7 +757,7 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
         written.push(cell?.text ?? '');
       });
       if (schema.primaryKey.length > 0) {
-        const positions = schema.primaryKey.map((name) => schema.fields.findIndex((field) => field.name === name));
+        const positions = keyPositions;
         const parts = positions.map((index) => values[index]!);
         const cells = positions.map((index) => (columns[index]! < 0 ? undefined : record.cells[columns[index]!]));
         const start = Math.min(...cells.map((cell) => cell?.start ?? record.start));
@@ -744,8 +766,9 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
         if (parts.some((part) => 'missing' in part)) at('collection-key-empty', key === '' ? undefined : key, 'scrivi la chiave in ogni record', start, end);
         else {
           const canonical = JSON.stringify(parts.map((part) => ('value' in part ? part.value : written)));
-          if (keys.has(canonical)) at('collection-key-duplicate', key, `cambia la chiave: c'è già alla riga ${keys.get(canonical)! + 1}`, start, end);
-          else keys.set(canonical, lspPoint(starts ??= lineStarts(text), record.start).line);
+          // The offset of the first record with the key: its line only for a duplicate.
+          if (keys.has(canonical)) at('collection-key-duplicate', key, `cambia la chiave: c'è già alla riga ${lspPoint(starts ??= lineStarts(text), keys.get(canonical)!).line + 1}`, start, end);
+          else keys.set(canonical, record.start);
         }
       }
       data.records.push({ start: record.start, end: record.end, values, written });
@@ -762,7 +785,8 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
       return cell;
     }));
     if (data.header) mark(header, data.header, source);
-    const rows = data.records.map((record) => {
+    const shown = options.records === undefined ? data.records : data.records.slice(0, options.records);
+    const rows = shown.map((record) => {
       const row = element('tableRow', {}, record.values.map((value, index) => {
         const attributes: Record<string, unknown> = 'missing' in value ? { missing: true } : 'invalid' in value ? { invalid: true } : { value: value.value };
         const cell = element('tableCell', attributes, 'missing' in value ? [] : [record.written[index]!]);
@@ -772,7 +796,11 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
       mark(row, { start: record.start, end: record.end }, source);
       return row;
     });
-    const table = element('table', { fields: data.fields.map((field) => ({ name: field.name, type: field.type, ...(field.title !== undefined ? { title: field.title } : {}) })) }, [header, ...rows]);
+    const more = data.records.length - shown.length;
+    const table = element('table', {
+      fields: data.fields.map((field) => ({ name: field.name, type: field.type, ...(field.title !== undefined ? { title: field.title } : {}) })),
+      ...(more > 0 ? { moreRecords: more, moreLabel: moreRecordsLabel(more, context.lang) } : {}),
+    }, [header, ...rows]);
     table.meta = { collection: { lang: context.lang, data } };
     setCollectionDisplays(table, data, DEFAULT_DECIMALS);
     return table;
@@ -787,8 +815,9 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
         const value = record.values[index]!;
         return 'number' in value ? value.number : undefined;
       });
-      const shown = columnDisplays(values, lang, decimals, field.type === 'integer');
-      data.records.forEach((record, row) => {
+      const rows = table.children.length - 1;
+      const shown = columnDisplays(values, lang, decimals, field.type === 'integer', rows);
+      data.records.slice(0, rows).forEach((record, row) => {
         const cell = table.children[row + 1] as Element;
         const target = cell.children[index] as Element;
         if (values[row] !== undefined) target.children = [shown[row]!];
@@ -1366,6 +1395,20 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
     return color !== undefined && color !== expected.get('color')?.text ? { color } : null;
   }
 
+  function cascade(target: { type: string; classes: string[]; embedClasses: string[] }, parent: ComputedStyle, sheet: ParsedStylesheet | null, theme: 'light' | 'dark', outOfRange?: (property: string) => void, declarations: Array<[string, string]> = []): ComputedStyle {
+    let known = cascades.get(parent);
+    if (known === undefined) cascades.set(parent, (known = new Map()));
+    const key = `${theme}\0${sheet === null ? 0 : 1}\0${target.type}\0${target.classes.join(' ')}\0${target.embedClasses.join(' ')}\0${declarations.map((pair) => pair.join(':')).join(';')}`;
+    let style = known.get(key);
+    if (style === undefined) {
+      style = sheet === null ? computeStyle(target, parent, null, undefined, theme) : computeStyle(target, parent, sheet, outOfRange, theme);
+      // The declarations written on the node itself win over the stylesheets.
+      for (const [property, text] of declarations) style.set(property, directValue(property, text));
+      known.set(key, style);
+    }
+    return style;
+  }
+
   /** The computed style pass over a root composition; it also fills the number slots. */
   function applyStyles(children: Child[], parent: ComputedStyle, parentDark: ComputedStyle, pass: StylePass): void {
     const { sheet, outOfRange, firstNumbers } = pass;
@@ -1379,15 +1422,27 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
       // The embed of an image takes the base rule `image` (§0.5).
       const type = child.type === 'title' ? `title-${Math.min(child.meta?.depth ?? 1, 3)}`
         : child.type === 'embed' && child.attributes.kind === 'image' ? 'image' : child.type;
-      const expected = computeStyle({ type, classes: [], embedClasses: [] }, parent, null);
-      const final = computeStyle({ type, classes: child.meta?.classes ?? [], embedClasses: child.meta?.embedClasses ?? [] }, parent, sheet, outOfRange);
-      for (const [property, text] of child.meta?.declarations ?? []) final.set(property, directValue(property, text));
-      const difference = styleDifference(final, expected);
       const target = { type, classes: child.meta?.classes ?? [], embedClasses: child.meta?.embedClasses ?? [] };
-      const expectedDark = computeStyle({ type, classes: [], embedClasses: [] }, parentDark, null, undefined, 'dark');
-      const finalDark = computeStyle(target, parentDark, sheet, outOfRange, 'dark');
-      for (const [property, text] of child.meta?.declarations ?? []) finalDark.set(property, directValue(property, text));
-      const darkDifference = colorDifference(finalDark, expectedDark);
+      const declarations = child.meta?.declarations ?? [];
+      const expected = cascade({ type, classes: [], embedClasses: [] }, parent, null, 'light');
+      const final = cascade(target, parent, sheet, 'light', outOfRange, declarations);
+      const expectedDark = cascade({ type, classes: [], embedClasses: [] }, parentDark, null, 'dark');
+      const finalDark = cascade(target, parentDark, sheet, 'dark', outOfRange, declarations);
+      // The same styles give the same differences: computed once (the cells of a big table).
+      let known = differences.get(final)?.get(expected);
+      if (known === undefined) {
+        known = styleDifference(final, expected);
+        if (!differences.has(final)) differences.set(final, new Map());
+        differences.get(final)!.set(expected, known);
+      }
+      const difference = { ...known };
+      let knownDark = darkDifferences.get(finalDark)?.get(expectedDark);
+      if (knownDark === undefined) {
+        knownDark = colorDifference(finalDark, expectedDark);
+        if (!darkDifferences.has(finalDark)) darkDifferences.set(finalDark, new Map());
+        darkDifferences.get(finalDark)!.set(expectedDark, knownDark);
+      }
+      const darkDifference = knownDark && { ...knownDark };
       // The embed where a chapter comes back has no computed style (§0.17).
       if (child.attributes.recursion !== true) {
         if (Object.keys(difference).length > 0) child.attributes.computedStyle = difference;
