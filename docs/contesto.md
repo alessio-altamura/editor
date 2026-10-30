@@ -496,6 +496,16 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     foglio conta come archiviato; l'`article` di `compose` va accanto al
     descrittore del canvas. Le raccomandazioni del primo canvas valgono
     quindi come accettate.
+  - Mettere ordine sul canvas (2026-10-30, Alessio, «1A, 2 tutto»). Le
+    posizioni restano in JSON Canvas, coordinate più gruppi, compatibili con
+    Obsidian; il formato a relazioni proposto prima dall'orchestratore si
+    lascia, e si riprende solo se i diff diventano un problema. Entrano:
+    trovare un oggetto sul foglio; fare spazio quando una scheda si
+    sovrappone ad altre; un nuovo pensiero accanto a una scheda; raccogliere
+    vicino a una scheda gli oggetti legati (collegamenti, inclusioni,
+    `association`), la vista a grafo come idea; mettere in ordine per tipo o
+    per tag, con un gruppo ciascuno. Fuori, per ora, l'ordine per data: la
+    data di creazione di un oggetto non sta nei file.
     Poi (2026-10-24, Alessio, «ok» sulla strada A): non esiste un Electron
     con il Chromium 141 della stampa, e l'Electron più vicino (39) non è più
     supportato e ha avvisi di sicurezza; quindi un Electron supportato, e la
