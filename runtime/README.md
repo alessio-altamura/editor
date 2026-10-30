@@ -247,11 +247,12 @@ in unità UTF-16, sul file senza BOM. Per un `embed` è la riga `![[id]]`, per
 un titolo la riga `title:`. `resolve-tree --positions` scrive le stesse
 posizioni nel JSON, come `sourcePosition` negli attributi di ogni elemento.
 
-Un oggetto da solo (`src/standalone.ts`): un `article` in memoria, mai
-scritto, include con `![[id]]` gli oggetti chiesti, e una sola risoluzione
-dà il contenuto di ciascuno; ogni `embed` risolto diventa l'unico contenuto
-di un `article` suo, senza titolo e con il foglio di partenza, che il
-renderer dell'`export` scrive come gli altri. `/object/<id>` è questa
+Un oggetto da solo (`src/standalone.ts`): per ogni oggetto chiesto un
+`article` in memoria, mai scritto, senza titolo e con il foglio di partenza,
+lo include da solo con `![[id]]`; una sola risoluzione li calcola tutti, e il
+renderer dell'`export` li scrive come gli altri. Un `article` per oggetto, e
+non uno per tutti, perché la numerazione conta come nell'oggetto da solo: due
+`chapter` sul `canvas` sono «1» tutti e due, e i loro sotto-capitoli «1.1». `/object/<id>` è questa
 pagina, con lo stesso script e gli aggiornamenti sul WebSocket; le schede
 del `canvas` dell'`app` usano lo stesso HTML, per tutti gli oggetti del
 `canvas` in una risoluzione. Un oggetto che non si può includere (un

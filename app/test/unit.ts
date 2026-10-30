@@ -1,6 +1,6 @@
 // The functions behind the IPC of the app, without Electron: the Session over a folder,
 // and where the cursor goes after the formatter.
-import { readFileSync, rmSync } from 'node:fs';
+import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { mapOffset } from '../src/offset.js';
 import { Session } from '../src/session.js';
@@ -171,6 +171,20 @@ try {
     const card = session.canvas().cards.find((c) => c.node === nota);
     if (enlarged.error || card?.width !== 500 || card.height !== 400) problems.push(`place with a size ${JSON.stringify(enlarged)}`);
     check('order on the canvas: a text near, gather, arrange, a card enlarged', problems);
+  }
+  {
+    // Each card numbers as its object alone: two chapters, each «1», its sub-chapter «1.1».
+    const problems: string[] = [];
+    writeFileSync(join(folder, 'altro.chapter.md'), '---\nid: altro\nkind: chapter\ntags: []\ntitle: Un altro capitolo\n---\n![[sotto]]\n');
+    writeFileSync(join(folder, 'sotto.chapter.md'), '---\nid: sotto\nkind: chapter\ntags: []\ntitle: Il sotto-capitolo\n---\n');
+    session.live.recompute();
+    for (const id of ['altro', 'sotto']) session.recall(id);
+    if (!session.canvas().cards.some((c) => c.id === 'cap')) session.recall('cap');
+    const numbers = (id: string) => [...(session.canvas().cards.find((c) => c.id === id)?.html ?? '').matchAll(/<span data-number>([^<]*)<\/span>/g)].map((m) => m[1]);
+    if (JSON.stringify(numbers('cap')) !== '["1"]') problems.push(`cap ${JSON.stringify(numbers('cap'))}`);
+    if (JSON.stringify(numbers('altro')) !== '["1","1.1"]') problems.push(`altro ${JSON.stringify(numbers('altro'))}`);
+    if (JSON.stringify(numbers('sotto')) !== '["1"]') problems.push(`sotto ${JSON.stringify(numbers('sotto'))}`);
+    check('each card numbers as its object alone', problems);
   }
 } finally {
   await session.close();
