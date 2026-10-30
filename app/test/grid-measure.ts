@@ -87,10 +87,10 @@ try {
     for (;;) {
       const page = app.windows().find((p) => p.url().includes('/article/report'));
       if (page) return page;
-      await new Promise((r) => setTimeout(r, 100));
+      await new Promise((r) => setTimeout(r, 20));
     }
   })();
-  await preview.waitForFunction(() => document.querySelectorAll('[data-node="grande"] tbody tr').length > 0, undefined, { timeout: 600_000, polling: 1000 });
+  await preview.waitForFunction(() => document.querySelectorAll('[data-node="grande"] tbody tr').length > 0, undefined, { timeout: 600_000, polling: 50 });
   console.log(`preview of the article with the table: ${Date.now() - started} ms to load`);
 } finally {
   await app.close().catch(() => undefined);

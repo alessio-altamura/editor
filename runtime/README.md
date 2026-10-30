@@ -502,6 +502,13 @@ riga di calcolo, i riferimenti; `shutdown` ed `exit` con codice 0.
 
 Solo il typecheck: `npm run typecheck`.
 
+`npm run measure:records` misura una `collection` di 100 000 `record`: il
+ricalcolo della cartella e l'HTML della `preview`, con i 1000 `record` che
+la `preview` tiene (§11.6) e con tutti, come l'`export`. Il 2026-10-30, in un
+contenitore Linux a 4 core: ricalcolo 0,6-0,9 s e HTML 0,2 s (1,8 MB) con il
+taglio; senza, ricalcolo 4,7 s e HTML 19 s (179 MB). Prima di questo passo
+il ricalcolo era di 12-13 s.
+
 ## Com'è fatto
 
 - `src/cli.ts`: la riga di comando.
