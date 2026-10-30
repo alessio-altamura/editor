@@ -161,8 +161,8 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `part` | livello | Un livello del documento (contenuto, stile, dati, formule, wire, grafici, composizioni, canvas): un gruppo di `kind`, sviluppato per fasi; orientamento: non è né un file né una cartella, gli oggetti stanno insieme e l'`app` li filtra per livello | deciso | layer, level, tier |
 | `source` | sorgente | Il testo dei file del documento, fonte di verità da cui si generano le viste | concetto deciso, nome proposto | code, integration |
 | `asset` | asset | File non testuale: immagini, font, dati grandi | proposto | attachment, resource |
-| `schema` | schema | File che dichiara tipi, chiavi, dimensioni e `dialect` di una `collection` | concetto deciso, nome proposto | header, metadata |
-| `dialect` | dialetto | Separatore, quoting e codifica di un CSV o TSV, dichiarati nello `schema` | proposto | format |
+| `schema` | schema | Dichiarazione di tipi, chiavi, dimensioni e `dialect` di una `collection`; sta nel suo `descriptor`, in YAML, con il vocabolario e i nomi di Frictionless Table Schema (deciso il 2026-10-30) | concetto deciso, nome proposto | header, metadata |
+| `dialect` | dialetto | Separatore, quoting e codifica di un CSV o TSV, dichiarati nello `schema`; il `runtime` crea TSV e legge anche CSV (deciso il 2026-10-30) | proposto | format |
 | `manifest` | manifest | File che dice da dove partire; esistenza da decidere | aperto | index |
 | `canvas file` | file del canvas | Quali oggetti stanno sul `canvas` e dove; un file JSON Canvas con un `descriptor` (deciso il 2026-10-21), il cui `kind` si scrive canvas-file | concetto deciso, nome proposto | layout |
 | `drafts` | bozze | Oggetti non ancora archiviati, salvati nei file | concetto deciso, nome proposto | temp, scratch |
@@ -194,7 +194,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `rename` | rinominare | `operation` che cambia l'`id` di un `object`, aggiorna i riferimenti e ritira il vecchio `id` con il nuovo come successore | proposto | relabel |
 | `move` | spostare | `operation` che sposta un `object` in un altro file senza cambiarne l'`id` | proposto | relocate |
 | `classify` | classificare | Assegnare un oggetto al suo `shelf` | concetto deciso, nome proposto | sort, tag |
-| `turn into` | promuovere | Trasformare un pezzo in un tipo strutturato, per esempio testo in `collection` o in `chart` | concetto deciso, nome proposto | promote, convert |
+| `turn into` | promuovere | Trasformare un pezzo in un tipo strutturato, per esempio testo in `collection` o in `chart`; il primo è da `text table` a `collection` (deciso il 2026-10-30); proposta: nella `cli` è il comando turn-into | concetto deciso, nome proposto | promote, convert |
 | `revert` | gesto inverso | Riportare un oggetto strutturato a testo libero; da decidere | aperto | demote, downgrade |
 | `hint` | suggerimento | Proposta automatica (classificare, collegare, trasformare) che chi scrive conferma | concetto deciso, nome proposto | suggestion, auto- |
 | `embed` | uso per riferimento | Inclusione di un oggetto in una `composition`, senza copia; dentro un capoverso per ora non è ammesso (deciso il 2026-10-21) | concetto deciso, nome proposto | copy, insert |
@@ -217,7 +217,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `target quote` | impronta | Poche parole e l'hash del bersaglio, salvate insieme con un'`association` confermata per ritrovarlo e per vedere che è cambiato; da decidere | aperto | imprint, fingerprint, signature, checksum |
 | `id reference` | riferimento per id | Forma generica, fissata nel `core`, con cui un file nomina un altro `node` per `id`: un `embed`, un riferimento in linea, un valore di attributo (concetto deciso il 2026-10-21) | concetto deciso, nome proposto | link, pointer |
 | `front matter` | intestazione | Intestazione YAML fra due righe di tre trattini in testa a un file di testo, con gli `attributes` (deciso il 2026-10-21) | concetto deciso, nome proposto | header, metadata block |
-| `descriptor` | file descrittore | File di testo con gli `attributes` di un `asset` che non può portarli, come un'immagine, un CSV o il `canvas file` (deciso il 2026-10-21) | concetto deciso, nome proposto | sidecar, manifest |
+| `descriptor` | file descrittore | File di testo con gli `attributes` di un `asset` che non può portarli, come un'immagine, un TSV o CSV o il `canvas file` (deciso il 2026-10-21); quello di una `collection` porta anche lo `schema` (deciso il 2026-10-30) | concetto deciso, nome proposto | sidecar, manifest |
 
 ### 4.3 Composizioni e stile
 
@@ -252,7 +252,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `page` | pagina | Pagina del PDF o della `paged preview` | proposto | sheet |
 | `running header` | intestazione di pagina | Testo ripetuto in cima alle pagine | proposto | header |
 | `footnote` | nota | Nota a piè di pagina | proposto | note |
-| `numbering` | numerazione | Numeri di capitoli e immagini, calcolati dal `runtime` e scritti nel `resolved tree` (deciso il 2026-10-21); tabelle e figure più avanti | concetto deciso, nome proposto | counter |
+| `numbering` | numerazione | Numeri di capitoli e immagini, calcolati dal `runtime` e scritti nel `resolved tree` (deciso il 2026-10-21); anche delle `collection` in una `composition`, solo per i `cross-ref` (deciso il 2026-10-30) | concetto deciso, nome proposto | counter |
 | `cross-ref` | riferimento numerato | Collegamento a un `node` numerato che mostra il numero con il `number slot` nel suo testo (deciso il 2026-10-21) | concetto deciso, nome proposto | link |
 | `number slot` | segnaposto del numero | Segnaposto nel testo di un collegamento che il `runtime` sostituisce con il numero del `node` collegato (deciso il 2026-10-21); la forma «{n}» è proposta | concetto deciso, nome proposto | placeholder, field |
 | `recursion` | ricorsione | Attributo opzionale con cui un oggetto si può contenere, o una formula richiamare sé stessa: un limite, infinito o una regola di uscita; senza, non si può (deciso il 2026-10-21) | concetto deciso, nome proposto | loop, self-embed |
@@ -265,20 +265,20 @@ colonne *codice* e *spec*, come in ID-Zero.
 |---|---|---|---|---|
 | `collection` | tabella, lista moderna | Insieme con nome di `record` con identità e `field` tipizzati; può avere più `dimension` | deciso | list, table, array, sheet |
 | `record` | elemento | Un elemento di una `collection` | concetto deciso, nome proposto | item, row, element |
-| `field` | proprietà, colonna | Proprietà con nome e `type` di un `record` | concetto deciso, nome proposto | column, attribute, property |
+| `field` | proprietà, colonna | Proprietà con nome e `type` di un `record`; nello `schema` si scrive con i nomi di Frictionless: fields, e per ciascuno name, type e title facoltativo | concetto deciso, nome proposto | column, attribute, property |
 | `type` | tipo | Tipo di un `field`: numero, testo, data, categoria e altri | concetto deciso, nome proposto | kind |
 | `unit` | unità di misura | Unità facoltativa di un `field` numerico | proposto | measure |
 | `field value` | valore | Valore di un `field` in un `record`, senza coordinate | concetto deciso, nome proposto | cell |
-| `key` | chiave | `field`, o combinazione di `field`, che identifica un `record` | proposto | index |
-| `id` | ID | Identificativo stabile di ogni `node`, per ogni `kind`: unico, di minuscole, cifre e trattino, mai riusato; per un `record` vale se manca una `key` | concetto deciso, nome proposto | uuid, ref |
+| `key` | chiave | `field`, o combinazione di `field`, che identifica un `record`; facoltativa (deciso il 2026-10-30); nello `schema` si scrive con il nome di Frictionless, primaryKey | concetto deciso, nome proposto | index |
+| `id` | ID | Identificativo stabile di ogni `node`, per ogni `kind`: unico, di minuscole, cifre e trattino, mai riusato; per un `record` vale se manca una `key`, e nasce quando il `record` viene referenziato (deciso il 2026-10-30) | concetto deciso, nome proposto | uuid, ref |
 | `relation` | relazione | `field` che collega `record` di due `collection` | concetto deciso, nome proposto | link, lookup |
 | `dimension` | dimensione | `field` che fa da asse di una `collection` multidimensionale | concetto deciso, nome proposto | axis, category |
 | `measure` | misura | `field` con i valori di una `collection` multidimensionale | proposto | value, metric |
-| `long form` | forma lunga | Salvataggio con una riga per combinazione di `dimension` | proposto | tidy, flat |
+| `long form` | forma lunga | Salvataggio con una riga per combinazione di `dimension` (deciso il 2026-10-30) | concetto deciso, nome proposto | tidy, flat |
 | `record order` | ordine dei record | Ordine dei `record` salvato come dato, non come indirizzo | proposto | index, position |
 | `view` | vista | Modo di mostrare una `collection`: `grid`, `board`, `calendar` | concetto deciso, nome proposto | layout, composition |
 | `grid` | griglia | `view` a righe e colonne per inserire e guardare i dati | concetto deciso, nome proposto | sheet, table, spreadsheet |
-| `pivot` | pivot | `grid` di una `collection` multidimensionale con le `dimension` su righe e colonne | proposto | cross table |
+| `pivot` | pivot | `grid` di una `collection` multidimensionale con le `dimension` su righe e colonne (deciso il 2026-10-30; arriva con i grafici) | concetto deciso, nome proposto | cross table |
 | `chart` | grafico | Oggetto che mostra graficamente una `collection`; il suo contenuto è una vista dei dati; orientamento: applica un `template` a una `collection`, con il campo per ogni ruolo | concetto deciso, nome proposto | graph, plot, view |
 | `formula` | formula | Espressione con nome che calcola un `field` o un valore | concetto deciso, nome proposto | function, rule, calc |
 | `computed field` | colonna calcolata | `field` i cui valori vengono da una `formula` | concetto deciso, nome proposto | calculated column |

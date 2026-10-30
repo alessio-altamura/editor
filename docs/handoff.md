@@ -1,6 +1,6 @@
 # Passaggio di consegne
 
-Stato del progetto al 2026-10-22, per chi riprende il lavoro in una sessione
+Stato del progetto al 2026-10-30, per chi riprende il lavoro in una sessione
 futura. Le decisioni esatte stanno in [contesto.md](contesto.md); dove questo
 file e contesto.md divergono, vale contesto.md.
 
@@ -180,7 +180,7 @@ Gli elenchi completi sono in [contesto.md](contesto.md).
 
 ## Ricerca fatta
 
-Ci sono otto note in [ricerca/](ricerca/), con fonti primarie e fatti
+Ci sono nove note in [ricerca/](ricerca/), con fonti primarie e fatti
 ricontrollati da un secondo agente, salvo le parti che ogni nota indica.
 
 - **[ricerca/formule-python.md](ricerca/formule-python.md).** Python non ha
@@ -220,6 +220,10 @@ ricontrollati da un secondo agente, salvo le parti che ogni nota indica.
   un'intestazione contro Djot, per i file di testo. CommonMark non ha né
   attributi né front matter; Djot ha gli attributi ma si dichiara instabile, e
   GitHub non lo riconosce. Non sceglie: dà i costi.
+- **[ricerca/schema-dei-dati.md](ricerca/schema-dei-dati.md).** Frictionless
+  Table Schema contro CSVW per lo `schema` di una `collection`; ha portato
+  alla scelta di Frictionless dentro il descrittore. Letta dall'orchestratore
+  sulle fonti primarie, non ricontrollata da un secondo agente.
 
 ## Ultima discussione
 
@@ -421,6 +425,15 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      `arrange --by kind|tag` con i gruppi di JSON Canvas (chiave in più
      `arrange` nei gruppi creati da lui), `place --size`. Ogni scheda è resa da
      sola, con la numerazione che l'oggetto avrebbe da solo.
+   - I dati e le `collection`, la classe 2 (2026-10-30, contesto.md «Dati e
+     `collection`»): `schema` di Frictionless in YAML nel descrittore
+     `<id>.collection.md`, file di dati TSV creati dal `runtime` (CSV letti),
+     chiave facoltativa, ID dei `record` solo quando servono, forma lunga
+     con `dimension` e `pivot` rimandati ai grafici, numeri a decimali fissi
+     in colonna. Primo passo affidato alla sottosessione
+     session_01ToMUkc2ntsAgupUkrNCYxV: lettura e controlli, resa
+     dappertutto, `create` e `turn into` da `text table`; la `grid`
+     modificabile al passo dopo.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);

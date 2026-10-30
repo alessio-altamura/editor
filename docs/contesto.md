@@ -476,6 +476,12 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     tecniche dell'orchestratore: CodeMirror 6 per il testo, il codice in
     `app/`, il tema del sistema, `npm start` per lanciarla; il pacchetto
     firmato viene dopo.
+    Poi (2026-10-24, Alessio, «ok» sulla strada A): non esiste un Electron
+    con il Chromium 141 della stampa, e l'Electron più vicino (39) non è più
+    supportato e ha avvisi di sicurezza; quindi un Electron supportato, e la
+    stampa la fa Electron stesso invece del Chromium di Playwright. Un
+    motore solo, quello di Electron, per anteprima, `app`, PDF e test, e il
+    `print browser` è il suo Chromium.
   - Il canvas (2026-10-29). Alessio: «lascia stare per ora, continuiamo con
     l'implementazione», senza rispondere alle tre scelte poste
     dall'orchestratore; l'orchestratore procede con le sue raccomandazioni,
@@ -506,12 +512,56 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     `association`), la vista a grafo come idea; mettere in ordine per tipo o
     per tag, con un gruppo ciascuno. Fuori, per ora, l'ordine per data: la
     data di creazione di un oggetto non sta nei file.
-    Poi (2026-10-24, Alessio, «ok» sulla strada A): non esiste un Electron
-    con il Chromium 141 della stampa, e l'Electron più vicino (39) non è più
-    supportato e ha avvisi di sicurezza; quindi un Electron supportato, e la
-    stampa la fa Electron stesso invece del Chromium di Playwright. Un
-    motore solo, quello di Electron, per anteprima, `app`, PDF e test, e il
-    `print browser` è il suo Chromium.
+  - Dati e `collection` (2026-10-30, Alessio, «1A 2A 3A 4A 5A 6A», le
+    raccomandazioni dell'orchestratore; fonti in
+    [ricerca/schema-dei-dati.md](ricerca/schema-dei-dati.md)):
+    1. Lo `schema` sta nel `descriptor` della `collection`, per esempio
+       `vendite-2026.collection.md`: nell'intestazione gli attributi e lo
+       schema, scritto in YAML con il vocabolario e i nomi di Frictionless
+       Table Schema (`fields` con `name` e `type`, `categories`,
+       `primaryKey`); nel corpo la descrizione, come per l'`image`. Due file
+       per tabella, i dati e il `descriptor`; un `export` verso Frictionless
+       è una conversione in JSON. CSVW è scartato: JSON-LD con `@context`
+       obbligatorio, fatto per pubblicare dati collegati più che per
+       scrivere uno schema a mano.
+    2. La chiave è facoltativa; se è dichiarata, il `runtime` controlla che
+       sia unica e senza vuoti. La colonna di ID corti nasce solo quando un
+       `record` viene referenziato, cioè con formule e grafici; un file di
+       dati portato da fuori non si tocca.
+    3. Forma lunga confermata: una riga per combinazione, le `dimension`
+       dichiarate nello `schema`, la griglia a incrocio come `pivot`.
+       `dimension` e `pivot` entrano con i grafici, dove servono; fino ad
+       allora `turn into` crea la `collection` con le colonne com'erano, e il
+       passaggio di una tabella a incrocio in forma lunga arriva con il
+       `pivot`.
+    4. In un `article` una `collection` si vede come tabella: intestazione in
+       grassetto con il `title` del campo, altrimenti il `name`; numeri
+       formattati come le righe di calcolo, ma con i decimali fissi in
+       colonna, così le cifre si allineano (1,50 sopra 2,25), e allineati a
+       destra; date e testo per ora come scritti. Il numero della tabella
+       serve solo ai `cross-ref`, senza didascalia, come per le immagini.
+    5. Il primo passo consegna il `runtime`: lettura di TSV e CSV, controlli
+       (tipi, chiave, colonne mancanti o in più) con i loro `diagnostic`, la
+       `collection` nel `resolved tree`, nell'HTML, nel PDF, nell'anteprima
+       e nelle schede del `canvas`; `create` per una `collection` nuova e
+       `turn into` da una `text table`, con tipi e chiave proposti dai
+       valori, dalla `cli` e come azione nell'editor. Nell'`app` il file dei
+       dati si modifica come testo; la `grid` modificabile viene al passo
+       dopo.
+    6. I file di dati che crea il `runtime` sono TSV (Alessio: «al posto
+       del csv non conviene usare un tsv?»); un CSV si legge quando arriva
+       da fuori. In un TSV un campo di testo sta su una riga: la
+       registrazione IANA del formato vuole un `record` per riga e non
+       ammette tabulazioni nei campi, e non prevede sequenze di escape. Un
+       testo lungo diventerà un `text` collegato dal `record`, quando
+       arriveranno le `relation`. Le ragioni: la tabulazione non compare nei
+       numeri all'italiana né nel testo, quindi niente virgolette; le celle
+       copiate da un foglio di calcolo sono già separate da tabulazioni;
+       GitHub mostra come tabella i `.tsv` e i `.csv` con la virgola, non
+       quelli con il punto e virgola che salva Excel in italiano.
+    Regole dell'orchestratore presentate senza domanda e non contestate: i
+    file di dati sono in UTF-8; un valore vuoto è un valore mancante; il
+    `formatter` riscrive il `descriptor`, mai il file dei dati.
   - Creazione degli oggetti e file (2026-10-23, Alessio, «1A, 2A, 3A, 4D»):
     1. Un capoverso scritto direttamente in una `composition` resta un
        errore, con una correzione automatica, «estrai in un oggetto», che crea
@@ -659,24 +709,27 @@ quando due rami lavorano in parallelo.
   testo segna il tipo dopo la promozione; quali promozioni sono possibili da
   quale tipo; il gesto inverso. Sono domande per la bozza dei tipi di nodo.
 
-- Dati in CSV oppure TSV, con il dialetto dichiarato nello schema.
+- Dati in CSV oppure TSV, con il dialetto dichiarato nello schema. Deciso
+  il 2026-10-30 (voce «Dati e `collection`»): il `runtime` crea TSV e legge
+  anche CSV.
 - Formule e connettori in file separati, divisi per tipo, fin dall'inizio.
 - Identità degli elementi di una lista: chiave naturale se dichiarata,
-  altrimenti una colonna di ID corti. Da decidere se l'ID c'è sempre o solo
-  quando un elemento viene referenziato.
+  altrimenti una colonna di ID corti. Deciso il 2026-10-30 (voce «Dati e
+  `collection`»): l'ID c'è solo quando un elemento viene referenziato.
 
-- Tipi e dimensioni: restano da precisare il formato dello schema (si può
-  partire da CSVW o da Frictionless Table Schema); come si salva una tabella
-  multidimensionale
-  (proposta: in forma lunga, una riga per combinazione, con le dimensioni
-  dichiarate nello schema e le viste a griglia come pivot); se le dimensioni
-  sono oggetti con nome condivisi fra tabelle.
+- Tipi e dimensioni: il formato dello schema e la forma lunga sono decisi
+  il 2026-10-30 (voce «Dati e `collection`»: Frictionless Table Schema
+  dentro il descrittore; una riga per combinazione, con le dimensioni
+  dichiarate nello schema e le viste a griglia come pivot). Resta da
+  precisare se le dimensioni sono oggetti con nome condivisi fra tabelle.
 
 - Tabelle come fonti di dati: la tabella intera viaggia sui connettori come un
   cavo; una tabella può contenere riferimenti a formule in un file a parte, e
-  così via. Restano da precisare: se ogni tabella deve dichiarare una chiave
-  per raggiungere una singola riga; riferimenti a livello di colonna o di
-  singola cella; come si segnalano i cicli fra file.
+  così via. Restano da precisare: riferimenti a livello di colonna o di
+  singola cella; come si segnalano i cicli fra file. Se ogni tabella debba
+  dichiarare una chiave è deciso il 2026-10-30 (voce «Dati e
+  `collection`»): no, la chiave è facoltativa e un `record` referenziato
+  riceve un ID.
 
 - Non rifare Excel: soddisfare le esigenze di chi lo usa in modo più moderno,
   più semplice e più potente. Idee: eliminare il concetto di cella, usare
