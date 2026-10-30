@@ -82,8 +82,42 @@ cartella: File → Apri cartella (Cmd-O). Si può anche dire da riga di comando:
   scrive una tabulazione; i `diagnostic` dei dati stanno al loro punto del
   file. Un clic su una riga della tabella nell'anteprima apre il file di dati
   a quella riga. Con il cursore in una tabella di un `text` o di uno
-  `scratch` compare «Trasforma in collection» (`turn-into`). La griglia
-  modificabile viene al passo dopo.
+  `scratch` compare «Trasforma in collection» (`turn-into`); se la tabellina
+  perde qualcosa (formattazione, allineamento) l'avviso compare nella barra.
+- **La `grid`**: aprendo una `collection` l'editor mostra i suoi dati in una
+  griglia; «Testo» porta al `descriptor` come testo, «Griglia» torna. Niente
+  coordinate: l'intestazione mostra il `title`, o il `name`, e il tipo.
+  - A riposo una cella mostra la stringa della tabella (decimali fissi e
+    gruppi in colonna); in modifica il valore nella lingua del documento,
+    «1,5» in italiano, e il file riceve «1.5». Un valore che non è del suo
+    tipo si tiene com'è scritto e si segna (sottolineato, `aria-invalid`, con
+    il suggerimento nel titolo). Un campo con `categories` ha un menu, un
+    `boolean` una casella. Tabulazioni e fine riga in un valore diventano
+    spazi già mentre si scrive, perché il TSV non le ammette.
+  - Tastiera come in un foglio di calcolo: frecce (con Maiusc allargano la
+    scelta), Tab, Invio o F2 per scrivere, Invio per confermare e scendere, Esc
+    per annullare la modifica, Canc per svuotare la scelta, Pag su e giù,
+    Home e Fine; Cmd-Z e Cmd-Maiusc-Z annullano e ripetono in tutta la
+    griglia; Cmd-S salva.
+  - Copia e incolla: una scelta rettangolare si copia come testo con
+    tabulazioni e righe; un blocco copiato da un foglio di calcolo si incolla
+    dalla cella scelta e aggiunge i `record` che mancano.
+  - La barra: `record` in fondo o dopo quello scelto, togliere, spostare su e
+    giù (l'ordine è quello del file); il campo scelto, con `title` e tipo da
+    cambiare e da togliere; un campo nuovo, con il `name` ricavato dal titolo
+    come in `turn-into`. Il `name` non cambia dalla griglia.
+  - Il salvataggio segue l'editor: il buffer vale subito per l'albero e
+    l'anteprima, e cambiando file o chiudendo l'app chiede di salvare. Si
+    scrivono insieme il TSV, nella forma di `turn-into`, e il `descriptor`,
+    dal `formatter` (§12.6 della specifica).
+  - Si disegnano solo le righe visibili: la griglia resta fluida fino al
+    limite di 100 000 `record` (`npm run measure:grid`, sotto).
+  - Accessibilità: `role="grid"`, righe e celle con `aria-rowindex` e
+    `aria-colindex`, la cella attiva con `aria-activedescendant`, le celle
+    scelte con `aria-selected`, quelle sbagliate con `aria-invalid`.
+  - Fuori da questo passo: ordinamento e filtri (sono viste), formule, pivot;
+    e la griglia dentro una scheda del `canvas`, dove un clic apre ancora il
+    sorgente.
 - **La pagina** (Vista → Pagina, Cmd-2, o il pulsante «Pagina»):
 - **Il sorgente**, a sinistra nella pagina: CodeMirror 6 sul file aperto, con i servizi del
   language server, chiamati nel processo principale con le stesse funzioni
@@ -143,6 +177,13 @@ npm test            # le funzioni dietro l'IPC, senza Electron
 npm run test:e2e    # end to end, con l'Electron del pacchetto e playwright-core
 ```
 
+`npm run measure:grid` apre una `collection` di 100 000 `record` e stampa
+i tempi di apertura, di scorrimento, della modifica di una cella e
+dell'anteprima che la segue. Misura del 2026-10-30, in un contenitore
+Linux a 4 core: apertura 653 ms, scorrimento 16,7 ms per frame (il
+peggiore 21,4 ms), modifica 312 ms; l'anteprima di un articolo con la
+tabella intera invece arriva in 61 s, con ricalcoli di 7-9 s.
+
 Su Linux l'end to end gira sulla piattaforma headless di Chromium, senza
 schermo e senza `xvfb`; `node dist-test/e2e.js` da solo va bene dopo
 `npm run build`, che gli script npm fanno prima. L'end to end apre
@@ -163,7 +204,10 @@ nell'anteprima, che non deve ricaricarsi, poi fa clic su un titolo e su un
 capoverso dell'anteprima e controlla file, riga e colonna del cursore; fa
 clic su una riga della tabella di una `collection` e controlla che si apra il
 TSV a quella riga, e fa «Trasforma in collection» su un `text` che è una
-tabella; controlla anche che cambiando file e chiudendo l'app chieda di salvare, e
+tabella; nella griglia scrive «1,5» in un campo `number` e trova 1.5 nel TSV
+salvato con l'anteprima che segue, incolla un blocco di 2 `record` e 3 valori
+che ne aggiunge uno, aggiunge un campo e controlla che un valore sbagliato
+sia segnato; controlla anche che cambiando file e chiudendo l'app chieda di salvare, e
 che il testo finisca sul disco. Con `E2E_SCREENSHOT=<file.png>` un end to
 end che fallisce salva anche l'immagine della finestra.
 
@@ -180,6 +224,8 @@ end che fallisce salva anche l'immagine della finestra.
   `src/renderer/board.ts`: il `canvas`; `src/renderer/editor.ts`: CodeMirror
   con i servizi, per la pagina e per le schede.
 - `src/offset.ts`: dove va il cursore dopo il formatter.
+- `src/grid-model.ts`: il modello della griglia, senza DOM (valori, incolla,
+  `record` e campi, annulla); `src/renderer/grid.ts`: la sua vista.
 
 Dipendenze, con versione esatta: CodeMirror 6 (`@codemirror/state` 6.7.6,
 `view` 6.43.14, `language` 6.13.1, `lang-markdown` 6.5.2, `autocomplete`

@@ -8,13 +8,14 @@ import { EditorView } from '@codemirror/view';
 import { mapOffset } from '../offset.js';
 import type { DocApp } from '../preload.js';
 import { createBoard } from './board.js';
+import { createGrid } from './grid.js';
 import { editorExtensions, offsetOf, position } from './editor.js';
 
 declare global {
   interface Window {
     docApp: DocApp;
     /** For the end-to-end test: what the editor shows, and the view. */
-    docAppState: { file: string | null; line: number; character: number; text: string; view: 'canvas' | 'page' };
+    docAppState: { file: string | null; line: number; character: number; text: string; view: 'canvas' | 'page'; mode: 'text' | 'grid' };
   }
 }
 
@@ -25,18 +26,25 @@ let file: string | null = null;
 let saved = '';
 let view: EditorView;
 let current: 'canvas' | 'page' = 'canvas';
-const isDirty = () => file !== null && view.state.doc.toString() !== saved;
+/** A collection opens in its grid; the switch brings the text of the descriptor, as before. */
+let mode: 'text' | 'grid' = 'text';
+const isDirty = () => file !== null && (mode === 'grid' ? grid.isDirty() : view.state.doc.toString() !== saved);
 const tellDirty = () => api.setDirty(isDirty() ? file : board.dirtyFile());
 let pushing: ReturnType<typeof setTimeout> | undefined;
 
 const updateState = () => {
   const head = view.state.selection.main.head;
-  window.docAppState = { file, ...position(view.state, head), text: view.state.doc.toString(), view: current };
+  window.docAppState = { file, ...position(view.state, head), text: view.state.doc.toString(), view: current, mode };
 };
 
 /** Saves through the formatter, and keeps the cursor as close as it can to where it was. */
 const save = async () => {
   if (file === null) return;
+  if (mode === 'grid') {
+    await grid.save();
+    tellDirty();
+    return;
+  }
   const before = view.state.doc.toString();
   const after = await api.save(file, before);
   saved = after;
@@ -97,7 +105,14 @@ async function settlePage(): Promise<boolean> {
   const answer = await api.confirmUnsaved(file!);
   if (answer === 'cancel') return false;
   if (answer === 'save') await save();
-  else {
+  else if (mode === 'grid') {
+    // The buffers of the grid: the descriptor and its data file.
+    const data = await api.dataFile(file!);
+    await api.discard(file!);
+    if (data !== null) await api.discard(data);
+    grid.close();
+    await grid.open(file!);
+  } else {
     await api.discard(file!);
     view.setState(pageState(saved));
   }
@@ -110,25 +125,42 @@ async function open(target: string, line: number, character: number, alone?: str
   if (current !== 'page' && !(await setView('page'))) return;
   if (target !== file) {
     if (!(await settlePage())) return;
+    $('page-notice').textContent = '';
     // No buffer is left unsaved here, so what read gives is the file on disk.
     const text = await api.read(target);
     saved = text;
     file = target;
     view.setState(pageState(text));
     $('file').textContent = target;
-    // A collection: a button opens its data file.
+    // A collection: a button opens its data file, and the grid shows it.
     const data = /\.collection\.md$/.test(target) ? await api.dataFile(target) : null;
     $('data').hidden = data === null;
     $('data').dataset.file = data ?? '';
+    await showMode(data !== null && (await grid.open(target)) ? 'grid' : 'text');
     if (alone === undefined) await api.showPreview(target);
     void renderNavigator();
   }
   if (alone !== undefined) await api.showObject(alone);
-  const offset = offsetOf(view.state, line, character);
-  view.dispatch({ selection: EditorSelection.cursor(offset), effects: EditorView.scrollIntoView(offset, { y: 'center' }) });
-  view.focus();
+  if (mode === 'grid') grid.focus();
+  else {
+    const offset = offsetOf(view.state, line, character);
+    view.dispatch({ selection: EditorSelection.cursor(offset), effects: EditorView.scrollIntoView(offset, { y: 'center' }) });
+    view.focus();
+  }
   updateState();
   tellDirty();
+}
+
+/** The grid or the text of a collection; the switch shows only for a collection with its data. */
+async function showMode(next: 'text' | 'grid'): Promise<void> {
+  mode = next;
+  if (next === 'text') grid.close();
+  $('editor').hidden = next === 'grid';
+  $('grid').hidden = next === 'text';
+  $('mode').hidden = !$('data').dataset.file;
+  $('mode').textContent = next === 'grid' ? 'Testo' : 'Griglia';
+  $('mode').title = next === 'grid' ? 'Il descrittore come testo' : 'I dati in una griglia';
+  updateState();
 }
 
 /** One object alone in the page: its file in the editor, at the object, and only the object in the preview. */
@@ -203,6 +235,8 @@ const board = createBoard(api, {
   changed: () => void renderNavigator(),
 });
 
+const grid = createGrid(api, $('grid'), { changed: () => tellDirty() });
+
 async function start(): Promise<void> {
   document.body.dataset.view = current;
   view = new EditorView({ parent: $('editor'), state: pageState('') });
@@ -225,6 +259,19 @@ async function start(): Promise<void> {
     saved = view.state.doc.toString();
     file = null;
     await open(String(done.summary?.file), 0, 0);
+    // What the table lost on the way: a notice, not a dialog that stops the page.
+    const warnings = (done.summary?.warnings as Array<{ message: string }> | undefined) ?? [];
+    $('page-notice').textContent = warnings.map((warning) => `Avviso: ${warning.message}`).join(' · ');
+  });
+  $('mode').addEventListener('click', async () => {
+    if (file === null || !(await settlePage())) return;
+    const target = file;
+    if (mode === 'grid') {
+      // The text of the descriptor, as it is now on disk.
+      saved = await api.read(target);
+      view.setState(pageState(saved));
+      await showMode('text');
+    } else await showMode((await grid.open(target)) ? 'grid' : 'text');
   });
   $('data').addEventListener('click', () => {
     if ($('data').dataset.file) void open($('data').dataset.file!, 0, 0);

@@ -138,6 +138,10 @@ handle('doc:extract', (current, file: string, text: string) => current.extract(f
 handle('doc:table-at', (current, file: string, text: string, line: number) => current.tableAt(file, String(text), Number(line)));
 handle('doc:turn-into', (current, file: string, text: string, line: number) => current.turnInto(file, String(text), Number(line)));
 handle('doc:data-file', (current, file: string) => current.dataFile(file));
+handle('doc:grid-source', (current, file: string) => current.gridSource(file));
+const fieldsOf = (value: unknown) => (Array.isArray(value) ? (value as Array<Record<string, unknown>>) : []);
+handle('doc:grid-edit', (current, file: string, fields: unknown, data: string) => current.gridEdit(file, fieldsOf(fields), String(data)));
+handle('doc:grid-save', (current, file: string, fields: unknown, data: string) => current.gridSave(file, fieldsOf(fields), String(data)));
 handle('doc:preview', (current, file: string | null) => {
   const article = current.articleFor(file);
   if (article !== null) void preview?.webContents.loadURL(current.previewUrl(article));

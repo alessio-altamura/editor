@@ -4,7 +4,7 @@
 import { posix } from 'node:path';
 import type { Nodes, Table } from 'mdast';
 import { retargetCanvas } from './canvas.js';
-import { readValue, SUPPORTED_TYPES, type Field, type Schema } from './collection.js';
+import { fieldName, readValue, SUPPORTED_TYPES, writeRecords, type Field, type Schema } from './collection.js';
 import type { RawValue } from './front-matter.js';
 import { writeHeader } from './format.js';
 import { langFormat, plainString, readDecimal } from './math-line.js';
@@ -14,20 +14,20 @@ import type { ResolvedTree } from './tree.js';
 const string = (value: string): RawValue => ({ type: 'string', value, plain: true });
 
 /** The descriptor of a collection: id, kind, the asset, the fields, the key; the body is its description. */
-function descriptorText(id: string, data: string, fields: Array<{ name: string; type: string }>, key: string | undefined, carried: Array<[string, RawValue]>, description: string): string {
+function descriptorText(id: string, data: string, fields: Array<{ name: string; type: string; title?: string }>, key: string | undefined, carried: Array<[string, RawValue]>, description: string): string {
   const entries: Array<[string, RawValue]> = [
     ['id', string(id)],
     ['kind', string('collection')],
     ...carried,
     ['asset', string(posix.basename(data))],
-    ['fields', { type: 'structure', value: fields.map((field) => ({ name: field.name, type: field.type })) }],
+    ['fields', { type: 'structure', value: fields.map((field) => ({ name: field.name, type: field.type, ...(field.title !== undefined ? { title: field.title } : {}) })) }],
     ...(key === undefined ? [] : [['primaryKey', string(key)] as [string, RawValue]]),
   ];
   return `---\n${writeHeader(entries)}\n---\n${description}${description === '' ? '' : '\n'}`;
 }
 
 /** A TSV: one record per line, values without tabs or line ends (the IANA registration). */
-const tsv = (rows: string[][]) => rows.map((row) => row.map((value) => value.replace(/[\t\n\r]/g, ' ')).join('\t')).join('\n') + '\n';
+const tsv = (rows: string[][]) => writeRecords(rows, { delimiter: '\t', quoteChar: '"', doubleQuote: true, skipInitialSpace: false, quoting: false });
 
 /** The fields of `--field nome:tipo`, checked. */
 function checkFields(fields: Array<{ name: string; type: string }>): void {
@@ -117,26 +117,37 @@ export function planTurnInto(workspace: Workspace, tree: ResolvedTree, id: strin
   else if (tables.length > 1) throw new OperationError(`${id} ha ${tables.length} tabelle: di' quale con --line <riga>`);
   if (block === undefined) throw new OperationError(request.line === undefined ? `${id} non ha tabelle` : `alla riga ${request.line} di ${node.file} non c'è una tabella`);
 
-  const rows = (block.node as Table).children.map((row) => row.children.map((cell) => cellText(cell).trim()));
-  const names = rows[0]!;
+  const table = block.node as Table;
+  const rows = table.children.map((row) => row.children.map((cell) => cellText(cell).trim()));
+  const headings = rows[0]!;
+  // The names from the headings, as ids; the headings stay as titles.
+  const taken = new Set<string>();
+  const named = headings.map((heading, index) => fieldName(heading, index + 1, taken));
+  const names = named.map((field) => field.name);
   const records = rows.slice(1).map((row) => names.map((_, index) => row[index] ?? ''));
-  const seen = new Set<string>();
-  for (const name of names) {
-    if (name === '') throw new OperationError('una colonna non ha nome: scrivilo nella prima riga');
-    if (seen.has(name)) throw new OperationError(`la colonna ${name} è due volte`);
-    seen.add(name);
-  }
-  for (const name of [...Object.keys(request.types ?? {}), ...(request.key !== undefined ? [request.key] : [])]) {
-    if (!seen.has(name)) throw new OperationError(`la tabella non ha la colonna ${name}`);
-  }
+  // What the table loses: values are values, without Markdown, and a written alignment goes (it warns, and goes on).
+  const warnings: Array<{ code: string; target: string; message: string }> = [];
+  const formatted = table.children.flatMap((row) => row.children).filter((cell) => cell.children.some((child) => child.type !== 'text')).map((cell) => cellText(cell).trim());
+  if (formatted.length > 0) warnings.push({ code: 'turn-into-loss', target: 'formattazione', message: `le celle perdono la formattazione: ${formatted.slice(0, 5).join(', ')}${formatted.length > 5 ? ', …' : ''}` });
+  if (table.align?.some((align) => align !== null)) warnings.push({ code: 'turn-into-loss', target: 'allineamento', message: 'l\'allineamento scritto si perde: i numeri vanno a destra da soli' });
+  const longer = rows.slice(1).filter((row) => row.length > headings.length).length;
+  if (longer > 0) warnings.push({ code: 'turn-into-loss', target: 'celle in più', message: `${longer} righe hanno più celle dell'intestazione: quelle in più si perdono` });
+  /** A field named in an option: by its name, or by its heading as written. */
+  const fieldOf = (written: string) => {
+    const index = names.indexOf(written) >= 0 ? names.indexOf(written) : headings.indexOf(written);
+    if (index < 0) throw new OperationError(`la tabella non ha la colonna ${written}`);
+    return names[index]!;
+  };
+  const types = Object.fromEntries(Object.entries(request.types ?? {}).map(([written, type]) => [fieldOf(written), type]));
+  const asked = request.key === undefined ? undefined : fieldOf(request.key);
   const lang = typeof node.attributes?.lang === 'string' ? node.attributes.lang : typeof tree.document?.attributes?.lang === 'string' ? tree.document.attributes.lang : undefined;
-  const fields = names.map((name, index) => {
-    const type = request.types?.[name] ?? proposeType(records.map((record) => record[index]!), lang);
+  const fields = named.map(({ name, title }, index) => {
+    const type = types[name] ?? proposeType(records.map((record) => record[index]!), lang);
     if (!SUPPORTED_TYPES.has(type)) throw new OperationError(`il tipo ${type} non è fra: ${[...SUPPORTED_TYPES].join(', ')}`);
-    return { name, type };
+    return { name, type, ...(title !== undefined ? { title } : {}) };
   });
   // The key: the one asked, or the first column with values all written and all different.
-  const key = request.noKey ? undefined : request.key ?? names.find((_, index) => {
+  const key = request.noKey ? undefined : asked ?? names.find((_, index) => {
     const values = records.map((record) => record[index]!);
     return values.length > 0 && values.every((value) => value !== '') && new Set(values).size === values.length;
   });
@@ -169,18 +180,18 @@ export function planTurnInto(workspace: Workspace, tree: ResolvedTree, id: strin
     Object.assign(plan.summary, { id, from: node.file, file: descriptor, data });
   } else {
     // From a scratch: a new collection, and the link to it where the table was.
-    target = idFromWords(names.join(' '), takenIds(workspace, tree), 'collection');
+    target = idFromWords(headings.join(' '), takenIds(workspace, tree), 'collection');
     const descriptor = at(`${target}.collection.md`);
     const data = at(`${target}.tsv`);
     for (const file of [descriptor, data]) if (workspace.read(file) !== null) throw new OperationError(`${file} c'è già`);
     // A link, not an embed: in a scratch ![[id]] alone is embed-inline (§7.3); its text is the names of the columns.
-    const label = names.join(', ').replace(/[[\]|]/g, ' ');
+    const label = headings.join(', ').replace(/[[\]|]/g, ' ');
     plan.files.set(node.file, splice(fileShape.text, [{ start: block.start, end: block.end, insert: `[[${target}|${label}]]` }]));
     plan.files.set(descriptor, descriptorText(target, data, fields, key, [], ''));
     plan.files.set(data, tsv([names, ...values]));
     Object.assign(plan.summary, { id: target, from: node.file, file: descriptor, data });
   }
-  Object.assign(plan.summary, { fields, ...(key !== undefined ? { primaryKey: key } : {}) });
+  Object.assign(plan.summary, { fields, ...(key !== undefined ? { primaryKey: key } : {}), ...(warnings.length > 0 ? { warnings } : {}) });
   return plan;
 }
 

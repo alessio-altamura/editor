@@ -1,6 +1,7 @@
 // The collection of class 2: the schema written in its descriptor with the names of
 // Frictionless Table Schema and Table Dialect, the reading of its TSV or CSV file, the
 // typed values and the strings to show. Pure: no files, no tree.
+import { idWords } from './id-words.js';
 import { Decimal, langFormat, localize, plainString, readDecimal, roundHalfEven, type Decimal as DecimalValue } from './math-line.js';
 
 /** The types read and checked in this step; the other types of Frictionless are shown as written. */
@@ -231,6 +232,19 @@ export function readRecords(text: string, schema: Schema): { records: RawRecord[
   return { records, problems };
 }
 
+/** What a value of each type is, in the suggestions of the diagnostics. */
+export const TYPE_WORDS: Record<string, string> = {
+  string: 'un testo',
+  number: 'un numero',
+  integer: 'un intero',
+  boolean: 'vero o falso',
+  date: 'una data AAAA-MM-GG',
+  datetime: 'una data e un\'ora AAAA-MM-GGThh:mm:ss',
+  time: 'un\'ora hh:mm:ss',
+  year: 'un anno AAAA',
+  yearmonth: 'un mese AAAA-MM',
+};
+
 /** A value read: missing, of its type, or not of its type and shown as written. */
 export type Value = { missing: true } | { value: string | boolean; number?: DecimalValue } | { invalid: true };
 
@@ -300,8 +314,42 @@ export function columnDisplays(values: Array<DecimalValue | undefined>, lang: st
   const format = lang === undefined ? undefined : langFormat(lang);
   const rounded = values.map((value) => (value === undefined ? undefined : integer ? value : roundHalfEven(value, decimals)));
   const places = integer ? 0 : Math.max(0, ...rounded.map((value) => (value === undefined ? 0 : (plainString(value).split('.')[1] ?? '').length)));
-  return rounded.map((value) => (value === undefined ? '' : localize(value.isZero() ? (0).toFixed(places) : value.toFixed(places), format)));
+  const plain = rounded.map((value) => (value === undefined ? undefined : value.isZero() ? (0).toFixed(places) : value.toFixed(places)));
+  // In a column, if one value has the group separator they all have it (9.875,26 under 21.300,00); outside tables CLDR holds.
+  const grouped = format !== undefined && plain.some((text) => text !== undefined && localize(text, format) !== localize(text, { ...format, group: '' }));
+  const columnFormat = grouped ? { ...format!, minimumGroupingDigits: 1 } : format;
+  return plain.map((text) => (text === undefined ? '' : localize(text, columnFormat)));
 }
 
 /** The string to show of a value that is not a number: as written; a boolean as written too. */
 export const writtenDisplay = (written: string): string => written;
+
+/**
+ * The name of a field from its heading, as an id from the first words (§0.3):
+ * `Vendite in euro` gives `vendite-in-euro`; a name already taken gets -2, -3; an empty
+ * heading gives `campo-<n>`, its position from 1. The title is the heading as written,
+ * left out when it is the name itself.
+ */
+export function fieldName(heading: string, position: number, taken: Set<string>): { name: string; title?: string } {
+  const base = idWords(heading, 8) || `campo-${position}`;
+  let name = base;
+  for (let n = 2; taken.has(name); n++) name = `${base}-${n}`;
+  taken.add(name);
+  const title = heading.trim();
+  return title === '' || title === name ? { name } : { name, title };
+}
+
+/**
+ * A data file written by the runtime (§12): the header, then a record per line, LF and a
+ * line end at the end. A TSV has no quotes: a tab or a line end in a value becomes a
+ * space (the IANA registration). A CSV quotes a value with the delimiter, the quote or a
+ * line end, the quote doubled (RFC 4180).
+ */
+export function writeRecords(rows: string[][], dialect: Schema['dialect']): string {
+  const { delimiter, quoteChar } = dialect;
+  const value = (text: string) => {
+    if (!dialect.quoting) return text.replace(/[\t\n\r]/g, ' ').split(delimiter).join(' ');
+    return text.includes(delimiter) || text.includes(quoteChar) || /[\n\r]/.test(text) ? `${quoteChar}${text.split(quoteChar).join(quoteChar + quoteChar)}${quoteChar}` : text;
+  };
+  return rows.map((row) => row.map(value).join(delimiter)).join('\n') + '\n';
+}

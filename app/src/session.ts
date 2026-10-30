@@ -7,7 +7,8 @@ import { readAsset } from 'doc-runtime/dist/src/assets.js';
 import { CARD_SIZE, canvasCards, planArchive, planArrange, planCompose, planGather, planPlace, planRecall, readingOrder, type ArrangeBy, type CanvasGroup } from 'doc-runtime/dist/src/canvas.js';
 import { besidePlace } from 'doc-runtime/dist/src/canvas-layout.js';
 import { planTurnInto, tableAtLine } from 'doc-runtime/dist/src/collection-operations.js';
-import { formatText } from 'doc-runtime/dist/src/format.js';
+import { formatText, writeHeader } from 'doc-runtime/dist/src/format.js';
+import { parseYamlMap, splitFrontMatter, type RawValue } from 'doc-runtime/dist/src/front-matter.js';
 import { completions, definitionOf, describe, hoverAt, referenceAt, type Completion, type Position, type Range } from 'doc-runtime/dist/src/language-services.js';
 import { LiveFolder } from 'doc-runtime/dist/src/live.js';
 import { diskWorkspace, evaluate, OperationError, planCreate, planExtract, shape, write, type Plan, type Workspace } from 'doc-runtime/dist/src/operations.js';
@@ -350,6 +351,67 @@ export class Session {
     const table = tableAtLine(this.live.tree, file, this.read(file), line + 1);
     if (table === null) return { error: 'qui non c\'è una tabella di un text o di uno scratch' };
     return this.operate((workspace, tree) => planTurnInto(workspace, tree, table.id, { line: table.line }));
+  }
+
+  /** What the grid opens on: the schema as written in the descriptor, the data file and its text (the buffers hold). */
+  gridSource(path: string): { descriptor: string; data: string; extension: 'tsv' | 'csv'; fields: unknown; primaryKey?: unknown; missingValues?: unknown; dialect?: unknown; text: string; lang: string | undefined } | null {
+    const descriptor = this.safe(path);
+    const data = this.dataFile(descriptor);
+    const extension = /\.(tsv|csv)$/i.exec(data ?? '')?.[1]?.toLowerCase() as 'tsv' | 'csv' | undefined;
+    const split = splitFrontMatter(this.read(descriptor));
+    if (data === null || extension === undefined || 'error' in split || split.frontMatter === null) return null;
+    const map = parseYamlMap(split.frontMatter);
+    if ('error' in map) return null;
+    const value = (key: string) => {
+      const raw = map.entries.find(([name]) => name === key)?.[1];
+      return raw === undefined || raw.type === 'invalid' ? undefined : raw.value;
+    };
+    const node = (this.live.tree.nodes ?? []).find((each) => each.file === descriptor);
+    const lang = typeof node?.attributes?.lang === 'string' ? node.attributes.lang : typeof this.live.tree.document?.attributes?.lang === 'string' ? this.live.tree.document.attributes.lang : undefined;
+    return { descriptor, data, extension, fields: value('fields'), primaryKey: value('primaryKey'), missingValues: value('missingValues'), dialect: value('dialect'), text: this.read(data), lang };
+  }
+
+  /** The descriptor with these fields, the rest as written; a key on a field that went goes too. */
+  private gridDescriptor(descriptor: string, fields: Array<Record<string, unknown>>): string {
+    const text = this.read(descriptor);
+    const split = splitFrontMatter(text);
+    if ('error' in split || split.frontMatter === null) throw new Error(`${descriptor}: il front matter non si legge`);
+    const map = parseYamlMap(split.frontMatter);
+    if ('error' in map) throw new Error(`${descriptor}: il front matter non si legge`);
+    const names = new Set(fields.map((field) => field.name));
+    const entries: Array<[string, RawValue]> = [];
+    for (const [key, value] of map.entries) {
+      if (key === 'fields') entries.push([key, { type: 'structure', value: fields }]);
+      else if (key === 'primaryKey') {
+        const kept = (value.type === 'list' ? value.value : value.type === 'string' ? [value.value] : []).filter((name) => names.has(name));
+        if (kept.length === 1) entries.push([key, { type: 'string', value: kept[0]!, plain: true }]);
+        else if (kept.length > 1) entries.push([key, { type: 'list', value: kept }]);
+      } else entries.push([key, value]);
+    }
+    return formatText(descriptor, `---\n${writeHeader(entries)}\n---\n${split.body}`);
+  }
+
+  /** The grid not saved: the descriptor and the data hold for the tree and the preview at once, as buffers. */
+  gridEdit(path: string, fields: Array<Record<string, unknown>>, data: string): void {
+    const descriptor = this.safe(path);
+    const dataFile = this.dataFile(descriptor);
+    if (dataFile === null) throw new Error(`${descriptor} non ha un file di dati`);
+    this.live.overlay.set(descriptor, this.gridDescriptor(descriptor, fields));
+    this.live.overlay.set(dataFile, data);
+    this.live.schedule();
+  }
+
+  /** Saves the grid: the descriptor through the formatter and the data file, together. */
+  gridSave(path: string, fields: Array<Record<string, unknown>>, data: string): void {
+    const descriptor = this.safe(path);
+    const dataFile = this.dataFile(descriptor);
+    if (dataFile === null) throw new Error(`${descriptor} non ha un file di dati`);
+    const text = this.gridDescriptor(descriptor, fields);
+    this.writeAtomically(join(this.folder, dataFile), data);
+    this.writeAtomically(join(this.folder, descriptor), text);
+    this.live.overlay.delete(descriptor);
+    this.live.overlay.delete(dataFile);
+    this.live.schedule();
   }
 
   /** The data file of a collection descriptor, or null. */

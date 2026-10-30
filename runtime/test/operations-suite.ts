@@ -354,8 +354,8 @@ try {
     const turned = operateIn('turn-into', 'prezzi');
     const t = treeIn();
     if (node(t, 'prezzi')?.kind !== 'collection' || existsSync(join(base, 'prezzi.text.md'))) problems.push(`turn-into from a text: ${JSON.stringify(turned)}`);
-    if (readFileSync(join(base, 'prezzi.tsv'), 'utf8') !== 'Prodotto\tPrezzo\tPezzi\npenna\t1.5\t1200\nquaderno\t2.25\t3\n') problems.push(`the TSV: ${readFileSync(join(base, 'prezzi.tsv'), 'utf8')}`);
-    if (JSON.stringify(turned.fields) !== '[{"name":"Prodotto","type":"string"},{"name":"Prezzo","type":"number"},{"name":"Pezzi","type":"integer"}]' || turned.primaryKey !== 'Prodotto') problems.push(`types and key: ${JSON.stringify(turned)}`);
+    if (readFileSync(join(base, 'prezzi.tsv'), 'utf8') !== 'prodotto\tprezzo\tpezzi\npenna\t1.5\t1200\nquaderno\t2.25\t3\n') problems.push(`the TSV: ${readFileSync(join(base, 'prezzi.tsv'), 'utf8')}`);
+    if (JSON.stringify(turned.fields) !== '[{"name":"prodotto","type":"string","title":"Prodotto"},{"name":"prezzo","type":"number","title":"Prezzo"},{"name":"pezzi","type":"integer","title":"Pezzi"}]' || turned.primaryKey !== 'prodotto') problems.push(`types and key: ${JSON.stringify(turned)}`);
     if (!JSON.stringify(node(t, 'altro')?.content).includes('la tabella 1') && !JSON.stringify(node(t, 'rapporto')?.content).includes('"number":"')) problems.push('the embed or the cross-ref');
     if (errors(t).length !== 0) problems.push(`errors after turn-into: ${JSON.stringify(errors(t))}`);
 
@@ -369,6 +369,21 @@ try {
     const refused = runIn('turn-into', 'altri', '--key', 'a');
     if (refused.status !== 1 || !refused.stderr.includes('collection-key-duplicate') || readdirSync(base).sort().join() !== before) problems.push(`refusal: ${refused.status} ${refused.stderr}`);
     if (runIn('turn-into', 'altri', '--type', 'a:number').status !== 1) problems.push('--type a:number on text is not refused');
+
+    // The corrections: names from the headings as ids with -2 and campo-<n>, titles as written; a warning for what is lost;
+    // grouping in a column; the suggestions name the type in Italian.
+    writeFileSync(join(base, 'perdite.text.md'), front('perdite', 'text') + '| Mese | Vendite in euro | | Mese |\n|---|--:|---|---|\n| **gen** | 21.300 | x | a |\n| feb | 9.875,26 | y | b |\n');
+    const lossy = runIn('turn-into', 'perdite');
+    const lost = lossy.status === 0 ? (JSON.parse(lossy.stdout) as { fields: unknown; warnings: Array<{ code: string; target: string }> }) : null;
+    if (JSON.stringify(lost?.fields) !== '[{"name":"mese","type":"string","title":"Mese"},{"name":"vendite-in-euro","type":"number","title":"Vendite in euro"},{"name":"campo-3","type":"string"},{"name":"mese-2","type":"string","title":"Mese"}]') problems.push(`names and titles: ${lossy.stdout}`);
+    if (JSON.stringify(lost?.warnings.map((w) => `${w.code}:${w.target}`)) !== '["turn-into-loss:formattazione","turn-into-loss:allineamento"]' || !lossy.stderr.includes('avviso turn-into-loss')) problems.push(`warnings: ${lossy.stdout} ${lossy.stderr}`);
+    const grouped = JSON.stringify(node(treeIn(), 'perdite')?.content);
+    if (!grouped.includes('"21.300,00"') || !grouped.includes('"9.875,26"')) problems.push(`grouping in a column: ${grouped}`);
+    writeFileSync(join(base, 'perdite.tsv'), 'mese\tvendite-in-euro\tcampo-3\tmese-2\ngen\tventi\tx\ta\n');
+    const suggestion = (treeIn().diagnostics ?? []).find((d) => d.code === 'collection-value-invalid') as { fix?: string } | undefined;
+    if (suggestion?.fix !== 'scrivi un numero') problems.push(`the suggestion: ${JSON.stringify(suggestion)}`);
+    rmSync(join(base, 'perdite.collection.md'));
+    rmSync(join(base, 'perdite.tsv'));
 
     // rename and move, as for an image: the descriptor changes, the data file stays.
     operateIn('rename', 'prezzi', 'listino');

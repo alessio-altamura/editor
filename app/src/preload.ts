@@ -1,6 +1,7 @@
 // The preload of the window: a small API over IPC, nothing of Node reaches the page.
 import { contextBridge, ipcRenderer } from 'electron';
 import type { CanvasGroup } from 'doc-runtime/dist/src/canvas.js';
+import type { GridSource } from './grid-model.js';
 import type { CardView, Done, ObjectSource } from './session.js';
 
 type Position = { line: number; character: number };
@@ -23,6 +24,10 @@ const api = {
   tableAt: (file: string, text: string, line: number) => ipcRenderer.invoke('doc:table-at', file, text, line) as Promise<string | null>,
   turnInto: (file: string, text: string, line: number) => ipcRenderer.invoke('doc:turn-into', file, text, line) as Promise<Done>,
   dataFile: (file: string) => ipcRenderer.invoke('doc:data-file', file) as Promise<string | null>,
+  /** The grid of a collection: what it opens on, its buffer, its save. */
+  gridSource: (file: string) => ipcRenderer.invoke('doc:grid-source', file) as Promise<GridSource | null>,
+  gridEdit: (file: string, fields: Array<Record<string, unknown>>, data: string) => ipcRenderer.invoke('doc:grid-edit', file, fields, data),
+  gridSave: (file: string, fields: Array<Record<string, unknown>>, data: string) => ipcRenderer.invoke('doc:grid-save', file, fields, data),
   /** The preview of one object alone. */
   showObject: (id: string) => ipcRenderer.invoke('doc:preview-object', id),
   canvas: () => ipcRenderer.invoke('doc:canvas') as Promise<{ canvas: string | null; cards: CardView[]; groups: CanvasGroup[] }>,

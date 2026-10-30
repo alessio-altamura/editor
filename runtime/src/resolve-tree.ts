@@ -11,7 +11,7 @@ import { isAttributeLine, parseAttributeLine } from './attribute-line.js';
 import { appendChildren, element, toJsonML, type Child, type Element, type SourcePosition } from './content.js';
 import { compareCodePoints, makeDiagnostic, report, sortDiagnostics, type Diagnostic, type DiagnosticSink } from './diagnostic.js';
 import { parseYamlMap, splitFrontMatter, type RawValue } from './front-matter.js';
-import { columnDisplays, MAX_DATA_BYTES, MAX_RECORDS, readRecords, readSchema, readValue, type Field, type Value } from './collection.js';
+import { columnDisplays, MAX_DATA_BYTES, MAX_RECORDS, readRecords, readSchema, readValue, TYPE_WORDS, type Field, type Value } from './collection.js';
 import { displayString, evaluateMathLine, langFormat, plainString } from './math-line.js';
 import {
   computeStyle,
@@ -728,7 +728,7 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
         const cell = columns[index]! < 0 ? undefined : record.cells[columns[index]!];
         const value = cell === undefined ? { missing: true as const } : readValue(field, cell.text, schema);
         if ('invalid' in value) {
-          const fix = field.categories ? `usa uno di: ${field.categories.join(', ')}` : `scrivi un valore ${field.type}`;
+          const fix = field.categories ? `usa uno di: ${field.categories.join(', ')}` : `scrivi ${TYPE_WORDS[field.type] ?? 'un valore'}`;
           at('collection-value-invalid', cell!.text, fix, cell!.start, cell!.end);
         }
         values.push(value);

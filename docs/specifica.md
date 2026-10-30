@@ -3538,7 +3538,11 @@ renderer la applicano soltanto (§0.4, §0.5).
   separatori della lingua dell'oggetto. In colonna i decimali sono fissi:
   quelli del valore che ne mostra di più dopo l'arrotondamento, con gli zeri
   tenuti, così le cifre si allineano (1,50 sopra 2,25, deciso [C: «Dati e
-  `collection`»]). Un `integer` non ne ha. `--number-notation: compact` non
+  `collection`»]). Un `integer` non ne ha. Anche il separatore delle
+  migliaia vale per tutta la colonna: se un valore lo ha, secondo la regola
+  di CLDR del §0.4, lo hanno tutti, anche quelli di quattro cifre («9.875,26»
+  sotto «21.300,00», deciso [C: «Dati e `collection`»], esempio 52); fuori
+  dalle tabelle resta la regola di CLDR. `--number-notation: compact` non
   vale nelle tabelle: le forme corte non si allineano.
 - **Lo stile.** Le celle dell'intestazione hanno `font-weight: 700`, quelle
   di `number` e `integer` `text-align: right`, come dichiarazioni del
@@ -3579,13 +3583,13 @@ primaryKey: mese
 Le vendite del 2026, mese per mese.
 === file vendite-2026.tsv
 mese	euro	pezzi
-gennaio	1250.5	12
-febbraio	2.255	1300
+gennaio	21300	12
+febbraio	9875.255	1300
 marzo		7
 === resolved
 {
   "nodes": [
-    {"id": "vendite-2026", "kind": "collection", "file": "vendite-2026.collection.md", "attributes": {"asset": "vendite-2026.tsv", "fields": [{"name": "mese", "type": "string", "title": "Mese"}, {"name": "euro", "type": "number", "title": "Vendite in euro"}, {"name": "pezzi", "type": "integer"}], "primaryKey": "mese"}, "content": [["paragraph", "Le vendite del 2026, mese per mese."], ["table", {"fields": [{"name": "mese", "type": "string", "title": "Mese"}, {"name": "euro", "type": "number", "title": "Vendite in euro"}, {"name": "pezzi", "type": "integer"}]}, ["tableRow", ["tableCell", "Mese"], ["tableCell", "Vendite in euro"], ["tableCell", "pezzi"]], ["tableRow", ["tableCell", {"value": "gennaio"}, "gennaio"], ["tableCell", {"value": "1250.5"}, "1250,50"], ["tableCell", {"value": "12"}, "12"]], ["tableRow", ["tableCell", {"value": "febbraio"}, "febbraio"], ["tableCell", {"value": "2.255"}, "2,26"], ["tableCell", {"value": "1300"}, "1300"]], ["tableRow", ["tableCell", {"value": "marzo"}, "marzo"], ["tableCell", {"missing": true}], ["tableCell", {"value": "7"}, "7"]]]]}
+    {"id": "vendite-2026", "kind": "collection", "file": "vendite-2026.collection.md", "attributes": {"asset": "vendite-2026.tsv", "fields": [{"name": "mese", "type": "string", "title": "Mese"}, {"name": "euro", "type": "number", "title": "Vendite in euro"}, {"name": "pezzi", "type": "integer"}], "primaryKey": "mese"}, "content": [["paragraph", "Le vendite del 2026, mese per mese."], ["table", {"fields": [{"name": "mese", "type": "string", "title": "Mese"}, {"name": "euro", "type": "number", "title": "Vendite in euro"}, {"name": "pezzi", "type": "integer"}]}, ["tableRow", ["tableCell", "Mese"], ["tableCell", "Vendite in euro"], ["tableCell", "pezzi"]], ["tableRow", ["tableCell", {"value": "gennaio"}, "gennaio"], ["tableCell", {"value": "21300"}, "21.300,00"], ["tableCell", {"value": "12"}, "12"]], ["tableRow", ["tableCell", {"value": "febbraio"}, "febbraio"], ["tableCell", {"value": "9875.255"}, "9.875,26"], ["tableCell", {"value": "1300"}, "1300"]], ["tableRow", ["tableCell", {"value": "marzo"}, "marzo"], ["tableCell", {"missing": true}], ["tableCell", {"value": "7"}, "7"]]]]}
   ],
   "document": {"id": "doc", "file": "doc.document.md", "attributes": {"lang": "it", "specVersion": "0.1"}}
 }
@@ -3759,6 +3763,19 @@ la `<table>` dentro.
     tabella va un collegamento, `[[<id>|<nomi delle colonne>]]`: in uno
     `scratch` un `![[id]]` da solo è `embed-inline` (§7.3), e il testo del
     collegamento evita `reference-text-missing`;
+  - il `name` di ogni `field` viene dall'intestazione con le regole dell'`id`
+    (§0.3): `Vendite in euro` dà `vendite-in-euro`, e un nome già preso
+    prende `-2`, `-3`; il `title` è l'intestazione com'è scritta, omesso se
+    coincide con il `name` (deciso [C: «Dati e `collection`»]). *(proposta)*
+    Un'intestazione vuota dà `campo-<n>`, con `n` la posizione della colonna
+    da 1, e nessun `title`. `--type` e `--key` nominano un campo con il `name`
+    o con l'intestazione;
+  - ciò che la tabellina perde dà un avviso e l'operazione procede (deciso,
+    stessa voce): la formattazione nelle celle (`**rinvio**` diventa
+    `rinvio`), l'allineamento scritto, le celle oltre l'intestazione.
+    *(proposta)* Il riassunto ha `warnings`, con `code` `turn-into-loss`,
+    `target` (`formattazione`, `allineamento`, `celle in più`) e un
+    messaggio; la `cli` lo scrive anche su stderr, e l'`app` lo mostra;
   - i tipi si propongono dai valori, i vuoti esclusi: `integer`, `number`
     (letto con i separatori della lingua dell'oggetto), `boolean`, `date`,
     altrimenti `string`; la chiave è la prima colonna con i valori tutti
@@ -3777,6 +3794,37 @@ la `<table>` dentro.
 - Il `formatter` riscrive il `descriptor`, con lo `schema` in forma a blocchi
   e le chiavi di un `field` nell'ordine `name`, `type`, `title`,
   `description`, `format`; il file di dati non lo tocca mai.
+
+### 12.6 Scrivere i dati
+
+*(proposte)* Quando il `runtime` o l'`app` scrivono un file di dati (`create
+collection`, `turn-into`, la `grid` dell'`app`) la forma è una sola:
+- **la prima riga** sono i `name`, poi un `record` per riga, nell'ordine dei
+  `record`, che è l'ordine nel file; fine riga LF, e una alla fine;
+- **un TSV** non ha virgolette: una tabulazione o una fine riga dentro un
+  valore diventa uno spazio, perché il formato non le ammette e non ha escape
+  (§12.2). La `grid` le toglie già mentre si scrive, così ciò che si vede è
+  ciò che si salva. **Un CSV** mette fra virgolette, con la virgoletta
+  raddoppiata, un valore con il delimitatore, la virgoletta o una fine riga,
+  come vuole RFC 4180;
+- **i numeri** si scrivono con il segno decimale del `field` (`decimalChar`,
+  il punto se manca) e senza separatore delle migliaia: nella `grid` si
+  scrivono nella lingua del documento, «1,5» in italiano, e il file riceve
+  «1.5» (§0.4, decisione sul punto decimale del TSV [C: «Dati e
+  `collection`»]). Un numero si legge prima come lo scrive la lingua
+  («1.250,5»), poi con il punto e senza gruppi («1.5»);
+- **un valore mancante** è la stringa vuota, o il primo di `missingValues` se
+  la stringa vuota non ne fa parte;
+- **un valore che non è del suo tipo** si scrive com'è stato battuto: il file
+  resta la fonte di verità, e il valore porta `collection-value-invalid`
+  (§12.2), segnato nella `grid` e nella tabella;
+- **il `descriptor`** si riscrive insieme ai dati, dal `formatter`: i
+  `fields` nell'ordine delle colonne, con il `name` che non cambia (servirà
+  ai riferimenti), il `title` omesso se coincide con il `name`; un campo
+  nuovo ha il `name` ricavato dal `title` come in `turn-into`. Cambiare il
+  `type` toglie le chiavi che il tipo nuovo non ammette (`categories`,
+  `decimalChar`, `groupChar`, `trueValues`, `falseValues`); togliere un campo
+  lo toglie anche da `primaryKey`.
 
 ## Appendice A. Classi successive (non normativa)
 
