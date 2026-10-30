@@ -734,7 +734,13 @@ quando due rami lavorano in parallelo.
   barre degli strumenti fisse sul bordo invece che fluttuanti; documento e
   studio si tolgono. Lettura dell'orchestratore: il navigator non è una
   barra degli strumenti e resta com'è in lavagna, salvo indicazione
-  diversa.
+  diversa. Sulla domanda se il navigator vada fisso anche lui, Alessio:
+  «come il 3». Quindi il navigator è fisso come in studio: un pannello
+  accanto al canvas, non sopra, con le voci più alte e l'attiva a pillola.
+  Lettura dell'orchestratore: anche le barre fisse prendono la forma della
+  cornice di studio, superfici arrotondate separate, perché tutta la
+  cornice sia coerente; schede, ombre e sfondo a puntini restano di
+  lavagna.
 
 
 - Estensibilità: estensioni e connettori distribuiti da un marketplace, per
