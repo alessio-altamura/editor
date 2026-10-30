@@ -577,6 +577,24 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
        tutti («9.875,26» sotto «21.300,00»); la regola di CLDR, che in `it`
        raggruppa da cinque cifre, resta per i numeri fuori dalle tabelle.
     Prossimo passo, già deciso: la `grid` modificabile nell'`app`.
+    Poi, dopo la `grid` (2026-10-30, Alessio, «A, la griglia va bene così»):
+    1. Una tabella grande nell'anteprima e nelle schede del `canvas` mostra
+       solo le prime righe, con una riga finale «… altri N record»; l'HTML
+       dell'`export` e il PDF hanno la tabella intera. Proposta
+       dell'orchestratore sui numeri: 1000 righe nell'anteprima, 20 in una
+       scheda. Il motivo: con 100 000 record l'anteprima di un `article`
+       arrivava in 80 s, con ricalcoli di 8-9 s.
+    2. La `grid` va bene com'è stata proposta e fatta: si apre con la
+       `collection`, con un interruttore per il testo; nessun indirizzo di
+       cella; virgola decimale che nel file diventa punto; valori sbagliati
+       tenuti e segnati; menu delle categorie e casella per i boolean;
+       tastiera da foglio di calcolo; copia e incolla di blocchi; record e
+       campi da aggiungere, togliere e spostare; annulla e ripeti. Applicato
+       con prudenza anche alle tre scelte della sottosessione presentate
+       nello stesso messaggio: tabulazione e a capo in un valore diventano
+       spazio; cambiando tipo cadono le chiavi che il tipo nuovo non ha;
+       togliere un campo lo toglie dalla chiave. La `grid` dentro le schede
+       del `canvas` resta rimandata.
   - Creazione degli oggetti e file (2026-10-23, Alessio, «1A, 2A, 3A, 4D»):
     1. Un capoverso scritto direttamente in una `composition` resta un
        errore, con una correzione automatica, «estrai in un oggetto», che crea
@@ -698,6 +716,11 @@ quando due rami lavorano in parallelo.
   il foglio bianco. Nota dell'orchestratore: riordinare riscrive molte
   posizioni nel file del `canvas`, quindi va ripresa la proposta del layout
   a vincoli invece delle coordinate assolute, per non sporcare i diff.
+
+- L'aspetto dell'`app` va svecchiato (2026-10-30): «sembra un'app anni 80».
+  Da precisare la direzione visiva; proposta dell'orchestratore: tre
+  direzioni applicate alla stessa `app` e mostrate in immagini, poi la
+  scelta.
 
 
 - Estensibilità: estensioni e connettori distribuiti da un marketplace, per

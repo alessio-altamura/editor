@@ -478,7 +478,12 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      l'anteprima di un `article` che include una tabella di 100 000 record
      arriva in 80 s, con ricalcoli di 8-9 s; proposta della sottosessione:
      nell'anteprima solo le prime righe, la tabella intera in `export` e
-     `print`.
+     `print`. Decisa così da Alessio (contesto.md, «Dati e `collection`»,
+     «Poi, dopo la `grid`»), che ha confermato anche la `grid` com'è e ha
+     chiesto di svecchiare l'aspetto dell'`app` («sembra un'app anni 80»).
+     In corso nella stessa sottosessione: il limite di righe, il ricalcolo
+     lento di una tabella grande, e tre direzioni visive da mostrare ad
+     Alessio in immagini.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
