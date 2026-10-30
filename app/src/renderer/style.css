@@ -1,22 +1,21 @@
 /* The look of the app, not of the document: the cards and the preview keep the stylesheet
-   of the document. Three visual directions while one is chosen (DOC_APP_VARIANT, the
-   attribute data-variant of the root), each different in its layout and shapes, not only
-   in its colors: lavagna, the default (the canvas on the whole window, floating panels),
-   documento (a light sidebar, a centred sheet) and studio (rounded surfaces on a tinted
-   ground). Each has its tokens, light and dark, following the theme of the system; the
-   same commands everywhere. Inter and the icons are in assets/; Source Serif 4 comes from
-   the runtime. */
+   of the document. The direction lavagna (Alessio, 2026-10-30): the canvas on the whole
+   window under a fixed bar, the navigator a floating panel, cards without a head at rest, a
+   dotted ground. Its tokens, light and dark, follow the theme of the system; the rules use
+   only the tokens. Inter and the icons are in assets/. */
 
 @font-face { font-family: "Inter App"; src: url("fonts/InterVariable.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: block; }
 @font-face { font-family: "Inter App"; src: url("fonts/InterVariable-Italic.woff2") format("woff2"); font-weight: 100 900; font-style: italic; font-display: block; }
 
-/* ---------- Tokens ---------- */
-
-/* lavagna: a dotted board, white panels with a soft shadow, blue accent. */
+/* The tokens: a dotted board, white panels with a soft shadow, blue accent. */
 :root {
   color-scheme: light dark;
+  /* The navigator floats over the left of the board: the plane starts at its right, the
+     width of the sidebar and its gap, written out because the board reads it as a number. */
+  --board-inset-left: 272px;
   --font-ui: "Inter App", system-ui, sans-serif;
   --font-size: 13px; --font-size-small: 11.5px;
+  --bar-height: 44px; --float-gap: 12px;
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
   --radius-small: 6px; --radius-panel: 12px; --radius-card: 10px;
   --control: 30px; --icon: 16px; --sidebar-width: 260px; --row: 28px;
@@ -34,46 +33,6 @@
   --head-bg: #fafaf9; --zebra: transparent; --selection: #d9e1fb;
 }
 
-/* documento: a light sidebar without borders, bars that almost vanish, a sheet on grey. */
-:root[data-variant="documento"] {
-  --font-size: 13.5px; --font-size-small: 12px;
-  --space-1: 4px; --space-2: 8px; --space-3: 14px; --space-4: 24px;
-  --radius-small: 4px; --radius-panel: 4px; --radius-card: 4px;
-  --control: 28px; --icon: 16px; --sidebar-width: 232px; --row: 30px;
-  --ground: #f3f3f1; --panel: #fbfbfa; --surface: #ffffff; --sheet: #ffffff;
-  --text: #37352f; --muted: #67655f; --line: #e9e9e7; --field-border: #dcdbd8;
-  --hover: #efefed; --active: #ebebea; --active-text: #37352f;
-  --accent: #1a6fc4; --on-accent: #ffffff; --focus: #1a6fc4;
-  --danger: #b42318; --found: #a85a00;
-  --plane: #fdfdfc; --plane-mark: #efeeeb;
-  --card: #ffffff; --card-border: #e3e2df;
-  --shadow-card: 0 1px 2px rgb(15 15 15 / 0.04);
-  --shadow-lift: 0 3px 10px rgb(15 15 15 / 0.08);
-  --shadow-float: 0 1px 3px rgb(15 15 15 / 0.06), 0 4px 18px rgb(15 15 15 / 0.06);
-  --group-border: #d3d1cc; --group-bg: rgb(55 53 47 / 0.025);
-  --head-bg: #ffffff; --zebra: transparent; --selection: #d3e5f8;
-}
-
-/* studio: a tinted ground, rounded surfaces 8 px apart, pills. */
-:root[data-variant="studio"] {
-  --font-size: 13px; --font-size-small: 11.5px;
-  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
-  --radius-small: 8px; --radius-panel: 12px; --radius-card: 10px;
-  --control: 30px; --icon: 16px; --sidebar-width: 248px; --row: 30px;
-  --ground: #e7e5f0; --panel: #ffffff; --surface: #ffffff; --sheet: #ffffff;
-  --text: #1e1b2e; --muted: #59546e; --line: #ebe9f2; --field-border: #d8d5e4;
-  --hover: #f2f1f8; --active: #e9e8fd; --active-text: #3a38b5;
-  --accent: #5452d6; --on-accent: #ffffff; --focus: #5452d6;
-  --danger: #b42318; --found: #a85a00;
-  --plane: #fbfbfd; --plane-mark: transparent;
-  --card: #ffffff; --card-border: #e6e4ef;
-  --shadow-card: 0 1px 2px rgb(30 27 46 / 0.06);
-  --shadow-lift: 0 4px 14px rgb(30 27 46 / 0.12);
-  --shadow-float: 0 1px 2px rgb(30 27 46 / 0.05);
-  --group-border: #cfcbe0; --group-bg: rgb(84 82 214 / 0.04);
-  --head-bg: #f7f6fb; --zebra: #faf9fd; --selection: #dddcfb;
-}
-
 @media (prefers-color-scheme: dark) {
   :root {
     --ground: #161616; --panel: #222224; --surface: #2a2a2d; --sheet: #222224;
@@ -89,42 +48,16 @@
     --group-border: #4a4a4f; --group-bg: rgb(142 162 255 / 0.05);
     --head-bg: #262628; --selection: #2f3c6e;
   }
-  :root[data-variant="documento"] {
-    --ground: #141414; --panel: #1c1c1c; --surface: #252525; --sheet: #1f1f1f;
-    --text: #e6e6e5; --muted: #9b9a97; --line: #2c2c2c; --field-border: #3d3d3d;
-    --hover: #2a2a2a; --active: #2c2c2c; --active-text: #f2f2f1;
-    --accent: #5aa2e0; --on-accent: #0d1a26; --focus: #5aa2e0;
-    --danger: #ff8a80; --found: #f0a040;
-    --plane: #191919; --plane-mark: #242424;
-    --card: #202020; --card-border: #2f2f2f;
-    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4); --shadow-lift: 0 3px 12px rgb(0 0 0 / 0.5);
-    --shadow-float: 0 1px 3px rgb(0 0 0 / 0.4), 0 4px 18px rgb(0 0 0 / 0.4);
-    --group-border: #3c3c3c; --group-bg: rgb(255 255 255 / 0.02);
-    --head-bg: #1f1f1f; --selection: #1f3d5c;
-  }
-  :root[data-variant="studio"] {
-    --ground: #0f0f14; --panel: #1a1a21; --surface: #23232c; --sheet: #1a1a21;
-    --text: #e8e7ef; --muted: #a09db0; --line: #272632; --field-border: #383747;
-    --hover: #24232e; --active: #2c2b4d; --active-text: #cfceff;
-    --accent: #8f8dff; --on-accent: #12112a; --focus: #8f8dff;
-    --danger: #ff8a80; --found: #f0a040;
-    --plane: #16161c; --plane-mark: transparent;
-    --card: #1f1f27; --card-border: #2c2b37;
-    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4); --shadow-lift: 0 6px 18px rgb(0 0 0 / 0.55);
-    --shadow-float: none;
-    --group-border: #3d3b50; --group-bg: rgb(143 141 255 / 0.05);
-    --head-bg: #20202a; --zebra: #1d1d25; --selection: #34336a;
-  }
 }
 
-/* ---------- Common rules, on the tokens ---------- */
-
 html, body { margin: 0; height: 100%; font-family: var(--font-ui); font-size: var(--font-size); color: var(--text); background: var(--ground); -webkit-font-smoothing: antialiased; }
-body { display: grid; grid-template-columns: var(--sidebar-width) minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); box-sizing: border-box; }
+body { display: grid; grid-template-columns: var(--sidebar-width) minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); box-sizing: border-box; background-color: var(--plane); background-image: radial-gradient(circle, var(--plane-mark) 1px, transparent 1.3px); background-size: 18px 18px; }
 body[data-view="canvas"] #source, body[data-view="canvas"] #preview { display: none; }
 body[data-view="page"] #board { display: none; }
-#board { grid-column: 2 / 4; grid-row: 1; }
-#navigator { grid-column: 1; grid-row: 1; }
+/* The bar of each view is fixed at the top, across the whole window; the navigator floats
+   below it on the left, over the board, away from the edges; the content is on the right. */
+#board, #source { grid-column: 1 / -1; grid-row: 1; }
+#navigator { grid-column: 1; grid-row: 1; z-index: 20; margin: calc(var(--bar-height) + var(--float-gap)) 0 var(--float-gap) var(--float-gap); border-radius: var(--radius-panel); box-shadow: var(--shadow-float); border: 1px solid var(--card-border); }
 ::selection { background: var(--selection); }
 [hidden] { display: none !important; }
 
@@ -133,7 +66,7 @@ button { font: inherit; color: inherit; background: transparent; border: 1px sol
 button:hover:not(:disabled) { background: var(--hover); }
 button:disabled { opacity: 0.45; cursor: default; }
 button.icon { width: var(--control); padding: 0; }
-button svg, .kind-icon svg { width: var(--icon); height: var(--icon); flex: none; stroke-width: 1.75; }
+button svg { width: var(--icon); height: var(--icon); flex: none; stroke-width: 1.75; }
 input, select { font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--field-border); border-radius: var(--radius-small); height: var(--control); box-sizing: border-box; padding: 0 var(--space-2); }
 input::placeholder { color: var(--muted); }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
@@ -149,13 +82,11 @@ input:focus-visible, select:focus-visible { outline-offset: -1px; }
 .shelf button[aria-current="true"] { background: var(--active); color: var(--active-text); }
 .shelf button[aria-current="true"] .id { color: inherit; }
 .shelf button[data-on-canvas="true"] .title::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-right: 6px; vertical-align: middle; }
-.kind-icon { display: none; color: var(--muted); }
 
 /* The bars. */
-.bar { display: flex; align-items: center; gap: var(--space-1); box-sizing: border-box; padding: var(--space-1) var(--space-2); background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; min-height: calc(var(--control) + 10px); }
+.bar { display: flex; align-items: center; gap: var(--space-1); box-sizing: border-box; height: var(--bar-height); padding: 0 var(--space-2); background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: nowrap; overflow: hidden; }
 .bar .arrange { color: var(--muted); display: inline-flex; align-items: center; gap: 2px; }
 #file { flex: 1; min-width: 0; font-weight: 600; color: var(--muted); padding: 0 var(--space-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.file-path { display: none; }
 #notice, #page-notice { color: var(--danger); font-weight: 500; }
 #notice:not(:empty), #page-notice:not(:empty) { background: color-mix(in srgb, var(--danger) 10%, var(--panel)); border-radius: var(--radius-small); padding: 2px var(--space-2); }
 #zoom { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted); padding: 0 var(--space-1); }
@@ -163,10 +94,14 @@ input:focus-visible, select:focus-visible { outline-offset: -1px; }
 #find-count { min-width: 40px; font-variant-numeric: tabular-nums; color: var(--muted); }
 
 /* The page: the source, the editor, the preview. */
-#source { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--sheet); }
-#editor { flex: 1; min-height: 0; }
+/* The page: the bar on top, then the columns of the window: the navigator, the source, the preview. */
+#source { display: grid; grid-template-columns: var(--sidebar-width) minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: var(--bar-height) minmax(0, 1fr); min-width: 0; min-height: 0; }
+#source > .bar { grid-column: 1 / -1; grid-row: 1; }
+#editor, #grid { grid-column: 2; grid-row: 2; min-width: 0; min-height: 0; }
+/* The editor is a floating panel; the bar of the grid is fixed under the bar of the page, its table a floating panel. */
+#editor { margin: var(--float-gap); border-radius: var(--radius-panel); box-shadow: var(--shadow-float); border: 1px solid var(--card-border); overflow: hidden; }
 #editor .cm-editor { height: 100%; }
-#preview { grid-column: 3; grid-row: 1; min-width: 0; }
+#preview { grid-column: 3; grid-row: 1; min-width: 0; margin: calc(var(--bar-height) + var(--float-gap)) var(--float-gap) var(--float-gap) 0; }
 #editor .cm-editor, .card-editor .cm-editor { background: var(--sheet); color: var(--text); }
 #editor .cm-gutters, .card-editor .cm-gutters { background: var(--sheet); color: var(--muted); border-right: 1px solid var(--line); }
 #editor .cm-activeLine, #editor .cm-activeLineGutter { background: color-mix(in srgb, var(--hover) 70%, transparent); }
@@ -178,8 +113,8 @@ input:focus-visible, select:focus-visible { outline-offset: -1px; }
 .cm-diagnostic-warning { border-left: 3px solid var(--found) !important; }
 
 /* The canvas. */
-#board { display: flex; flex-direction: column; min-width: 0; min-height: 0; position: relative; }
-#viewport { position: relative; flex: 1; overflow: hidden; background-color: var(--plane); touch-action: none; cursor: default; }
+#board { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+#viewport { position: relative; flex: 1; overflow: hidden; background-color: var(--plane); background-image: radial-gradient(circle, var(--plane-mark) 1px, transparent 1.3px); background-size: 18px 18px; touch-action: none; cursor: default; }
 #plane { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
 #band { position: absolute; border: 1px solid var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); pointer-events: none; border-radius: 2px; }
 #empty { position: absolute; inset: 40% 0 auto; text-align: center; color: var(--muted); pointer-events: none; }
@@ -216,13 +151,13 @@ input:focus-visible, select:focus-visible { outline-offset: -1px; }
 #compose:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 88%, black); }
 
 /* The grid of a collection. */
-#grid { flex: 1; min-height: 0; display: flex; flex-direction: column; background: var(--sheet); }
-.grid-bar { flex: none; display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); padding: var(--space-1) var(--space-2); border-bottom: 1px solid var(--line); color: var(--muted); align-items: center; }
+#grid { display: flex; flex-direction: column; }
+.grid-bar { flex: none; display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); padding: var(--space-1) var(--space-2); background: var(--panel); border-bottom: 1px solid var(--line); color: var(--muted); align-items: center; }
 .grid-bar .grid-group { display: inline-flex; gap: 2px; align-items: center; }
 .grid-label { margin-right: var(--space-1); font-size: var(--font-size-small); }
 .grid-bar input { width: 120px; }
 .grid-status { margin-left: auto; font-variant-numeric: tabular-nums; }
-.grid-scroll { flex: 1; min-height: 0; overflow: auto; }
+.grid-scroll { flex: 1; min-height: 0; overflow: auto; margin: var(--float-gap); background: var(--sheet); border-radius: var(--radius-panel); box-shadow: var(--shadow-float); border: 1px solid var(--card-border); }
 .grid-table { position: relative; outline: none; }
 .grid-table:focus-visible .grid-cell.active { outline: 2px solid var(--focus); outline-offset: -2px; }
 .grid-head { position: sticky; top: 0; z-index: 2; display: grid; background: var(--head-bg); border-bottom: 1px solid var(--field-border); }
@@ -239,90 +174,10 @@ input:focus-visible, select:focus-visible { outline-offset: -1px; }
 .grid-cell input[type="checkbox"] { margin: 2px 0 0; height: auto; accent-color: var(--accent); }
 .grid-editor { position: absolute; z-index: 3; width: 160px; height: 28px; box-sizing: border-box; border: 2px solid var(--accent); border-radius: 0; font: inherit; padding: 2px 6px; background: var(--surface); color: var(--text); }
 
-/* ---------- lavagna: the canvas on the whole window, floating panels ---------- */
-
-:root[data-variant="lavagna"] body { background-color: var(--plane); background-image: radial-gradient(circle, var(--plane-mark) 1px, transparent 1.3px); background-size: 18px 18px; }
-:root[data-variant="lavagna"] #viewport { background-image: radial-gradient(circle, var(--plane-mark) 1px, transparent 1.3px); background-size: 18px 18px; }
-/* The board takes the whole window; the navigator floats over it, away from the edges. */
-:root[data-variant="lavagna"] body[data-view="canvas"] #board { grid-column: 1 / -1; }
-:root[data-variant="lavagna"] { --board-inset-left: 272px; }
-:root[data-variant="lavagna"] #navigator { z-index: 20; margin: 12px 0 12px 12px; border-radius: var(--radius-panel); box-shadow: var(--shadow-float); border: 1px solid var(--card-border); }
-/* The bar of the board: a pill floating at the bottom, in the middle. */
-:root[data-variant="lavagna"] #board > .bar { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 15; width: max-content; max-width: calc(100% - 40px); flex-wrap: nowrap; border: 1px solid var(--card-border); border-radius: 999px; box-shadow: var(--shadow-float); padding: 5px 10px; gap: 2px; }
-:root[data-variant="lavagna"] #board > .bar button { border-radius: 999px; }
-:root[data-variant="lavagna"] #board > .bar #find { border-radius: 999px; }
-:root[data-variant="lavagna"] #zoom { margin-left: var(--space-2); }
 /* The cards: no head at rest; it shows over the top on hover, or when the card is chosen. */
-:root[data-variant="lavagna"] .card { border-radius: 10px; }
-:root[data-variant="lavagna"] .card-head { position: absolute; top: 0; left: 0; right: 0; z-index: 2; opacity: 0; transition: opacity 120ms ease; border-bottom-color: transparent; background: color-mix(in srgb, var(--card) 88%, transparent); backdrop-filter: blur(6px); }
-:root[data-variant="lavagna"] .card:hover .card-head, :root[data-variant="lavagna"] .card.selected .card-head, :root[data-variant="lavagna"] .card:focus-within .card-head { opacity: 1; }
-:root[data-variant="lavagna"] .card.editing .card-head { position: static; opacity: 1; border-bottom-color: var(--line); }
-:root[data-variant="lavagna"] .group { border-style: solid; border-color: color-mix(in srgb, var(--group-border) 60%, transparent); }
-/* The page: the source is a floating panel too, and the preview beside it. */
-:root[data-variant="lavagna"] #source { margin: 12px; border-radius: var(--radius-panel); box-shadow: var(--shadow-float); border: 1px solid var(--card-border); overflow: hidden; }
-:root[data-variant="lavagna"] #preview { margin: 12px 12px 12px 0; }
-:root[data-variant="lavagna"] #source > .bar { border-bottom-color: var(--line); }
-:root[data-variant="lavagna"] .grid-cell { border-right-color: transparent; }
-:root[data-variant="lavagna"] .grid-heading { border-right-color: transparent; }
-:root[data-variant="lavagna"] .grid-cell.active { border-radius: 4px; }
-
-/* ---------- documento: a light sidebar, quiet bars, a sheet on grey ---------- */
-
-:root[data-variant="documento"] #navigator { padding: var(--space-3) 6px; }
-:root[data-variant="documento"] #search { background: transparent; border-color: transparent; }
-:root[data-variant="documento"] #search:hover, :root[data-variant="documento"] #search:focus { background: var(--hover); }
-:root[data-variant="documento"] .shelf h2 { text-transform: none; letter-spacing: 0; font-weight: 500; margin: var(--space-3) var(--space-2) 2px; }
-:root[data-variant="documento"] .kind-icon { display: inline-flex; }
-:root[data-variant="documento"] .shelf button { padding: 3px var(--space-2); column-gap: 8px; }
-:root[data-variant="documento"] .shelf button .id { padding-left: calc(var(--icon) + 8px); }
-:root[data-variant="documento"] .shelf button[data-on-canvas="true"] .title::before { display: none; }
-:root[data-variant="documento"] .shelf button[data-on-canvas="true"] .kind-icon { color: var(--accent); }
-/* The bars: no ground and no line, the buttons only as icons until hovered. */
-:root[data-variant="documento"] .bar { background: transparent; border-bottom-color: transparent; color: var(--muted); }
-:root[data-variant="documento"] .bar button:hover:not(:disabled) { color: var(--text); }
-:root[data-variant="documento"] #board > .bar { position: absolute; top: 0; left: 0; right: 0; z-index: 15; }
-:root[data-variant="documento"] #find { background: transparent; border-color: transparent; }
-:root[data-variant="documento"] #find:hover, :root[data-variant="documento"] #find:focus { background: var(--surface); border-color: var(--field-border); }
-/* The canvas: a light grid of lines. */
-:root[data-variant="documento"] #viewport { background-image: linear-gradient(var(--plane-mark) 1px, transparent 1px), linear-gradient(90deg, var(--plane-mark) 1px, transparent 1px); background-size: 24px 24px; }
-:root[data-variant="documento"] .card-head { background: transparent; border-bottom-color: transparent; }
-/* The page: the editor and the grid are a sheet in the middle, with wide margins, on grey. */
-:root[data-variant="documento"] #source { background: var(--ground); }
-:root[data-variant="documento"] #editor, :root[data-variant="documento"] #grid { width: calc(100% - 56px); max-width: 760px; margin: 4px auto 24px; background: var(--sheet); box-shadow: var(--shadow-float); border-radius: var(--radius-panel); overflow: hidden; }
-:root[data-variant="documento"] #grid { max-width: none; }
-:root[data-variant="documento"] #editor .cm-content { padding: 36px 8px 48px; }
-:root[data-variant="documento"] #editor .cm-gutters { border-right: none; padding-left: 16px; }
-:root[data-variant="documento"] .grid-bar { border-bottom-color: transparent; }
-:root[data-variant="documento"] .grid-head { border-bottom: 1px solid var(--line); }
-:root[data-variant="documento"] .grid-heading { border-right: none; font-weight: 500; color: var(--muted); }
-:root[data-variant="documento"] .grid-heading span:first-child { color: var(--text); }
-:root[data-variant="documento"] .grid-cell { border-right: none; }
-
-/* ---------- studio: rounded surfaces 8 px apart on a tinted ground ---------- */
-
-:root[data-variant="studio"] body { padding: 8px; gap: 8px; }
-:root[data-variant="studio"] #navigator, :root[data-variant="studio"] #source > .bar, :root[data-variant="studio"] #editor, :root[data-variant="studio"] #grid,
-:root[data-variant="studio"] #board > .bar, :root[data-variant="studio"] #viewport { background-color: var(--panel); border-radius: var(--radius-panel); border: none; overflow: hidden; }
-:root[data-variant="studio"] #viewport { background-color: var(--plane); }
-:root[data-variant="studio"] #board, :root[data-variant="studio"] #source { gap: 8px; background: transparent; }
-:root[data-variant="studio"] #source > .bar, :root[data-variant="studio"] #board > .bar { border-bottom: none; padding: 5px 8px; }
-/* The navigator: taller items, the current one as a pill. */
-:root[data-variant="studio"] .shelf button { padding: 7px 12px; border-radius: 999px; }
-:root[data-variant="studio"] .shelf button .id { display: none; }
-:root[data-variant="studio"] .shelf button[aria-current="true"] { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent); }
-:root[data-variant="studio"] #search { border-radius: 999px; background: var(--hover); border-color: transparent; }
-/* The bar shows the file as a path: kind › id. */
-:root[data-variant="studio"] .file-name { display: none; }
-:root[data-variant="studio"] .file-path { display: inline-flex; align-items: center; gap: 6px; }
-:root[data-variant="studio"] .file-path span:first-child { color: var(--muted); font-weight: 500; }
-:root[data-variant="studio"] .file-path span:first-child::after { content: "›"; margin-left: 6px; color: var(--muted); }
-:root[data-variant="studio"] .file-path span:last-child { color: var(--text); }
-:root[data-variant="studio"] .bar button { border-radius: 999px; }
-/* Thin heads on the cards. */
-:root[data-variant="studio"] .card-head { min-height: 20px; padding: 0 2px 0 8px; font-size: 10.5px; border-bottom-color: var(--line); background: var(--head-bg); }
-:root[data-variant="studio"] .card-head button { height: 18px; width: 18px; }
-:root[data-variant="studio"] .card-head button svg { width: 12px; height: 12px; }
-:root[data-variant="studio"] .grid-head { background: var(--head-bg); border-bottom: none; }
-:root[data-variant="studio"] .grid-heading { border-right: none; }
-:root[data-variant="studio"] .grid-cell { border-right: none; border-bottom-color: transparent; }
-:root[data-variant="studio"] .grid-cell.active { border-radius: 6px; }
+.card-head { position: absolute; top: 0; left: 0; right: 0; z-index: 2; opacity: 0; transition: opacity 120ms ease; border-bottom-color: transparent; background: color-mix(in srgb, var(--card) 88%, transparent); backdrop-filter: blur(6px); }
+.card:hover .card-head, .card.selected .card-head, .card:focus-within .card-head { opacity: 1; }
+.card.editing .card-head { position: static; opacity: 1; border-bottom-color: var(--line); }
+.group { border-style: solid; border-color: color-mix(in srgb, var(--group-border) 60%, transparent); }
+.grid-cell, .grid-heading { border-right-color: transparent; }
+.grid-cell.active { border-radius: 4px; }

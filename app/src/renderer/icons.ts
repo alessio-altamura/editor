@@ -4,26 +4,19 @@
 import archive from '../../assets/icons/archive.svg';
 import arrowDown from '../../assets/icons/arrow-down.svg';
 import arrowUp from '../../assets/icons/arrow-up.svg';
-import bookOpen from '../../assets/icons/book-open.svg';
 import chevronDown from '../../assets/icons/chevron-down.svg';
 import chevronUp from '../../assets/icons/chevron-up.svg';
-import file from '../../assets/icons/file.svg';
 import fileCode from '../../assets/icons/file-code.svg';
 import fileText from '../../assets/icons/file-text.svg';
 import group from '../../assets/icons/group.svg';
-import image from '../../assets/icons/image.svg';
 import layoutDashboard from '../../assets/icons/layout-dashboard.svg';
-import lightbulb from '../../assets/icons/lightbulb.svg';
 import listOrdered from '../../assets/icons/list-ordered.svg';
 import listPlus from '../../assets/icons/list-plus.svg';
-import notebookPen from '../../assets/icons/notebook-pen.svg';
-import palette from '../../assets/icons/palette.svg';
 import plus from '../../assets/icons/plus.svg';
 import redo2 from '../../assets/icons/redo-2.svg';
 import scissors from '../../assets/icons/scissors.svg';
 import tableProperties from '../../assets/icons/table-properties.svg';
 import table from '../../assets/icons/table.svg';
-import textIcon from '../../assets/icons/text.svg';
 import trash2 from '../../assets/icons/trash-2.svg';
 import undo2 from '../../assets/icons/undo-2.svg';
 
@@ -31,34 +24,21 @@ const ICONS: Record<string, string> = {
   'archive': archive,
   'arrow-down': arrowDown,
   'arrow-up': arrowUp,
-  'book-open': bookOpen,
   'chevron-down': chevronDown,
   'chevron-up': chevronUp,
-  'file': file,
   'file-code': fileCode,
   'file-text': fileText,
   'group': group,
-  'image': image,
   'layout-dashboard': layoutDashboard,
-  'lightbulb': lightbulb,
   'list-ordered': listOrdered,
   'list-plus': listPlus,
-  'notebook-pen': notebookPen,
-  'palette': palette,
   'plus': plus,
   'redo-2': redo2,
   'scissors': scissors,
   'table-properties': tableProperties,
   'table': table,
-  'text': textIcon,
   'trash-2': trash2,
   'undo-2': undo2,
-};
-
-/** The icon of a kind of object, next to it in the navigator. */
-export const KIND_ICONS: Record<string, string> = {
-  article: 'file-text', chapter: 'book-open', text: 'text', concept: 'lightbulb', collection: 'table',
-  scratch: 'notebook-pen', image: 'image', stylesheet: 'palette',
 };
 
 /** The SVG of an icon, without the license comment, hidden to screen readers. */

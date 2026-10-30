@@ -145,29 +145,19 @@ cartella: File → Apri cartella (Cmd-O). Si può anche dire da riga di comando:
   del range.
 - Il tema è quello del sistema, chiaro o scuro.
 - **L'aspetto**, solo dell'`app` (la resa del documento resta quella del suo
-  stylesheet): tre direzioni visive da scegliere, diverse nella disposizione
-  e nella forma, ciascuna con i suoi token CSS chiari e scuri in
-  `src/renderer/style.css`, con le stesse funzioni:
-  - «lavagna», il default: il `canvas` occupa tutta la finestra, la barra
-    del foglio è una pillola fluttuante in basso al centro, il `navigator`
-    un pannello fluttuante a sinistra (il piano parte alla sua destra); le
-    schede mostrano l'intestazione solo al passaggio del mouse o se scelte;
-    nella pagina il sorgente e la griglia sono un pannello fluttuante, e
-    l'anteprima ha margine e angoli arrotondati;
-  - «documento»: barra laterale stretta e chiara, senza bordi, un'icona per
-    tipo accanto alle voci, sezioni in minuscolo, barre trasparenti; nella
-    pagina l'editor e la griglia sono un foglio centrato su un fondo grigio;
-    il `canvas` ha una griglia a linee;
-  - «studio»: fondo tinto, superfici arrotondate separate da 8 px; la barra
-    mostra il file come percorso (tipo › id), le voci del `navigator` sono
-    più alte con quella attiva a pillola, le intestazioni delle schede
-    sottili; l'anteprima ha margine e angoli arrotondati.
-  La variabile d'ambiente temporanea `DOC_APP_VARIANT=lavagna|documento|studio`
-  sceglie la direzione; scelta una, le altre due si tolgono. I pulsanti
-  comuni hanno un'icona di Lucide, con tooltip e `aria-label`; il testo dei
-  token rispetta il contrasto WCAG AA (almeno 4,5:1) in tutte e sei le
-  tavolozze, controllato dai test di unità. Font e icone sono in `assets/`,
-  con versione e sha256 (`assets/README.md`), incorporati senza CDN.
+  stylesheet), la direzione «lavagna»: in ogni vista la barra degli
+  strumenti è fissa in cima, a tutta larghezza; sotto, il `navigator` è un
+  pannello fluttuante a sinistra, staccato dai bordi, sopra il `canvas` che
+  occupa il resto della finestra (il piano parte alla sua destra). Le schede
+  mostrano l'intestazione solo al passaggio del mouse o se scelte, con angoli
+  di 10 px, ombra morbida e uno sfondo a puntini. Nella pagina l'editor è un
+  pannello fluttuante; la barra della griglia è fissa sotto quella della
+  pagina, e la tabella un pannello; l'anteprima ha margine e angoli
+  arrotondati. I token CSS, chiari e scuri, sono in `src/renderer/style.css`;
+  il testo rispetta il contrasto WCAG AA (almeno 4,5:1), controllato dai test
+  di unità. I pulsanti comuni hanno un'icona di Lucide, con tooltip e
+  `aria-label`. Font e icone sono in `assets/`, con versione e sha256
+  (`assets/README.md`), incorporati senza CDN.
 
 ## Sicurezza
 
@@ -202,14 +192,7 @@ l'app, il suo testo si perde.
 ```
 npm test            # le funzioni dietro l'IPC, senza Electron
 npm run test:e2e    # end to end, con l'Electron del pacchetto e playwright-core
-npm run test:variants  # le tre direzioni visive si aprono senza errori
 ```
-
-`npm run test:variants` apre l'`app` con ciascuna direzione e controlla
-che non ci siano errori nella console, che ci siano i token, Inter e le
-icone con la loro etichetta. Con `VARIANT_SCREENSHOTS=<cartella>` salva
-anche, in chiaro e in scuro, le immagini del `canvas`, della pagina e della
-griglia (la finestra, senza la vista dell'anteprima).
 
 `npm run measure:grid` apre una `collection` di 100 000 `record` e stampa
 i tempi di apertura, di scorrimento, della modifica di una cella e
@@ -222,7 +205,7 @@ ricalcoli di 0,4-0,7 s (prima del taglio: 61-80 s, con ricalcoli di 7-9 s).
 Su Linux l'end to end gira sulla piattaforma headless di Chromium, senza
 schermo e senza `xvfb`; `node dist-test/e2e.js` da solo va bene dopo
 `npm run build`, che gli script npm fanno prima. L'end to end apre
-l'app su una cartella di prova, sul `canvas`: scrive due testi con un doppio
+l'app su una cartella di prova, sul `canvas`, controlla che Inter sia caricato e che ogni icona abbia la sua etichetta; scrive due testi con un doppio
 clic, ne modifica uno nella scheda e lo apre da solo nella pagina con un
 doppio clic, sposta l'altro, lo archivia e lo richiama trascinandolo dal
 `navigator`; trascina di nuovo l'altro per avere una sua seconda scheda, ci
@@ -261,7 +244,7 @@ end che fallisce salva anche l'immagine della finestra.
 - `src/offset.ts`: dove va il cursore dopo il formatter.
 - `src/grid-model.ts`: il modello della griglia, senza DOM (valori, incolla,
   `record` e campi, annulla); `src/renderer/grid.ts`: la sua vista.
-- `src/renderer/style.css`: i token delle tre direzioni e le regole;
+- `src/renderer/style.css`: i token e le regole dell'aspetto;
   `src/renderer/icons.ts`: le icone, dai file di `assets/icons`.
 
 Dipendenze, con versione esatta: CodeMirror 6 (`@codemirror/state` 6.7.6,

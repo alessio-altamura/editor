@@ -54,10 +54,16 @@ try {
   main.on('console', (message) => message.type() === 'error' && problems.push(`console: ${message.text()}`));
   main.on('pageerror', (error) => problems.push(`page error: ${error.message}`));
   await main.waitForSelector('#shelves button[data-id="nota"]');
+  // The look of the app: Inter loaded, the icons of the buttons each with its label.
+  const look = await main.evaluate(async () => {
+    await document.fonts.ready;
+    return { inter: document.fonts.check('13px "Inter App"'), icons: document.querySelectorAll('button[data-icon] svg').length, unlabelled: document.querySelectorAll('button[data-icon]:not([aria-label])').length };
+  });
+  if (!look.inter || look.icons < 5 || look.unlabelled > 0) problems.push(`the look: ${JSON.stringify(look)}`);
 
   // The canvas, at the opening: empty, the document has no canvas file yet.
   const box = (await main.locator('#viewport').boundingBox())!;
-  // A navigator floating over the board (the direction lavagna) moves the start of the plane by its width.
+  // The navigator floats over the board: the plane starts at its right, by its width.
   const inset = await main.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--board-inset-left')) || 0);
   const at = (x: number, y: number) => ({ x: box.x + inset + x, y: box.y + y });
   const canvasFile = () => JSON.parse(readFileSync(join(folder, 'foglio.canvas'), 'utf8')) as { nodes: Array<{ file: string; subpath?: string; x: number; y: number }> };

@@ -17,9 +17,6 @@ commit e3a3d4c57d5e, cartella `docs/font-files`.
 | `InterVariable-Italic.woff2` | 387976 | e564f652916db6c139570fefb9524a77c4d48f30c92928de9db19b6b5c7a262a |
 | `InterVariable.woff2` | 352240 | 693b77d4f32ee9b8bfc995589b5fad5e99adf2832738661f5402f9978429a8e3 |
 
-La direzione «carta» usa per i titoli dell'interfaccia Source Serif 4, già
-nel `runtime`.
-
 ## Icone Lucide
 
 Le icone di Lucide 1.65.0, licenza ISC (`icons/LICENSE`, dal pacchetto),
@@ -33,26 +30,19 @@ incorpora nel suo script (`src/renderer/icons.ts`).
 | `archive.svg` | f7242055f3e1c90e7c56f48994fc189bf9642b6bff0d38760f14f29abe207a08 |
 | `arrow-down.svg` | 1f8adf3fd72b04e8f3dbf75a5e8028f7c074ed6e18cd91ec022fd12596a2f25e |
 | `arrow-up.svg` | 130624b17353a284d3902d250ae5e06eeb94a03cb83b3bd7abc44993824f7891 |
-| `book-open.svg` | ff570004c143a5214740de71ba95e516d4c5e957dcdfb0181588df8d155bd63f |
 | `chevron-down.svg` | 21afe74b7ce0cbfcce3521bbfeeebca21eb8448c87c85954f0c054fda13c3993 |
 | `chevron-up.svg` | 3cd3475a93afe2ba93bb376cfd9d9aff3a0036758620b75012649060def8638d |
 | `file-code.svg` | ccd16fc79d95cfffc44450e40e180f883da6ca9b56deac15b8a335d2511e83a2 |
 | `file-text.svg` | 45f8ab57d5fa01c906cc47bdf7cc420cb4b2258895e8914af3e7d858a3c3ff2a |
-| `file.svg` | 3820dc341b54d34a2594185f9c4289a2b4a1fd8e487b22cd86c4a66234d9a994 |
 | `group.svg` | c736350735792cce815fabb9664a127d2dfd6d495992a1e576b283ac31d98d01 |
-| `image.svg` | c45072187fa18888934d87300563cea5352d1c9710f13b85dfdb42be523dd069 |
 | `layout-dashboard.svg` | a142b65b57f7b07befc153e1352ff6b5baad0746b962bb1fd176d9df006ba018 |
-| `lightbulb.svg` | 877aac23a9ebfa904f69e4ea2e071a93f3c7a89fa92e0132374e2e574e752599 |
 | `list-ordered.svg` | e5c7bd4a48b38f520d5acdc63270bb91e6b00243e0a05e2a945e6627eb9f0b76 |
 | `list-plus.svg` | b5401d4631b79100b073a969802946f48f587925f426094c70126cfd8d124997 |
-| `notebook-pen.svg` | cc368dfaeb44d97b26d6d2b5498218cad8b3591069a8cfb85b39af476b52873c |
-| `palette.svg` | 675ce98d078f187be2ecfba8bd5134d7af7311f4763e537f4b5627aa40f51d62 |
 | `plus.svg` | 13b0e35b27b768f864a1b5d6128f77b289b3e190a964a4110e48791fb77e83c7 |
 | `redo-2.svg` | c8f08b9314f6a7de7d918cbc4b96175c5cf8ed98983581cedfb171a720ff2ab8 |
 | `scissors.svg` | d94ac0b5544de02bdc0e0b9310da058941c937eb552acf66c01fda178ebc58fd |
 | `table-properties.svg` | 0751c99b1287379b6529cfa3be05a2d5e4b31b688552ffeff92fa1c814bc8d74 |
 | `table.svg` | aff672ae047ff2a58a2c60a3c4b38c103e7c6c2e6f60bc6443e1313c4c7daeef |
-| `text.svg` | 71d2abc07ed92f6753e88da0eb10d041cd199860fed00cb37feab9404c19abec |
 | `trash-2.svg` | 01f42022d441255477325bcfc5c8839f2ee0ce7f100b7e3df050ae1c70275bfc |
 | `undo-2.svg` | 0c448c128c77d8081df56f07161b8d130181aee027de47d00d9d906869155320 |
 
