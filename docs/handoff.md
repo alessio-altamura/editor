@@ -460,10 +460,25 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      Le prime tre sono decise (contesto.md, stessa voce, «Poi, dopo la
      verifica del primo passo»): avviso e si procede; `name` ricavato come
      l'`id` e `title` uguale all'intestazione; in colonna il separatore
-     delle migliaia o in tutti i valori o in nessuno. In corso, affidati
-     alla stessa sottosessione: queste correzioni, i due difetti minori e
-     la `grid` modificabile, con le proposte dell'orchestratore sul suo
-     comportamento da confermare con Alessio.
+     delle migliaia o in tutti i valori o in nessuno. Fatte, con i due
+     difetti minori, e c'è la `grid` modificabile (unita il 2026-10-30;
+     specifica §12.6 «Scrivere i dati», README dell'app): si apre con la
+     collection, interruttore «Testo»/«Griglia», virgola decimale che nel
+     file diventa punto, valori sbagliati tenuti e segnati, menu delle
+     categorie, casella per i boolean, tastiera da foglio di calcolo, copia
+     e incolla di blocchi TSV, record e campi da aggiungere, togliere e
+     spostare, annulla e ripeti, salvataggio con il flusso dell'editor.
+     Il comportamento è una proposta dell'orchestratore, da confermare con
+     Alessio. Scelte della sottosessione: tabulazione e a capo in un valore
+     diventano spazio; cambiando tipo cadono le chiavi che il tipo nuovo non
+     ha; togliere un campo lo toglie da primaryKey. Rimandata la grid dentro
+     le schede del canvas. Misura con 100 000 record (`npm run
+     measure:grid` in app/, ripetuta dall'orchestratore): apertura 1,6 s,
+     scorrimento 18 ms per frame (peggiore 32), modifica 0,3 s. Aperto:
+     l'anteprima di un `article` che include una tabella di 100 000 record
+     arriva in 80 s, con ricalcoli di 8-9 s; proposta della sottosessione:
+     nell'anteprima solo le prime righe, la tabella intera in `export` e
+     `print`.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
