@@ -338,3 +338,18 @@ export function fieldName(heading: string, position: number, taken: Set<string>)
   const title = heading.trim();
   return title === '' || title === name ? { name } : { name, title };
 }
+
+/**
+ * A data file written by the runtime (§12): the header, then a record per line, LF and a
+ * line end at the end. A TSV has no quotes: a tab or a line end in a value becomes a
+ * space (the IANA registration). A CSV quotes a value with the delimiter, the quote or a
+ * line end, the quote doubled (RFC 4180).
+ */
+export function writeRecords(rows: string[][], dialect: Schema['dialect']): string {
+  const { delimiter, quoteChar } = dialect;
+  const value = (text: string) => {
+    if (!dialect.quoting) return text.replace(/[\t\n\r]/g, ' ').split(delimiter).join(' ');
+    return text.includes(delimiter) || text.includes(quoteChar) || /[\n\r]/.test(text) ? `${quoteChar}${text.split(quoteChar).join(quoteChar + quoteChar)}${quoteChar}` : text;
+  };
+  return rows.map((row) => row.map(value).join(delimiter)).join('\n') + '\n';
+}

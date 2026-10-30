@@ -2,6 +2,7 @@
 // and where the cursor goes after the formatter.
 import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { GridModel } from '../src/grid-model.js';
 import { mapOffset } from '../src/offset.js';
 import { Session } from '../src/session.js';
 import { PRICES, SALES, SALES_TSV, writeFixture } from './fixture.js';
@@ -205,6 +206,44 @@ try {
     const turned = session.turnInto('prezzi.text.md', text, 6);
     if (turned.error || turned.summary?.file !== 'prezzi.collection.md' || readFileSync(join(folder, 'prezzi.tsv'), 'utf8') !== 'prodotto\tprezzo\npenna\t1.5\nquaderno\t2.25\n') problems.push(`turnInto ${JSON.stringify(turned)}`);
     check('collections: data file, card with the table, diagnostics in the TSV, «Trasforma in collection»', problems);
+  }
+  {
+    // The model of the grid: edit in Italian, paste a block, records and fields added, removed and moved, undo and redo.
+    const problems: string[] = [];
+    const grid = new GridModel({
+      descriptor: 'vendite.collection.md', data: 'vendite.tsv', extension: 'tsv', lang: 'it',
+      fields: [{ name: 'mese', type: 'string', title: 'Mese' }, { name: 'vendite', type: 'number' }, { name: 'pezzi', type: 'integer' }, { name: 'stato', type: 'string', categories: ['aperto', 'chiuso'] }],
+      primaryKey: 'mese',
+      text: 'mese\tvendite\tpezzi\tstato\ngennaio\t1250.5\t12\taperto\nfebbraio\t2.255\t1300\tchiuso\n',
+    });
+    if (grid.heading(0) !== 'Mese' || grid.type(1) !== 'number' || grid.display(0, 1) !== '1250,50' || grid.editText(0, 1) !== '1250,5') problems.push(`reading: ${grid.heading(0)} ${grid.display(0, 1)} ${grid.editText(0, 1)}`);
+    grid.setCell(0, 1, grid.fileValue(1, '1,5'));
+    if (grid.records[0]![1] !== '1.5' || grid.display(0, 1) !== '1,50' || !grid.dirty) problems.push(`1,5 in Italian: ${grid.records[0]![1]} ${grid.display(0, 1)}`);
+    grid.setCell(1, 2, grid.fileValue(2, 'molti'));
+    if (grid.state(1, 2) !== 'invalid' || grid.records[1]![2] !== 'molti') problems.push('a value not of its type is kept and marked');
+    grid.setCell(0, 3, 'sospeso');
+    if (grid.state(0, 3) !== 'invalid') problems.push('a value outside the categories');
+    const pasted = grid.paste(1, 1, '3,25\t7\taperto\n4\t8\tchiuso\n');
+    if (pasted.rows !== 2 || grid.records.length !== 3 || grid.records[2]!.join('|') !== '|4|8|chiuso' || grid.records[1]![1] !== '3.25') problems.push(`paste: ${JSON.stringify(grid.records)}`);
+    if (grid.copy(1, 1, 2, 2) !== '3,25\t7\n4\t8\n') problems.push(`copy: ${JSON.stringify(grid.copy(1, 1, 2, 2))}`);
+    grid.insertRecord(1);
+    grid.moveRecord(0, 1);
+    if (grid.records[1]![0] !== 'gennaio' || grid.records[0]!.join('') !== '') problems.push(`insert and move: ${JSON.stringify(grid.records)}`);
+    grid.removeRecord(0);
+    const name = grid.addField('Vendite in euro', 'number');
+    grid.setField(0, 'title', 'Il mese');
+    grid.setField(3, 'type', 'string');
+    if (name !== 'vendite-in-euro' || JSON.stringify(grid.descriptorFields()) !== '[{"name":"mese","type":"string","title":"Il mese"},{"name":"vendite","type":"number"},{"name":"pezzi","type":"integer"},{"name":"stato","type":"string","categories":["aperto","chiuso"]},{"name":"vendite-in-euro","type":"number","title":"Vendite in euro"}]') problems.push(`fields: ${JSON.stringify(grid.descriptorFields())}`);
+    grid.removeField(2);
+    if (grid.dataText() !== 'mese\tvendite\tstato\tvendite-in-euro\ngennaio\t1.5\tsospeso\t\nfebbraio\t3.25\taperto\t\n\t4\tchiuso\t\n') problems.push(`the TSV: ${JSON.stringify(grid.dataText())}`);
+    // Undo everything back to the file as read, then redo one step.
+    while (grid.undo()) { /* back to the start */ }
+    if (grid.dataText() !== 'mese\tvendite\tpezzi\tstato\ngennaio\t1250.5\t12\taperto\nfebbraio\t2.255\t1300\tchiuso\n' || grid.dirty) problems.push(`undo: ${JSON.stringify(grid.dataText())}`);
+    grid.redo();
+    if (grid.records[0]![1] !== '1.5') problems.push('redo');
+    grid.setCell(0, 0, 'tab\tin un valore');
+    if (grid.records[0]![0] !== 'tab\tin un valore' || !grid.dataText().includes('tab in un valore')) problems.push('a tab in a value is written as a space');
+    check('the model of the grid: edit, paste, copy, records, fields, undo', problems);
   }
 } finally {
   await session.close();

@@ -5,7 +5,8 @@
 // Back on the canvas: a search brings the view to a card, «+» writes a text next to a card,
 // «Raccogli» brings the article near, «Metti in ordine per tipo» makes the groups, a collection
 // shows its table on a card. In the page, a click on a record of the table opens the TSV at its
-// line, and «Trasforma in collection» turns a text table into a collection.
+// line, and «Trasforma in collection» turns a text table into a collection. The grid of a
+// collection: a number in Italian saved with the point, a block pasted, a field added, a wrong value marked.
 // Then, in the page, a line typed in the editor reaches the preview, and a click on the
 // preview brings the editor to the line where the element is written; changes not saved
 // are asked about before changing file and before closing. On Linux it runs on the
@@ -248,6 +249,41 @@ try {
   await page.click('[data-node="nota"] p');
   await main.waitForFunction(() => window.docAppState?.file === 'nota.text.md' && window.docAppState.line === 5, undefined, { timeout: 5000 })
     .catch(async () => problems.push(`the click on the paragraph: ${JSON.stringify(await main.evaluate(() => ({ ...window.docAppState, text: undefined })))}`));
+  // The grid of a collection: «1,5» in a number field becomes 1.5 in the TSV, the preview follows; a block pasted, a field added, a wrong value marked.
+  await main.click('#shelves button[data-id="vendite"]');
+  await main.waitForSelector('#grid .grid-cell[data-row="0"][data-column="1"]', { timeout: 5000 });
+  if ((await main.evaluate(() => window.docAppState.mode)) !== 'grid') problems.push('a collection does not open in the grid');
+  await main.click('#grid .grid-cell[data-row="0"][data-column="1"]');
+  await main.keyboard.press('Enter');
+  await main.waitForSelector('#grid .grid-editor');
+  await main.keyboard.press('Control+A');
+  await main.keyboard.type('1,5');
+  await main.keyboard.press('Enter');
+  const shown = await main.textContent('#grid .grid-cell[data-row="0"][data-column="1"]');
+  if (shown !== '1,50') problems.push(`the cell shows ${shown}`);
+  await page.waitForFunction(() => [...document.querySelectorAll('[data-node="vendite"] td')].some((td) => td.textContent === '1,50'), undefined, { timeout: 5000 })
+    .catch(() => problems.push('the preview did not follow the grid'));
+  // A block of 2 records and 3 values from a spreadsheet, from the third record: the fourth is added.
+  await app.evaluate(({ clipboard }) => clipboard.writeText('aprile\t3,25\t9\nmaggio\t4\t10\n'));
+  await main.click('#grid .grid-cell[data-row="2"][data-column="0"]');
+  await main.keyboard.press('Control+V');
+  await main.waitForSelector('#grid .grid-cell[data-row="3"][data-column="0"]', { timeout: 5000 })
+    .catch(() => problems.push('the paste did not add a record'));
+  // A field added, and a value that is not an integer, kept and marked.
+  await main.fill('#grid .new-title', 'Note del mese');
+  await main.click('#grid button[data-do="add-field"]');
+  await main.waitForFunction(() => [...document.querySelectorAll('#grid .grid-heading')].some((cell) => cell.textContent?.startsWith('Note del mese')), undefined, { timeout: 5000 })
+    .catch(() => problems.push('the field was not added'));
+  await main.click('#grid .grid-cell[data-row="1"][data-column="2"]');
+  await main.keyboard.type('molti');
+  await main.keyboard.press('Enter');
+  if ((await main.getAttribute('#grid .grid-cell[data-row="1"][data-column="2"]', 'aria-invalid')) !== 'true') problems.push('the wrong value is not marked');
+  await main.keyboard.press('Control+S');
+  await main.waitForFunction(() => !document.title.includes('*'), undefined, { timeout: 500 }).catch(() => undefined);
+  await new Promise((r) => setTimeout(r, 500));
+  const tsv = readFileSync(join(folder, 'vendite.tsv'), 'utf8');
+  if (tsv !== 'mese\tvendite\tpezzi\tnote-del-mese\ngennaio\t1.5\t12\t\nfebbraio\t2.255\tmolti\t\naprile\t3.25\t9\t\nmaggio\t4\t10\t\n') problems.push(`the TSV saved: ${JSON.stringify(tsv)}`);
+  if (!readFileSync(join(folder, 'vendite.collection.md'), 'utf8').includes('  - name: note-del-mese\n    type: string\n    title: Note del mese\n')) problems.push(`the descriptor: ${readFileSync(join(folder, 'vendite.collection.md'), 'utf8')}`);
   // The table of the collection in the preview: a click on a record opens the TSV at its line.
   await page.click('[data-node="vendite"] tbody tr:nth-child(2) td');
   await main.waitForFunction(() => window.docAppState?.file === 'vendite.tsv' && window.docAppState.line === 2, undefined, { timeout: 5000 })

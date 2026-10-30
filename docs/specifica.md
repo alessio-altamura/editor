@@ -3795,6 +3795,37 @@ la `<table>` dentro.
   e le chiavi di un `field` nell'ordine `name`, `type`, `title`,
   `description`, `format`; il file di dati non lo tocca mai.
 
+### 12.6 Scrivere i dati
+
+*(proposte)* Quando il `runtime` o l'`app` scrivono un file di dati (`create
+collection`, `turn-into`, la `grid` dell'`app`) la forma è una sola:
+- **la prima riga** sono i `name`, poi un `record` per riga, nell'ordine dei
+  `record`, che è l'ordine nel file; fine riga LF, e una alla fine;
+- **un TSV** non ha virgolette: una tabulazione o una fine riga dentro un
+  valore diventa uno spazio, perché il formato non le ammette e non ha escape
+  (§12.2). La `grid` le toglie già mentre si scrive, così ciò che si vede è
+  ciò che si salva. **Un CSV** mette fra virgolette, con la virgoletta
+  raddoppiata, un valore con il delimitatore, la virgoletta o una fine riga,
+  come vuole RFC 4180;
+- **i numeri** si scrivono con il segno decimale del `field` (`decimalChar`,
+  il punto se manca) e senza separatore delle migliaia: nella `grid` si
+  scrivono nella lingua del documento, «1,5» in italiano, e il file riceve
+  «1.5» (§0.4, decisione sul punto decimale del TSV [C: «Dati e
+  `collection`»]). Un numero si legge prima come lo scrive la lingua
+  («1.250,5»), poi con il punto e senza gruppi («1.5»);
+- **un valore mancante** è la stringa vuota, o il primo di `missingValues` se
+  la stringa vuota non ne fa parte;
+- **un valore che non è del suo tipo** si scrive com'è stato battuto: il file
+  resta la fonte di verità, e il valore porta `collection-value-invalid`
+  (§12.2), segnato nella `grid` e nella tabella;
+- **il `descriptor`** si riscrive insieme ai dati, dal `formatter`: i
+  `fields` nell'ordine delle colonne, con il `name` che non cambia (servirà
+  ai riferimenti), il `title` omesso se coincide con il `name`; un campo
+  nuovo ha il `name` ricavato dal `title` come in `turn-into`. Cambiare il
+  `type` toglie le chiavi che il tipo nuovo non ammette (`categories`,
+  `decimalChar`, `groupChar`, `trueValues`, `falseValues`); togliere un campo
+  lo toglie anche da `primaryKey`.
+
 ## Appendice A. Classi successive (non normativa)
 
 Dove si aggancerà ciascuna al `core`.

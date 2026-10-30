@@ -30,6 +30,6 @@ export function writeFixture(options: { collection?: boolean } = {}): string {
 
 declare global {
   interface Window {
-    docAppState: { file: string | null; line: number; character: number; text: string; view: 'canvas' | 'page' };
+    docAppState: { file: string | null; line: number; character: number; text: string; view: 'canvas' | 'page'; mode: 'text' | 'grid' };
   }
 }

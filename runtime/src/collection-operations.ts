@@ -4,7 +4,7 @@
 import { posix } from 'node:path';
 import type { Nodes, Table } from 'mdast';
 import { retargetCanvas } from './canvas.js';
-import { fieldName, readValue, SUPPORTED_TYPES, type Field, type Schema } from './collection.js';
+import { fieldName, readValue, SUPPORTED_TYPES, writeRecords, type Field, type Schema } from './collection.js';
 import type { RawValue } from './front-matter.js';
 import { writeHeader } from './format.js';
 import { langFormat, plainString, readDecimal } from './math-line.js';
@@ -27,7 +27,7 @@ function descriptorText(id: string, data: string, fields: Array<{ name: string; 
 }
 
 /** A TSV: one record per line, values without tabs or line ends (the IANA registration). */
-const tsv = (rows: string[][]) => rows.map((row) => row.map((value) => value.replace(/[\t\n\r]/g, ' ')).join('\t')).join('\n') + '\n';
+const tsv = (rows: string[][]) => writeRecords(rows, { delimiter: '\t', quoteChar: '"', doubleQuote: true, skipInitialSpace: false, quoting: false });
 
 /** The fields of `--field nome:tipo`, checked. */
 function checkFields(fields: Array<{ name: string; type: string }>): void {
