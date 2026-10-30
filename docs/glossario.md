@@ -184,6 +184,9 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `compose` | comporre | `operation` che fa di alcuni oggetti scelti sul `canvas` una `composition` nel loro `reading order`, per ora un `article` | proposto | sequence, assemble |
 | `place` | posizionare | `operation` che mette o sposta la `card` di un oggetto sul `canvas`, alle coordinate date; move resta lo spostamento fra file | proposto | position, drag |
 | `card` | scheda | Un oggetto visto sul `canvas`: mostra l'oggetto come apparirà, e un clic apre il `source` nella scheda | proposto | tile, node |
+| `canvas group` | gruppo del foglio | Riquadro con un'etichetta che contiene delle `card` sul `canvas`; è il nodo group di JSON Canvas (2026-10-30) | proposto | frame, section |
+| `arrange` | mettere in ordine | `operation` che dispone le `card` del `canvas` in un `canvas group` per `kind` o per tag, in griglia (2026-10-30) | proposto | sort, tidy |
+| `gather` | raccogliere | `operation` che porta vicino a una `card` gli oggetti legati a lei: collegamenti, inclusioni, `association` (2026-10-30) | proposto | cluster, collect |
 | `isolate` | vedere da solo | Aprire un oggetto da solo nella sua vista naturale | concetto deciso, nome proposto | focus, zoom |
 | `duplicate` | duplicare | Azione esplicita che crea una copia indipendente | concetto deciso, nome proposto | copy |
 | `create` | creare | `operation` che crea un `object`, con l'`id` ricavato dalle prime parole e modificabile (deciso il 2026-10-23); nella `cli` è il comando create | concetto deciso, nome proposto | new, add |
