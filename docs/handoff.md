@@ -430,10 +430,34 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      `<id>.collection.md`, file di dati TSV creati dal `runtime` (CSV letti),
      chiave facoltativa, ID dei `record` solo quando servono, forma lunga
      con `dimension` e `pivot` rimandati ai grafici, numeri a decimali fissi
-     in colonna. Primo passo affidato alla sottosessione
-     session_01ToMUkc2ntsAgupUkrNCYxV: lettura e controlli, resa
-     dappertutto, `create` e `turn into` da `text table`; la `grid`
-     modificabile al passo dopo.
+     in colonna. Il primo passo c'è (unito il 2026-10-30, fa72cc1; la
+     sottosessione session_01ToMUkc2ntsAgupUkrNCYxV): specifica §12 con
+     gli esempi 52-55 (conf=2), lettura di TSV e CSV con i `diagnostic`
+     collection-* nel file di dati, la tabella nell'albero (table, tableRow,
+     tableCell, ogni cella con `value` e la stringa da mostrare), nell'HTML,
+     nel PDF, nell'anteprima e nelle schede; `create collection --field`,
+     `turn-into` da un text o da uno scratch, anche come azione
+     nell'editor; nell'`app` uno shelf, il pulsante «Dati» che apre il TSV
+     con le tabulazioni visibili, e il clic su una riga dell'anteprima che
+     porta alla riga del TSV. La descrizione sta in un caption nascosto,
+     per gli screen reader. Limiti: 16 MiB e 100 000 record per file.
+     Una collection non entra in un multi-object file. Visto nella
+     verifica, da decidere o sistemare:
+     - `turn-into` perde in silenzio la formattazione nelle celle
+       («**rinvio**» diventa «rinvio») e l'allineamento scritto nella
+       tabellina; si vede solo nel diff di `--dry-run`;
+     - i `name` dei campi sono le intestazioni come scritte («Mese»), senza
+       un `title` a parte;
+     - in `it` le migliaia si raggruppano da cinque cifre (CLDR), quindi
+       nella stessa colonna «9875,26» sta sotto «21.300,00»;
+     - la descrizione non arriva nel PDF: servirebbe un PDF con i tag;
+     - nel TSV le colonne non si allineano quando un valore è lungo: lo
+       risolverà la `grid`;
+     - nel navigator l'etichetta di una collection unisce descrizione e
+       testo della tabella;
+     - un suggerimento dice «scrivi un valore number», con il nome inglese
+       del tipo.
+     Prossimo passo deciso: la `grid` modificabile.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
