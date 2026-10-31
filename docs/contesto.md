@@ -769,6 +769,18 @@ quando due rami lavorano in parallelo.
   Alessio: «ok 475 e 470 con spaziatura». Quindi Figtree a peso 475 e
   Petrona a peso 470, tutti e due con una spaziatura fra le lettere di
   +0,01 em.
+  Sull'anteprima di questi caratteri applicati all'`app` (Petrona a 16,55
+  px nell'editor, con la «x» alta come Figtree a 15 px), Alessio: «va bene
+  così, procedi».
+- L'anteprima in una finestra separata (2026-10-31, Alessio): «l'anteprima
+  deve poter essere messa in un'altra finestra separata, in modo ad esempio
+  di poterla usare su due schermi». Proposte dell'orchestratore: un comando
+  stacca l'anteprima in una finestra sua e la pagina dà lo spazio
+  all'editor; la finestra segue le modifiche come ora, e il clic su un
+  punto porta l'editor alla riga; mostra la `composition` o l'oggetto
+  aperto anche quando si è sul `canvas`; chiuderla la riporta nella pagina;
+  posizione e schermo della finestra si ricordano nelle preferenze
+  dell'`app`, non nei file del documento.
 
 
 - Estensibilità: estensioni e connettori distribuiti da un marketplace, per
