@@ -591,11 +591,13 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      rigenerare identico si apre come testo), i trascinamenti nel codice e
      nel testo, `create formula`, «Campo calcolato» nella grid, colonne
      calcolate in sola lettura con «ƒ», lo scaffale delle formule con il
-     valore, l'indicatore «Python in avvio». Visti nella verifica e
-     mandati a correggere: nel navigator le formule hanno per etichetta il
-     codice invece dell'id; nel costruttore la riga del range e il codice
-     escono dal pannello; un documento senza l'attributo pyodide dà un
-     avviso che create formula potrebbe evitare.
+     valore, l'indicatore «Python in avvio». Corretti poi (unito il
+     2026-10-31): etichette delle formule con title o id; range e codice che
+     vanno a capo nel costruttore; `create formula` e «Campo calcolato»
+     scrivono pyodide nel document file quando manca; specifica §14.8 «Le
+     operazioni». Con questo il primo passo della classe 4 è chiuso.
+     Secondo passo possibile: librerie esterne con i risultati salvati,
+     funzioni fra righe, l'HTML vivo che ricalcola nel browser.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
