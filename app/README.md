@@ -134,6 +134,37 @@ cartella: File → Apri cartella (Cmd-O). Si può anche dire da riga di comando:
   - Fuori da questo passo: ordinamento e filtri (sono viste), formule, pivot;
     e la griglia dentro una scheda del `canvas`, dove un clic apre ancora il
     sorgente.
+- **Le formule (classe 4)**: aprendo una `formula` dal navigator o
+  dall'editor si apre il costruttore, un pannello come quello del grafico,
+  con l'interruttore «Testo» («Costruttore» torna). In un file con più
+  formule un menu sceglie quale.
+  - Gli ingressi: i campi e le formule si trascinano nell'area «Ingressi»
+    dall'elenco del pannello, dall'intestazione della griglia o dal
+    navigator (una `collection` intera), oppure si aggiungono con un clic
+    nell'elenco; una × li toglie.
+  - L'operazione da un menu: somma, media, minimo, massimo, conteggio, le
+    quattro operazioni con un numero o con un ingresso, «se … allora …
+    altrimenti». Per somma e simili il campo e il range: un campo e i suoi
+    valori, da e a. Il codice generato si vede in sola lettura, e sotto il
+    valore con il display del §0.4, oppure i problemi.
+  - Il costruttore scrive il codice e gli `inputs` con il `formatter`;
+    annulla, ripeti e salva come nel pannello del grafico. Il codice scritto
+    a mano che il costruttore non rilegge uguale si apre come testo, con
+    l'avviso «Scritto a mano»: non si riscrive.
+  - Un campo o una formula lasciati cadere dentro il blocco python di una
+    formula nell'editor scrivono il nome con il trattino basso
+    (`vendite_mesi.euro`) e lo aggiungono agli `inputs`; una formula
+    trascinata dal navigator in un testo scrive `` `= nome` ``.
+  - Nel navigator lo scaffale `formula` mostra il valore accanto al nome.
+  - Nella griglia le colonne calcolate hanno «ƒ» nell'intestazione e sono in
+    sola lettura, con i valori dell'albero (i primi 1000 `record`, come
+    l'anteprima); un clic su un valore apre la sua formula; non si scrivono
+    mai nel file dei dati. «Campo calcolato», con il titolo scritto accanto,
+    crea una formula vuota e il campo con `formula` nello `schema`, poi apre
+    il costruttore.
+  - Pyodide si accende in sottofondo la prima volta che il documento ha
+    codice: intanto il navigator dice «Python in avvio», e se non parte
+    «Python non disponibile».
 - **Il pannello del grafico**: aprendo un `chart` l'editor mostra un
   pannello, con lo stesso interruttore «Testo» della griglia («Pannello»
   torna). Le icone dei tre `template`, quello scelto evidenziato; il menu
@@ -240,7 +271,22 @@ l'app, il suo testo si perde.
 ```
 npm test            # le funzioni dietro l'IPC, senza Electron
 npm run test:e2e    # end to end, con l'Electron del pacchetto e playwright-core
+npm run test:e2e-code  # le formule calcolate da Pyodide, end to end
 ```
+
+Le formule senza Pyodide: `npm test` prova il modello del costruttore (dalle
+scelte al codice e ritorno, il codice a mano rifiutato, annulla) e la
+`Session` su una cartella con formule, con un Electron che non c'è al posto
+di quello di Pyodide: lo scaffale, la sorgente del costruttore e il suo
+salvataggio, il rilascio nel codice, `create formula`, «Campo calcolato», la
+griglia in sola lettura. `npm run test:e2e` lancia anche
+`test/e2e-formula.ts` senza Pyodide: il costruttore che legge e scrive, un
+campo trascinato negli ingressi e nel codice, il codice a mano come testo,
+una formula trascinata in un testo, le colonne calcolate con «ƒ» e il clic
+che apre la formula, «Campo calcolato», «Python non disponibile». `npm run
+test:e2e-code` lancia lo stesso test con Pyodide: il valore nel
+costruttore, la colonna calcolata nella griglia, le righe di calcolo con un
+nome nell'anteprima.
 
 `npm run measure:grid` apre una `collection` di 100 000 `record` e stampa
 i tempi di apertura, di scorrimento, della modifica di una cella e
@@ -300,6 +346,8 @@ end che fallisce salva anche l'immagine della finestra.
 - `src/offset.ts`: dove va il cursore dopo il formatter.
 - `src/grid-model.ts`: il modello della griglia, senza DOM (valori, incolla,
   `record` e campi, annulla); `src/renderer/grid.ts`: la sua vista.
+- `src/formula-model.ts`: il modello del costruttore di formule, senza DOM;
+  `src/renderer/formula-panel.ts`: la sua vista.
 - `src/chart-model.ts`: il modello del pannello del grafico, senza DOM;
   `src/renderer/chart-panel.ts`: la sua vista.
 - `src/renderer/style.css`: i token e le regole dell'aspetto;

@@ -3,11 +3,15 @@
 import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ChartModel } from '../src/chart-model.js';
+import { FormulaModel, generate, parse } from '../src/formula-model.js';
 import { GridModel } from '../src/grid-model.js';
 import { mapOffset } from '../src/offset.js';
 import { Session } from '../src/session.js';
 import { placeWindow } from '../src/window-place.js';
-import { PRICES, SALES, SALES_TSV, writeFixture } from './fixture.js';
+import { PRICES, SALES, SALES_TSV, writeFixture, writeFormulaFixture } from './fixture.js';
+
+// No Pyodide in these tests: an Electron that is not there, so the formulas have no worker.
+process.env.DOC_RUNTIME_ELECTRON = '/bin/false';
 
 let failed = 0;
 const check = (label: string, problems: string[]) => {
@@ -34,6 +38,92 @@ const until = async (test: () => boolean, ms = 3000) => {
   const middle = mapOffset('a\n\n\n\nb', 'a\n\nb', 3);
   if (middle < 1 || middle > 3) problems.push(`inside the change: ${middle}`);
   check('mapOffset keeps the cursor near where it was', problems);
+}
+
+
+// The model of the formula builder: from the choices to the code and back (class 4).
+{
+  const problems: string[] = [];
+  const value = { column: null };
+  const cases: Array<[string, string[], typeof value | { column: string }]> = [
+    ['None', [], value],
+    ["total(vendite.range('mese', 'gennaio', 'febbraio').vendite)", ['vendite.mese', 'vendite.vendite'], value],
+    ['mean(vendite_mesi.euro)', ['vendite-mesi.euro'], value],
+    ['totale_q3 * 2', ['totale-q3'], value],
+    ['totale_q3 / 1.22', ['totale-q3'], value],
+    ['totale_q3 if totale_q3 > 1000 else 0', ['totale-q3'], value],
+    ['euro * 0.22', ['vendite-mesi.euro'], { column: 'vendite-mesi' }],
+  ];
+  for (const [code, inputs, context] of cases) {
+    const state = parse(code, inputs, context);
+    if (state === null) problems.push(`not read: ${code}`);
+    else if (generate(state, context) !== code) problems.push(`${code} → ${generate(state, context)}`);
+  }
+  // Written by hand: not read, so never rewritten.
+  for (const code of ['x = 2\nx * 3', 'total(vendite.vendite) + 1', 'euro * 0.22']) if (parse(code, ['vendite.vendite'], value) !== null) problems.push(`read by hand: ${code}`);
+  const model = new FormulaModel(parse('None', [], value)!, value);
+  model.addInput('vendite.vendite');
+  model.setOperation('total');
+  model.setSource('vendite.vendite');
+  if (model.code !== 'total(vendite.vendite)') problems.push(`code ${model.code}`);
+  model.setRange({ field: 'mese', from: 'gennaio', to: 'febbraio' });
+  if (model.code !== "total(vendite.range('mese', 'gennaio', 'febbraio').vendite)") problems.push(`range ${model.code}`);
+  if (model.inputs.join() !== 'vendite.vendite,vendite.mese') problems.push(`inputs ${model.inputs.join()}`);
+  model.setOperation('multiply');
+  if (model.code !== null || model.state.source !== undefined) problems.push('the operands of a product are missing');
+  model.addInput('totale-q1');
+  model.setOperand('left', { input: 'totale-q1' });
+  model.setOperand('right', { number: '2' });
+  if (model.code !== 'totale_q1 * 2') problems.push(`product ${model.code}`);
+  model.undo();
+  if (model.code !== null) problems.push('undo');
+  model.redo();
+  if (model.code !== 'totale_q1 * 2' || !model.dirty) problems.push('redo');
+  model.removeInput('totale-q1');
+  if (model.state.left !== undefined) problems.push('an input taken out leaves its operand');
+  check('the model of the formula builder: code from the choices and back, handwritten code refused, undo', problems);
+}
+
+// The formulas in the app, without Pyodide: the builder's source, writing, dropping, creating, the grid.
+{
+  const problems: string[] = [];
+  const formulas = writeFormulaFixture();
+  const local = await Session.open(formulas);
+  try {
+    await until(() => local.python() === 'failed', 5000);
+    if (local.python() !== 'failed') problems.push(`python ${local.python()}`);
+    const shelf = local.navigator().find((each) => each.kind === 'formula');
+    if (shelf?.items.map((item) => item.id).join() !== 'a-mano,doppio,totale-q1') problems.push(`shelf ${JSON.stringify(shelf)}`);
+    const source = local.formulaSource('calcoli.formula.md');
+    if (source?.id !== 'totale-q1' || source.ids.join() !== 'totale-q1,doppio,a-mano' || source.column !== null || source.inputs.join() !== 'vendite.mese,vendite.vendite') problems.push(`source ${JSON.stringify(source).slice(0, 300)}`);
+    if (!source?.problems.some((problem) => problem.includes('formula-unavailable'))) problems.push(`without a worker, the problem: ${source?.problems.join()}`);
+    if (local.formulaSource('calcoli.formula.md', 'doppio')?.column !== 'vendite') problems.push('the column of a computed field');
+    const written = local.formulaSave('calcoli.formula.md', 'doppio', ['vendite.pezzi'], 'pezzi * 3');
+    if (!written.includes('```python\npezzi * 3\n```') || !written.includes('{#a-mano}\n\n```python\nx = 2\nx * 3\n```')) problems.push(`save\n${written}`);
+    // A field dropped in the code: its name, and its input.
+    const text = local.read('calcoli.formula.md');
+    const at = text.indexOf('x * 3') + 'x * 3'.length;
+    const dropped = local.formulaInsert('calcoli.formula.md', text, at, 'vendite.vendite');
+    if (dropped === null || !dropped.text.includes('{#a-mano inputs=vendite.vendite}') || !dropped.text.includes('x * 3vendite.vendite') || dropped.text.slice(dropped.cursor - 15, dropped.cursor) !== 'vendite.vendite') problems.push(`drop ${JSON.stringify(dropped)}`);
+    if (local.formulaInsert('calcoli.formula.md', text, 3, 'vendite.vendite') !== null) problems.push('a drop outside the code');
+    const created = local.createFormula({ id: 'media-mesi', inputs: ['vendite.vendite'], code: 'mean(vendite.vendite)' });
+    if (created.error || !local.read('calcoli.formula.md').includes('{#media-mesi inputs=vendite.vendite}\n\n```python\nmean(vendite.vendite)\n```')) problems.push(`create ${JSON.stringify(created)}`);
+    const computed = local.computedField('vendite.collection.md', 'Con IVA');
+    const descriptor = local.read('vendite.collection.md');
+    if (computed.error || computed.summary?.id !== 'con-iva' || !descriptor.includes('formula: "[[con-iva]]"') || !local.read('calcoli.formula.md').includes('{#con-iva}\n\n```python\nNone\n```')) problems.push(`computed field ${JSON.stringify(computed)}\n${descriptor}`);
+    // The grid: the computed fields read only, never written in the data file.
+    await until(() => (local.gridSource('vendite.collection.md')?.computed.doppio?.length ?? 0) === 3);
+    const grid = new GridModel(local.gridSource('vendite.collection.md')!);
+    const doppio = grid.columns.findIndex((column) => column.name === 'doppio');
+    if (grid.formula(doppio) !== 'doppio') problems.push('the formula of the column');
+    grid.setCell(0, doppio, '99');
+    if (grid.records[0]![doppio] === '99') problems.push('a computed value was edited');
+    if (grid.dataText().split('\n')[0] !== 'mese\tvendite\tpezzi') problems.push(`data file ${grid.dataText().split('\n')[0]}`);
+  } finally {
+    await local.close();
+    rmSync(formulas, { recursive: true, force: true });
+  }
+  check('formulas in the app: shelf, builder source and save, drop in the code, create formula, computed field, grid read only', problems);
 }
 
 const folder = writeFixture();

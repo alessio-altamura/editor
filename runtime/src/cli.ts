@@ -79,6 +79,7 @@ Uso:
   ${BINARY_NAME} create collection --field <nome>:<tipo>… (--in <id> | --at <x>,<y> | --near <id>)
   ${BINARY_NAME} create chart --collection <id> [--template bar|line|point] [--x <campo>] [--y <campo>] [--series <campo>]
                                          [--in <id> | --at <x>,<y> | --near <id>]
+  ${BINARY_NAME} create formula [--id <id>] [--inputs <id>,<collection.field>…] [--code "…"] [--file <file>]
   ${BINARY_NAME} turn-into <id> [--line <riga>] [--type <campo>:<tipo>]… [--key <campo> | --no-key]
                                          le operazioni: scrivono i file, passati dal
                                          formatter, solo se non portano errori nuovi;
@@ -261,7 +262,7 @@ function operationCommand(command: string, args: string[]): number {
   let noKey = false;
   /** --field nome:tipo and --type campo:tipo may be repeated. */
   const repeated = new Map<string, string[]>([['--field', []], ['--type', []]]);
-  const valued = ['--in', '--after', '--before', '--text', '--id', '--asset', '--to', '--folder', '--at', '--title', '--card', '--near', '--size', '--by', '--line', '--key', '--collection', '--template', '--x', '--y', '--series'];
+  const valued = ['--in', '--after', '--before', '--text', '--id', '--asset', '--to', '--folder', '--at', '--title', '--card', '--near', '--size', '--by', '--line', '--key', '--collection', '--template', '--x', '--y', '--series', '--inputs', '--code', '--file'];
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;
     if (arg === '--dry-run') dryRun = true;
@@ -303,7 +304,7 @@ function operationCommand(command: string, args: string[]): number {
     if (command === 'create') {
       // A chart may have no place: it goes next to its collection (class 3).
       const places = [options.has('--in'), at !== undefined, options.has('--near')].filter(Boolean).length;
-      if (places > 1 || (places === 0 && positional[0] !== 'chart')) return usage(`uso: ${syntax.create}`);
+      if (places > 1 || (places === 0 && positional[0] !== 'chart' && positional[0] !== 'formula')) return usage(`uso: ${syntax.create}`);
       plan = planCreate(workspace, tree, {
         kind: positional[0]!,
         ...(options.has('--in') ? { into: options.get('--in')! } : {}),
@@ -315,6 +316,9 @@ function operationCommand(command: string, args: string[]): number {
         ...(options.has('--text') ? { text: options.get('--text')! } : {}),
         ...(options.has('--id') ? { id: options.get('--id')! } : {}),
         ...(options.has('--asset') ? { asset: options.get('--asset')! } : {}),
+        ...(options.has('--inputs') ? { inputs: options.get('--inputs')!.split(',').map((input) => input.trim()).filter((input) => input !== '') } : {}),
+        ...(options.has('--code') ? { code: options.get('--code')! } : {}),
+        ...(options.has('--file') ? { file: options.get('--file')! } : {}),
         ...Object.fromEntries((['collection', 'template', 'x', 'y', 'series'] as const).filter((key) => options.has(`--${key}`)).map((key) => [key, options.get(`--${key}`)!])),
       });
     } else if (command === 'extract') {

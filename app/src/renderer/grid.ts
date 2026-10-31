@@ -18,6 +18,10 @@ export interface GridHooks {
   changed: () => void;
   /** «Crea grafico»: the page makes the chart of the collection, saved first, and opens it. */
   chart: (descriptor: string) => void;
+  /** A computed field clicked: its formula opens (class 4). */
+  formula: (id: string) => void;
+  /** «Campo calcolato»: a formula and its field, made by the page, saved first; then the builder. */
+  computed: (descriptor: string, title: string) => void;
 }
 
 type Cell = { row: number; column: number };
@@ -25,6 +29,8 @@ type Cell = { row: number; column: number };
 export function createGrid(api: DocApp, root: HTMLElement, hooks: GridHooks) {
   let model: GridModel | null = null;
   let file: string | null = null;
+  /** The id of the collection, for the headings dragged into a formula. */
+  let collectionId: string | null = null;
   let active: Cell = { row: 0, column: 0 };
   let anchor: Cell = { row: 0, column: 0 };
   let editing: { cell: Cell; input: HTMLInputElement | HTMLSelectElement } | null = null;
@@ -36,7 +42,7 @@ export function createGrid(api: DocApp, root: HTMLElement, hooks: GridHooks) {
     <div class="grid-bar" role="toolbar" aria-label="Record e campi">
       <span class="grid-group"><span class="grid-label">Record</span><button data-do="append" data-icon="plus" aria-label="Aggiungi in fondo">+ in fondo</button><button data-do="insert" data-icon="list-plus" aria-label="Aggiungi dopo quello scelto">+ dopo</button><button data-do="remove" data-icon="trash-2" aria-label="Togli il record scelto">− togli</button><button data-do="up" data-icon="arrow-up" aria-label="Sposta su">↑</button><button data-do="down" data-icon="arrow-down" aria-label="Sposta giù">↓</button></span>
       <span class="grid-group"><span class="grid-label">Campo</span><input class="field-title" aria-label="Titolo del campo scelto"><select class="field-type" aria-label="Tipo del campo scelto">${TYPES.map((type) => `<option>${type}</option>`).join('')}</select><button data-do="remove-field" data-icon="trash-2" aria-label="Togli il campo scelto">− togli</button></span>
-      <span class="grid-group"><span class="grid-label">Nuovo campo</span><input class="new-title" placeholder="Titolo" aria-label="Titolo del campo nuovo"><select class="new-type" aria-label="Tipo del campo nuovo">${TYPES.map((type) => `<option>${type}</option>`).join('')}</select><button data-do="add-field" data-icon="plus" aria-label="Aggiungi il campo">+ campo</button></span>
+      <span class="grid-group"><span class="grid-label">Nuovo campo</span><input class="new-title" placeholder="Titolo" aria-label="Titolo del campo nuovo"><select class="new-type" aria-label="Tipo del campo nuovo">${TYPES.map((type) => `<option>${type}</option>`).join('')}</select><button data-do="add-field" data-icon="plus" aria-label="Aggiungi il campo">+ campo</button><button data-do="computed" data-icon="sigma" data-icon-text aria-label="Campo calcolato" title="Un campo calcolato da una formula, con il titolo scritto qui accanto">Campo calcolato</button></span>
       <span class="grid-group"><button data-do="chart" data-icon="chart-column" data-icon-text aria-label="Crea grafico" title="Un grafico di questa collection, con i campi proposti dai tipi">Crea grafico</button></span>
       <span class="grid-group"><button data-do="undo" data-icon="undo-2" aria-label="Annulla" title="Annulla (Cmd-Z)">↶</button><button data-do="redo" data-icon="redo-2" aria-label="Ripeti" title="Ripeti (Cmd-Maiusc-Z)">↷</button></span>
       <span class="grid-status" role="status"></span>
@@ -75,6 +81,26 @@ export function createGrid(api: DocApp, root: HTMLElement, hooks: GridHooks) {
       type.className = 'grid-type';
       type.textContent = model!.type(column);
       cell.append(title, type);
+      // A computed field: the sign of its formula; the values are read only.
+      const formula = model!.formula(column);
+      if (formula !== null) {
+        const sign = document.createElement('span');
+        sign.className = 'grid-formula';
+        sign.textContent = 'ƒ';
+        sign.title = `Calcolato da ${formula}`;
+        sign.setAttribute('aria-label', `calcolato da ${formula}`);
+        cell.append(sign);
+        cell.classList.add('computed');
+      }
+      // A field dragged from the heading into a formula: collection.field.
+      const name = model!.columns[column]!.name;
+      if (collectionId !== null && model!.columns[column]!.field !== null) {
+        cell.draggable = true;
+        cell.addEventListener('dragstart', (event) => {
+          event.dataTransfer?.setData('application/x-doc-field', `${collectionId}.${name}`);
+          event.dataTransfer?.setData('text/plain', `${collectionId}.${name}`);
+        });
+      }
       cell.addEventListener('mousedown', () => {
         active = { row: active.row, column };
         anchor = { row: 0, column };
@@ -116,6 +142,10 @@ export function createGrid(api: DocApp, root: HTMLElement, hooks: GridHooks) {
         const field = model.field(column);
         const state = model.state(row, column);
         if (field && (field.type === 'number' || field.type === 'integer')) cell.classList.add('numeric');
+        if (model.formula(column) !== null) {
+          cell.classList.add('computed');
+          cell.setAttribute('aria-readonly', 'true');
+        }
         if (state === 'invalid') {
           // A value not of its type: kept as typed, marked, and said to screen readers.
           cell.setAttribute('aria-invalid', 'true');
@@ -176,6 +206,9 @@ export function createGrid(api: DocApp, root: HTMLElement, hooks: GridHooks) {
   // Editing a cell: the value in the language of the document; Enter or Tab writes it, Esc leaves it.
   function edit(initial?: string): void {
     if (model === null || rows() === 0 || editing) return;
+    // A computed field is not edited: its formula is.
+    const formula = model.formula(active.column);
+    if (formula !== null) return hooks.formula(formula);
     const field = model.field(active.column);
     if (field?.type === 'boolean') return toggle();
     const cell = { ...active };
@@ -243,7 +276,7 @@ export function createGrid(api: DocApp, root: HTMLElement, hooks: GridHooks) {
   /** A boolean: the first of trueValues or of falseValues. */
   function toggle(): void {
     const field = model?.field(active.column);
-    if (!model || !field || field.type !== 'boolean') return;
+    if (!model || !field || field.type !== 'boolean' || model.formula(active.column) !== null) return;
     const now = model.records[active.row]![active.column]!;
     model.setCell(active.row, active.column, field.trueValues.includes(now) ? field.falseValues[0]! : field.trueValues[0]!);
   }
@@ -283,6 +316,9 @@ export function createGrid(api: DocApp, root: HTMLElement, hooks: GridHooks) {
     move(Number(cell.dataset.row), Number(cell.dataset.column), event.shiftKey);
     table.focus();
     event.preventDefault();
+    // A click on a computed value opens its formula.
+    const formula = model.formula(Number(cell.dataset.column));
+    if (formula !== null && !event.shiftKey) hooks.formula(formula);
   });
   table.addEventListener('dblclick', (event) => {
     if ((event.target as HTMLElement).closest('.grid-cell')) edit();
@@ -329,6 +365,13 @@ export function createGrid(api: DocApp, root: HTMLElement, hooks: GridHooks) {
         break;
       }
       case 'chart': if (file !== null) hooks.chart(file); return;
+      case 'computed': {
+        const title = root.querySelector<HTMLInputElement>('.new-title')!;
+        if (title.value.trim() === '') { title.focus(); return; }
+        if (file !== null) hooks.computed(file, title.value.trim());
+        title.value = '';
+        return;
+      }
       case 'undo': model.undo(); break;
       case 'redo': model.redo(); break;
     }
@@ -379,6 +422,7 @@ export function createGrid(api: DocApp, root: HTMLElement, hooks: GridHooks) {
       model = new GridModel(source);
       model.onChange = () => changed();
       file = target;
+      collectionId = source.id ?? null;
       editing = null;
       active = anchor = { row: 0, column: 0 };
       table.setAttribute('aria-label', `Griglia di ${target}`);
@@ -416,6 +460,14 @@ export function createGrid(api: DocApp, root: HTMLElement, hooks: GridHooks) {
       } else move(row, at);
       table.focus();
       return true;
+    },
+    /** After a recomputation: the values of the computed fields, as the tree has them now. */
+    async refreshComputed(): Promise<void> {
+      if (model === null || file === null) return;
+      const target = file;
+      const source = await api.gridSource(target);
+      if (source === null || model === null || file !== target) return;
+      if (model.setComputed(source.computed ?? {})) paint();
     },
     isDirty: () => model?.dirty ?? false,
     save,

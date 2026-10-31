@@ -15,6 +15,7 @@ import { ID_FORM, type Diagnostic, type ResolvedTree } from './tree.js';
 import { planCreateOnCanvas, retargetCanvas } from './canvas.js';
 import { collectionFiles } from './collection-operations.js';
 import { chartFile, chooseChart, planCreateChart, type ChartChoice } from './chart-operations.js';
+import { planCreateFormula } from './formula-operations.js';
 
 /** A problem with the request itself, not with the document: exit 2. */
 export class OperationError extends Error {}
@@ -211,6 +212,10 @@ export interface CreateRequest {
   x?: string;
   y?: string;
   series?: string;
+  /** For a formula: its inputs, its code and its file (class 4). */
+  inputs?: string[];
+  code?: string;
+  file?: string;
   /** Filled by planCreate: the template and the roles chosen for a chart. */
   chartChoice?: ChartChoice;
 }
@@ -232,6 +237,11 @@ export function newId(workspace: Workspace, tree: ResolvedTree, request: CreateR
 
 /** `create`: the object, and its embed in the composition; with `at`, its card on the canvas. */
 export function planCreate(workspace: Workspace, tree: ResolvedTree, request: CreateRequest): Plan {
+  // A formula has no place: it goes in the formula file of the document (class 4).
+  if (request.kind === 'formula') {
+    if (request.into !== undefined || request.at !== undefined || request.near !== undefined) throw new OperationError('una formula non ha un posto: va nel file delle formule, o in quello di --file');
+    return planCreateFormula(workspace, tree, { ...(request.id !== undefined ? { id: request.id } : {}), ...(request.inputs ? { inputs: request.inputs } : {}), ...(request.code !== undefined ? { code: request.code } : {}), ...(request.file !== undefined ? { file: request.file } : {}) });
+  }
   // A chart may have no place: it goes next to its collection.
   if (request.kind === 'chart' && request.into === undefined && request.at === undefined && request.near === undefined) return planCreateChart(workspace, tree, request);
   if (request.kind === 'chart') request = { ...request, chartChoice: chooseChart(tree, request) };

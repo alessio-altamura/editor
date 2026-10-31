@@ -30,6 +30,19 @@ export function writeFixture(options: { collection?: boolean } = {}): string {
 
 declare global {
   interface Window {
-    docAppState: { file: string | null; line: number; character: number; text: string; view: 'canvas' | 'page'; mode: 'text' | 'grid' | 'chart' };
+    docAppState: { file: string | null; line: number; character: number; text: string; view: 'canvas' | 'page'; mode: 'text' | 'grid' | 'chart' | 'formula' };
   }
+}
+
+/** The formulas of the tests (class 4): a value on a range, a computed field, written by hand. */
+export const FORMULAS = '---\nkind: formula\n---\n{#totale-q1 inputs="vendite.mese vendite.vendite"}\n\n```python\ntotal(vendite.range(\'mese\', \'gennaio\', \'febbraio\').vendite)\n```\n\n{#doppio inputs="vendite.pezzi"}\n\n```python\npezzi * 2\n```\n\n{#a-mano}\n\n```python\nx = 2\nx * 3\n```\n';
+
+/** The folder with the formulas: the collection with a computed field, and a text with a math line with a name. */
+export function writeFormulaFixture(): string {
+  const folder = writeFixture({ collection: true });
+  writeFileSync(join(folder, 'doc.document.md'), '---\nid: doc\nkind: document\ntags: []\nspec-version: "0.1"\nlang: it\npyodide: "314.0.7"\n---\n');
+  writeFileSync(join(folder, 'vendite.collection.md'), SALES.replace('primaryKey: mese', '  - name: doppio\n    type: integer\n    formula: "[[doppio]]"\nprimaryKey: mese'));
+  writeFileSync(join(folder, 'calcoli.formula.md'), FORMULAS);
+  writeFileSync(join(folder, 'sintesi.text.md'), front('sintesi', 'text') + 'Nel primo bimestre `= totale_q1`.\n');
+  return folder;
 }

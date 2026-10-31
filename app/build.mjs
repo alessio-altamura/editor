@@ -6,7 +6,7 @@ import { build } from 'esbuild';
 const node = { bundle: true, platform: 'node', target: 'node22', format: 'esm', packages: 'external', logLevel: 'warning' };
 await build({ ...node, entryPoints: ['src/main.ts'], outfile: 'dist/main.js' });
 await build({ ...node, entryPoints: ['src/preload.ts'], outfile: 'dist/preload.cjs', format: 'cjs' });
-await build({ ...node, entryPoints: ['test/unit.ts', 'test/e2e.ts', 'test/grid-measure.ts'], outdir: 'dist-test' });
+await build({ ...node, entryPoints: ['test/unit.ts', 'test/e2e.ts', 'test/grid-measure.ts', 'test/e2e-formula.ts'], outdir: 'dist-test' });
 await build({ entryPoints: ['src/renderer/renderer.ts', 'src/renderer/detached.ts'], outdir: 'dist/renderer', bundle: true, platform: 'browser', format: 'iife', target: 'chrome142', logLevel: 'warning', loader: { '.svg': 'text' } });
 mkdirSync('dist/renderer', { recursive: true });
 for (const file of ['index.html', 'detached.html', 'style.css']) copyFileSync(`src/renderer/${file}`, `dist/renderer/${file}`);

@@ -14,9 +14,10 @@
     "prestart": "npm run runtime && npm run build",
     "start": "electron .",
     "test": "npm run runtime && npm run build && node dist-test/unit.js",
-    "test:e2e": "npm run runtime && npm run build && node dist-test/e2e.js",
+    "test:e2e": "npm run runtime && npm run build && node dist-test/e2e.js && node dist-test/e2e-formula.js",
     "measure:grid": "npm run build && node dist-test/grid-measure.js",
-    "postinstall": "install-electron"
+    "postinstall": "install-electron",
+    "test:e2e-code": "npm run runtime && npm run build && node dist-test/e2e-formula.js --code"
   },
   "dependencies": {
     "@codemirror/autocomplete": "6.20.3",

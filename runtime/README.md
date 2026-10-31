@@ -439,6 +439,14 @@ dei valori in ingresso, e dà i lavori pronti che mancano;
 il language server e l'`app` lo accendono in sottofondo la prima volta che il
 documento ne ha, e lo tengono. L'HTML esportato e il PDF hanno solo i valori.
 
+`create formula [--id] [--inputs a,b] [--code "…"] [--file]` aggiunge una
+formula al file delle formule del documento (il primo `multi-object file` di
+formule, altrimenti `formule.formula.md`), con `--dry-run` come le altre
+operazioni; senza codice scrive `None`, la formula vuota che il costruttore
+dell'`app` riempie. `src/formula-operations.ts` ha anche la riscrittura di
+codice e `inputs` di un oggetto e il campo calcolato (la formula e il campo
+dello `schema`), che usa l'`app`.
+
 ## Il language server
 
 `language-server` parla LSP su stdin e stdout (`src/language-server.ts`),

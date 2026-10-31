@@ -2,6 +2,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { CanvasGroup } from 'doc-runtime/dist/src/canvas.js';
 import type { ChartSource, ChartState } from './chart-model.js';
+import type { FormulaSource } from './formula-model.js';
 import type { GridSource } from './grid-model.js';
 import type { CardView, Done, ObjectSource } from './session.js';
 
@@ -31,6 +32,20 @@ const api = {
   chartSource: (file: string) => ipcRenderer.invoke('doc:chart-source', file) as Promise<ChartSource | null>,
   chartEdit: (file: string, state: ChartState) => ipcRenderer.invoke('doc:chart-edit', file, state) as Promise<string>,
   chartSave: (file: string, state: ChartState) => ipcRenderer.invoke('doc:chart-save', file, state) as Promise<string>,
+  /** The formula builder: what it opens on, its buffer, its save (class 4). */
+  formulaSource: (file: string, id?: string) => ipcRenderer.invoke('doc:formula-source', file, id) as Promise<FormulaSource | null>,
+  formulaEdit: (file: string, id: string, inputs: string[], code: string) => ipcRenderer.invoke('doc:formula-edit', file, id, inputs, code) as Promise<string>,
+  formulaSave: (file: string, id: string, inputs: string[], code: string) => ipcRenderer.invoke('doc:formula-save', file, id, inputs, code) as Promise<string>,
+  /** A field or a formula dropped in the code of a formula: the text with its name and its input, or null. */
+  formulaInsert: (file: string, text: string, offset: number, input: string) => ipcRenderer.invoke('doc:formula-insert', file, text, offset, input) as Promise<{ text: string; cursor: number } | null>,
+  createFormula: (request: { id?: string; inputs?: string[]; code?: string }) => ipcRenderer.invoke('doc:create-formula', request) as Promise<Done>,
+  /** «Campo calcolato»: a formula, empty, and the field that names it. */
+  computedField: (file: string, title: string) => ipcRenderer.invoke('doc:computed-field', file, title) as Promise<Done>,
+  /** Where Pyodide is, and its changes: off, starting, ready, failed. */
+  python: () => ipcRenderer.invoke('doc:python') as Promise<string>,
+  onPython: (listener: (status: string) => void) => {
+    ipcRenderer.on('doc:python', (_event, status: string) => listener(status));
+  },
   /** The grid of a collection: what it opens on, its buffer, its save. */
   gridSource: (file: string) => ipcRenderer.invoke('doc:grid-source', file) as Promise<GridSource | null>,
   gridEdit: (file: string, fields: Array<Record<string, unknown>>, data: string) => ipcRenderer.invoke('doc:grid-edit', file, fields, data),
