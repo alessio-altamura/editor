@@ -563,10 +563,15 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      decimali (decimal, 34 cifre, al pari); esecuzione isolata in Pyodide;
      oggetti formula in file .formula.md; trattino dei nomi come trattino
      basso nel codice; nessuna eccezione nelle colonne calcolate. In corso
-     nella sottosessione: le misure di Pyodide (peso, avvio, memoria,
-     decimali, determinismo, isolamento, dipendenze), in
-     ricerca/misure/pyodide/; poi la nota di ricerca e il mandato del primo
-     passo.
+     nella sottosessione e poi dall'orchestratore (l'esecuzione di Pyodide
+     era negata alla sottosessione; Alessio l'ha permessa qui): le misure di
+     Pyodide 314.0.7 in ricerca/pyodide-misure.md, con script e risultati in
+     ricerca/misure/pyodide/. Avvio circa 3 s per istanza, decimali uguali
+     al runtime 1000 su 1000, stessi bit in Node, Chromium ed Electron;
+     isolamento solo in un worker di Chromium con la CSP senza eval, mentre
+     in Node il codice esce (file, processi, mountNodeFS). Da far decidere ad
+     Alessio prima del mandato: il codice gira solo in Electron, anche dalla
+     cli.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);

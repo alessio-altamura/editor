@@ -1,0 +1,7 @@
+<!doctype html><meta charset="utf-8"><title>pyodide</title>
+<script type="module">
+const w = new Worker('/bench/browser-worker.mjs', { type: 'module' });
+const t0 = performance.now();
+w.onmessage = (e) => { window.result = { ...e.data, total_ms: performance.now() - t0 }; };
+w.onerror = (e) => { window.result = { error: e.message }; };
+</script>

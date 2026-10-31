@@ -1,0 +1,76 @@
+{
+  "senza problemi": {
+    "deps": {
+      "totale": [
+        "euro"
+      ],
+      "iva": [
+        "totale"
+      ],
+      "lordo": [
+        "iva",
+        "totale"
+      ]
+    },
+    "missing": {},
+    "cycles": [],
+    "order": [
+      "totale",
+      "iva",
+      "lordo"
+    ]
+  },
+  "un nome mancante": {
+    "deps": {
+      "totale": [
+        "euro"
+      ],
+      "netto": [
+        "sconto",
+        "totale"
+      ]
+    },
+    "missing": {
+      "netto": [
+        "sconto"
+      ]
+    },
+    "cycles": [],
+    "order": [
+      "totale",
+      "netto"
+    ]
+  },
+  "un ciclo fra nomi": {
+    "deps": {
+      "a": [
+        "b"
+      ],
+      "b": [
+        "c"
+      ],
+      "c": [
+        "a"
+      ],
+      "d": [
+        "euro"
+      ]
+    },
+    "missing": {},
+    "cycles": [
+      [
+        "a",
+        "b",
+        "c",
+        "a"
+      ]
+    ],
+    "order": []
+  },
+  "rifiutati": {
+    "__import__(\"os\")": "chiamata a una funzione non nota",
+    "x.y": "fuori dal codice ristretto: Attribute",
+    "open(\"f\")": "chiamata a una funzione non nota",
+    "[i for i in range(3)]": "fuori dal codice ristretto: ListComp"
+  }
+}
