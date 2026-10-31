@@ -503,6 +503,21 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      riquadro degli errori dell'anteprima ora si legge anche in scuro. Nelle
      immagini in headless il tema scuro arriva solo con emulateMedia, e
      l'anteprima, vista separata, va composta a parte.
+     I caratteri dell'`app` (2026-10-31, contesto.md, «I caratteri
+     dell'`app`»; misure in ricerca/caratteri-app.md): interfaccia in
+     Figtree a peso 475 (pesi forti 575, 675, 775), testo dell'editor per i
+     file .<kind>.md in Petrona a 470 e 16,55 px, tutti e due con
+     spaziatura +0,01 em; dati e stylesheet in monospazio; Inter tolto.
+     Font da google/fonts (commit 6c1dbe27), woff2 con sha256 e OFL in
+     app/assets/. L'anteprima si stacca in una finestra sua (contesto.md,
+     «L'anteprima in una finestra separata»): pulsante «Stacca», «Riporta»
+     o chiusura per rimetterla nella pagina, segue le modifiche non
+     salvate, il clic porta l'editor alla riga, resta visibile sul canvas;
+     posizione e schermo in userData/state.json, con il ritorno sullo
+     schermo principale se quello salvato manca (placeWindow, soglia di
+     120 × 80 px scelta dalla sottosessione). Non verificato dall'e2e: il
+     fuoco dato alla finestra principale dopo il clic. Visto: con
+     l'anteprima staccata le righe dell'editor diventano molto lunghe.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
