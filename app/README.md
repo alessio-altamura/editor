@@ -142,7 +142,16 @@ cartella: File → Apri cartella (Cmd-O). Si può anche dire da riga di comando:
   stesso `runtime` acceso, in una vista sua senza preload: stessa CSP
   nell'intestazione, stesso codice d'accesso. Un clic su un elemento apre
   nell'editor il file del suo `data-source` e porta il cursore all'inizio
-  del range.
+  del range. Il pulsante «Stacca» della barra della pagina la mette in una
+  finestra sua, per esempio su un altro schermo: la pagina dà la sua colonna
+  all'editor; la finestra segue le modifiche come prima, anche sul
+  `canvas`, e un clic porta l'editor della finestra principale alla riga,
+  con il fuoco. «Riporta», nella finestra, o chiuderla la rimette nella
+  pagina; una sola alla volta. Se è staccata, posizione, dimensione e
+  schermo si ricordano nelle preferenze dell'app (`state.json` in
+  `userData`, non nel documento) e alla riapertura torna lì; se quello
+  schermo non c'è più, o la finestra non ci starebbe, si apre al centro
+  dello schermo principale (`src/window-place.ts`).
 - Il tema è quello del sistema, chiaro o scuro.
 - **L'aspetto**, solo dell'`app` (la resa del documento resta quella del suo
   stylesheet), la direzione «studio» con le evidenziazioni di «lavagna»: un
@@ -155,7 +164,11 @@ cartella: File → Apri cartella (Cmd-O). Si può anche dire da riga di comando:
   hanno la forma di un rettangolo con gli angoli appena arrotondati. I
   token CSS, chiari e scuri, sono in `src/renderer/style.css`; il testo
   rispetta il contrasto WCAG AA (almeno 4,5:1), controllato dai test di
-  unità. I pulsanti comuni hanno un'icona di Lucide, con tooltip e
+  unità. L'interfaccia è in Figtree, peso 475 (i pesi più forti 575, 675 e
+  775), spaziatura +0,01 em; il testo dei file `.<kind>.md` nell'editor
+  della pagina e delle schede in Petrona, peso 470, 16,55 px (la sua «x» alta
+  come quella di Figtree a 15 px), interlinea 1,55; i file di dati e gli
+  `stylesheet` restano in monospazio. I pulsanti comuni hanno un'icona di Lucide, con tooltip e
   `aria-label`. Font e icone sono in `assets/`, con versione e sha256
   (`assets/README.md`), incorporati senza CDN.
 
@@ -205,7 +218,7 @@ ricalcoli di 0,4-0,7 s (prima del taglio: 61-80 s, con ricalcoli di 7-9 s).
 Su Linux l'end to end gira sulla piattaforma headless di Chromium, senza
 schermo e senza `xvfb`; `node dist-test/e2e.js` da solo va bene dopo
 `npm run build`, che gli script npm fanno prima. L'end to end apre
-l'app su una cartella di prova, sul `canvas`, controlla che Inter sia caricato e che ogni icona abbia la sua etichetta; scrive due testi con un doppio
+l'app su una cartella di prova, sul `canvas`, controlla che Figtree sia caricato e che ogni icona abbia la sua etichetta; scrive due testi con un doppio
 clic, ne modifica uno nella scheda e lo apre da solo nella pagina con un
 doppio clic, sposta l'altro, lo archivia e lo richiama trascinandolo dal
 `navigator`; trascina di nuovo l'altro per avere una sua seconda scheda, ci
@@ -226,7 +239,11 @@ tabella; nella griglia scrive «1,5» in un campo `number` e trova 1.5 nel TSV
 salvato con l'anteprima che segue, incolla un blocco di 2 `record` e 3 valori
 che ne aggiunge uno, aggiunge un campo e controlla che un valore sbagliato
 sia segnato; controlla anche che cambiando file e chiudendo l'app chieda di salvare, e
-che il testo finisca sul disco. Con `E2E_SCREENSHOT=<file.png>` un end to
+che il testo finisca sul disco. Prima, stacca l'anteprima in una finestra sua,
+controlla che la pagina dia la colonna all'editor, che una modifica arrivi
+alla finestra e che un clic porti l'editor alla riga; la chiude e controlla
+che l'anteprima torni nella pagina; la stacca di nuovo e, riaperta l'app,
+controlla che sia ancora staccata. Con `E2E_SCREENSHOT=<file.png>` un end to
 end che fallisce salva anche l'immagine della finestra.
 
 ## Com'è fatta
@@ -252,5 +269,5 @@ Dipendenze, con versione esatta: CodeMirror 6 (`@codemirror/state` 6.7.6,
 6.20.3, `lint` 6.9.7, `commands` 6.11.1, `search` 6.7.2, `theme-one-dark`
 6.1.3; MIT). Per lo sviluppo `electron` 44.9.3 (MIT), `esbuild` 0.28.2
 (MIT), `typescript` 5.9.3 (Apache-2.0), `playwright-core` 1.56.1
-(Apache-2.0), `@types/node` (MIT). Incorporati: Inter 4.1 (OFL 1.1) e le
+(Apache-2.0), `@types/node` (MIT). Incorporati: Figtree e Petrona (OFL 1.1) e le
 icone di Lucide 1.65.0 (ISC), in `assets/`.

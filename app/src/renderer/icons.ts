@@ -1,6 +1,7 @@
 // The icons of the app: Lucide (ISC), the files in assets/icons, built into the script as
 // text. A button with data-icon shows its icon in place of its text, which becomes its
 // label for screen readers and its tooltip; with data-icon-text it keeps the text too.
+import appWindow from '../../assets/icons/app-window.svg';
 import archive from '../../assets/icons/archive.svg';
 import arrowDown from '../../assets/icons/arrow-down.svg';
 import arrowUp from '../../assets/icons/arrow-up.svg';
@@ -12,6 +13,7 @@ import group from '../../assets/icons/group.svg';
 import layoutDashboard from '../../assets/icons/layout-dashboard.svg';
 import listOrdered from '../../assets/icons/list-ordered.svg';
 import listPlus from '../../assets/icons/list-plus.svg';
+import panelRight from '../../assets/icons/panel-right.svg';
 import plus from '../../assets/icons/plus.svg';
 import redo2 from '../../assets/icons/redo-2.svg';
 import scissors from '../../assets/icons/scissors.svg';
@@ -21,6 +23,7 @@ import trash2 from '../../assets/icons/trash-2.svg';
 import undo2 from '../../assets/icons/undo-2.svg';
 
 const ICONS: Record<string, string> = {
+  'app-window': appWindow,
   'archive': archive,
   'arrow-down': arrowDown,
   'arrow-up': arrowUp,
@@ -32,6 +35,7 @@ const ICONS: Record<string, string> = {
   'layout-dashboard': layoutDashboard,
   'list-ordered': listOrdered,
   'list-plus': listPlus,
+  'panel-right': panelRight,
   'plus': plus,
   'redo-2': redo2,
   'scissors': scissors,

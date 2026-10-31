@@ -3,15 +3,22 @@
    lavagna: a tinted ground; the navigator, the bars, the canvas, the editor, the grid and
    the preview are fixed rounded surfaces 8 px apart; hovered and current items are
    rectangles with slightly rounded corners. Its tokens, light and dark, follow the theme
-   of the system; the rules use only the tokens. Inter and the icons are in assets/. */
+   of the system; the rules use only the tokens. Figtree, Petrona and the icons are in assets/. */
 
-@font-face { font-family: "Inter App"; src: url("fonts/InterVariable.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: block; }
-@font-face { font-family: "Inter App"; src: url("fonts/InterVariable-Italic.woff2") format("woff2"); font-weight: 100 900; font-style: italic; font-display: block; }
+@font-face { font-family: "Figtree App"; src: url("fonts/Figtree-wght.woff2") format("woff2"); font-weight: 300 900; font-style: normal; font-display: block; }
+@font-face { font-family: "Petrona App"; src: url("fonts/Petrona-wght.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: block; }
+@font-face { font-family: "Petrona App"; src: url("fonts/Petrona-Italic-wght.woff2") format("woff2"); font-weight: 100 900; font-style: italic; font-display: block; }
 
 /* The tokens. */
 :root {
   color-scheme: light dark;
-  --font-ui: "Inter App", system-ui, sans-serif; --font-size: 13px;
+  --font-ui: "Figtree App", system-ui, sans-serif;
+  /* The weights of the interface: Figtree at 475 has the ink of the reference at 400 (docs/ricerca/caratteri-app.md);
+     the stronger ones keep their distance from it, 100 and 200 above as before. */
+  --weight: 475; --weight-medium: 575; --weight-strong: 675; --weight-bold: 775;
+  /* The text written in the objects: Petrona at 470, 16.55 px, its x (0.453 em) as high as the x of Figtree at 15 px (Alessio, 2026-10-31). */
+  --font-prose: "Petrona App", Georgia, serif; --prose-size: 16.55px; --prose-weight: 470; --prose-line: 1.55;
+  --font-code: ui-monospace, "SF Mono", Menlo, monospace; --font-size: 13px;
   --font-size-small: 11.5px; --space-1: 4px; --space-2: 8px; --space-3: 12px;
   --space-4: 16px; --radius-small: 6px; --radius-panel: 12px; --radius-card: 10px;
   --control: 30px; --icon: 16px; --sidebar-width: 248px; --row: 30px; --ground: #e7e5f0;
@@ -39,7 +46,7 @@
   }
 }
 
-html, body { margin: 0; height: 100%; font-family: var(--font-ui); font-size: var(--font-size); color: var(--text); background: var(--ground); -webkit-font-smoothing: antialiased; }
+html, body { margin: 0; height: 100%; font-family: var(--font-ui); font-size: var(--font-size); font-weight: var(--weight); letter-spacing: 0.01em; color: var(--text); background: var(--ground); -webkit-font-smoothing: antialiased; }
 body { display: grid; grid-template-columns: var(--sidebar-width) minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); box-sizing: border-box; }
 body[data-view="canvas"] #source, body[data-view="canvas"] #preview { display: none; }
 body[data-view="page"] #board { display: none; }
@@ -62,7 +69,7 @@ input:focus-visible, select:focus-visible { outline-offset: -1px; }
 /* The navigator. */
 #navigator { background: var(--panel); overflow: hidden auto; padding: var(--space-3) var(--space-2); box-sizing: border-box; min-height: 0; }
 #search { width: 100%; margin-bottom: var(--space-2); }
-.shelf h2 { font-size: var(--font-size-small); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: var(--space-3) var(--space-2) var(--space-1); }
+.shelf h2 { font-size: var(--font-size-small); font-weight: var(--weight-strong); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: var(--space-3) var(--space-2) var(--space-1); }
 .shelf button { display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; width: 100%; height: auto; text-align: left; justify-content: flex-start; padding: var(--space-1) var(--space-2); border-radius: var(--radius-small); }
 .shelf button .title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .shelf button .id { flex-basis: 100%; color: var(--muted); font-size: var(--font-size-small); overflow: hidden; text-overflow: ellipsis; }
@@ -73,8 +80,8 @@ input:focus-visible, select:focus-visible { outline-offset: -1px; }
 /* The bars. */
 .bar { display: flex; align-items: center; gap: var(--space-1); box-sizing: border-box; padding: var(--space-1) var(--space-2); background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; min-height: calc(var(--control) + 10px); }
 .bar .arrange { color: var(--muted); display: inline-flex; align-items: center; gap: 2px; }
-#file { flex: 1; min-width: 0; font-weight: 600; color: var(--muted); padding: 0 var(--space-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#notice, #page-notice { color: var(--danger); font-weight: 500; }
+#file { flex: 1; min-width: 0; font-weight: var(--weight-strong); color: var(--muted); padding: 0 var(--space-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#notice, #page-notice { color: var(--danger); font-weight: var(--weight-medium); }
 #notice:not(:empty), #page-notice:not(:empty) { background: color-mix(in srgb, var(--danger) 10%, var(--panel)); border-radius: var(--radius-small); padding: 2px var(--space-2); }
 #zoom { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted); padding: 0 var(--space-1); }
 #find { width: 170px; }
@@ -88,7 +95,10 @@ input:focus-visible, select:focus-visible { outline-offset: -1px; }
 #editor .cm-editor, .card-editor .cm-editor { background: var(--sheet); color: var(--text); }
 #editor .cm-gutters, .card-editor .cm-gutters { background: var(--sheet); color: var(--muted); border-right: 1px solid var(--line); }
 #editor .cm-activeLine, #editor .cm-activeLineGutter { background: color-mix(in srgb, var(--hover) 70%, transparent); }
-.cm-editor .cm-content { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; }
+.cm-editor .cm-content { font-family: var(--font-code); font-size: 12.5px; letter-spacing: 0; }
+/* A text file (.<kind>.md): Petrona; the data files and the stylesheets stay in monospace, for their columns and code. */
+.cm-editor.cm-prose .cm-content { font-family: var(--font-prose); font-size: var(--prose-size); font-weight: var(--prose-weight); letter-spacing: 0.01em; line-height: var(--prose-line); }
+.cm-editor.cm-prose .cm-gutters { line-height: var(--prose-line); }
 .cm-editor.cm-focused { outline: none; }
 .cm-tooltip { background: var(--surface) !important; color: var(--text) !important; border: 1px solid var(--field-border) !important; border-radius: var(--radius-small); box-shadow: var(--shadow-float); font-family: var(--font-ui); overflow: hidden; }
 .cm-tooltip-lint .cm-diagnostic { padding: var(--space-1) var(--space-2); }
@@ -107,7 +117,7 @@ input:focus-visible, select:focus-visible { outline-offset: -1px; }
 .card.dragging { opacity: 0.92; z-index: 5; box-shadow: var(--shadow-lift); }
 .card.editing { z-index: 10; height: auto !important; min-height: 240px; max-height: 600px; box-shadow: var(--shadow-lift); }
 .card-head { display: flex; align-items: center; gap: var(--space-1); padding: 2px var(--space-1) 2px var(--space-2); border-bottom: 1px solid var(--line); color: var(--muted); font-size: var(--font-size-small); cursor: grab; min-height: 26px; box-sizing: border-box; background: var(--card); }
-.card-head .kind { font-weight: 600; }
+.card-head .kind { font-weight: var(--weight-strong); }
 .card-head .id { margin-left: auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .card-head button { height: 22px; width: 22px; padding: 0; color: var(--muted); }
 .card-head button svg { width: 14px; height: 14px; }
@@ -116,14 +126,14 @@ input:focus-visible, select:focus-visible { outline-offset: -1px; }
 .card.editing .card-body { display: none; }
 .card-editor { flex: 1; min-height: 0; overflow: auto; }
 .card-editor .cm-editor { min-height: 200px; }
-.card-order { position: absolute; bottom: var(--space-1); right: 20px; min-width: 22px; height: 22px; border-radius: 11px; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: var(--font-size-small); text-align: center; line-height: 22px; }
+.card-order { position: absolute; bottom: var(--space-1); right: 20px; min-width: 22px; height: 22px; border-radius: 11px; background: var(--accent); color: var(--on-accent); font-weight: var(--weight-bold); font-size: var(--font-size-small); text-align: center; line-height: 22px; }
 .card-resize { position: absolute; right: 0; bottom: 0; width: 14px; height: 14px; cursor: nwse-resize; background: linear-gradient(135deg, transparent 50%, var(--field-border) 50%); }
 .card.found { outline: 2px dashed var(--found); }
 .card.found-current { outline: 3px solid var(--found); }
 .group { position: absolute; box-sizing: border-box; border: 1px dashed var(--group-border); border-radius: calc(var(--radius-card) + 6px); background: var(--group-bg); pointer-events: none; }
-.group-label { position: absolute; top: var(--space-1); left: var(--space-2); color: var(--muted); font-size: 12px; font-weight: 600; }
+.group-label { position: absolute; top: var(--space-1); left: var(--space-2); color: var(--muted); font-size: 12px; font-weight: var(--weight-strong); }
 #sequence { position: absolute; top: var(--space-3); right: var(--space-3); width: 280px; padding: var(--space-3); background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-panel); box-shadow: var(--shadow-float); z-index: 30; }
-#sequence h2 { font-size: 14px; font-weight: 600; margin: 0 0 var(--space-2); }
+#sequence h2 { font-size: 14px; font-weight: var(--weight-strong); margin: 0 0 var(--space-2); }
 #order { padding-left: 22px; margin: 0 0 var(--space-2); }
 #order li { margin: 2px 0; }
 #order li span { display: inline-block; width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
@@ -144,8 +154,8 @@ input:focus-visible, select:focus-visible { outline-offset: -1px; }
 .grid-table { position: relative; outline: none; }
 .grid-table:focus-visible .grid-cell.active { outline: 2px solid var(--focus); outline-offset: -2px; }
 .grid-head { position: sticky; top: 0; z-index: 2; display: grid; background: var(--head-bg); border-bottom: 1px solid var(--field-border); }
-.grid-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; padding: 5px 8px; font-weight: 600; border-right: 1px solid var(--line); overflow: hidden; white-space: nowrap; height: 20px; }
-.grid-type { color: var(--muted); font-weight: 400; font-size: var(--font-size-small); }
+.grid-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; padding: 5px 8px; font-weight: var(--weight-strong); border-right: 1px solid var(--line); overflow: hidden; white-space: nowrap; height: 20px; }
+.grid-type { color: var(--muted); font-weight: var(--weight); font-size: var(--font-size-small); }
 .grid-space { position: relative; }
 .grid-row { position: absolute; left: 0; display: grid; height: 28px; }
 .grid-row:nth-child(even) .grid-cell { background-color: var(--zebra); }
@@ -161,10 +171,15 @@ input:focus-visible, select:focus-visible { outline-offset: -1px; }
 
 body { padding: 8px; gap: 8px; }
 #navigator, #source > .bar, #editor, #grid,
-#board > .bar, #viewport { background-color: var(--panel); border-radius: var(--radius-panel); border: none; overflow: hidden; }
+#board > .bar, #viewport, body.detached > .bar { background-color: var(--panel); border-radius: var(--radius-panel); border: none; overflow: hidden; }
 #viewport { background-color: var(--plane); }
 #board, #source { gap: 8px; background: transparent; }
-#source > .bar, #board > .bar { border-bottom: none; padding: 5px 8px; }
+#source > .bar, #board > .bar, body.detached > .bar { border-bottom: none; padding: 5px 8px; }
+/* The preview in a window of its own: the editor takes its column; that window has only its bar. */
+body.preview-detached #preview, body.preview-detached #detach { display: none; }
+body.preview-detached #source { grid-column: 2 / 4; }
+body.detached { display: block; }
+body.detached > .bar { height: 44px; box-sizing: border-box; }
 /* The navigator: taller items; the current one, as every highlight, a rectangle with slightly rounded corners. */
 .shelf button { padding: 7px 10px; }
 .shelf button .id { display: none; }
@@ -172,7 +187,7 @@ body { padding: 8px; gap: 8px; }
 #search { background: var(--hover); border-color: transparent; }
 /* The bar shows the file as a path: kind › id. */
 .file-path { display: inline-flex; align-items: center; gap: 6px; }
-.file-path span:first-child { color: var(--muted); font-weight: 500; }
+.file-path span:first-child { color: var(--muted); font-weight: var(--weight-medium); }
 .file-path span:first-child::after { content: "›"; margin-left: 6px; color: var(--muted); }
 .file-path span:last-child { color: var(--text); }
 /* Thin heads on the cards. */

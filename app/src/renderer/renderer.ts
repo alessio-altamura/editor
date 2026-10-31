@@ -282,6 +282,14 @@ async function start(): Promise<void> {
     const warnings = (done.summary?.warnings as Array<{ message: string }> | undefined) ?? [];
     $('page-notice').textContent = warnings.map((warning) => `Avviso: ${warning.message}`).join(' · ');
   });
+  // The preview in a window of its own: the page gives its column to the editor.
+  const showDetached = (detached: boolean) => {
+    document.body.classList.toggle('preview-detached', detached);
+    placePreview();
+  };
+  $('detach').addEventListener('click', () => void api.detachPreview());
+  api.onPreviewDetached(showDetached);
+  showDetached(await api.previewDetached());
   $('mode').addEventListener('click', async () => {
     if (file === null || !(await settlePage())) return;
     const target = file;

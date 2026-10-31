@@ -64,6 +64,13 @@ const api = {
   onUpdate: (listener: () => void) => {
     ipcRenderer.on('doc:updated', () => listener());
   },
+  /** The preview in a window of its own, and back in the page; whether it is apart now. */
+  detachPreview: () => ipcRenderer.invoke('doc:detach-preview'),
+  attachPreview: () => ipcRenderer.invoke('doc:attach-preview'),
+  previewDetached: () => ipcRenderer.invoke('doc:preview-detached') as Promise<boolean>,
+  onPreviewDetached: (listener: (detached: boolean) => void) => {
+    ipcRenderer.on('doc:preview-detached', (_event, detached: boolean) => listener(detached));
+  },
   /** A click on the preview: the file and the range where the element is written. */
   onReveal: (listener: (file: string, line: number, character: number) => void) => {
     ipcRenderer.on('doc:reveal', (_event, file: string, line: number, character: number) => listener(file, line, character));

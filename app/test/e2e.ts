@@ -44,22 +44,22 @@ const answerDialogs = (response: number) =>
 const asked = () => app.evaluate(() => (globalThis as unknown as { asked: number }).asked);
 try {
   // The window of the app, not the view of the preview, which can come first.
-  let main = app.windows().find((p) => p.url().startsWith('file:'));
+  let main = app.windows().find((p) => p.url().includes('index.html'));
   while (main === undefined) {
     await app.waitForEvent('window');
-    main = app.windows().find((p) => p.url().startsWith('file:'));
+    main = app.windows().find((p) => p.url().includes('index.html'));
   }
   // On the headless platform the window starts at 1×1: it takes its size once created.
   await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.setContentSize(1400, 900));
   main.on('console', (message) => message.type() === 'error' && problems.push(`console: ${message.text()}`));
   main.on('pageerror', (error) => problems.push(`page error: ${error.message}`));
   await main.waitForSelector('#shelves button[data-id="nota"]');
-  // The look of the app: Inter loaded, the icons of the buttons each with its label.
+  // The look of the app: Figtree loaded, the icons of the buttons each with its label.
   const look = await main.evaluate(async () => {
     await document.fonts.ready;
-    return { inter: document.fonts.check('13px "Inter App"'), icons: document.querySelectorAll('button[data-icon] svg').length, unlabelled: document.querySelectorAll('button[data-icon]:not([aria-label])').length };
+    return { figtree: document.fonts.check('475 13px "Figtree App"'), icons: document.querySelectorAll('button[data-icon] svg').length, unlabelled: document.querySelectorAll('button[data-icon]:not([aria-label])').length };
   });
-  if (!look.inter || look.icons < 5 || look.unlabelled > 0) problems.push(`the look: ${JSON.stringify(look)}`);
+  if (!look.figtree || look.icons < 5 || look.unlabelled > 0) problems.push(`the look: ${JSON.stringify(look)}`);
 
   // The canvas, at the opening: empty, the document has no canvas file yet.
   const box = (await main.locator('#viewport').boundingBox())!;
@@ -240,6 +240,13 @@ try {
   await page.waitForFunction(() => document.querySelector('[data-node="nota"]')?.textContent?.includes('Scritto adesso.'), undefined, { timeout: 5000 })
     .catch(() => problems.push('the preview did not change while typing'));
   if (reloads.length > 0) problems.push('the preview reloaded');
+  // The text of a text file is written in Petrona, loaded because it is used.
+  const prose = await main.evaluate(async () => {
+    await document.fonts.ready;
+    const content = document.querySelector('#editor .cm-editor.cm-prose .cm-content');
+    return { prose: content !== null && getComputedStyle(content).fontFamily.includes('Petrona App'), loaded: document.fonts.check('470 16.55px "Petrona App"') };
+  });
+  if (!prose.prose || !prose.loaded) problems.push(`the font of the text: ${JSON.stringify(prose)}`);
 
   // A click on the chapter title in the preview: the editor opens cap.chapter.md at its title line,
   // after asking about the changes of nota.text.md; the answer is «Salva».
@@ -305,20 +312,61 @@ try {
   if (existsSync(join(folder, 'prezzi.text.md')) || !existsSync(join(folder, 'prezzi.tsv'))) problems.push('the files of «Trasforma in collection»');
   await main.click('#shelves button[data-id="nota"]');
   await main.waitForFunction(() => window.docAppState?.file === 'nota.text.md');
+
+  // The preview in a window of its own: the page gives its column to the editor; a change
+  // reaches it, a click on it brings the editor of the main window to the line; closing it
+  // brings it back to the page.
+  const separate = () => app.windows().find((p) => p.url().includes('detached.html'));
+  await main.click('#detach');
+  for (let i = 0; i < 100 && separate() === undefined; i++) await new Promise((r) => setTimeout(r, 50));
+  if (separate() === undefined) problems.push('no separate window of the preview');
+  if (!(await main.evaluate(() => document.body.classList.contains('preview-detached') && getComputedStyle(document.getElementById('preview')!).display === 'none'))) problems.push('the page kept the column of the preview');
+  const apart = await preview();
+  await main.click('.cm-content');
+  await main.keyboard.press('Control+End');
+  await main.keyboard.type(' Nella finestra.');
+  await apart.waitForFunction(() => document.querySelector('[data-node="nota"]')?.textContent?.includes('Nella finestra.'), undefined, { timeout: 5000 })
+    .catch(() => problems.push('the separate preview did not follow the change'));
+  await answerDialogs(0);
+  await apart.click('h2');
+  await main.waitForFunction(() => window.docAppState?.file === 'cap.chapter.md' && window.docAppState.line === 4, undefined, { timeout: 5000 })
+    .catch(async () => problems.push(`the click on the separate preview: ${JSON.stringify(await main.evaluate(() => ({ ...window.docAppState, text: undefined })))}`));
+  await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find((w) => w.webContents.getURL().includes('detached.html'))?.close());
+  await main.waitForFunction(() => !document.body.classList.contains('preview-detached'), undefined, { timeout: 5000 })
+    .catch(() => problems.push('closing the separate window did not bring the preview back'));
+  // Apart again: so it is at the next opening of the app.
+  await main.click('#detach');
+  for (let i = 0; i < 100 && separate() === undefined; i++) await new Promise((r) => setTimeout(r, 50));
+  await main.click('#shelves button[data-id="nota"]');
+  await main.waitForFunction(() => window.docAppState?.file === 'nota.text.md');
   // Closing with a change not saved: asked once, and saved.
   await main.click('.cm-content');
   await main.keyboard.press('Control+End');
   await main.keyboard.type(' Prima di chiudere.');
   await answerDialogs(0);
   const closed = app.waitForEvent('close');
-  await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find((w) => w.webContents.getURL().startsWith('file:'))?.close());
+  await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find((w) => w.webContents.getURL().includes('index.html'))?.close());
   await closed;
   if (!readFileSync(join(folder, 'nota.text.md'), 'utf8').includes('Prima di chiudere.')) problems.push('the changes were not saved before closing');
+  // Opened again: the preview is where it was, in its own window.
+  const again = await electron.launch({ executablePath: electronPath as unknown as string, args, env: { ...process.env, NODE_OPTIONS: '' } });
+  try {
+    let window = again.windows().find((p) => p.url().includes('index.html'));
+    while (window === undefined) {
+      await again.waitForEvent('window');
+      window = again.windows().find((p) => p.url().includes('index.html'));
+    }
+    await window.waitForFunction(() => document.body.classList.contains('preview-detached'), undefined, { timeout: 10_000 })
+      .catch(() => problems.push('the separate preview was not remembered'));
+    if (!again.windows().some((p) => p.url().includes('detached.html'))) problems.push('no separate window at the opening');
+  } finally {
+    await again.close().catch(() => undefined);
+  }
 } catch (error) {
   problems.push(String(error).split('\n').slice(0, 8).join(' / '));
   // What the window shows, to see why.
   if (process.env.E2E_SCREENSHOT) {
-    const main = app.windows().find((p) => p.url().startsWith('file:'));
+    const main = app.windows().find((p) => p.url().includes('index.html'));
     await main?.screenshot({ path: process.env.E2E_SCREENSHOT }).catch(() => undefined);
     problems.push(`canvas file: ${(() => { try { return readFileSync(join(folder, 'foglio.canvas'), 'utf8').replace(/\s+/g, ' '); } catch (e) { return String(e); } })()}`);
     problems.push(`notice: ${await main?.evaluate(() => document.getElementById('notice')?.textContent).catch(String)}`);
