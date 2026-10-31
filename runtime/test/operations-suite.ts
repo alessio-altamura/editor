@@ -408,10 +408,11 @@ try {
     writeFileSync(join(base, 'dati', 'nomi.collection.md'), front('nomi', 'collection', 'asset: nomi.tsv\nfields:\n  - name: nome\n    type: string\n') + 'Nomi.\n');
     writeFileSync(join(base, 'dati', 'nomi.tsv'), 'nome\nAda\n');
     const run = (...args: string[]) => spawnSync(process.execPath, [cliPath, ...args, '--folder', base], { encoding: 'utf8' });
-    // Without roles: x mese and y importo proposed; the same month twice without a series is refused.
+    // Without roles, in long form: x mese and y importo proposed, and regione as series, since the same month repeats.
     const bare = run('create', 'chart', '--collection', 'vendite', '--dry-run');
-    if (bare.status !== 1 || !bare.stderr.includes('chart-x-repeated')) problems.push(`without roles: ${bare.status} ${bare.stderr.slice(0, 200)}`);
-    const proposed = run('create', 'chart', '--collection', 'vendite', '--series', 'regione');
+    const bareSummary = bare.status === 0 ? (JSON.parse(bare.stdout) as Record<string, string>) : {};
+    if (bareSummary.x !== 'mese' || bareSummary.y !== 'importo' || bareSummary.series !== 'regione') problems.push(`without roles: ${bare.status} ${bare.stdout}${bare.stderr.slice(0, 200)}`);
+    const proposed = run('create', 'chart', '--collection', 'vendite');
     const summary = proposed.status === 0 ? (JSON.parse(proposed.stdout) as Record<string, string>) : {};
     if (summary.file !== 'dati/importo-per-mese.chart.md' || summary.template !== 'bar' || summary.x !== 'mese' || summary.y !== 'importo') problems.push(`proposed: ${proposed.stdout}${proposed.stderr}`);
     else if (readFileSync(join(base, summary.file), 'utf8') !== '---\nid: importo-per-mese\nkind: chart\ntags: []\ntemplate: bar\ncollection: "[[vendite]]"\nx: mese\ny: importo\nseries: regione\n---\n') problems.push(`the file: ${readFileSync(join(base, summary.file), 'utf8')}`);
@@ -423,7 +424,7 @@ try {
     if ((tree.diagnostics ?? []).length !== 0) problems.push(`diagnostics: ${JSON.stringify(tree.diagnostics)}`);
     if (spawnSync(process.execPath, [cliPath, 'format', base, '--check'], { encoding: 'utf8' }).status !== 0) problems.push('not canonical');
     rmSync(base, { recursive: true, force: true });
-    report('create chart: roles proposed or given, next to the collection, refused without a quantity', problems);
+    report('create chart: roles and series proposed or given, next to the collection, refused without a quantity', problems);
   }
 
   // A big table: the preview keeps the first 1000 records, a card 20, each with a last row; the export has them all.

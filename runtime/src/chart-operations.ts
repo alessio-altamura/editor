@@ -2,7 +2,7 @@
 // template, the collection and a field for each role; the roles not given are proposed
 // from the types of the fields, as the runtime proposes them for a chart without them.
 import { posix } from 'node:path';
-import { CHART_TEMPLATES, isQuantity, proposeRoles } from './chart.js';
+import { CHART_TEMPLATES, isQuantity, proposeRoles, proposeSeries } from './chart.js';
 import type { Field } from './collection.js';
 import type { RawValue } from './front-matter.js';
 import { writeHeader } from './format.js';
@@ -34,7 +34,12 @@ export function chooseChart(tree: ResolvedTree, request: CreateRequest): ChartCh
   const node = nodeOf(tree, request.collection);
   if (node.kind !== 'collection') throw new OperationError(`${request.collection} non è una collection`);
   const fields = (Array.isArray(node.attributes?.fields) ? node.attributes.fields : []) as Array<{ name?: unknown; type?: unknown; title?: unknown }>;
-  const known = fields.filter((field) => typeof field.name === 'string').map((field) => ({ name: String(field.name), type: typeof field.type === 'string' ? field.type : 'string', ...(typeof field.title === 'string' ? { title: field.title } : {}) })) as Field[];
+  const known = fields.filter((field) => typeof field.name === 'string').map((field) => ({
+    name: String(field.name),
+    type: typeof field.type === 'string' ? field.type : 'string',
+    ...(typeof field.title === 'string' ? { title: field.title } : {}),
+    ...(Array.isArray((field as { categories?: unknown }).categories) ? { categories: (field as { categories: string[] }).categories } : {}),
+  })) as Field[];
   for (const [role, name] of [['x', request.x], ['y', request.y], ['series', request.series]] as const) {
     if (name !== undefined && !known.some((field) => field.name === name)) throw new OperationError(`${request.collection} non ha il field ${name} (--${role})`);
   }
@@ -45,7 +50,21 @@ export function chooseChart(tree: ResolvedTree, request: CreateRequest): ChartCh
   const template = request.template ?? (isQuantity(x) && isQuantity(y) ? 'point' : DATE_TYPES.has(x.type) ? 'line' : 'bar');
   if (!(CHART_TEMPLATES as readonly string[]).includes(template)) throw new OperationError(`il template ${template} non è fra: ${CHART_TEMPLATES.join(', ')}`);
   const title = (field: Field) => (typeof field.title === 'string' && field.title !== '' ? field.title : field.name);
-  return { collection: node.id!, file: node.file, template, x: x.name, y: y.name, ...(request.series !== undefined ? { series: request.series } : {}), words: `${title(y)} per ${title(x)}` };
+  // Bars or lines whose x repeats: a series proposed, from the records in the tree.
+  const series = request.series ?? (template === 'point' ? undefined : proposeSeries(known, x.name, y.name, tableRows(node.content)));
+  return { collection: node.id!, file: node.file, template, x: x.name, y: y.name, ...(series !== undefined ? { series } : {}), words: `${title(y)} per ${title(x)}` };
+}
+
+/** The values of the records of the table of a collection in the tree, in the order of its fields. */
+function tableRows(content: unknown[] | undefined): string[][] {
+  const table = (content ?? []).find((item) => Array.isArray(item) && item[0] === 'table') as unknown[] | undefined;
+  if (table === undefined) return [];
+  const rows = table.filter((item) => Array.isArray(item) && item[0] === 'tableRow').slice(1) as unknown[][];
+  return rows.map((row) => row.filter((cell) => Array.isArray(cell) && cell[0] === 'tableCell').map((cell) => {
+    const attributes = (cell as unknown[])[1];
+    const value = attributes !== null && typeof attributes === 'object' && !Array.isArray(attributes) ? (attributes as { value?: unknown }).value : undefined;
+    return value === undefined ? '' : String(value);
+  }));
 }
 
 /** The file of a chart, next to `at`: the header with the template, the collection, the roles; the body is its description. */

@@ -6,6 +6,7 @@
 import * as vega from 'vega';
 import { compile, type TopLevelSpec } from 'vega-lite';
 import type { CollectionData, Field } from './collection.js';
+import { textWidth } from './font-metrics.js';
 import { Decimal, displayString } from './math-line.js';
 
 /** The base templates of the runtime (§13): bars, lines, points. */
@@ -55,6 +56,20 @@ export function proposeRoles(fields: readonly Field[], written: { x?: string; y?
   const x = written.x ?? (fields.find((field) => !isQuantity(field)) ?? fields[0])?.name;
   const y = written.y ?? fields.find((field) => isQuantity(field) && field.name !== x)?.name;
   return { ...(x !== undefined ? { x } : {}), ...(y !== undefined ? { y } : {}) };
+}
+
+/**
+ * A series for bars or lines whose x repeats: the first field of text or of categories, in
+ * the order of the schema, that with x makes every record unique; undefined if x does not
+ * repeat or no field does that. `rows` are the values of the records, in the order of the fields.
+ */
+export function proposeSeries(fields: readonly Field[], x: string, y: string, rows: readonly (readonly string[])[]): string | undefined {
+  const at = fields.findIndex((field) => field.name === x);
+  if (at < 0) return undefined;
+  const unique = (keys: string[]) => new Set(keys).size === keys.length;
+  if (unique(rows.map((row) => row[at] ?? ''))) return undefined;
+  return fields.find((field, index) => field.name !== x && field.name !== y && (field.type === 'string' || field.type === 'boolean' || field.categories !== undefined)
+    && unique(rows.map((row) => `${row[at] ?? ''}\0${row[index] ?? ''}`)))?.name;
 }
 
 /** The roles and the records of a chart, checked against the collection; problems if it cannot be drawn. */
@@ -141,6 +156,27 @@ vega.expressionFunction('docNumber', (value: unknown, lang: unknown) => {
   return displayString(new Decimal(number.toPrecision(12)), typeof lang === 'string' && lang !== '' ? lang : undefined, 'standard', 10);
 });
 
+// Text measured with the base fonts, not estimated: Vega knows the true width of a label
+// (its check of the overlaps, the room of the axes); another font is estimated as before.
+// The typings of vega do not list textMetrics, which vega-scenegraph exports and Vega reads.
+const metrics = (vega as unknown as { textMetrics: { estimateWidth: (item: unknown, text: unknown) => number; width: (item: unknown, text: unknown) => number } }).textMetrics;
+const estimate = metrics.estimateWidth;
+metrics.width = (item: unknown, text: unknown) => {
+  const { font, fontSize, fontStyle } = item as { font?: string; fontSize?: number; fontStyle?: string };
+  return textWidth(String(text ?? ''), font ?? 'serif', fontSize ?? 11, fontStyle === 'italic') ?? estimate(item, text);
+};
+
+/**
+ * The labels of a category axis turn by -45° when the widest does not fit in its band:
+ * the band is the width of the drawing less the room of the other axis and of the legend.
+ */
+function turnLabels(labels: string[], look: ChartLook, size: number, legend: string[]): boolean {
+  const width = (text: string) => textWidth(text, look.font, size) ?? text.length * size * 0.6;
+  const legendRoom = legend.length > 0 ? Math.max(...legend.map(width)) + 40 : 0;
+  const band = (CHART_WIDTH - 90 - legendRoom) / Math.max(1, labels.length);
+  return Math.max(0, ...labels.map(width)) + 6 > band;
+}
+
 /** The Vega-Lite spec of a plan, with its look. */
 export function chartSpec(plan: ChartPlan, look: ChartLook): TopLevelSpec {
   const horizontal = plan.orientation === 'horizontal';
@@ -148,10 +184,13 @@ export function chartSpec(plan: ChartPlan, look: ChartLook): TopLevelSpec {
   const quantityAxis = { formatType: 'docNumber', format: look.lang ?? '' };
   const xQuantity = horizontal || (plan.template !== 'bar' && isQuantity(plan.x));
   const title = (field: Field) => (typeof field.title === 'string' && field.title !== '' ? field.title : field.name);
+  const label = Math.round(look.fontSize * 0.85 * 100) / 100;
+  const distinct = (at: number) => [...new Set(plan.values.map((row) => row[at]!))];
+  const turned = !xQuantity && turnLabels(distinct(0), look, label, plan.series ? distinct(2) : []);
   const encoding: Record<string, unknown> = {
     x: xQuantity
       ? { field: 'x', type: 'quantitative', title: title(plan.x), axis: quantityAxis }
-      : { field: 'x', type: plan.template === 'point' ? 'nominal' : 'ordinal', sort: null, title: title(plan.x), axis: { labelAngle: 0 } },
+      : { field: 'x', type: plan.template === 'point' ? 'nominal' : 'ordinal', sort: null, title: title(plan.x), axis: { labelAngle: turned ? -45 : 0, labelOverlap: false } },
     y: horizontal
       ? { field: 'y', type: 'ordinal', sort: null, title: title(plan.y) }
       : { field: 'y', type: 'quantitative', title: title(plan.y), axis: quantityAxis },
@@ -161,7 +200,6 @@ export function chartSpec(plan: ChartPlan, look: ChartLook): TopLevelSpec {
     // Bars of different series side by side, not stacked: each bar is a value of the collection.
     if (plan.template === 'bar') encoding[horizontal ? 'yOffset' : 'xOffset'] = { field: 's', sort: null };
   }
-  const label = Math.round(look.fontSize * 0.85 * 100) / 100;
   return {
     width: CHART_WIDTH,
     height: CHART_HEIGHT,

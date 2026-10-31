@@ -13,7 +13,7 @@ import { compareCodePoints, makeDiagnostic, report, sortDiagnostics, type Diagno
 import { parseYamlMap, splitFrontMatter, type RawValue } from './front-matter.js';
 import { columnDisplays, MAX_DATA_BYTES, MAX_RECORDS, readRecords, readSchema, readValue, TYPE_WORDS, type CollectionData, type Field, type Value } from './collection.js';
 import { Decimal, displayString, evaluateMathLine, langFormat, localize, plainString } from './math-line.js';
-import { CHART_TEMPLATES, drawChart, planChart, proposeRoles, type ChartPlan } from './chart.js';
+import { CHART_TEMPLATES, drawChart, planChart, proposeRoles, proposeSeries, type ChartPlan } from './chart.js';
 import { BASE_FONTS, type GenericFamily } from './base-stylesheet.js';
 import {
   computeStyle,
@@ -695,10 +695,15 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
     // Roles not written: proposed from the types, and drawn with them.
     const roles = proposeRoles(collection.data.fields, { ...(chart.x !== undefined ? { x: chart.x } : {}), ...(chart.y !== undefined ? { y: chart.y } : {}) });
     const missing = (['x', 'y'] as const).filter((role) => chart[role] === undefined);
+    // With roles to propose, a series too when x repeats in bars or lines.
+    const series = chart.series ?? (missing.length > 0 && chart.template !== 'point' && roles.x !== undefined && roles.y !== undefined
+      ? proposeSeries(collection.data.fields, roles.x, roles.y, collection.data.records.map((record) => record.written))
+      : undefined);
     if (missing.length > 0) {
-      report(diagnostics, 'chart-role-missing', node.file, missing.join(', '), missing.map((role) => `${role}: ${roles[role] ?? '?'}`).join(', '));
+      const proposal = [...missing.map((role) => `${role}: ${roles[role] ?? '?'}`), ...(chart.series === undefined && series !== undefined ? [`series: ${series}`] : [])];
+      report(diagnostics, 'chart-role-missing', node.file, missing.join(', '), proposal.join(', '));
     }
-    const planned = planChart({ template: chart.template, ...roles, ...(chart.series !== undefined ? { series: chart.series } : {}), filter: chart.filter }, collection.data);
+    const planned = planChart({ template: chart.template, ...roles, ...(series !== undefined ? { series } : {}), filter: chart.filter }, collection.data);
     if ('problems' in planned) {
       for (const problem of planned.problems) report(diagnostics, problem.code, node.file, problem.target, problem.fix);
       return;
