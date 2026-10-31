@@ -9,7 +9,7 @@ import { linter, lintGutter, type Diagnostic } from '@codemirror/lint';
 import { highlightSelectionMatches, searchKeymap } from '@codemirror/search';
 import type { EditorState, Extension } from '@codemirror/state';
 import { oneDark } from '@codemirror/theme-one-dark';
-import { EditorView, hoverTooltip, keymap, lineNumbers, drawSelection, highlightActiveLine, highlightWhitespace, type ViewUpdate } from '@codemirror/view';
+import { EditorView, hoverTooltip, keymap, lineNumbers, drawSelection, highlightActiveLine, highlightWhitespace, ViewPlugin, type ViewUpdate } from '@codemirror/view';
 import type { DocApp } from '../preload.js';
 
 type Position = { line: number; character: number };
@@ -136,8 +136,26 @@ export function editorExtensions(api: DocApp, context: EditorContext): Extension
     // A text file (.<kind>.md) is written in the font of prose; a data file or a stylesheet keeps the monospace.
     EditorView.editorAttributes.of(() => (/\.[a-z-]+\.md$/i.test(context.file() ?? '') ? { class: 'cm-prose' } : null)),
     EditorView.updateListener.of((update) => context.changed(update)),
+    besideTheColumn,
   ];
 }
+
+/**
+ * A click beside the column of text (the empty sides of a text file): the cursor goes to the
+ * start or the end of the nearest line, as if the click were at the edge of the column.
+ */
+const besideTheColumn = ViewPlugin.define((view) => {
+  const down = (event: MouseEvent) => {
+    if (event.target !== view.scrollDOM || event.button !== 0 || !view.dom.classList.contains('cm-prose')) return;
+    const box = view.contentDOM.getBoundingClientRect();
+    const offset = view.posAtCoords({ x: Math.min(Math.max(event.clientX, box.left + 1), box.right - 1), y: event.clientY }, false);
+    view.dispatch({ selection: { anchor: offset } });
+    view.focus();
+    event.preventDefault();
+  };
+  view.scrollDOM.addEventListener('mousedown', down);
+  return { destroy: () => view.scrollDOM.removeEventListener('mousedown', down) };
+});
 
 /** The position in the whole file of the cursor of an editor that shows a part of it. */
 export function filePosition(view: EditorView, before: string): Position {

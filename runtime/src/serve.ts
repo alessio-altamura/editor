@@ -68,7 +68,9 @@ const CLIENT = `(() => {
     document.addEventListener('click', (event) => {
       if (event.target.closest('a[href]')) return;
       const element = event.target.closest('[data-source]');
-      if (element) location.hash = 'source=' + encodeURIComponent(element.getAttribute('data-source'));
+      // In a table, the column too: the app opens the record of a collection at its field.
+      const cell = event.target.closest('td, th');
+      if (element) location.hash = 'source=' + encodeURIComponent(element.getAttribute('data-source')) + (cell && element.contains(cell) ? '&column=' + cell.cellIndex : '');
     });
   }
   const connect = () => {

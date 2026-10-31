@@ -107,9 +107,10 @@ function createWindow(): void {
   preview.webContents.on('did-navigate-in-page', (_event, url) => {
     const hash = new URL(url).hash;
     if (!hash.startsWith('#source=')) return;
-    const match = /^(.*):(\d+):(\d+)-(\d+):(\d+)$/.exec(decodeURIComponent(hash.slice('#source='.length)));
+    const [source = '', column] = hash.slice('#source='.length).split('&column=');
+    const match = /^(.*):(\d+):(\d+)-(\d+):(\d+)$/.exec(decodeURIComponent(source));
     if (match && session?.file(match[1]!) !== null) {
-      window?.webContents.send('doc:reveal', match[1], Number(match[2]), Number(match[3]));
+      window?.webContents.send('doc:reveal', match[1], Number(match[2]), Number(match[3]), column === undefined ? undefined : Number(column));
       // From the separate window: the editor of the main one takes the focus.
       if (detached !== null) {
         window?.focus();
@@ -250,6 +251,7 @@ handle('doc:extract', (current, file: string, text: string) => current.extract(f
 handle('doc:table-at', (current, file: string, text: string, line: number) => current.tableAt(file, String(text), Number(line)));
 handle('doc:turn-into', (current, file: string, text: string, line: number) => current.turnInto(file, String(text), Number(line)));
 handle('doc:data-file', (current, file: string) => current.dataFile(file));
+handle('doc:collection-of', (current, file: string) => current.collectionOf(file));
 handle('doc:grid-source', (current, file: string) => current.gridSource(file));
 const fieldsOf = (value: unknown) => (Array.isArray(value) ? (value as Array<Record<string, unknown>>) : []);
 handle('doc:grid-edit', (current, file: string, fields: unknown, data: string) => current.gridEdit(file, fieldsOf(fields), String(data)));

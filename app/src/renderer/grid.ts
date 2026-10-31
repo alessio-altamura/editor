@@ -392,6 +392,27 @@ export function createGrid(api: DocApp, root: HTMLElement, hooks: GridHooks) {
       head.replaceChildren();
       space.replaceChildren();
     },
+    /**
+     * A record or a heading clicked in the preview: the line of the data file (0 the header)
+     * and the column of the table, which follows the fields of the descriptor. A record is
+     * chosen at the cell of its field; the heading chooses the whole column, as a click on
+     * the heading of the grid does. False if the grid has no such field.
+     */
+    reveal(line: number, column: number): boolean {
+      if (model === null) return false;
+      const name = (model.descriptorFields()[column] as { name?: unknown } | undefined)?.name;
+      const at = model.columns.findIndex((each) => each.name === name);
+      if (at < 0) return false;
+      // One record a line: the data file as the grid writes it, and as a TSV is.
+      if (line <= 0) {
+        anchor = { row: 0, column: at };
+        active = { row: Math.max(rows() - 1, 0), column: at };
+        scroll.scrollTop = 0;
+        paint();
+      } else move(line - 1, at);
+      table.focus();
+      return true;
+    },
     isDirty: () => model?.dirty ?? false,
     save,
     focus: () => table.focus(),

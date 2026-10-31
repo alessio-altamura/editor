@@ -166,6 +166,18 @@ function showFile(target: string): void {
   $('file').title = target;
 }
 
+/** The grid of a collection at a line of its data file and a column of its table; false if it cannot open. */
+async function revealInGrid(descriptor: string, line: number, column: number): Promise<boolean> {
+  if (file !== descriptor) await open(descriptor, 0, 0);
+  else if (current !== 'page' && !(await setView('page'))) return true;
+  if (file !== descriptor) return true;
+  if (mode === 'text') {
+    if (!(await settlePage())) return true;
+    await showMode((await grid.open(descriptor)) ? 'grid' : 'text');
+  }
+  return mode === 'grid' && grid.reveal(line, column);
+}
+
 /** The grid or the text of a collection; the switch shows only for a collection with its data. */
 async function showMode(next: 'text' | 'grid'): Promise<void> {
   mode = next;
@@ -316,7 +328,14 @@ async function start(): Promise<void> {
     forceLinting(view);
     if (current === 'canvas') void board.refresh();
   });
-  api.onReveal((target, line, character) => void open(target, line, character));
+  // A record of a collection clicked in the preview: its grid, at the cell; the data file as text if the grid cannot open.
+  api.onReveal(async (target, line, character, column) => {
+    if (column !== undefined && /\.(tsv|csv)$/i.test(target)) {
+      const descriptor = await api.collectionOf(target);
+      if (descriptor !== null && (await revealInGrid(descriptor, line, column))) return;
+    }
+    await open(target, line, character);
+  });
   api.onView((next) => void setView(next));
   api.onSaveAndClose(async () => {
     if (current === 'canvas') await board.finish();
