@@ -66,8 +66,10 @@ export const BASE_STYLESHEET_RULES: readonly BaseRule[] = [
   { types: ['blockquote'], declarations: [['margin-left', '24pt']] },
   { types: ['list'], declarations: [['margin-left', '18pt'], ['margin-bottom', '6pt']] },
   { types: ['table', 'code', 'image', 'thematicBreak'], declarations: [['margin-bottom', '6pt']] },
+  { types: ['chart'], declarations: [['color', '#1a4f8b']] },
   { types: ['root'], declarations: [['color', '#e6e6e6']], dark: true },
   { types: ['hyperlink'], declarations: [['color', '#8ab4f8']], dark: true },
+  { types: ['chart'], declarations: [['color', '#8ab4f8']], dark: true },
 ];
 
 /** The page background, fixed by the spec for each theme (§0.5); the renderer draws it. */

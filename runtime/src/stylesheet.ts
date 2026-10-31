@@ -70,6 +70,8 @@ const DOCUMENT_TYPE_SELECTORS: ReadonlyMap<string, string> = new Map([
   ['title-1', 'title-1'],
   ['title-2', 'title-2'],
   ['title-3', 'title-3'],
+  // The marks of a chart: their color, in each theme (class 3).
+  ['chart', 'chart'],
 ]);
 const FONT_WEIGHT_KEYWORDS: ReadonlyMap<string, string> = new Map([['normal', '400'], ['bold', '700']]);
 const CLASS_SELECTOR = /^(?:\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*)+$/;

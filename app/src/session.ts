@@ -308,6 +308,14 @@ export class Session {
     return this.operate((workspace, tree) => planCreate(workspace, tree, { kind: 'text', at, text }));
   }
 
+  /** «Crea grafico» from a collection: a chart with the template and the roles proposed from the types, next to it (class 3). */
+  createChart(path: string): Done {
+    const file = this.safe(path);
+    const node = (this.live.tree.nodes ?? []).find((each) => each.file === file && each.kind === 'collection');
+    if (node?.id === undefined) return { error: `${file} non è una collection` };
+    return this.operate((workspace, tree) => planCreate(workspace, tree, { kind: 'chart', collection: node.id! }));
+  }
+
   compose(ids: string[], title: string): Done {
     return this.operate((workspace, tree) => planCompose(workspace, tree, { ids, title }));
   }

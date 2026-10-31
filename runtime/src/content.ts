@@ -22,6 +22,8 @@ export interface Element {
     position?: SourcePosition;
     /** The table of a collection: the language of its numbers and its data, for the decimals of the style pass (class 2). */
     collection?: { lang: string | undefined; data: unknown };
+    /** A chart: what it draws, for the drawing of the style pass (class 3). */
+    chartPlan?: import('./chart.js').ChartPlan;
     /** Declarations the runtime adds to the node itself (§0.5): column alignment, table header, tight list. */
     declarations?: Array<[string, string]>;
   };

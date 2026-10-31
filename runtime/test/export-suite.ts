@@ -729,6 +729,24 @@ async function main(): Promise<void> {
       if (existsSync(output)) problems.push('-o written');
       report('i. export-too-large', problems);
     }
+
+    // A chart (class 3): the drawing as SVG without script, in the two themes, named by its description; one theme with --theme.
+    {
+      const problems: string[] = [];
+      const base = mkdtempSync(join(tmpdir(), 'export-'));
+      temporary.push(base);
+      writeChartFolder(base);
+      const run = runCli(['export', base]);
+      const html = run.stdout.toString('utf8');
+      if (run.status !== 0) problems.push(`exit ${run.status}: ${run.stderr}`);
+      const svgs = html.match(/<svg role="img" aria-label="Le vendite per mese, gennaio in testa\." /g) ?? [];
+      if (svgs.length !== 2 || !html.includes('<div data-chart-theme="light"><svg') || !html.includes('<div data-chart-theme="dark"><svg')) problems.push(`the two drawings: ${svgs.length}`);
+      if (/<script/i.test(html)) problems.push('a script in the page');
+      for (const result of (await VALIDATOR.validateString(html)).results) for (const m of result.messages) problems.push(`html-validate ${m.ruleId}: ${m.message}`);
+      const dark = runCli(['export', base, '--theme', 'dark']).stdout.toString('utf8');
+      if ((dark.match(/<svg role="img"/g) ?? []).length !== 1 || dark.includes('data-chart-theme') || !dark.includes('fill="#8ab4f8"')) problems.push('--theme dark: not one dark drawing');
+      report('a chart: SVG in the two themes, no script, one theme with --theme', problems);
+    }
   } finally {
     for (const base of temporary) rmSync(base, { recursive: true, force: true });
   }
@@ -737,3 +755,12 @@ async function main(): Promise<void> {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) await main();
+
+/** A folder with a chart (class 3): a collection of sales by month, and an article that embeds its bar chart. */
+export function writeChartFolder(folder: string): void {
+  writeFileSync(join(folder, 'doc.document.md'), '---\nid: doc\nkind: document\ntags: []\nspec-version: "0.1"\nlang: it\n---\n');
+  writeFileSync(join(folder, 'vendite.collection.md'), '---\nid: vendite\nkind: collection\ntags: []\nasset: vendite.tsv\nfields:\n  - name: mese\n    type: string\n  - name: importo\n    type: number\n---\nVendite per mese.\n');
+  writeFileSync(join(folder, 'vendite.tsv'), 'mese\timporto\ngennaio\t21300\nfebbraio\t9875.26\nmarzo\t12000\n');
+  writeFileSync(join(folder, 'mensili.chart.md'), '---\nid: mensili\nkind: chart\ntags: []\ntemplate: bar\ncollection: "[[vendite]]"\nx: mese\ny: importo\n---\nLe vendite per mese, gennaio in testa.\n');
+  writeFileSync(join(folder, 'report.article.md'), '---\nid: report\nkind: article\ntags: []\ntitle: Rapporto\n---\n![[mensili]]\n');
+}

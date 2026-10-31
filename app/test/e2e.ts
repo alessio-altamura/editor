@@ -230,6 +230,8 @@ try {
   await main.waitForFunction(() => window.docAppState?.file === 'nota.text.md');
   const page = await preview();
   await page.waitForSelector('[data-node="nota"] p');
+  // The first load of the page is not a reload: its event may come after the content shows.
+  await page.waitForLoadState('load');
   const reloads: string[] = [];
   page.on('load', () => reloads.push(page.url()));
 
@@ -287,6 +289,30 @@ try {
   await main.click('#grid button[data-do="add-field"]');
   await main.waitForFunction(() => [...document.querySelectorAll('#grid .grid-heading')].some((cell) => cell.textContent?.startsWith('Note del mese')), undefined, { timeout: 5000 })
     .catch(() => problems.push('the field was not added'));
+  // «Crea grafico»: a chart of the collection, with the roles proposed from the types, opened in the
+  // editor; drawn in the preview of the object alone and on its card on the canvas.
+  type Api = { docApp: { showObject: (id: string) => Promise<unknown>; recall: (id: string) => Promise<unknown> } };
+  await main.click('#grid button[data-do="chart"]');
+  await main.waitForFunction(() => /\.chart\.md$/.test(window.docAppState?.file ?? ''), undefined, { timeout: 10_000 })
+    .catch(() => problems.push('«Crea grafico» did not open the chart'));
+  const chartFile = (await main.evaluate(() => window.docAppState.file)) ?? '';
+  const chartText = existsSync(join(folder, chartFile)) ? readFileSync(join(folder, chartFile), 'utf8') : '';
+  if (!/template: bar\ncollection: "\[\[vendite\]\]"\nx: mese\ny: vendite\n/.test(chartText)) problems.push(`the chart written: ${JSON.stringify(chartText)}`);
+  const chartId = /^id: (.+)$/m.exec(chartText)?.[1] ?? '';
+  await main.evaluate((id) => (window as unknown as Api).docApp.showObject(id), chartId);
+  let objectPreview: Page | undefined;
+  for (let i = 0; i < 100 && objectPreview === undefined; i++) {
+    objectPreview = app.windows().find((p) => p.url().includes(`/object/${chartId}`));
+    if (objectPreview === undefined) await new Promise((r) => setTimeout(r, 100));
+  }
+  if (!(await objectPreview?.waitForSelector('figure[data-kind="chart"] svg[role="img"]', { timeout: 10_000 }).then(() => true).catch(() => false))) problems.push('no chart in the preview');
+  await main.evaluate((id) => (window as unknown as Api).docApp.recall(id), chartId);
+  await main.click('[data-show="canvas"]');
+  await main.waitForFunction((id) => document.querySelector(`.card[data-id="${id}"] .card-body`)?.shadowRoot?.querySelector('svg[role="img"]') != null, chartId, { timeout: 10_000 })
+    .catch(() => problems.push('no chart on its card'));
+  await main.click('[data-show="page"]');
+  await main.click('#shelves button[data-id="vendite"]');
+  await main.waitForSelector('#grid .grid-cell');
   await main.click('#grid .grid-cell[data-row="1"][data-column="2"]');
   await main.keyboard.type('molti');
   await main.keyboard.press('Enter');

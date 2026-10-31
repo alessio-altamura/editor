@@ -123,6 +123,14 @@ cartella: File → Apri cartella (Cmd-O). Si può anche dire da riga di comando:
   - Accessibilità: `role="grid"`, righe e celle con `aria-rowindex` e
     `aria-colindex`, la cella attiva con `aria-activedescendant`, le celle
     scelte con `aria-selected`, quelle sbagliate con `aria-invalid`.
+  - «Crea grafico», nella barra della griglia: un `chart` della `collection`
+    aperta, con il `template` e i ruoli proposti dai tipi dei campi (come
+    `create chart`), accanto alla `collection`; la griglia si salva prima, e
+    il grafico si apre nell'editor. Il grafico si vede nell'anteprima e
+    nella sua scheda del `canvas`.
+  - Il `record` di una cella cliccata nell'anteprima si ricava da dove è
+    scritto nel file, così anche un CSV con un a capo fra virgolette porta
+    al `record` giusto.
   - Fuori da questo passo: ordinamento e filtri (sono viste), formule, pivot;
     e la griglia dentro una scheda del `canvas`, dove un clic apre ancora il
     sorgente.
@@ -243,7 +251,8 @@ nell'anteprima, che non deve ricaricarsi, poi fa clic su un titolo e su un
 capoverso dell'anteprima e controlla file, riga e colonna del cursore; fa
 clic su una cella della tabella di una `collection`, nell'anteprima della
 pagina e poi in quella staccata, e controlla che si apra la griglia con quel
-`record` e quel campo scelti, e fa «Trasforma in collection» su un `text` che è una
+`record` e quel campo scelti; dalla griglia fa «Crea grafico» e controlla il
+file del `chart`, il grafico nell'anteprima dell'oggetto e nella sua scheda, e fa «Trasforma in collection» su un `text` che è una
 tabella; nella griglia scrive «1,5» in un campo `number` e trova 1.5 nel TSV
 salvato con l'anteprima che segue, incolla un blocco di 2 `record` e 3 valori
 che ne aggiunge uno, aggiunge un campo e controlla che un valore sbagliato

@@ -7,7 +7,7 @@ import { parseYamlMap, splitFrontMatter, type RawValue } from './front-matter.js
 import { parseMarkdown, resolveTree } from './resolve-tree.js';
 
 /** The order of the attributes in a header and in an attribute line: the table of §4, then the others as written. */
-const KEY_ORDER = ['id', 'kind', 'tags', 'class', 'lang', 'title', 'spec-version', 'asset', 'fields', 'primaryKey', 'missingValues', 'dialect', 'recursion', 'stylesheet', 'origin', 'associations'];
+const KEY_ORDER = ['id', 'kind', 'tags', 'class', 'lang', 'title', 'spec-version', 'asset', 'fields', 'primaryKey', 'missingValues', 'dialect', 'template', 'collection', 'x', 'y', 'series', 'filter', 'recursion', 'stylesheet', 'origin', 'associations'];
 /** The order of the keys of a field of a collection: those of Frictionless that say what it is, then the others as written. */
 const FIELD_ORDER = ['name', 'type', 'title', 'description', 'format'];
 

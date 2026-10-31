@@ -25,6 +25,8 @@
     "mdast-util-gfm-table": "2.0.0",
     "micromark-extension-gfm-table": "2.1.2",
     "morphdom": "2.7.8",
+    "vega": "6.4.0",
+    "vega-lite": "6.5.0",
     "vscode-languageserver": "10.1.2",
     "vscode-languageserver-textdocument": "1.0.15",
     "ws": "8.22.0",

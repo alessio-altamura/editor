@@ -29,6 +29,15 @@ export interface Field {
   asWritten: boolean;
 }
 
+/** The data of a collection, read from its file: the fields of the schema and the values of each record. */
+export interface CollectionData {
+  path: string;
+  text: string;
+  fields: Field[];
+  header: { start: number; end: number } | null;
+  records: Array<{ start: number; end: number; values: Value[]; written: string[] }>;
+}
+
 export interface Schema {
   fields: Field[];
   primaryKey: string[];

@@ -5,6 +5,7 @@ import appWindow from '../../assets/icons/app-window.svg';
 import archive from '../../assets/icons/archive.svg';
 import arrowDown from '../../assets/icons/arrow-down.svg';
 import arrowUp from '../../assets/icons/arrow-up.svg';
+import chartColumn from '../../assets/icons/chart-column.svg';
 import chevronDown from '../../assets/icons/chevron-down.svg';
 import chevronUp from '../../assets/icons/chevron-up.svg';
 import fileCode from '../../assets/icons/file-code.svg';
@@ -27,6 +28,7 @@ const ICONS: Record<string, string> = {
   'archive': archive,
   'arrow-down': arrowDown,
   'arrow-up': arrowUp,
+  'chart-column': chartColumn,
   'chevron-down': chevronDown,
   'chevron-up': chevronUp,
   'file-code': fileCode,

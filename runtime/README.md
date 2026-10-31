@@ -43,6 +43,7 @@ node dist/src/cli.js archive <id> [--card <nodo>]
 node dist/src/cli.js gather <id> [--card <nodo>]
 node dist/src/cli.js arrange --by kind|tag
 node dist/src/cli.js create collection --field <nome>:<tipo>… (--in <id> | --at <x>,<y> | --near <id>)
+node dist/src/cli.js create chart --collection <id> [--template bar|line|point] [--x <campo>] [--y <campo>] [--series <campo>]
 node dist/src/cli.js turn-into <id> [--line <riga>] [--type <campo>:<tipo>]… [--key <campo> | --no-key]
 node dist/src/cli.js compose <id>… --title "…" [--id <id>]
 node dist/src/cli.js --help
@@ -373,6 +374,36 @@ di uno `scratch` (un `id` nuovo e un collegamento al posto della tabella),
 con tipi e chiave proposti dai valori e il punto decimale nel TSV; nel
 language server è l'azione «Trasforma in collection».
 
+## I grafici (classe 3)
+
+Un `chart` (§13 della specifica) è un file `<id>.chart.md`: nell'intestazione
+il `template` (`bar`, `line` o `point`), la `collection` come `"[[id]]"`, un
+`field` per ogni ruolo (`x`, `y`, `series`) e un `filter` facoltativo per
+uguaglianza; nel corpo la descrizione. `src/chart.ts` controlla i ruoli sui
+tipi dei `field` (la quantità vuole `number` o `integer`; un `bar` con la
+quantità su `x` è orizzontale), propone i ruoli che mancano dai tipi, tiene i
+`record` filtrati e traduce tutto in una specifica Vega-Lite. Vega la
+disegna in SVG senza canvas e in modo sincrono, con il renderer a stringa
+impostato come fa l'export SVG di Vega; lo stesso disegno si fa una volta
+sola finché il documento è aperto. I numeri degli assi passano da
+`docNumber`, una funzione di formato registrata in Vega, con le regole del
+`display` (§0.4).
+
+`src/resolve-tree.ts` mette nel contenuto del `chart` un elemento `chart` con
+`template`, ruoli e `values`; con l'opzione `drawings` (sempre per
+`export`, `print`, l'anteprima e le schede; `resolve-tree --drawings`)
+anche `drawing`, l'SVG nei due temi, fatto nel passo degli stili: il testo
+ha il colore dell'`embed`, i segni quello del tipo `chart` dello
+`stylesheet`. Grafici e immagini condividono la numerazione delle figure.
+`src/static-export.ts` mette l'SVG in una `figure`, con `role="img"` e la
+descrizione come nome, i due temi scelti da una regola `@media`; senza
+disegno la `figure` ha la descrizione.
+
+`src/chart-operations.ts` ha `create chart`: i ruoli che mancano proposti,
+il `template` dai tipi, l'`id` da «y per x», il file accanto alla
+`collection` se non ha un posto. `rename`, `move` e il `formatter` valgono
+anche per i `chart`.
+
 ## Il language server
 
 `language-server` parla LSP su stdin e stdout (`src/language-server.ts`),
@@ -536,6 +567,8 @@ il ricalcolo era di 12-13 s.
 - `src/collection.ts`: lo `schema` e la lettura dei dati di una
   `collection`; `src/collection-operations.ts`: `create collection` e
   `turn-into`.
+- `src/chart.ts`: i ruoli di un `chart`, la specifica Vega-Lite e il
+  disegno; `src/chart-operations.ts`: `create chart`.
 - `src/operations.ts`: le operazioni; `src/canvas.ts`: quelle del `canvas`;
   `src/canvas-layout.ts`: gruppi e fare spazio, solo geometria.
 - `src/standalone.ts`: un oggetto da solo, per `/object/<id>` e le schede.
@@ -548,7 +581,9 @@ Dipendenze, con versione fissata: `mdast-util-from-markdown` 2.1.0,
 CommonMark con le tabelle di GFM; `yaml` 2.9.1 (ISC); `decimal.js` 10.6.0
 (MIT); `electron` 44.9.3 (MIT) per la stampa; `ws` 8.22.0 e
 `morphdom` 2.7.8 (MIT) per l'anteprima; `vscode-languageserver` 10.1.2 e
-`vscode-languageserver-textdocument` 1.0.15 (MIT) per il language server. Per lo sviluppo
+`vscode-languageserver-textdocument` 1.0.15 (MIT) per il language server;
+`vega` 6.4.0 e `vega-lite` 6.5.0 (BSD-3-Clause) per i grafici, solo nel
+`runtime`: l'HTML e il PDF hanno solo l'SVG. Per lo sviluppo
 `typescript` 5.9.3 (Apache-2.0) e `@types/node`, `@types/mdast`,
 `@types/ws`, `micromark-util-types` (MIT); per i test `playwright-core` 1.56.1 (Apache-2.0), che guida Electron, e per quelli dell'`export` `parse5` 8.0.1 (MIT) e
 `html-validate` 11.16.2 (MIT), con dipendenze MIT, ISC, BSD e Apache-2.0. Il parser del CSS è scritto qui: il sottoinsieme è

@@ -5,7 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { prepare, runCli } from './export-suite.js';
+import { prepare, runCli, writeChartFolder } from './export-suite.js';
 
 /** ISO A4 in points; Chromium rounds the page to whole CSS pixels, so within 1.5pt. */
 const A4 = [595.28, 841.89];
@@ -64,6 +64,18 @@ try {
       if (numbers.join() !== Array.from({ length: pages(pdf) }, (_, i) => String(i + 1)).join()) problems.push(`page numbers ${numbers.join()}`);
     }
     report(`${label}: ${pages(pdf)} pages`, problems);
+  }
+
+  // A chart (class 3): printed with the light drawing; its labels are text in the PDF.
+  {
+    const problems: string[] = [];
+    const folder = mkdtempSync(join(base, 'c-'));
+    writeChartFolder(folder);
+    const run = runCli(['print', folder]);
+    if (run.status !== 0 || !run.stdout.toString('latin1').startsWith('%PDF-')) problems.push(`exit ${run.status}: ${run.stderr}`);
+    const words = pdfText(run.stdout);
+    if (words !== null && (!words.includes('gennaio') || !words.includes('20.000'))) problems.push(`text ${words.slice(0, 200)}`);
+    report('a chart printed', problems);
   }
 
   // Refused with an error, written with --allow-errors; no browser, exit 2.

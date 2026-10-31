@@ -46,6 +46,8 @@ const api = {
   arrange: (by: 'kind' | 'tag') => ipcRenderer.invoke('doc:arrange', by) as Promise<Done>,
   archive: (id: string, card?: string) => ipcRenderer.invoke('doc:archive', id, card) as Promise<Done>,
   createText: (at: At, text: string) => ipcRenderer.invoke('doc:create-text', at, text) as Promise<Done>,
+  /** «Crea grafico»: a chart of the collection of a descriptor, with the roles proposed. */
+  createChart: (file: string) => ipcRenderer.invoke('doc:create-chart', file) as Promise<Done>,
   compose: (ids: string[], title: string) => ipcRenderer.invoke('doc:compose', ids, title) as Promise<Done>,
   /** The menu Vista: the canvas or the page. */
   onView: (listener: (view: 'canvas' | 'page') => void) => {

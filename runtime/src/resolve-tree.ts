@@ -11,8 +11,10 @@ import { isAttributeLine, parseAttributeLine } from './attribute-line.js';
 import { appendChildren, element, toJsonML, type Child, type Element, type SourcePosition } from './content.js';
 import { compareCodePoints, makeDiagnostic, report, sortDiagnostics, type Diagnostic, type DiagnosticSink } from './diagnostic.js';
 import { parseYamlMap, splitFrontMatter, type RawValue } from './front-matter.js';
-import { columnDisplays, MAX_DATA_BYTES, MAX_RECORDS, readRecords, readSchema, readValue, TYPE_WORDS, type Field, type Value } from './collection.js';
-import { displayString, evaluateMathLine, langFormat, localize, plainString } from './math-line.js';
+import { columnDisplays, MAX_DATA_BYTES, MAX_RECORDS, readRecords, readSchema, readValue, TYPE_WORDS, type CollectionData, type Field, type Value } from './collection.js';
+import { Decimal, displayString, evaluateMathLine, langFormat, localize, plainString } from './math-line.js';
+import { CHART_TEMPLATES, drawChart, planChart, proposeRoles, type ChartPlan } from './chart.js';
+import { BASE_FONTS, type GenericFamily } from './base-stylesheet.js';
 import {
   computeStyle,
   contrastOnDark,
@@ -35,8 +37,10 @@ export const SPEC_VERSION = '0.1';
 const RETIRED_IDS_FILE = 'retired-ids.yaml';
 
 /** The `kind`s of the `core` and of class 1; any other `kind` is read as a `directive`. */
-const KNOWN_KINDS = new Set(['concept', 'document', 'text', 'image', 'scratch', 'chapter', 'article', 'stylesheet', 'canvas-file', 'collection']);
-const VISIBLE_KINDS = new Set(['concept', 'text', 'image', 'scratch', 'chapter', 'article', 'collection']);
+const KNOWN_KINDS = new Set(['concept', 'document', 'text', 'image', 'scratch', 'chapter', 'article', 'stylesheet', 'canvas-file', 'collection', 'chart']);
+const VISIBLE_KINDS = new Set(['concept', 'text', 'image', 'scratch', 'chapter', 'article', 'collection', 'chart']);
+/** The keys of a chart (class 3): its template, its collection, a field for each role, the filter. */
+const CHART_KEYS = new Set(['template', 'collection', 'x', 'y', 'series', 'filter']);
 /** The keys of the schema of a collection, with the names of Frictionless (class 2). */
 const SCHEMA_KEYS = new Set(['fields', 'primary-key', 'primaryKey', 'missing-values', 'missingValues', 'dialect']);
 const COMPOSITION_KINDS = new Set(['chapter', 'article', 'deck']);
@@ -52,11 +56,11 @@ function knowsAttribute(kind: string, key: string): boolean {
     case 'lang': return VISIBLE_KINDS.has(kind) || kind === 'document';
     case 'title': return kind === 'chapter' || kind === 'article';
     case 'asset': return kind === 'image' || kind === 'canvas-file' || kind === 'collection';
-    case 'associations': return ['concept', 'text', 'image', 'scratch', 'canvas-file', 'collection'].includes(kind);
+    case 'associations': return ['concept', 'text', 'image', 'scratch', 'canvas-file', 'collection', 'chart'].includes(kind);
     case 'stylesheet': return kind === 'article' || kind === 'chapter';
     case 'spec-version': return kind === 'document';
     case 'recursion': return kind === 'chapter';
-    default: return false;
+    default: return kind === 'chart' && CHART_KEYS.has(key);
   }
 }
 
@@ -93,6 +97,9 @@ interface SourceNode {
   /** A collection: its schema as written, then its data as read (class 2). */
   schemaRaw?: Record<string, unknown>;
   data?: CollectionData;
+  /** A chart: its attributes as written, then its plan once checked against its collection (class 3). */
+  chart?: { template?: string; collection?: string; x?: string; y?: string; series?: string; filter: Map<string, string[]> };
+  chartPlan?: ChartPlan;
   items?: CompositionItem[];
 }
 
@@ -112,15 +119,6 @@ type Resolution =
   | { status: 'retired'; node: SourceNode; id: string }
   | { status: 'unresolved' }
   | { status: 'duplicate' };
-
-/** The data of a collection, read from its file: the fields of the schema and the values of each record. */
-interface CollectionData {
-  path: string;
-  text: string;
-  fields: Field[];
-  header: { start: number; end: number } | null;
-  records: Array<{ start: number; end: number; values: Value[]; written: string[] }>;
-}
 
 /** Numbering inside a root composition (§0.10). */
 interface RootState {
@@ -301,6 +299,16 @@ export interface ResolveOptions {
    * language server, the app) cuts; the export and the print never do.
    */
   records?: number;
+  /**
+   * The drawing of each chart, as SVG in the two themes (class 3): the renderers place it.
+   * The trees of the examples leave it out, as they leave out the source positions.
+   */
+  drawings?: boolean;
+}
+
+/** The family of a computed font-family as the drawing of a chart writes it: names without quotes, a generic with its base font. */
+function chartFont(family: string): string {
+  return family.split(', ').map((item) => (item.startsWith('"') ? item.slice(1, -1) : item in BASE_FONTS ? `${BASE_FONTS[item as GenericFamily].family}, ${item}` : item)).join(', ');
 }
 
 /** The last row of a table cut short, in the language of the document: «… altri 99.000 record». */
@@ -589,6 +597,19 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
           }
           break;
         }
+        case 'filter': {
+          // field: value, or field: [values]; equality only, as written (class 3).
+          const value = raw.type === 'structure' ? raw.value : undefined;
+          const entries = value !== null && typeof value === 'object' && !Array.isArray(value) ? Object.entries(value as Record<string, unknown>) : null;
+          const lists = entries?.map(([field, allowed]) => [field, typeof allowed === 'string' ? [allowed] : allowed] as const);
+          if (!lists || !lists.every(([, allowed]) => Array.isArray(allowed) && allowed.every((item) => typeof item === 'string'))) {
+            invalid('scrivi filter come field: valore, o field: [valori]');
+            break;
+          }
+          out[name] = Object.fromEntries(lists);
+          node.chart = { ...(node.chart ?? { filter: new Map() }), filter: new Map(lists as Array<[string, string[]]>) };
+          break;
+        }
         default: {
           if (raw.type !== 'string') {
             invalid(`scrivi ${key} come stringa`);
@@ -612,6 +633,7 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
           // An empty title counts as absent (§0.7): no number, no text for [[id]].
           if (key === 'title' && value !== '') node.title = value;
           if (key === 'asset') node.asset = value;
+          if (node.kind === 'chart' && CHART_KEYS.has(key)) node.chart = { ...(node.chart ?? { filter: new Map() }), [key]: value };
         }
       }
     }
@@ -646,6 +668,42 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
       if (!pair.declaredIn.includes(node.file)) pair.declaredIn.push(node.file);
       pairs.set(key, pair);
     }
+  }
+
+  /** A chart against its collection: the roles and their types, the records it draws (class 3). */
+  function checkChart(node: SourceNode): void {
+    const chart = node.chart ?? { filter: new Map<string, string[]>() };
+    if (chart.template === undefined) {
+      report(diagnostics, 'chart-template-unknown', node.file, undefined, `scrivi template: uno di ${CHART_TEMPLATES.join(', ')}`);
+      return;
+    }
+    if (chart.collection === undefined) {
+      report(diagnostics, 'chart-collection-unresolved', node.file, undefined, 'scrivi collection: "[[id]]"');
+      return;
+    }
+    const resolution = resolveId(chart.collection);
+    if (!('node' in resolution) || resolution.node.kind !== 'collection') {
+      report(diagnostics, 'chart-collection-unresolved', node.file, chart.collection, "nomina l'id di una collection");
+      return;
+    }
+    const collection = resolution.node;
+    const broken = diagnostics.some((d) => d.severity === 'error' && (d.file === collection.file || d.file === collection.assetPath));
+    if (collection.data === undefined || broken) {
+      report(diagnostics, 'chart-collection-invalid', node.file, chart.collection, `correggi gli errori di ${resolution.id}`);
+      return;
+    }
+    // Roles not written: proposed from the types, and drawn with them.
+    const roles = proposeRoles(collection.data.fields, { ...(chart.x !== undefined ? { x: chart.x } : {}), ...(chart.y !== undefined ? { y: chart.y } : {}) });
+    const missing = (['x', 'y'] as const).filter((role) => chart[role] === undefined);
+    if (missing.length > 0) {
+      report(diagnostics, 'chart-role-missing', node.file, missing.join(', '), missing.map((role) => `${role}: ${roles[role] ?? '?'}`).join(', '));
+    }
+    const planned = planChart({ template: chart.template, ...roles, ...(chart.series !== undefined ? { series: chart.series } : {}), filter: chart.filter }, collection.data);
+    if ('problems' in planned) {
+      for (const problem of planned.problems) report(diagnostics, problem.code, node.file, problem.target, problem.fix);
+      return;
+    }
+    node.chartPlan = planned.plan;
   }
 
   function checkAsset(node: SourceNode): void {
@@ -1054,7 +1112,7 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
     }
     let shown = label ?? '';
     if (label?.includes('{n}')) {
-      if (target.kind !== 'chapter' && target.kind !== 'image' && target.kind !== 'collection') {
+      if (target.kind !== 'chapter' && target.kind !== 'image' && target.kind !== 'collection' && target.kind !== 'chart') {
         report(context.sink, 'number-slot-kind', context.file, resolution.id);
       }
       if (context.root) {
@@ -1090,7 +1148,22 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
       else if (child.type !== 'embed') for (const grandchild of child.children) stack.push(grandchild);
     }
     if (node.kind === 'collection') appendTable(node, context, content);
+    if (node.kind === 'chart' && node.chartPlan) content.push(chartElement(node.chartPlan, context));
     return content;
+  }
+
+  /** A chart: its template, its roles and the records it draws, as written; the drawing comes with the styles (class 3). */
+  function chartElement(plan: ChartPlan, context: BuildContext): Element {
+    const chart = element('chart', {
+      template: plan.template,
+      x: plan.x.name,
+      y: plan.y.name,
+      ...(plan.series ? { series: plan.series.name } : {}),
+      ...(plan.orientation ? { orientation: plan.orientation } : {}),
+      values: plan.values,
+    });
+    chart.meta = { chartPlan: plan, lang: context.lang };
+    return chart;
   }
 
   /** A collection: its description, then its table (class 2); without data, only the description. */
@@ -1207,7 +1280,8 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
         embed.children.push(title);
         inner.depth = depth;
       }
-    } else if (target.kind === 'image' && context.root) {
+    } else if ((target.kind === 'image' || target.kind === 'chart') && context.root) {
+      // Charts and images share the sequence of the figures (class 3).
       attributes.number = String(++context.root.images);
     } else if (target.kind === 'collection' && context.root) {
       // A sequence of its own, for the cross-refs only: no visible caption (class 2).
@@ -1267,6 +1341,8 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
     if (node.markdown && (COMPOSITION_KINDS.has(node.kind) || node.directive)) node.items = compositionItems(node);
     checkAsset(node);
   }
+  // Charts after the collections are read (class 3).
+  for (const node of nodes) if (node.kind === 'chart' && node.attributes !== null) checkChart(node);
   const cycles = embedCycles();
 
   for (const node of nodes) {
@@ -1452,6 +1528,18 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
       const collection = child.meta?.collection;
       if (child.type === 'table' && collection && numberDecimals(final) !== DEFAULT_DECIMALS) {
         setCollectionDisplays(child, collection.data as CollectionData, numberDecimals(final));
+      }
+      if (child.type === 'chart' && child.meta?.chartPlan && options.drawings) {
+        const plan = child.meta.chartPlan;
+        const look = (style: ComputedStyle, around: ComputedStyle, theme: 'light' | 'dark') => ({
+          font: chartFont(style.get('font-family')?.text ?? 'serif'),
+          fontSize: (style.get('font-size')?.pt ?? new Decimal(11)).toNumber() * (4 / 3),
+          text: around.get('color')?.text ?? '#000000',
+          mark: style.get('color')?.text ?? '#000000',
+          theme,
+          ...(child.meta?.lang !== undefined ? { lang: child.meta.lang } : {}),
+        });
+        child.attributes.drawing = { light: drawChart(plan, look(final, parent, 'light')), dark: drawChart(plan, look(finalDark, parentDark, 'dark')) };
       }
       if (child.type === 'mathLine' && child.meta?.value && (numberNotation(final) === 'compact' || numberDecimals(final) !== DEFAULT_DECIMALS)) {
         child.attributes.display = displayString(child.meta.value, child.meta.lang, numberNotation(final), numberDecimals(final));

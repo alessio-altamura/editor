@@ -64,6 +64,14 @@ const SEVERITY: Record<string, Severity> = {
   'collection-key-duplicate': 'error',
   'collection-key-empty': 'error',
   'collection-too-large': 'error',
+  'chart-template-unknown': 'error',
+  'chart-collection-unresolved': 'error',
+  'chart-collection-invalid': 'error',
+  'chart-field-unknown': 'error',
+  'chart-role-type': 'error',
+  'chart-role-missing': 'warning',
+  'chart-x-repeated': 'error',
+  'chart-too-many-marks': 'error',
 };
 
 export function makeDiagnostic(code: string, file: string, target?: string, fix?: string): Diagnostic {

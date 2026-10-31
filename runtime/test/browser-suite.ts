@@ -5,7 +5,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { launchBrowser } from './electron-browser.js';
-import { expectedStyles, prepare, runCli, VALID_PAGES } from './export-suite.js';
+import { expectedStyles, prepare, runCli, VALID_PAGES, writeChartFolder } from './export-suite.js';
 
 const PX_PER_PT = 4 / 3;
 
@@ -217,6 +217,43 @@ try {
     else {
       failed++;
       console.log(`FAIL a collection\n  ${problems.join('\n  ')}`);
+    }
+  }
+  // A chart (class 3): in each theme only its drawing shows, with the colors of the stylesheet, the width of the text, the numbers of the language.
+  {
+    const problems: string[] = [];
+    const folder = mkdtempSync(join(base, 'chart-'));
+    writeChartFolder(folder);
+    const html = runCli(['export', folder, '--root', 'report']).stdout.toString('utf8');
+    for (const scheme of ['light', 'dark'] as const) {
+      const page = await browser.newPage({ colorScheme: scheme });
+      // On the headless platform a window starts at 1×1: the width of the text needs a page.
+      await page.setViewportSize({ width: 800, height: 600 });
+      await page.setContent(html, { waitUntil: 'load' });
+      const seen = await page.evaluate(() => {
+        const shown = [...document.querySelectorAll<HTMLElement>('[data-chart-theme]')].filter((each) => getComputedStyle(each).display !== 'none');
+        const svg = shown[0]?.querySelector('svg');
+        const figure = document.querySelector('figure[data-kind="chart"]')!;
+        return {
+          shown: shown.map((each) => each.dataset.chartTheme),
+          role: svg?.getAttribute('role'),
+          fills: [...new Set([...(svg?.querySelectorAll('path[fill]') ?? [])].map((path) => path.getAttribute('fill')))],
+          labels: [...(svg?.querySelectorAll('text') ?? [])].map((text) => text.textContent),
+          width: Math.round(svg?.getBoundingClientRect().width ?? 0),
+          text: Math.round(figure.getBoundingClientRect().width),
+        };
+      });
+      const mark = scheme === 'light' ? '#1a4f8b' : '#8ab4f8';
+      if (JSON.stringify(seen.shown) !== JSON.stringify([scheme])) problems.push(`${scheme}: shown ${JSON.stringify(seen.shown)}`);
+      if (seen.role !== 'img' || !seen.fills.includes(mark)) problems.push(`${scheme}: role ${seen.role}, fills ${seen.fills.join()}`);
+      if (!seen.labels.includes('20.000') || !seen.labels.includes('8000') || !seen.labels.includes('gennaio')) problems.push(`${scheme}: labels ${seen.labels.join('|')}`);
+      if (seen.width !== seen.text || seen.width === 0) problems.push(`${scheme}: width ${seen.width}, text ${seen.text}`);
+      await page.close();
+    }
+    if (problems.length === 0) console.log('ok   a chart: one drawing for each theme, colors, width, numbers');
+    else {
+      failed++;
+      console.log(`FAIL a chart\n  ${problems.join('\n  ')}`);
     }
   }
 } finally {
