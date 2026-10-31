@@ -520,8 +520,13 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      dell'editor con l'anteprima staccata sono risolte (contesto.md,
      «Larghezza del testo nell'editor»): per i file di testo una colonna
      centrata di 532 px, circa 75 caratteri, solo CSS; limite: un clic ai
-     lati della colonna non sposta il cursore. In corso: il clic su un
-     record nell'anteprima apre la `grid` con quel record selezionato.
+     lati della colonna non sposta il cursore, risolto poi portando il
+     cursore all'inizio o alla fine della riga più vicina (senza e2e). Il
+     clic su una cella dell'anteprima apre la `grid` con quel record e quel
+     campo scelti, dalla pagina e dalla finestra separata; sull'intestazione
+     sceglie la colonna; se la `grid` non si apre resta il TSV alla riga.
+     Limite: il record si ricava come «riga del file meno 1», che sbaglia
+     con un CSV che ha un a capo dentro un valore fra virgolette.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
