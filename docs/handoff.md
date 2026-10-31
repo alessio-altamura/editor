@@ -584,7 +584,18 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      non pagare 250 MB senza formule); le righe di calcolo che falliscono
      restano avvisi, gli errori valgono per gli oggetti formula e le
      colonne calcolate. Export del documento d'esempio con formule in 4,3 s,
-     valori ricontrollati a mano. Prossimo: la parte B.
+     valori ricontrollati a mano. La parte B c'è (unita il 2026-10-31,
+     verificata con `npm run test:e2e-code` in app/, Pyodide reale): il
+     costruttore (pannello con ingressi trascinati, operazioni, range,
+     codice in sola lettura e valore; il codice scritto a mano che non sa
+     rigenerare identico si apre come testo), i trascinamenti nel codice e
+     nel testo, `create formula`, «Campo calcolato» nella grid, colonne
+     calcolate in sola lettura con «ƒ», lo scaffale delle formule con il
+     valore, l'indicatore «Python in avvio». Visti nella verifica e
+     mandati a correggere: nel navigator le formule hanno per etichetta il
+     codice invece dell'id; nel costruttore la riga del range e il codice
+     escono dal pannello; un documento senza l'attributo pyodide dà un
+     avviso che create formula potrebbe evitare.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
