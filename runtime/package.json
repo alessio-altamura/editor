@@ -13,10 +13,11 @@
   "scripts": {
     "build": "tsc -p .",
     "typecheck": "tsc -p . --noEmit",
-    "test": "tsc -p . && node dist/test/conformance-suite.js && node dist/test/robustness-suite.js && node dist/test/export-suite.js && node dist/test/format-suite.js && node dist/test/operations-suite.js && node dist/test/serve-suite.js && node dist/test/language-server-suite.js && node dist/test/formula-suite.js",
+    "test": "tsc -p . && CONFORMANCE_CLASSES=0,1,2,3 node dist/test/conformance-suite.js && node dist/test/robustness-suite.js && node dist/test/export-suite.js && node dist/test/format-suite.js && node dist/test/operations-suite.js && node dist/test/serve-suite.js && node dist/test/language-server-suite.js && node dist/test/formula-suite.js && python3 -I test/formula_host_test.py",
     "measure:records": "tsc -p . && node dist/test/records-measure.js",
-    "test:browser": "tsc -p . && node dist/test/browser-suite.js && node dist/test/print-suite.js && node dist/test/serve-browser-suite.js && node dist/test/formula-browser-suite.js",
-    "postinstall": "install-electron"
+    "test:browser": "tsc -p . && node dist/test/browser-suite.js && node dist/test/print-suite.js && node dist/test/serve-browser-suite.js",
+    "postinstall": "install-electron",
+    "test:code": "tsc -p . && CONFORMANCE_CLASSES=4 node dist/test/conformance-suite.js && node dist/test/formula-browser-suite.js"
   },
   "dependencies": {
     "decimal.js": "10.6.0",

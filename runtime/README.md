@@ -535,8 +535,12 @@ Le formule (classe 4). `test/formula-suite.ts`, in `npm test`, usa al posto
 di Electron uno script che lascia solo un segno: un documento senza formule
 non lo avvia, con `resolve-tree` e con `export`; con le formule lo avvia, e
 senza un worker ogni formula ha `formula-unavailable`, nessun valore, e il
-resto si risolve. `test/formula-browser-suite.ts`, in `npm run
-test:browser`, usa l'Electron del pacchetto con Pyodide: le prove di
+resto si risolve. `test/formula_host_test.py`, sempre in `npm test`, prova il lato Python con
+il CPython del sistema, la stessa libreria standard di Pyodide: decimali,
+`collection` e `range`, funzioni, controlli con `ast`, ricorsione.
+`npm run test:code` è il solo comando che esegue Pyodide, nell'Electron del
+pacchetto: gli esempi della specifica con `conf=4` passando dalla `cli`, e
+`test/formula-browser-suite.ts`: le prove di
 isolamento di `ricerca/misure/pyodide/banco/iso-tests.py` (modulo `js` vuoto,
 `run_js` e il costruttore `Function` bloccati, niente file dell'host né del
 test, niente rete verso un server locale, un ciclo infinito fermato
@@ -544,9 +548,8 @@ dall'esterno e il worker che riparte), con il processo lanciato con
 `--isolation-probes`, che solo i test usano e che fa eseguire Python senza i
 controlli di `formula_host.py`; il limite di tempo; i controlli del codice
 (import vietati, nomi non dichiarati, errori alla loro riga) e i decimali;
-l'`export`, che ha i valori e non nomina Pyodide. Gli esempi della
-specifica con `conf=4` passano dalla `cli`, con lo stesso Electron, nella
-`conformance-suite`; `CONFORMANCE_CLASSES=1,2,3` li lascia fuori.
+l'`export`, che ha i valori e non nomina Pyodide. `npm test` lancia la `conformance-suite` con `CONFORMANCE_CLASSES=0,1,2,3`,
+`test:code` con `CONFORMANCE_CLASSES=4`.
 
 `test/format-suite.ts`, in `npm test`, formatta ogni esempio della specifica
 (in processo, per la velocità) e ogni cartella di `test/fixtures/export` (con
