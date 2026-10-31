@@ -573,9 +573,18 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      il 2026-10-31: il codice gira solo in Electron, anche dalla cli.
      Mandato del primo passo in due parti: A (runtime, oggetti formula,
      righe di calcolo con nomi, colonne calcolate, range, errori,
-     specifica) mandata alla sottosessione; B (costruttore grafico
-     nell'app, trascinamento dei field, colonne calcolate nella grid) dopo
-     la verifica di A.
+     specifica) unita il 2026-10-31 (5ee7718), dopo i test con Pyodide
+     reale lanciati dall'orchestratore (la sottosessione non può eseguirlo):
+     specifica §14, esempi 61-67 (conf=4); `npm run test:code` per i test
+     che eseguono Pyodide in Electron (esempi della classe 4, isolamento,
+     limite di tempo di 5 s, export); il codice che gira in Pyodide in
+     runtime/python/formula_host.py, provato anche con il CPython del
+     sistema; Electron come processo figlio, acceso solo se il documento ha
+     codice, e nel runtime acceso alla prima formula (non all'avvio, per
+     non pagare 250 MB senza formule); le righe di calcolo che falliscono
+     restano avvisi, gli errori valgono per gli oggetti formula e le
+     colonne calcolate. Export del documento d'esempio con formule in 4,3 s,
+     valori ricontrollati a mano. Prossimo: la parte B.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);

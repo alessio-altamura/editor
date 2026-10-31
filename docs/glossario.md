@@ -155,6 +155,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 |---|---|---|---|---|
 | `document` | documento | Insieme di file di testo più gli asset, in una cartella o in un `bundle`; i suoi attributi stanno nel `document file` | concetto deciso, nome proposto | project, workbook |
 | `document file` | file del documento | Il file con gli attributi del `document`, come `lang` e `spec version`, con `kind` document; uno e uno solo, e il `runtime` lo crea se manca (deciso il 2026-10-21) | concetto deciso, nome proposto | config, settings |
+| `pyodide` | versione di Pyodide | Attributo del `document file` con la versione di Pyodide che esegue il codice, per esempio "314.0.7" (nome proposto il 2026-10-31) | proposto | python, runtime version |
 | `multi-object file` | file con più oggetti | File che contiene più `object` dello stesso `kind`, ognuno con la sua `attribute line`; è solo un contenitore, senza significato né ordine (deciso il 2026-10-23) | concetto deciso, nome proposto | bundle, pack |
 | `attribute line` | riga di attributi | Riga fra graffe prima di un `object` in un `multi-object file`, con il cancelletto per l'`id`, il punto per la `class` e chiave=valore per gli altri attributi (deciso il 2026-10-23) | concetto deciso, nome proposto | header line, block attributes |
 | `bundle` | pacchetto | Il documento compresso in un unico zip con `file extension` propria, da scegliere | proposto | package, archive |
@@ -286,6 +287,8 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `formula` | formula | Oggetto con un `id` e codice Python che calcola un `field` o un valore; si costruisce per via grafica o si scrive a mano, in un file con estensione .formula.md, anche più oggetti per file (deciso il 2026-10-31) | concetto deciso, nome proposto | function, rule, calc |
 | `computed field` | colonna calcolata | `field` i cui valori vengono da una `formula` | concetto deciso, nome proposto | calculated column |
 | `formula builder` | costruttore di formule | Parte dell'`app` che costruisce una `formula` per via grafica, con i `field` trascinati e le operazioni scelte da un menu, e scrive il codice (deciso il 2026-10-31) | concetto deciso, nome proposto | wizard, editor |
+| `builder function` | funzione del costruttore | Funzione Python che il `runtime` dà al codice delle `formula` e che il `formula builder` offre nel menu: total (somma), mean (media), minimum, maximum e count (conteggio), sui decimali (nomi proposti il 2026-10-31) | proposto | aggregate, helper |
+| `range` | intervallo | Valori di un `field` da uno a un altro, nell'ordine del file o delle categorie, per esempio da marzo a giugno; nel codice un metodo della `collection` (requisito di Alessio del 2026-10-20, nome proposto il 2026-10-31) | concetto deciso, nome proposto | slice, between |
 | `override` | eccezione | Valore scritto a mano al posto del risultato di una `formula` di colonna; non ammesso (deciso il 2026-10-31) | concetto deciso, nome proposto | exception |
 | `expression` | espressione | Calcolo senza nome dentro una `formula`, uno `step` o una `math line` | proposto | formula |
 | `step` | passo | Trasformazione con nome da `collection` a `collection` | proposto | node, block |
@@ -298,7 +301,7 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `board` | board | `view` di una `collection` a colonne di schede | concetto deciso, nome proposto | kanban |
 | `calendar` | calendario | `view` di una `collection` sulle date | concetto deciso, nome proposto | agenda |
 | `reference` | riferimento | Nome di un concetto usato dentro un'`expression` | proposto | link, pointer |
-| `inputs` | ingressi | Ciò da cui dipende un calcolo: valori, codice, `environment` | proposto | input (riservato al lettore) |
+| `inputs` | ingressi | Ciò da cui dipende un calcolo: valori, codice, `environment`; per una `formula` è l'attributo con gli `id` di `collection`, di `field` (collection.field) e di altre `formula` che il codice può usare, controllato dal `runtime` (2026-10-31) | proposto | input (riservato al lettore) |
 | `cache key` | chiave di cache | Hash degli `inputs` che identifica dei `results` salvati | proposto | key |
 
 ### 4.5 Codice, runtime e output
