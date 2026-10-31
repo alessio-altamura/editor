@@ -772,6 +772,13 @@ quando due rami lavorano in parallelo.
   Sull'anteprima di questi caratteri applicati all'`app` (Petrona a 16,55
   px nell'editor, con la «x» alta come Figtree a 15 px), Alessio: «va bene
   così, procedi».
+  Larghezza del testo nell'editor (2026-10-31, Alessio, «ok a», sulla
+  proposta dell'orchestratore): per i file di testo la colonna è larga al
+  massimo 75 caratteri circa, centrata nell'editor, con i numeri di riga
+  attaccati al testo; va a capo lì anche quando l'editor è più largo, per
+  esempio con l'anteprima staccata. È un a capo solo della vista: il file
+  non cambia, un capoverso resta una riga. File di dati e `stylesheet`
+  restano a tutta larghezza.
 - L'anteprima in una finestra separata (2026-10-31, Alessio): «l'anteprima
   deve poter essere messa in un'altra finestra separata, in modo ad esempio
   di poterla usare su due schermi». Proposte dell'orchestratore: un comando
