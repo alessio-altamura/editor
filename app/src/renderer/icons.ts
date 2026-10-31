@@ -14,12 +14,14 @@ import fileCode from '../../assets/icons/file-code.svg';
 import fileText from '../../assets/icons/file-text.svg';
 import group from '../../assets/icons/group.svg';
 import layoutDashboard from '../../assets/icons/layout-dashboard.svg';
+import loaderCircle from '../../assets/icons/loader-circle.svg';
 import listOrdered from '../../assets/icons/list-ordered.svg';
 import listPlus from '../../assets/icons/list-plus.svg';
 import panelRight from '../../assets/icons/panel-right.svg';
 import plus from '../../assets/icons/plus.svg';
 import redo2 from '../../assets/icons/redo-2.svg';
 import scissors from '../../assets/icons/scissors.svg';
+import sigma from '../../assets/icons/sigma.svg';
 import tableProperties from '../../assets/icons/table-properties.svg';
 import table from '../../assets/icons/table.svg';
 import trash2 from '../../assets/icons/trash-2.svg';
@@ -40,12 +42,14 @@ const ICONS: Record<string, string> = {
   'file-text': fileText,
   'group': group,
   'layout-dashboard': layoutDashboard,
+  'loader-circle': loaderCircle,
   'list-ordered': listOrdered,
   'list-plus': listPlus,
   'panel-right': panelRight,
   'plus': plus,
   'redo-2': redo2,
   'scissors': scissors,
+  'sigma': sigma,
   'table-properties': tableProperties,
   'table': table,
   'trash-2': trash2,

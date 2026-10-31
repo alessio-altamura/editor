@@ -49,12 +49,14 @@ incorpora nel suo script (`src/renderer/icons.ts`).
 | `file-text.svg` | 45f8ab57d5fa01c906cc47bdf7cc420cb4b2258895e8914af3e7d858a3c3ff2a |
 | `group.svg` | c736350735792cce815fabb9664a127d2dfd6d495992a1e576b283ac31d98d01 |
 | `layout-dashboard.svg` | a142b65b57f7b07befc153e1352ff6b5baad0746b962bb1fd176d9df006ba018 |
+| `loader-circle.svg` | b4b2215008912f3ce0d9fbbaa24aa5422efbf3f4fc8d3127e45e9008bcb4b5e4 |
 | `list-ordered.svg` | e5c7bd4a48b38f520d5acdc63270bb91e6b00243e0a05e2a945e6627eb9f0b76 |
 | `list-plus.svg` | b5401d4631b79100b073a969802946f48f587925f426094c70126cfd8d124997 |
 | `panel-right.svg` | 4b2ac54ff674e8774c24f8e076f257634d496fbbc0a28484834316c02e65c68d |
 | `plus.svg` | 13b0e35b27b768f864a1b5d6128f77b289b3e190a964a4110e48791fb77e83c7 |
 | `redo-2.svg` | c8f08b9314f6a7de7d918cbc4b96175c5cf8ed98983581cedfb171a720ff2ab8 |
 | `scissors.svg` | d94ac0b5544de02bdc0e0b9310da058941c937eb552acf66c01fda178ebc58fd |
+| `sigma.svg` | 4b86e7c53b69bef11db6a83a81798057a7d335f2f106cf352f170b08e9fa9587 |
 | `table-properties.svg` | 0751c99b1287379b6529cfa3be05a2d5e4b31b688552ffeff92fa1c814bc8d74 |
 | `table.svg` | aff672ae047ff2a58a2c60a3c4b38c103e7c6c2e6f60bc6443e1313c4c7daeef |
 | `trash-2.svg` | 01f42022d441255477325bcfc5c8839f2ee0ce7f100b7e3df050ae1c70275bfc |

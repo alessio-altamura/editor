@@ -3,12 +3,13 @@
 // source in CodeMirror and the place of the preview, which the main process fills with
 // a view of its own. Everything goes through docApp.
 import { forceLinting } from '@codemirror/lint';
-import { EditorSelection, EditorState } from '@codemirror/state';
+import { EditorSelection, EditorState, Prec } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { mapOffset } from '../offset.js';
 import type { DocApp } from '../preload.js';
 import { createBoard } from './board.js';
 import { createChartPanel } from './chart-panel.js';
+import { createFormulaPanel } from './formula-panel.js';
 import { createGrid } from './grid.js';
 import { editorExtensions, offsetOf, position } from './editor.js';
 import { decorate, setIcon } from './icons.js';
@@ -17,7 +18,7 @@ declare global {
   interface Window {
     docApp: DocApp;
     /** For the end-to-end test: what the editor shows, and the view. */
-    docAppState: { file: string | null; line: number; character: number; text: string; view: 'canvas' | 'page'; mode: 'text' | 'grid' | 'chart' };
+    docAppState: { file: string | null; line: number; character: number; text: string; view: 'canvas' | 'page'; mode: 'text' | 'grid' | 'chart' | 'formula' };
   }
 }
 
@@ -29,8 +30,10 @@ let saved = '';
 let view: EditorView;
 let current: 'canvas' | 'page' = 'canvas';
 /** A collection opens in its grid; the switch brings the text of the descriptor, as before. */
-let mode: 'text' | 'grid' | 'chart' = 'text';
-const isDirty = () => file !== null && (mode === 'grid' ? grid.isDirty() : mode === 'chart' ? chartPanel.isDirty() : view.state.doc.toString() !== saved);
+let mode: 'text' | 'grid' | 'chart' | 'formula' = 'text';
+/** The formula open in the builder, in a file with several. */
+let formulaId: string | undefined;
+const isDirty = () => file !== null && (mode === 'grid' ? grid.isDirty() : mode === 'chart' ? chartPanel.isDirty() : mode === 'formula' ? formulaPanel.isDirty() : view.state.doc.toString() !== saved);
 const tellDirty = () => api.setDirty(isDirty() ? file : board.dirtyFile());
 let pushing: ReturnType<typeof setTimeout> | undefined;
 
@@ -42,8 +45,8 @@ const updateState = () => {
 /** Saves through the formatter, and keeps the cursor as close as it can to where it was. */
 const save = async () => {
   if (file === null) return;
-  if (mode === 'grid' || mode === 'chart') {
-    await (mode === 'grid' ? grid.save() : chartPanel.save());
+  if (mode === 'grid' || mode === 'chart' || mode === 'formula') {
+    await (mode === 'grid' ? grid.save() : mode === 'chart' ? chartPanel.save() : formulaPanel.save());
     tellDirty();
     return;
   }
@@ -63,10 +66,50 @@ const goToDefinition = async (from: EditorView) => {
   if (target !== null) await open(target, 0, 0);
 };
 
+/**
+ * A drop in the editor (class 4): a field or a formula in the code of a formula writes its
+ * name, with the underscore, and adds it to the inputs; a formula dropped in a text writes
+ * a math line with its name.
+ */
+const dropHandler = Prec.highest(EditorView.domEventHandlers({
+  drop(event, target) {
+    const field = event.dataTransfer?.getData('application/x-doc-field') ?? '';
+    const id = event.dataTransfer?.getData('application/x-doc-id') ?? '';
+    const kind = event.dataTransfer?.getData('application/x-doc-kind') ?? '';
+    if (file === null || (field === '' && id === '')) return false;
+    // The nearest place to the pointer, also past the end of a line.
+    const at = target.posAtCoords({ x: event.clientX, y: event.clientY }, false);
+    if (/\.formula\.md$/.test(file)) {
+      event.preventDefault();
+      void dropInFormula(target, at, field || id);
+      return true;
+    }
+    if (id !== '' && kind === 'formula') {
+      event.preventDefault();
+      const line = `\`= ${id.replace(/-/g, '_')}\``;
+      target.dispatch({ changes: { from: at, insert: line }, selection: EditorSelection.cursor(at + line.length) });
+      target.focus();
+      return true;
+    }
+    return false;
+  },
+}));
+
+async function dropInFormula(target: EditorView, at: number, input: string): Promise<void> {
+  if (file === null) return;
+  const result = await api.formulaInsert(file, target.state.doc.toString(), at, input);
+  if (result === null) {
+    $('page-notice').textContent = 'Trascina il campo dentro il blocco python di una formula';
+    return;
+  }
+  target.dispatch({ changes: { from: 0, to: target.state.doc.length, insert: result.text }, selection: EditorSelection.cursor(Math.min(result.cursor, result.text.length)) });
+  target.focus();
+}
+
 const pageState = (doc: string) =>
   EditorState.create({
     doc,
-    extensions: editorExtensions(api, {
+    extensions: [dropHandler, editorExtensions(api, {
       file: () => file,
       around: () => ({ before: '', after: '' }),
       save: () => void save(),
@@ -84,7 +127,7 @@ const pageState = (doc: string) =>
         clearTimeout(pushing);
         pushing = setTimeout(() => void api.edit(target, update.state.doc.toString()), 50);
       },
-    }),
+    })],
   });
 
 /** «Trasforma in collection» shows when the cursor is in a table of a text or of a scratch. */
@@ -118,6 +161,10 @@ async function settlePage(): Promise<boolean> {
     await api.discard(file!);
     chartPanel.close();
     await chartPanel.open(file!);
+  } else if (mode === 'formula') {
+    await api.discard(file!);
+    formulaPanel.close();
+    await formulaPanel.open(file!, formulaId);
   } else {
     await api.discard(file!);
     view.setState(pageState(saved));
@@ -127,8 +174,13 @@ async function settlePage(): Promise<boolean> {
 }
 
 /** Opens a file in the page, with the cursor at a position, and its article in the preview; or one object alone. */
-async function open(target: string, line: number, character: number, alone?: string): Promise<void> {
+async function open(target: string, line: number, character: number, alone?: string, object?: string): Promise<void> {
   if (current !== 'page' && !(await setView('page'))) return;
+  // Another formula of the same file: the builder moves to it.
+  if (target === file && mode === 'formula' && (object ?? alone) !== undefined && (object ?? alone) !== formulaId) {
+    if (!(await settlePage())) return;
+    await showFormula(target, object ?? alone);
+  }
   if (target !== file) {
     if (!(await settlePage())) return;
     $('page-notice').textContent = '';
@@ -142,14 +194,16 @@ async function open(target: string, line: number, character: number, alone?: str
     const data = /\.collection\.md$/.test(target) ? await api.dataFile(target) : null;
     $('data').hidden = data === null;
     $('data').dataset.file = data ?? '';
-    // A collection opens in its grid, a chart in its panel.
-    await showMode(data !== null ? ((await grid.open(target)) ? 'grid' : 'text') : /\.chart\.md$/.test(target) && (await chartPanel.open(target)) ? 'chart' : 'text');
+    // A collection opens in its grid, a chart in its panel, a formula in the builder.
+    if (/\.formula\.md$/.test(target)) await showFormula(target, object ?? alone);
+    else await showMode(data !== null ? ((await grid.open(target)) ? 'grid' : 'text') : /\.chart\.md$/.test(target) && (await chartPanel.open(target)) ? 'chart' : 'text');
     if (alone === undefined) await api.showPreview(target);
     void renderNavigator();
   }
   if (alone !== undefined) await api.showObject(alone);
   if (mode === 'grid') grid.focus();
   else if (mode === 'chart') chartPanel.focus();
+  else if (mode === 'formula') formulaPanel.focus();
   else {
     const offset = offsetOf(view.state, line, character);
     view.dispatch({ selection: EditorSelection.cursor(offset), effects: EditorView.scrollIntoView(offset, { y: 'center' }) });
@@ -185,19 +239,47 @@ async function revealInGrid(descriptor: string, line: number, column: number): P
   return mode === 'grid' && grid.reveal(line, column);
 }
 
+/**
+ * A formula in the builder; code written by hand that the builder does not read stays
+ * text, with a notice: it is never rewritten (class 4).
+ */
+async function showFormula(target: string, id?: string): Promise<void> {
+  const opened = await formulaPanel.open(target, id);
+  formulaId = id;
+  if (opened === 'builder') {
+    $('page-notice').textContent = '';
+    await showMode('formula');
+    return;
+  }
+  // The text as it is on disk now: the builder may have written it.
+  saved = await api.read(target);
+  view.setState(pageState(saved));
+  await showMode('text');
+  if (opened === 'handwritten') $('page-notice').textContent = 'Scritto a mano: il costruttore non riscrive questo codice';
+}
+
 /** The grid or the text of a collection; the switch shows only for a collection with its data. */
-async function showMode(next: 'text' | 'grid' | 'chart'): Promise<void> {
+async function showMode(next: 'text' | 'grid' | 'chart' | 'formula'): Promise<void> {
   mode = next;
   if (next !== 'grid') grid.close();
   if (next !== 'chart') chartPanel.close();
+  if (next !== 'formula') formulaPanel.close();
   const chart = /\.chart\.md$/.test(file ?? '');
+  const formula = /\.formula\.md$/.test(file ?? '');
   $('editor').hidden = next !== 'text';
   $('grid').hidden = next !== 'grid';
   $('chart').hidden = next !== 'chart';
-  $('mode').hidden = !$('data').dataset.file && !chart;
-  $('mode').title = next !== 'text' ? 'Il file come testo' : chart ? 'Il grafico in un pannello' : 'I dati in una griglia';
-  setIcon($('mode'), next !== 'text' ? 'file-code' : chart ? 'chart-column' : 'table', next !== 'text' ? 'Testo' : chart ? 'Pannello' : 'Griglia');
+  $('formula').hidden = next !== 'formula';
+  $('mode').hidden = !$('data').dataset.file && !chart && !formula;
+  $('mode').title = next !== 'text' ? 'Il file come testo' : chart ? 'Il grafico in un pannello' : formula ? 'La formula nel costruttore' : 'I dati in una griglia';
+  setIcon($('mode'), next !== 'text' ? 'file-code' : chart ? 'chart-column' : formula ? 'sigma' : 'table', next !== 'text' ? 'Testo' : chart ? 'Pannello' : formula ? 'Costruttore' : 'Griglia');
   updateState();
+}
+
+/** A formula by its id: its file, in the builder. */
+async function openFormula(id: string): Promise<void> {
+  const source = await api.objectSource(id);
+  await open(source.file, source.before.split('\n').length - 1, 0, undefined, id);
 }
 
 /** One object alone in the page: its file in the editor, at the object, and only the object in the preview. */
@@ -221,7 +303,7 @@ async function setView(next: 'canvas' | 'page'): Promise<boolean> {
 
 let navigatorKey = '';
 async function renderNavigator(): Promise<void> {
-  const shelves = (await api.navigator(($('search') as HTMLInputElement).value)) as Array<{ kind: string; items: Array<{ id: string; title: string; file: string; onCanvas: boolean }> }>;
+  const shelves = (await api.navigator(($('search') as HTMLInputElement).value)) as Array<{ kind: string; items: Array<{ id: string; title: string; file: string; onCanvas: boolean; value?: string }> }>;
   // Drawn again only when it changed: a drag from the navigator must not lose its button.
   const key = JSON.stringify([shelves, current, file]);
   if (key === navigatorKey) return;
@@ -248,12 +330,20 @@ async function renderNavigator(): Promise<void> {
       id.className = 'id';
       id.textContent = item.id;
       button.append(id);
+      // A formula shows its value next to its name (class 4).
+      if (item.value !== undefined) {
+        const value = document.createElement('span');
+        value.className = 'value';
+        value.textContent = `= ${item.value}`;
+        button.append(value);
+      }
       // On the canvas a click shows the object alone; in the page it opens its file.
-      button.addEventListener('click', () => void (current === 'canvas' ? openAlone(item.id) : open(item.file, 0, 0)));
+      button.addEventListener('click', () => void (current === 'canvas' ? openAlone(item.id) : shelf.kind === 'formula' ? openFormula(item.id) : open(item.file, 0, 0)));
       // Dragged onto the canvas: recalled there, or moved there if it is on it already.
       button.draggable = true;
       button.addEventListener('dragstart', (event) => {
         event.dataTransfer?.setData('application/x-doc-id', item.id);
+        event.dataTransfer?.setData('application/x-doc-kind', shelf.kind);
         event.dataTransfer?.setData('text/plain', item.id);
       });
       section.append(button);
@@ -276,6 +366,7 @@ const board = createBoard(api, {
 });
 
 const chartPanel = createChartPanel(api, $('chart'), { changed: () => tellDirty() });
+const formulaPanel = createFormulaPanel(api, $('formula'), { changed: () => tellDirty() });
 
 const grid = createGrid(api, $('grid'), {
   changed: () => tellDirty(),
@@ -288,6 +379,17 @@ const grid = createGrid(api, $('grid'), {
       return;
     }
     await open(String(done.summary?.file), 0, 0);
+  },
+  formula: (id) => void openFormula(id),
+  // «Campo calcolato»: the grid saved first, then the formula and its field, then the builder.
+  computed: async (descriptor, title) => {
+    if (grid.isDirty()) await save();
+    const done = await api.computedField(descriptor, title);
+    if (done.error) {
+      alert(`Non si può creare il campo calcolato: ${done.error}`);
+      return;
+    }
+    await openFormula(String(done.summary?.id));
   },
 });
 
@@ -335,6 +437,7 @@ async function start(): Promise<void> {
       view.setState(pageState(saved));
       await showMode('text');
     } else if (/\.chart\.md$/.test(target)) await showMode((await chartPanel.open(target)) ? 'chart' : 'text');
+    else if (/\.formula\.md$/.test(target)) await showFormula(target, formulaId);
     else await showMode((await grid.open(target)) ? 'grid' : 'text');
   });
   $('data').addEventListener('click', () => {
@@ -351,6 +454,8 @@ async function start(): Promise<void> {
   api.onUpdate(() => {
     void renderNavigator();
     if (mode === 'chart') chartPanel.refresh();
+    if (mode === 'formula') void formulaPanel.refresh();
+    if (mode === 'grid') void grid.refreshComputed();
     forceLinting(view);
     if (current === 'canvas') void board.refresh();
   });
@@ -368,6 +473,14 @@ async function start(): Promise<void> {
     else await save();
     api.closeNow();
   });
+  // «Python in avvio» while Pyodide starts, the first time; «Python non disponibile» if it does not.
+  const showPython = (status: string) => {
+    $('python').hidden = status !== 'starting' && status !== 'failed';
+    $('python').classList.toggle('failed', status === 'failed');
+    $('python').querySelector('.python-text')!.textContent = status === 'failed' ? 'Python non disponibile' : 'Python in avvio';
+  };
+  api.onPython(showPython);
+  showPython(await api.python());
   await renderNavigator();
   await api.showPreview(null);
   await board.refresh();

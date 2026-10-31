@@ -10,6 +10,8 @@ import { planTurnInto, tableAtLine } from 'doc-runtime/dist/src/collection-opera
 import { formatText, writeHeader } from 'doc-runtime/dist/src/format.js';
 import { readRecords, readSchema } from 'doc-runtime/dist/src/collection.js';
 import type { ChartCollection, ChartSource, ChartState } from './chart-model.js';
+import type { FormulaSource, PanelCollection } from './formula-model.js';
+import { planComputedField, readFormula, writeFormula } from 'doc-runtime/dist/src/formula-operations.js';
 import { parseYamlMap, splitFrontMatter, type RawValue } from 'doc-runtime/dist/src/front-matter.js';
 import { completions, definitionOf, describe, hoverAt, referenceAt, type Completion, type Position, type Range } from 'doc-runtime/dist/src/language-services.js';
 import { CARD_RECORDS, LiveFolder } from 'doc-runtime/dist/src/live.js';
@@ -28,6 +30,8 @@ export interface ShelfItem {
   file: string;
   /** Whether the object has a card on the canvas; otherwise it is archived. */
   onCanvas: boolean;
+  /** A formula: its value with the display of §0.4 (class 4). */
+  value?: string;
 }
 /** A card of the canvas, with the object as it will appear: the HTML of the preview, or null. */
 export interface CardView {
@@ -68,6 +72,39 @@ export interface EditorDiagnostic {
   target?: string;
   fix?: string;
 }
+
+/** The display of the value of a formula in the tree (class 4), if it has one. */
+function formulaDisplay(node: TreeNode): string | undefined {
+  const element = (node.content ?? []).find((item) => Array.isArray(item) && item[0] === 'formula') as unknown[] | undefined;
+  const attributes = element?.[1] as { display?: unknown } | undefined;
+  return typeof attributes?.display === 'string' ? attributes.display : undefined;
+}
+
+/**
+ * The values of the computed fields of a collection, from its table in the tree, by field:
+ * the plain value of each record shown (class 4); the grid shows them and never writes them.
+ */
+function computedValues(node: TreeNode | undefined): Record<string, string[]> {
+  const table = (node?.content ?? []).find((item) => Array.isArray(item) && item[0] === 'table') as unknown[] | undefined;
+  if (table === undefined) return {};
+  const fields = ((table[1] as { fields?: Array<{ name: string; formula?: string }> }).fields ?? []);
+  const rows = table.slice(2).filter((row) => Array.isArray(row) && row[0] === 'tableRow').slice(1) as unknown[][];
+  const out: Record<string, string[]> = {};
+  fields.forEach((field, index) => {
+    if (field.formula === undefined) return;
+    out[field.name] = rows.map((row) => {
+      const cell = row.filter((item) => Array.isArray(item) && item[0] === 'tableCell')[index] as unknown[] | undefined;
+      const attributes = cell?.[1];
+      const value = attributes !== null && typeof attributes === 'object' && !Array.isArray(attributes) ? (attributes as { value?: unknown }).value : undefined;
+      return value === undefined ? '' : String(value);
+    });
+  });
+  return out;
+}
+
+const pythonName = (name: string) => name.replace(/-/g, '_');
+/** Where an object of a file starts, for the order of the menu: its attribute line, or the start. */
+const fileOffset = (text: string, id: string) => Math.max(0, text.indexOf(`{#${id}`));
 
 const normalize = (text: string) => text.replace(/^﻿/, '').replace(/\r\n?/g, '\n');
 
@@ -117,7 +154,8 @@ export class Session {
       if (node.id === undefined || node.kind === 'document' || node.kind === 'canvas-file') continue;
       const title = describe(node);
       if (wanted !== '' && !node.id.toLowerCase().includes(wanted) && !title.toLowerCase().includes(wanted)) continue;
-      shelves.set(node.kind, [...(shelves.get(node.kind) ?? []), { id: node.id, title, file: node.file, onCanvas: onCanvas.has(node.id) }]);
+      const value = node.kind === 'formula' ? formulaDisplay(node) : undefined;
+      shelves.set(node.kind, [...(shelves.get(node.kind) ?? []), { id: node.id, title, file: node.file, onCanvas: onCanvas.has(node.id), ...(value !== undefined ? { value } : {}) }]);
     }
     const rank = (kind: string) => (COMPOSITIONS.includes(kind) ? COMPOSITIONS.indexOf(kind) : COMPOSITIONS.length);
     return [...shelves].sort(([a], [b]) => rank(a) - rank(b) || (a < b ? -1 : a > b ? 1 : 0)).map(([kind, items]) => ({ kind, items }));
@@ -402,11 +440,16 @@ export class Session {
       filter,
       description: split.body.trim(),
     };
-    const collections: ChartCollection[] = [];
+    return { file, state, collections: this.panelCollections() };
+  }
+
+  /** The collections of the document, each with its fields and the distinct values of each field as written, the first 200. */
+  private panelCollections(): PanelCollection[] {
+    const collections: PanelCollection[] = [];
     for (const node of this.live.tree.nodes ?? []) {
       if (node.kind !== 'collection' || node.id === undefined) continue;
       const fields = (Array.isArray(node.attributes?.fields) ? node.attributes.fields : []) as Array<Record<string, unknown>>;
-      const named = fields.filter((field) => typeof field.name === 'string').map((field) => ({ name: String(field.name), type: typeof field.type === 'string' ? field.type : 'string', ...(typeof field.title === 'string' ? { title: field.title } : {}) }));
+      const named = fields.filter((field) => typeof field.name === 'string').map((field) => ({ name: String(field.name), type: typeof field.type === 'string' ? field.type : 'string', ...(typeof field.title === 'string' ? { title: field.title } : {}), ...(typeof field.formula === 'string' ? { formula: field.formula.replace(/^\[\[(.*)\]\]$/, '$1') } : {}) }));
       const values: Record<string, string[]> = {};
       const data = this.dataFile(node.file);
       if (data !== null) {
@@ -421,7 +464,7 @@ export class Session {
       }
       collections.push({ id: node.id, fields: named, values });
     }
-    return { file, state, collections };
+    return collections;
   }
 
   /** The text of a chart file with the state of the panel, the other keys as written, through the formatter. */
@@ -454,8 +497,114 @@ export class Session {
     return this.save(path, this.chartText(path, state));
   }
 
+  /**
+   * What the formula builder opens on: an object of a formula file (the first if no id),
+   * its inputs and its code as written (the buffers hold), the collection whose computed
+   * field it is, the collections and the other formulas to drag in, its value or its problems.
+   */
+  formulaSource(path: string, id?: string): FormulaSource | null {
+    const file = this.safe(path);
+    const nodes = (this.live.tree.nodes ?? []).filter((node) => node.file === file && node.kind === 'formula' && node.id !== undefined);
+    const text = this.read(file);
+    const ids = nodes.map((node) => node.id!).sort((a, b) => (fileOffset(text, a) - fileOffset(text, b)));
+    const wanted = id ?? ids[0];
+    if (wanted === undefined || !ids.includes(wanted)) return null;
+    const written = readFormula(file, text, wanted);
+    if (written === null) return null;
+    const column = (this.live.tree.nodes ?? []).find((node) => node.kind === 'collection' && Array.isArray(node.attributes?.fields)
+      && (node.attributes.fields as Array<Record<string, unknown>>).some((field) => field.formula === `[[${wanted}]]`))?.id ?? null;
+    const columnFormulas = new Set(this.panelCollections().flatMap((collection) => collection.fields.flatMap((field) => (field.formula ? [field.formula] : []))));
+    const formulas = (this.live.tree.nodes ?? [])
+      .filter((node) => node.kind === 'formula' && node.id !== undefined && node.id !== wanted && !columnFormulas.has(node.id))
+      .map((node) => ({ id: node.id!, ...(formulaDisplay(node) !== undefined ? { display: formulaDisplay(node)! } : {}) }));
+    const node = nodes.find((each) => each.id === wanted)!;
+    // The problems of this object: by its id, or on its lines in a file with several.
+    const source = this.objectSource(wanted);
+    const first = source.before.split('\n').length - 1;
+    const last = first + source.text.split('\n').length - 1;
+    const problems = (this.live.tree.diagnostics ?? [])
+      .filter((d) => d.file === file && (d.target === wanted || (d.range !== undefined && d.range.start.line >= first && d.range.start.line <= last)))
+      .map((d) => `${d.code}${d.message === undefined ? '' : `: ${d.message}`}${d.fix === undefined ? '' : ` → ${d.fix}`}`);
+    const display = formulaDisplay(node);
+    return { file, id: wanted, ids, inputs: written.inputs, code: written.code, column, collections: this.panelCollections(), formulas, ...(display !== undefined ? { display } : {}), problems };
+  }
+
+  /** The text of a formula file with the inputs and the code of one object from the builder, through the formatter. */
+  formulaText(path: string, id: string, inputs: string[], code: string): string {
+    const file = this.safe(path);
+    return writeFormula(file, this.read(file), id, inputs, code);
+  }
+
+  /** The builder changed: its text holds for the tree and the preview, before it is saved. */
+  formulaEdit(path: string, id: string, inputs: string[], code: string): string {
+    const text = this.formulaText(path, id, inputs, code);
+    this.edit(path, text);
+    return text;
+  }
+
+  formulaSave(path: string, id: string, inputs: string[], code: string): string {
+    return this.save(path, this.formulaText(path, id, inputs, code));
+  }
+
+  /**
+   * A field or a formula dropped in the code of a formula, at an offset of the text of the
+   * editor: its name in the code, with the underscore, and in the inputs of the object.
+   * Null when the offset is not inside a python block of a formula.
+   */
+  formulaInsert(path: string, text: string, offset: number, input: string): { text: string; cursor: number } | null {
+    const file = this.safe(path);
+    if (!/\.formula\.md$/.test(file)) return null;
+    let objects;
+    try {
+      objects = shape(file, text).objects;
+    } catch {
+      return null;
+    }
+    for (const object of objects) {
+      const block = object.blocks.find((each) => each.node.type === 'code' && (each.node as { lang?: string | null }).lang === 'python' && offset > each.start && offset < each.end);
+      if (block === undefined) continue;
+      const codeStart = block.start + block.text.indexOf('\n') + 1;
+      const code = (block.node as { value: string }).value;
+      const at = Math.max(0, Math.min(code.length, offset - codeStart));
+      const name = input.split('.').map(pythonName).join('.');
+      const id = object.id ?? (this.live.tree.nodes ?? []).find((node) => node.file === file && node.kind === 'formula')?.id;
+      if (id === undefined) return null;
+      const written = readFormula(file, text, id);
+      const inputs = [...new Set([...(written?.inputs ?? []), input])];
+      const next = writeFormula(file, text, id, inputs, code.slice(0, at) + name + code.slice(at));
+      // The cursor after the name: the same place in the code of the object written again.
+      const again = shape(file, next).objects.find((each) => each.id === id) ?? shape(file, next).objects[0]!;
+      const block2 = again.blocks.find((each) => each.node.type === 'code' && (each.node as { lang?: string | null }).lang === 'python')!;
+      return { text: next, cursor: block2.start + block2.text.indexOf('\n') + 1 + at + name.length };
+    }
+    return null;
+  }
+
+  /** `create formula`: in the formula file of the document, with its inputs and its code. */
+  createFormula(request: { id?: string; inputs?: string[]; code?: string }): Done {
+    return this.operate((workspace, tree) => planCreate(workspace, tree, { kind: 'formula', ...request }));
+  }
+
+  /** «Campo calcolato» in the grid: a formula, empty, and the field of the schema that names it. */
+  computedField(path: string, title: string): Done {
+    const file = this.safe(path);
+    const node = (this.live.tree.nodes ?? []).find((each) => each.file === file && each.kind === 'collection');
+    if (node?.id === undefined) return { error: `${file} non è una collection` };
+    return this.operate((workspace, tree) => planComputedField(workspace, tree, node.id!, title));
+  }
+
+  /** Where Pyodide is: the app shows «Python in avvio» while it starts. */
+  python(): string {
+    return this.live.formulas.status;
+  }
+
+  /** Called when Pyodide starts, is ready or fails. */
+  onPython(listener: (status: string) => void): void {
+    this.live.formulas.onStatus = listener;
+  }
+
   /** What the grid opens on: the schema as written in the descriptor, the data file and its text (the buffers hold). */
-  gridSource(path: string): { descriptor: string; data: string; extension: 'tsv' | 'csv'; fields: unknown; primaryKey?: unknown; missingValues?: unknown; dialect?: unknown; text: string; lang: string | undefined } | null {
+  gridSource(path: string): { descriptor: string; id?: string; data: string; extension: 'tsv' | 'csv'; fields: unknown; primaryKey?: unknown; missingValues?: unknown; dialect?: unknown; text: string; lang: string | undefined; computed: Record<string, string[]> } | null {
     const descriptor = this.safe(path);
     const data = this.dataFile(descriptor);
     const extension = /\.(tsv|csv)$/i.exec(data ?? '')?.[1]?.toLowerCase() as 'tsv' | 'csv' | undefined;
@@ -469,7 +618,7 @@ export class Session {
     };
     const node = (this.live.tree.nodes ?? []).find((each) => each.file === descriptor);
     const lang = typeof node?.attributes?.lang === 'string' ? node.attributes.lang : typeof this.live.tree.document?.attributes?.lang === 'string' ? this.live.tree.document.attributes.lang : undefined;
-    return { descriptor, data, extension, fields: value('fields'), primaryKey: value('primaryKey'), missingValues: value('missingValues'), dialect: value('dialect'), text: this.read(data), lang };
+    return { descriptor, ...(node?.id !== undefined ? { id: node.id } : {}), data, extension, fields: value('fields'), primaryKey: value('primaryKey'), missingValues: value('missingValues'), dialect: value('dialect'), text: this.read(data), lang, computed: computedValues(node) };
   }
 
   /** The descriptor with these fields, the rest as written; a key on a field that went goes too. */

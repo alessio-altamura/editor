@@ -23,6 +23,15 @@ export class PyodideEngine implements FormulaEvaluator {
   private started: Promise<string | null> | null = null;
   private readonly waiting = new Map<number, Waiting>();
   private nextId = 1;
+  /** Where Pyodide is: off, starting (about 3 s), ready, or failed; the app shows «Python in avvio». */
+  status: 'off' | 'starting' | 'ready' | 'failed' = 'off';
+  /** Called when the status changes. */
+  onStatus: (status: PyodideEngine['status']) => void = () => undefined;
+  private setStatus(status: PyodideEngine['status']): void {
+    if (status === this.status) return;
+    this.status = status;
+    this.onStatus(status);
+  }
 
   constructor(
     private readonly limitMs = FORMULA_TIME_LIMIT_MS,
@@ -34,7 +43,8 @@ export class PyodideEngine implements FormulaEvaluator {
   /** Starts Electron and Pyodide in the background, once; null when ready, else why not. */
   start(): Promise<string | null> {
     if (this.started) return this.started;
-    this.started = new Promise((resolve) => {
+    this.setStatus('starting');
+    this.started = new Promise<string | null>((resolve) => {
       const executable = electronPath();
       if (executable === null || !existsSync(executable)) {
         resolve(`non trovo Electron ${ELECTRON_VERSION}; ${INSTALL_HINT}`);
@@ -92,6 +102,9 @@ export class PyodideEngine implements FormulaEvaluator {
           this.waiting.delete(id);
         }
       });
+    }).then((problem) => {
+      this.setStatus(problem === null ? 'ready' : 'failed');
+      return problem;
     });
     return this.started;
   }
@@ -149,6 +162,7 @@ export class PyodideEngine implements FormulaEvaluator {
     this.child?.kill();
     this.child = null;
     this.started = null;
+    this.setStatus('off');
   }
 
   close(): void {

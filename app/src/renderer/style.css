@@ -178,6 +178,28 @@ input:focus-visible, select:focus-visible { outline-offset: -1px; }
 .chart-fields { display: flex; flex-direction: column; gap: 2px; }
 .chart-field { justify-content: space-between; height: auto; padding: 6px var(--space-2); border: 1px solid var(--line); background: var(--surface); cursor: grab; }
 .chart-field[aria-selected="true"] { background: var(--active); color: var(--active-text); border-color: var(--accent); }
+/* The formula builder (class 4): the same places as the chart panel, with the code and the value. */
+#formula { flex: 1; min-height: 0; display: flex; flex-direction: column; background: var(--sheet); overflow: auto; }
+.formula-chips { display: flex; flex-wrap: wrap; gap: var(--space-1); grid-column: 2 / -1; }
+.formula-chips .chart-chip:not(.empty) { padding: 2px 4px 2px var(--space-2); border: 1px solid var(--line); border-radius: var(--radius-small); background: var(--surface); }
+.formula-inputs.over { border-style: solid; background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.formula-args { display: flex; flex-direction: column; gap: var(--space-2); }
+.formula-args .chart-place { grid-template-columns: 70px repeat(5, auto); justify-content: start; }
+.formula-operand { display: inline-flex; gap: var(--space-1); }
+.formula-number { width: 90px; }
+.formula-code { grid-column: 2 / -1; margin: 0; padding: var(--space-1) var(--space-2); font-family: var(--font-code, monospace); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-small); white-space: pre-wrap; }
+.formula-value { grid-column: 2 / -1; font-variant-numeric: tabular-nums; }
+.formula-value.error { color: var(--danger); }
+.shelf button .value { color: var(--muted); font-size: var(--font-size-small); font-variant-numeric: tabular-nums; }
+#python { display: flex; align-items: center; gap: 6px; margin: var(--space-2); color: var(--muted); font-size: var(--font-size-small); }
+#python[hidden] { display: none; }
+#python svg { width: 14px; height: 14px; animation: python-spin 1s linear infinite; }
+#python.failed { color: var(--danger); }
+#python.failed svg { animation: none; }
+@keyframes python-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { #python svg { animation: none; } }
+.grid-formula { color: var(--accent); font-style: italic; font-weight: var(--weight-strong); }
+.grid-cell.computed { color: var(--muted); cursor: pointer; }
 .grid-bar { flex: none; display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); padding: var(--space-1) var(--space-2); border-bottom: 1px solid var(--line); color: var(--muted); align-items: center; }
 .grid-bar .grid-group { display: inline-flex; gap: 2px; align-items: center; }
 .grid-label { margin-right: var(--space-1); font-size: var(--font-size-small); }

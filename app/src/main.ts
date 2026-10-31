@@ -76,6 +76,8 @@ async function openFolder(folder: string): Promise<void> {
   await session?.close();
   session = await Session.open(folder, (line) => process.stderr.write(`doc-app: ${line}\n`));
   session.onUpdate(() => window?.webContents.send('doc:updated'));
+  // «Python in avvio» while Pyodide starts, the first time the document has code (class 4).
+  session.onPython((status) => window?.webContents.send('doc:python', status));
   writeState({ folder });
   window?.setTitle(`${folder} — doc`);
   window?.webContents.send('doc:updated');
@@ -272,6 +274,18 @@ handle('doc:collection-of', (current, file: string) => current.collectionOf(file
 handle('doc:chart-source', (current, file: string) => current.chartSource(String(file)));
 handle('doc:chart-edit', (current, file: string, state: unknown) => current.chartEdit(String(file), chartState(state)));
 handle('doc:chart-save', (current, file: string, state: unknown) => current.chartSave(String(file), chartState(state)));
+const strings = (value: unknown) => (Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []);
+const optional = (value: unknown) => (typeof value === 'string' ? value : undefined);
+handle('doc:formula-source', (current, file: string, id: unknown) => current.formulaSource(String(file), optional(id)));
+handle('doc:formula-edit', (current, file: string, id: string, inputs: unknown, code: string) => current.formulaEdit(String(file), String(id), strings(inputs), String(code)));
+handle('doc:formula-save', (current, file: string, id: string, inputs: unknown, code: string) => current.formulaSave(String(file), String(id), strings(inputs), String(code)));
+handle('doc:formula-insert', (current, file: string, text: string, offset: number, input: string) => current.formulaInsert(String(file), String(text), Number(offset), String(input)));
+handle('doc:create-formula', (current, request: unknown) => {
+  const asked = (request ?? {}) as Record<string, unknown>;
+  return current.createFormula({ ...(optional(asked.id) !== undefined ? { id: optional(asked.id)! } : {}), ...(Array.isArray(asked.inputs) ? { inputs: strings(asked.inputs) } : {}), ...(optional(asked.code) !== undefined ? { code: optional(asked.code)! } : {}) });
+});
+handle('doc:computed-field', (current, file: string, title: string) => current.computedField(String(file), String(title)));
+handle('doc:python', (current) => current.python());
 handle('doc:grid-source', (current, file: string) => current.gridSource(file));
 const fieldsOf = (value: unknown) => (Array.isArray(value) ? (value as Array<Record<string, unknown>>) : []);
 handle('doc:grid-edit', (current, file: string, fields: unknown, data: string) => current.gridEdit(file, fieldsOf(fields), String(data)));

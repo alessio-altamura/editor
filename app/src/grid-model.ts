@@ -17,6 +17,10 @@ export interface GridSource {
   dialect?: unknown;
   text: string;
   lang: string | undefined;
+  /** The id of the collection, for the fields dragged into a formula (class 4). */
+  id?: string;
+  /** The values of the computed fields, by field, as plain values; never written in the data file. */
+  computed?: Record<string, string[]>;
 }
 
 /** A column of the file: its name, and its field as written, or null for a column that is not a field. */
@@ -66,6 +70,11 @@ export class GridModel {
     this.columns = header.map((name) => ({ name, field: written.find((field) => field?.name === name) ?? null }));
     for (const field of written) if (typeof field?.name === 'string' && !header.includes(field.name)) this.columns.push({ name: field.name, field });
     this.records = records.map((record) => this.columns.map((_, index) => record.cells[index]?.text ?? ''));
+    // The computed fields: their values from the tree, shown and never written.
+    this.columns.forEach((column, index) => {
+      const values = typeof column.field?.formula === 'string' ? source.computed?.[column.name] : undefined;
+      if (values) this.records.forEach((record, row) => (record[index] = values[row] ?? ''));
+    });
     this.refreshFields();
   }
 
@@ -73,6 +82,33 @@ export class GridModel {
     this.schema = readSchema({ fields: this.descriptorFields(), primaryKey: this.source.primaryKey, missingValues: this.source.missingValues, dialect: this.source.dialect }, this.source.extension).schema;
     this.fieldsByColumn = this.columns.map((column) => (column.field === null ? null : this.schema.fields.find((field) => field.name === column.name) ?? null));
     this.displays.clear();
+  }
+
+  /**
+   * New values of the computed fields, after a recomputation: shown, not an edit, so not
+   * undone and not dirty. False when nothing changed.
+   */
+  setComputed(computed: Record<string, string[]>): boolean {
+    let changed = false;
+    this.columns.forEach((column, index) => {
+      const values = this.formula(index) === null ? undefined : computed[column.name];
+      if (values === undefined) return;
+      this.records.forEach((record, row) => {
+        const value = values[row] ?? '';
+        if (record[index] !== value) {
+          record[index] = value;
+          changed = true;
+        }
+      });
+      this.displays.delete(index);
+    });
+    return changed;
+  }
+
+  /** The formula of a computed field, its id; null for a field of the data file. */
+  formula(column: number): string | null {
+    const written = this.columns[column]?.field?.formula;
+    return typeof written === 'string' ? written.replace(/^\[\[(.*)\]\]$/, '$1') : null;
   }
 
   /** The field read of a column, or null for a column that is not a field. */
@@ -214,7 +250,8 @@ export class GridModel {
     const old: Array<[number, number, string]> = [];
     const next: Array<[number, number, string]> = [];
     block.forEach((values, r) => values.forEach((value, c) => {
-      if (column + c >= this.columns.length) return;
+      // A computed field is read only: its values come from its formula.
+      if (column + c >= this.columns.length || this.formula(column + c) !== null) return;
       next.push([row + r, column + c, value]);
     }));
     const columns = [...new Set(next.map(([, c]) => c))];
@@ -385,7 +422,9 @@ export class GridModel {
   }
 
   dataText(): string {
-    return writeRecords([this.columns.map((column) => column.name), ...this.records], this.schema.dialect);
+    // A computed field is never in the data file: its column would be an override (class 4).
+    const kept = this.columns.map((_, index) => index).filter((index) => this.formula(index) === null);
+    return writeRecords([kept.map((index) => this.columns[index]!.name), ...this.records.map((record) => kept.map((index) => record[index]!))], this.schema.dialect);
   }
 }
 

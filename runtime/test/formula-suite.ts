@@ -1,7 +1,10 @@
 // The formulas without Pyodide, in `npm test` (class 4): a document without code never
 // starts Electron, and a worker that is not there gives `formula-unavailable` on each
 // formula while the rest resolves. Electron is a stand-in script that only leaves a mark.
-import { chmodSync, cpSync, existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { planComputedField, readFormula, writeFormula } from '../src/formula-operations.js';
+import { diskWorkspace } from '../src/operations.js';
+import { listDocumentFiles, resolveTree } from '../src/resolve-tree.js';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -62,6 +65,33 @@ try {
     const table = JSON.stringify(tree.nodes?.find((node) => node.id === 'vendite-mesi')?.content);
     if (!table.includes('"1200"') || !table.includes('"formula":"iva"')) problems.push(`table ${table.slice(0, 300)}`);
     report('without a worker: formula-unavailable, no value, the rest resolves', problems);
+  }
+
+  {
+    // create formula: in the formula file of the document, or a new one; refused without a valid id.
+    const problems: string[] = [];
+    const folder = formulaFolder(mkdtempSync(join(base, 'c-')));
+    const dry = runCli(['create', 'formula', '--id', 'media-q3', '--inputs', 'vendite-mesi.euro', '--code', 'mean(vendite_mesi.euro)', '--folder', folder, '--dry-run'], { env });
+    const summary = JSON.parse(dry.stdout.toString('utf8')) as { file?: string; diff?: string };
+    if (dry.status !== 0 || summary.file !== 'calcoli.formula.md' || !summary.diff?.includes('+{#media-q3 inputs=vendite-mesi.euro}')) problems.push(`dry run ${dry.status} ${dry.stdout} ${dry.stderr}`);
+    if (readFileSync(join(folder, 'calcoli.formula.md'), 'utf8').includes('media-q3')) problems.push('the dry run wrote');
+    const run = runCli(['create', 'formula', '--id', 'media-q3', '--inputs', 'vendite-mesi.euro', '--code', 'mean(vendite_mesi.euro)', '--folder', folder], { env });
+    if (run.status !== 0 || !readFileSync(join(folder, 'calcoli.formula.md'), 'utf8').endsWith('{#media-q3 inputs=vendite-mesi.euro}\n\n```python\nmean(vendite_mesi.euro)\n```\n')) problems.push(`create ${run.status} ${run.stderr}`);
+    if (runCli(['create', 'formula', '--id', 'media-q3', '--folder', folder], { env }).status === 0) problems.push('an id taken');
+    const plain = prepare('esempio-34', mkdtempSync(join(base, 'd-')));
+    const fresh = runCli(['create', 'formula', '--folder', plain], { env });
+    if (fresh.status !== 0 || readFileSync(join(plain, 'formule.formula.md'), 'utf8') !== '---\nkind: formula\n---\n{#formula}\n\n```python\nNone\n```\n') problems.push(`a new formula file: ${fresh.stderr}`);
+    if (existsSync(mark)) rmSync(mark);
+    // A computed field: the formula and the field of the schema that names it.
+    const workspace = diskWorkspace(folder, () => [...listDocumentFiles(folder).keys()]);
+    const plan = planComputedField(workspace, resolveTree(folder), 'vendite-mesi', 'Con IVA');
+    const descriptor = plan.files.get('vendite-mesi.collection.md') ?? '';
+    if (!descriptor.includes('  - name: con-iva\n    type: number\n    title: Con IVA\n    formula: "[[con-iva]]"') || !plan.files.get('calcoli.formula.md')?.includes('{#con-iva}\n\n```python\nNone\n```')) problems.push(`computed field\n${descriptor}`);
+    // The code and the inputs of one object written again, the others as they are.
+    const text = readFileSync(join(folder, 'calcoli.formula.md'), 'utf8');
+    const written = writeFormula('calcoli.formula.md', text, 'iva', ['vendite-mesi.euro', 'aliquota'], 'euro * aliquota');
+    if (!written.includes('{#iva inputs="vendite-mesi.euro aliquota"}\n\n```python\neuro * aliquota\n```') || !written.includes('mean(vendite_mesi.euro)') || readFormula('calcoli.formula.md', written, 'iva')?.code !== 'euro * aliquota') problems.push(`write\n${written}`);
+    report('create formula, a computed field, the code of one object written again', problems);
   }
 } finally {
   rmSync(base, { recursive: true, force: true });
