@@ -717,6 +717,19 @@ quando due rami lavorano in parallelo.
   posizioni nel file del `canvas`, quindi va ripresa la proposta del layout
   a vincoli invece delle coordinate assolute, per non sporcare i diff.
 
+- Formule e script (2026-10-31). Alla proposta dell'orchestratore (grafici
+  adesso, poi formule e script insieme, decidendo lì se sono un oggetto
+  solo con due forme, espressione e blocco), Alessio: «e poi script», «o
+  formule e script come oggetto unico», e poi: «sarebbe bello trascinare un
+  dato nell'area script dentro una formula e l'app crea il tipo dato e
+  sistema lo script». Nota dell'orchestratore: il tipo viene già dallo
+  `schema` della `collection`, e il riferimento si scrive per nome, senza
+  coordinate; un dato trascinato diventa un ingresso dichiarato dello
+  script, con il suo tipo, e così le dipendenze dello script si conoscono
+  senza eseguirlo, il punto debole del codice eseguito nella ricerca
+  ([ricerca/linguaggio-formule.md](ricerca/linguaggio-formule.md)). Da
+  progettare con le formule.
+
 - Selezionare nell'anteprima (2026-10-31): oggi un clic su un punto
   dell'anteprima apre l'oggetto nell'editor alla riga giusta; una selezione
   di testo non si riflette nell'editor. Sulla domanda se serva, Alessio:
