@@ -749,6 +749,24 @@ quando due rami lavorano in parallelo.
   più alte, canvas uniforme), con le evidenziazioni di pulsanti e voci
   (passaggio del mouse, voce attiva) come in lavagna: rettangoli con gli
   angoli appena arrotondati, non a pillola. Lavagna e documento si tolgono.
+  I caratteri dell'`app` (2026-10-31): Alessio prima «ok Instrument Sans e
+  Petrona», poi «forse preferisco figtree» e, sulle tavole alla stessa
+  altezza della «x», «Petrona e Figtree ok, anche se quella di riferimento
+  ha maggior contrasto sono leggermente più pieni e più spaziati».
+  Quindi l'interfaccia in Figtree al posto di Inter, il testo
+  scritto dentro gli oggetti, nell'editor, in Petrona al posto del
+  monospazio di sistema. Tutti e due OFL. La resa del documento (schede,
+  anteprima, HTML, PDF) non cambia. Alessio cercava caratteri simili a
+  quelli dell'app di Claude, che trova molto leggibili; il confronto
+  misurato è in [ricerca/caratteri-app.md](ricerca/caratteri-app.md).
+  Proposta dell'orchestratore, presentata e non contestata: i file di dati
+  e gli `stylesheet` restano in monospazio, perché lì contano colonne e
+  codice.
+  Sul contrasto, misura dell'orchestratore (stessa nota): alla stessa
+  altezza della «x», Figtree a peso 475 e Petrona a peso 470 hanno lo
+  stesso inchiostro del riferimento a 400; Figtree a 475 ha anche la stessa
+  lunghezza di riga, Petrona è già più largo di circa il 10%. Peso e
+  spaziatura da confermare con Alessio sulle tavole.
 
 
 - Estensibilità: estensioni e connettori distribuiti da un marketplace, per
