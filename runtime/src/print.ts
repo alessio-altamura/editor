@@ -23,7 +23,7 @@ function footer(fontFace: string): string {
 export type PrintResult = { pdf: Buffer } | { browserError: string };
 
 /** The executable of Electron: DOC_RUNTIME_ELECTRON if set, else the one of the package. */
-function electronPath(): string | null {
+export function electronPath(): string | null {
   if (process.env.DOC_RUNTIME_ELECTRON !== undefined) return process.env.DOC_RUNTIME_ELECTRON;
   // Read where the package puts it, without require('electron'), which would download it
   // and say so on stdout; the download is the postinstall of npm ci.

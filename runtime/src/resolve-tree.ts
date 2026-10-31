@@ -13,6 +13,7 @@ import { compareCodePoints, makeDiagnostic, report, sortDiagnostics, type Diagno
 import { parseYamlMap, splitFrontMatter, type RawValue } from './front-matter.js';
 import { columnDisplays, MAX_DATA_BYTES, MAX_RECORDS, readRecords, readSchema, readValue, TYPE_WORDS, type CollectionData, type Field, type Value } from './collection.js';
 import { Decimal, displayString, evaluateMathLine, langFormat, localize, plainString } from './math-line.js';
+import { isCodeLine, jobKey, lineNames, problemFix, PYODIDE_VERSION, pythonName, recordValue, shownValue, tableInput, typedValue, type FormulaJob, type FormulaOptions, type FormulaProblem, type FormulaResult, type InputValue, type TypedValue } from './formula.js';
 import { CHART_TEMPLATES, drawChart, planChart, proposeRoles, proposeSeries, type ChartPlan } from './chart.js';
 import { BASE_FONTS, type GenericFamily } from './base-stylesheet.js';
 import {
@@ -37,7 +38,7 @@ export const SPEC_VERSION = '0.1';
 const RETIRED_IDS_FILE = 'retired-ids.yaml';
 
 /** The `kind`s of the `core` and of class 1; any other `kind` is read as a `directive`. */
-const KNOWN_KINDS = new Set(['concept', 'document', 'text', 'image', 'scratch', 'chapter', 'article', 'stylesheet', 'canvas-file', 'collection', 'chart']);
+const KNOWN_KINDS = new Set(['concept', 'document', 'text', 'image', 'scratch', 'chapter', 'article', 'stylesheet', 'canvas-file', 'collection', 'chart', 'formula']);
 const VISIBLE_KINDS = new Set(['concept', 'text', 'image', 'scratch', 'chapter', 'article', 'collection', 'chart']);
 /** The keys of a chart (class 3): its template, its collection, a field for each role, the filter. */
 const CHART_KEYS = new Set(['template', 'collection', 'x', 'y', 'series', 'filter']);
@@ -45,7 +46,7 @@ const CHART_KEYS = new Set(['template', 'collection', 'x', 'y', 'series', 'filte
 const SCHEMA_KEYS = new Set(['fields', 'primary-key', 'primaryKey', 'missing-values', 'missingValues', 'dialect']);
 const COMPOSITION_KINDS = new Set(['chapter', 'article', 'deck']);
 /** §8 lists concept, scratch, article, deck and the document file; stylesheet and canvas file are added (reading). */
-const EMBED_FORBIDDEN_KINDS = new Set(['concept', 'scratch', 'article', 'deck', 'document', 'stylesheet', 'canvas-file']);
+const EMBED_FORBIDDEN_KINDS = new Set(['concept', 'scratch', 'article', 'deck', 'document', 'stylesheet', 'canvas-file', 'formula']);
 const ASSOCIATION_FORBIDDEN_KINDS = new Set(['chapter', 'article', 'deck', 'stylesheet', 'document']);
 
 /** Which attributes each `kind` knows besides `id` and `kind` (§4). */
@@ -59,7 +60,9 @@ function knowsAttribute(kind: string, key: string): boolean {
     case 'associations': return ['concept', 'text', 'image', 'scratch', 'canvas-file', 'collection', 'chart'].includes(kind);
     case 'stylesheet': return kind === 'article' || kind === 'chapter';
     case 'spec-version': return kind === 'document';
-    case 'recursion': return kind === 'chapter';
+    case 'pyodide': return kind === 'document';
+    case 'recursion': return kind === 'chapter' || kind === 'formula';
+    case 'inputs': return kind === 'formula';
     default: return kind === 'chart' && CHART_KEYS.has(key);
   }
 }
@@ -101,6 +104,18 @@ interface SourceNode {
   chart?: { template?: string; collection?: string; x?: string; y?: string; series?: string; filter: Map<string, string[]> };
   chartPlan?: ChartPlan;
   items?: CompositionItem[];
+  /** A formula (class 4): its inputs as written, then read; its code and where it starts in the file. */
+  inputs?: string[];
+  readInputs?: FormulaInput[];
+  code?: { text: string; start: number };
+}
+
+/** An input of a formula, read: a formula, a collection, or a field of a collection. */
+interface FormulaInput {
+  written: string;
+  id: string;
+  kind: 'formula' | 'collection';
+  field?: string;
 }
 
 /** What the computed style pass of a root composition carries down. */
@@ -304,6 +319,11 @@ export interface ResolveOptions {
    * The trees of the examples leave it out, as they leave out the source positions.
    */
   drawings?: boolean;
+  /**
+   * The results of the formulas, by key, and the jobs still to compute (class 4). Without
+   * it the formulas have no value and no diagnostic of the worker.
+   */
+  formulas?: FormulaOptions;
 }
 
 /** The family of a computed font-family as the drawing of a chart writes it: names without quotes, a generic with its base font. */
@@ -597,6 +617,14 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
           }
           break;
         }
+        case 'inputs':
+          if (raw.type !== 'list' || !raw.value.every((item) => typeof item === 'string')) {
+            invalid('scrivi inputs come lista di id, o di collection.field');
+            break;
+          }
+          out[name] = raw.value;
+          node.inputs = raw.value;
+          break;
         case 'filter': {
           // field: value, or field: [values]; equality only, as written (class 3).
           const value = raw.type === 'structure' ? raw.value : undefined;
@@ -792,10 +820,20 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
     const names = header?.cells.map((cell) => cell.text) ?? [];
     const columns = schema.fields.map((field) => names.indexOf(field.name));
     schema.fields.forEach((field, index) => {
+      // A computed field is never in the data file: a column with its name would be an override (class 4).
+      if (field.formula !== undefined) {
+        if (columns[index]! >= 0) {
+          const cell = header!.cells[columns[index]!]!;
+          at('formula-override', field.name, `togli la colonna ${field.name} dal file: la calcola la formula ${field.formula}`, cell.start, cell.end);
+        }
+        columns[index] = -1;
+        return;
+      }
       if (columns[index]! < 0) at('collection-field-missing', field.name, `aggiungi la colonna ${field.name} al file, o toglila dai fields`, header?.start ?? 0, header?.end ?? 0);
     });
     header?.cells.forEach((cell, index) => {
-      if (!schema.fields.some((field) => field.name === cell.text) || names.indexOf(cell.text) !== index) {
+      if (!schema.fields.some((field) => field.name === cell.text && field.formula === undefined) || names.indexOf(cell.text) !== index) {
+        if (schema.fields.some((field) => field.name === cell.text && field.formula !== undefined)) return;
         at('collection-field-extra', cell.text, `aggiungi ${cell.text} ai fields, o togli la colonna`, cell.start, cell.end);
       }
     });
@@ -861,7 +899,7 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
     });
     const more = data.records.length - shown.length;
     const table = element('table', {
-      fields: data.fields.map((field) => ({ name: field.name, type: field.type, ...(field.title !== undefined ? { title: field.title } : {}) })),
+      fields: data.fields.map((field) => ({ name: field.name, type: field.type, ...(field.title !== undefined ? { title: field.title } : {}), ...(field.formula !== undefined ? { formula: field.formula } : {}) })),
       ...(more > 0 ? { moreRecords: more, moreLabel: moreRecordsLabel(more, context.lang) } : {}),
     }, [header, ...rows]);
     table.meta = { collection: { lang: context.lang, data } };
@@ -1054,7 +1092,7 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
         return [element(node.type, {}, buildInlines(node.children, context))];
       case 'inlineCode': {
         const value = node.value.replace(/\n/g, ' ');
-        return [value.startsWith('= ') ? buildMathLine(value.slice(2), context) : element('inlineCode', {}, [value])];
+        return [value.startsWith('= ') ? buildMathLine(value.slice(2), context, node.position?.start.offset) : element('inlineCode', {}, [value])];
       }
       case 'link': return [element('hyperlink', { url: node.url }, buildInlines(node.children, context))];
       case 'image':
@@ -1080,8 +1118,17 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
     }
   }
 
-  function buildMathLine(expression: string, context: BuildContext): Element {
+  function buildMathLine(expression: string, context: BuildContext, offset?: number): Element {
     const result = evaluateMathLine(expression);
+    // Not a line of class 1, and with a name: a Python expression (class 4).
+    if (result.value === undefined && isCodeLine(expression)) {
+      const value = lineValue(expression, context, offset);
+      if (value === undefined || value.type === 'missing') return element('mathLine', { invalid: true }, [expression]);
+      if (context.lang !== undefined && langFormat(context.lang) === undefined) reportOnce(context.sink, 'lang-unsupported', context.file, context.lang);
+      const line = element('mathLine', shownValue(value, context.lang), [expression]);
+      if (value.type === 'number') line.meta = { value: new Decimal(value.value), lang: context.lang };
+      return line;
+    }
     for (const number of result.ambiguous) {
       report(context.sink, 'math-line-ambiguous', context.file, number, number.replace('.', ''));
     }
@@ -1346,6 +1393,263 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
     if (node.markdown && (COMPOSITION_KINDS.has(node.kind) || node.directive)) node.items = compositionItems(node);
     checkAsset(node);
   }
+  // Class 4: the formulas, once the collections are read and before the charts and the content.
+  const pyodideWritten = (() => {
+    const raw = documentNode?.attributes?.find(([key]) => key === 'pyodide')?.[1];
+    return raw?.type === 'string' ? raw.value : undefined;
+  })();
+  /** A document that fixes another Pyodide has no values from code: the runtime runs only its own. */
+  const codeAllowed = pyodideWritten === undefined || pyodideWritten === PYODIDE_VERSION;
+  if (!codeAllowed) report(diagnostics, 'pyodide-unsupported', documentNode!.file, pyodideWritten, `pyodide: "${PYODIDE_VERSION}"`);
+  let usesCode = false;
+  const formulaNodes = new Map<string, SourceNode>();
+  const codeMissing: SourceNode[] = [];
+  for (const node of nodes) {
+    if (node.kind !== 'formula' || node.attributes === null) continue;
+    const block = (node.markdown?.children ?? []).find((child) => child.type === 'code' && child.lang === 'python');
+    if (block?.type === 'code' && block.position?.start.offset !== undefined) {
+      const fence = block.position.start.offset;
+      node.code = { text: block.value, start: node.source.indexOf('\n', fence) + 1 };
+    } else codeMissing.push(node);
+    if (node.id !== undefined && idIndex.get(node.id)?.length === 1) formulaNodes.set(node.id, node);
+  }
+  /** The computed fields of each collection, and the formulas that compute a field. */
+  const columnFormulas = new Set<string>();
+  const computedOf = new Map<SourceNode, number[]>();
+  for (const node of nodes) {
+    if (node.kind !== 'collection' || node.data === undefined) continue;
+    node.data.fields.forEach((field, index) => {
+      if (field.formula === undefined) return;
+      const target = idIndex.get(field.formula);
+      if (target === undefined) report(diagnostics, 'reference-unresolved', node.file, field.formula, "correggi l'id della formula");
+      else if (target.length === 1 && target[0]!.kind !== 'formula') report(diagnostics, 'collection-schema-invalid', node.file, field.formula, `${field.formula} non è una formula: nomina una formula`);
+      else columnFormulas.add(field.formula);
+      computedOf.set(node, [...(computedOf.get(node) ?? []), index]);
+    });
+  }
+  const collectionNode = (id: string) => {
+    const found = idIndex.get(id);
+    return found?.length === 1 && found[0]!.kind === 'collection' ? found[0]! : undefined;
+  };
+  // The inputs: each names a formula that gives a value, a collection or a field of one.
+  for (const [id, node] of formulaNodes) {
+    node.readInputs = [];
+    for (const written of node.inputs ?? []) {
+      const [, target = '', field] = /^([^.]*)(?:\.(.*))?$/.exec(written)!;
+      const named = idIndex.get(target);
+      const other = named?.length === 1 ? named[0]! : undefined;
+      const unresolved = (fix: string) => reportFormula('formula-input-unresolved', node, written, fix);
+      if (other?.kind === 'formula' && field === undefined) {
+        if (target === id && node.recursion === undefined) unresolved('togli la formula dai suoi inputs, o abilita recursion');
+        else if (columnFormulas.has(target)) unresolved(`${target} calcola un field: usa collection.field`);
+        else node.readInputs.push({ written, id: target, kind: 'formula' });
+      } else if (other?.kind === 'collection' && (field === undefined || other.data === undefined || other.data.fields.some((each) => each.name === field))) {
+        node.readInputs.push({ written, id: target, kind: 'collection', ...(field !== undefined ? { field } : {}) });
+      } else if (other?.kind === 'collection') unresolved(`${target} non ha il field ${field}`);
+      else unresolved("scrivi l'id di una formula o di una collection, o collection.field");
+    }
+  }
+  // The graph from the declarations, without running the code: a cycle is an error of each formula in it.
+  const graphKey = (collection: SourceNode, index: number) => `c:${collection.id}.${collection.data!.fields[index]!.name}`;
+  const edges = (from: string): string[] => {
+    let formula: SourceNode | undefined;
+    let own: SourceNode | undefined;
+    if (from.startsWith('f:')) formula = formulaNodes.get(from.slice(2));
+    else {
+      const [collectionId, ...rest] = from.slice(2).split('.');
+      own = collectionNode(collectionId!);
+      const field = own?.data?.fields.find((each) => each.name === rest.join('.'));
+      formula = field?.formula === undefined ? undefined : formulaNodes.get(field.formula);
+    }
+    const out: string[] = [];
+    for (const input of formula?.readInputs ?? []) {
+      if (input.kind === 'formula') {
+        if (input.id !== formula!.id) out.push(`f:${input.id}`);
+        continue;
+      }
+      const collection = collectionNode(input.id);
+      for (const index of collection ? computedOf.get(collection) ?? [] : []) {
+        const field = collection!.data!.fields[index]!;
+        if (input.field === undefined ? graphKey(collection!, index) !== from : input.field === field.name) out.push(graphKey(collection!, index));
+      }
+    }
+    return out;
+  };
+  const graphNodes = [...[...formulaNodes.keys()].filter((id) => !columnFormulas.has(id)).map((id) => `f:${id}`), ...[...computedOf].flatMap(([collection, indexes]) => indexes.map((index) => graphKey(collection, index)))];
+  const inCycle = cyclicNodes(graphNodes, edges);
+  const formulaOfNode = (key: string) => (key.startsWith('f:') ? key.slice(2) : (() => {
+    const [collectionId, ...rest] = key.slice(2).split('.');
+    return collectionNode(collectionId!)?.data?.fields.find((each) => each.name === rest.join('.'))?.formula;
+  })());
+  for (const id of new Set([...inCycle].map(formulaOfNode))) {
+    const node = id === undefined ? undefined : formulaNodes.get(id);
+    if (node) reportFormula('formula-cycle', node, id, "togli un ingresso che chiude il ciclo");
+  }
+  for (const node of codeMissing) reportFormula('formula-code-missing', node, node.id, 'scrivi il codice in un blocco ```python');
+
+  /** A diagnostic of a formula object at its own header: in a multi-object file the target may be written in another object. */
+  function reportFormula(code: string, node: SourceNode, target: string | undefined, fix: string): void {
+    const diagnostic = makeDiagnostic(code, node.file, target, fix);
+    if (options.positions) {
+      const header = node.attributeLine?.offsets ?? (() => {
+        const match = /^---\n[\s\S]*?\n---(?=\n|$)/.exec(node.source);
+        return { start: 0, end: match ? match[0].length : 0 };
+      })();
+      const text = texts.get(node.file) ?? '';
+      const region = text.slice(header.start, header.end);
+      const at = target === undefined ? -1 : region.indexOf(target);
+      const starts = lineStarts(text);
+      const start = at < 0 ? header.start : header.start + at;
+      const end = at < 0 ? header.end : start + target!.length;
+      diagnostic.range = { start: lspPoint(starts, start), end: lspPoint(starts, end) };
+    }
+    diagnostics.push(diagnostic);
+  }
+
+  /** The result of a job, if known; else, while the formulas are computed, a job to compute. */
+  function need(job: Omit<FormulaJob, 'key'>): FormulaResult | undefined {
+    usesCode = true;
+    const key = jobKey(job);
+    const known = options.formulas?.results.get(key);
+    if (known === undefined && options.formulas?.pending && !options.formulas.pending.has(key)) options.formulas.pending.set(key, { key, ...job });
+    return known;
+  }
+
+  /** A problem of the code as a diagnostic, at its line and column of the file when positions are asked. */
+  function codeProblem(sink: DiagnosticSink, problem: FormulaProblem, file: string, target: string, codeStart: number, codeText: string, kind: 'formula' | 'line'): void {
+    if (sink === null) return;
+    const where = problem.line === undefined ? '' : `riga ${problem.line}: `;
+    const record = problem.record === undefined ? '' : `record ${problem.record + 1}: `;
+    const diagnostic = makeDiagnostic(problem.code, file, problem.target ?? target, problemFix(problem, kind));
+    diagnostic.message = `${record}${where}${problem.message}`;
+    if (options.positions && problem.line !== undefined) {
+      const lines = codeText.split('\n');
+      const offsetOf = (line: number, column: number) => codeStart + lines.slice(0, line - 1).reduce((sum, each) => sum + each.length + 1, 0) + column;
+      const text = texts.get(file) ?? '';
+      const starts = lineStarts(text);
+      const start = offsetOf(problem.line, problem.column ?? 0);
+      const end = offsetOf(problem.endLine ?? problem.line, problem.endColumn ?? problem.column ?? 0);
+      diagnostic.range = { start: lspPoint(starts, start), end: lspPoint(starts, Math.max(start, end)) };
+    }
+    sink.push(diagnostic);
+  }
+
+  const values = new Map<string, TypedValue | undefined>();
+  /** The value of a formula, computed once; undefined while it is not known or when it fails. */
+  function formulaValue(id: string): TypedValue | undefined {
+    if (values.has(id)) return values.get(id);
+    values.set(id, undefined);
+    const node = formulaNodes.get(id);
+    if (!codeAllowed || node?.code === undefined || columnFormulas.has(id) || inCycle.has(`f:${id}`)) return undefined;
+    const inputs = inputValues(node, undefined);
+    if (inputs === undefined) return undefined;
+    const self = node.readInputs?.some((input) => input.kind === 'formula' && input.id === id);
+    const recursion = self && node.recursion !== undefined ? { name: pythonName(id), limit: Number.isFinite(node.recursion) ? node.recursion : null } : undefined;
+    const result = need({ kind: 'value', code: node.code.text, inputs, ...(recursion ? { recursion } : {}) });
+    if (result === undefined) return undefined;
+    if ('values' in result) return undefined;
+    if (!('value' in result)) {
+      codeProblem(diagnostics, result.error, node.file, id, node.code.start, node.code.text, 'formula');
+      return undefined;
+    }
+    if (result.warning) codeProblem(diagnostics, result.warning, node.file, id, node.code.start, node.code.text, 'formula');
+    values.set(id, result.value);
+    return result.value;
+  }
+
+  /**
+   * The names a formula's code sees and their values: a formula's value, a collection
+   * with its fields, or with only the fields declared. For a computed field, the fields
+   * of its own collection are the record's, given apart. Undefined when one is not known.
+   */
+  function inputValues(node: SourceNode, own: SourceNode | undefined): Record<string, InputValue> | undefined {
+    const inputs: Record<string, InputValue> = {};
+    const fieldsOf = new Map<string, Set<string> | undefined>();
+    for (const input of node.readInputs ?? []) {
+      if (input.kind === 'formula') {
+        if (input.id === node.id) continue;
+        const value = formulaValue(input.id);
+        if (value === undefined) return undefined;
+        inputs[pythonName(input.id)] = value;
+      } else if (!(own !== undefined && input.id === own.id && input.field !== undefined)) {
+        const before = fieldsOf.has(input.id) ? fieldsOf.get(input.id) : new Set<string>();
+        fieldsOf.set(input.id, input.field === undefined || before === undefined ? undefined : new Set([...before, input.field]));
+      }
+    }
+    for (const [id, only] of fieldsOf) {
+      const collection = collectionNode(id);
+      if (collection?.data === undefined) return undefined;
+      for (const index of computedOf.get(collection) ?? []) {
+        const field = collection.data.fields[index]!;
+        if (collection === own || (only !== undefined && !only.has(field.name))) continue;
+        if (!columnValues(collection, index)) return undefined;
+      }
+      inputs[pythonName(id)] = tableInput(collection.data, only);
+    }
+    return inputs;
+  }
+
+  const columns = new Map<string, boolean>();
+  /** Fills a computed field of a collection, once: the formula once per record (class 4). */
+  function columnValues(collection: SourceNode, index: number): boolean {
+    const key = graphKey(collection, index);
+    if (columns.has(key)) return columns.get(key)!;
+    columns.set(key, false);
+    const data = collection.data!;
+    const field = data.fields[index]!;
+    const node = field.formula === undefined ? undefined : formulaNodes.get(field.formula);
+    if (!codeAllowed || node?.code === undefined || inCycle.has(key)) return false;
+    // The fields of the record: those of its own collection the formula declares.
+    const own = (node.readInputs ?? []).filter((input) => input.kind === 'collection' && input.id === collection.id && input.field !== undefined);
+    const ownIndexes = own.map((input) => data.fields.findIndex((each) => each.name === input.field));
+    for (const at of ownIndexes) if (data.fields[at]!.formula !== undefined && !columnValues(collection, at)) return false;
+    const inputs = inputValues(node, collection);
+    if (inputs === undefined) return false;
+    const records = { names: own.map((input) => pythonName(input.field!)), rows: data.records.map((record) => ownIndexes.map((at) => typedValue(data.fields[at]!, record.values[at]!))) };
+    const result = need({ kind: 'column', code: node.code.text, inputs, records, type: field.type });
+    if (result === undefined) return false;
+    if ('error' in result && result.error) codeProblem(diagnostics, result.error, node.file, `${collection.id}.${field.name}`, node.code.start, node.code.text, 'formula');
+    if (!('values' in result)) return false;
+    data.records.forEach((record, row) => {
+      const shown = recordValue(result.values[row] ?? { type: 'missing' });
+      record.values[index] = shown.value;
+      record.written[index] = shown.written;
+    });
+    columns.set(key, true);
+    return true;
+  }
+
+  /** The value of a math line with names: a Python expression, with the formulas and collections it names. */
+  function lineValue(expression: string, context: BuildContext, offset: number | undefined): TypedValue | undefined {
+    if (!codeAllowed) return undefined;
+    const inputs: Record<string, InputValue> = {};
+    for (const name of lineNames(expression)) {
+      const id = name.replace(/_/g, '-');
+      if (formulaNodes.has(id) && !columnFormulas.has(id)) {
+        const value = formulaValue(id);
+        if (value === undefined) return undefined;
+        inputs[name] = value;
+      } else {
+        const collection = collectionNode(id);
+        if (collection?.data === undefined) continue;
+        for (const index of computedOf.get(collection) ?? []) if (!columnValues(collection, index)) return undefined;
+        inputs[name] = tableInput(collection.data);
+      }
+    }
+    const result = need({ kind: 'line', code: expression, inputs });
+    if (result === undefined || 'values' in result) return undefined;
+    if (!('value' in result)) {
+      // The expression starts after the backtick and «= » of the math line.
+      const start = offset === undefined ? 0 : context.source.indexOf(expression, offset);
+      codeProblem(context.sink, result.error, context.file, expression, Math.max(start, 0), expression, 'line');
+      return undefined;
+    }
+    return result.value;
+  }
+
+  // The computed fields, before the charts and the tables read them.
+  for (const [collection, indexes] of computedOf) for (const index of indexes) columnValues(collection, index);
+
   // Charts after the collections are read (class 3).
   for (const node of nodes) if (node.kind === 'chart' && node.attributes !== null) checkChart(node);
   const cycles = embedCycles();
@@ -1379,9 +1683,20 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
       if (node.kind === 'text') checkTextBlocks(node);
       // In class 1 a deck is a directive, so the only root composition is the article (reading).
       const content = node.kind === 'article' ? buildRoot(node, output) : buildContent(node, context);
+      if (node.kind === 'formula') formulaContent(node, content, context);
       if (content.length > 0) output.content = content.map((child) => toJsonML(child, options.positions));
     }
     outputs.push(output);
+  }
+
+  /** A formula in the tree: its code in a `formula` element, with its value and the string to show (class 4). */
+  function formulaContent(node: SourceNode, content: Child[], context: BuildContext): void {
+    const at = content.findIndex((child) => typeof child !== 'string' && child.type === 'code' && child.attributes.lang === 'python');
+    if (at < 0 || node.code === undefined) return;
+    const value = node.id === undefined || columnFormulas.has(node.id) ? undefined : formulaValue(node.id);
+    const formula = element('formula', { lang: 'python', ...(value === undefined ? {} : shownValue(value, context.lang)) }, [node.code.text]);
+    formula.meta = (content[at] as Element).meta;
+    content[at] = formula;
   }
 
   function checkTextBlocks(node: SourceNode): void {
@@ -1553,6 +1868,8 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
     }
   }
 
+  // A document with code says which Pyodide computes it (class 4).
+  if (usesCode && documentNode && pyodideWritten === undefined) report(diagnostics, 'pyodide-missing', documentNode.file, undefined, `pyodide: "${PYODIDE_VERSION}"`);
   return finish();
 
   /**
@@ -1607,6 +1924,53 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
     if (documentOutput) result.document = documentOutput;
     return result;
   }
+}
+
+/**
+ * The nodes of a graph that are in a cycle, a node that names itself included: the
+ * strongly connected components of Tarjan, walked without recursion.
+ */
+function cyclicNodes(nodes: string[], edges: (node: string) => string[]): Set<string> {
+  const index = new Map<string, number>();
+  const low = new Map<string, number>();
+  const onStack = new Set<string>();
+  const stack: string[] = [];
+  const out = new Set<string>();
+  let counter = 0;
+  for (const root of nodes) {
+    if (index.has(root)) continue;
+    const work: Array<{ node: string; next: string[]; at: number }> = [];
+    const enter = (node: string) => {
+      index.set(node, counter);
+      low.set(node, counter++);
+      stack.push(node);
+      onStack.add(node);
+      work.push({ node, next: edges(node), at: 0 });
+    };
+    enter(root);
+    while (work.length > 0) {
+      const frame = work[work.length - 1]!;
+      if (frame.at < frame.next.length) {
+        const next = frame.next[frame.at++]!;
+        if (!index.has(next)) enter(next);
+        else if (onStack.has(next)) low.set(frame.node, Math.min(low.get(frame.node)!, index.get(next)!));
+        continue;
+      }
+      work.pop();
+      const parent = work[work.length - 1];
+      if (parent) low.set(parent.node, Math.min(low.get(parent.node)!, low.get(frame.node)!));
+      if (low.get(frame.node) !== index.get(frame.node)) continue;
+      const component: string[] = [];
+      let member: string;
+      do {
+        member = stack.pop()!;
+        onStack.delete(member);
+        component.push(member);
+      } while (member !== frame.node);
+      if (component.length > 1 || frame.next.includes(frame.node)) for (const each of component) out.add(each);
+    }
+  }
+  return out;
 }
 
 /** A source that does not read: it has only its `syntax` error. */

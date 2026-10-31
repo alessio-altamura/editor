@@ -13,9 +13,9 @@
   "scripts": {
     "build": "tsc -p .",
     "typecheck": "tsc -p . --noEmit",
-    "test": "tsc -p . && node dist/test/conformance-suite.js && node dist/test/robustness-suite.js && node dist/test/export-suite.js && node dist/test/format-suite.js && node dist/test/operations-suite.js && node dist/test/serve-suite.js && node dist/test/language-server-suite.js",
+    "test": "tsc -p . && node dist/test/conformance-suite.js && node dist/test/robustness-suite.js && node dist/test/export-suite.js && node dist/test/format-suite.js && node dist/test/operations-suite.js && node dist/test/serve-suite.js && node dist/test/language-server-suite.js && node dist/test/formula-suite.js",
     "measure:records": "tsc -p . && node dist/test/records-measure.js",
-    "test:browser": "tsc -p . && node dist/test/browser-suite.js && node dist/test/print-suite.js && node dist/test/serve-browser-suite.js",
+    "test:browser": "tsc -p . && node dist/test/browser-suite.js && node dist/test/print-suite.js && node dist/test/serve-browser-suite.js && node dist/test/formula-browser-suite.js",
     "postinstall": "install-electron"
   },
   "dependencies": {
@@ -25,6 +25,7 @@
     "mdast-util-gfm-table": "2.0.0",
     "micromark-extension-gfm-table": "2.1.2",
     "morphdom": "2.7.8",
+    "pyodide": "314.0.7",
     "vega": "6.4.0",
     "vega-lite": "6.5.0",
     "vscode-languageserver": "10.1.2",

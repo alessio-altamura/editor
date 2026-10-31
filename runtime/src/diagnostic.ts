@@ -72,6 +72,21 @@ const SEVERITY: Record<string, Severity> = {
   'chart-role-missing': 'warning',
   'chart-x-repeated': 'error',
   'chart-too-many-marks': 'error',
+  // Class 4: the formulas.
+  'formula-code-missing': 'error',
+  'formula-input-unresolved': 'error',
+  'formula-cycle': 'error',
+  'formula-syntax': 'error',
+  'formula-name-undeclared': 'error',
+  'formula-import-forbidden': 'error',
+  'formula-type': 'error',
+  'formula-error': 'error',
+  'formula-timeout': 'error',
+  'formula-unavailable': 'error',
+  'formula-recursion-limit': 'warning',
+  'formula-override': 'error',
+  'pyodide-missing': 'warning',
+  'pyodide-unsupported': 'error',
 };
 
 export function makeDiagnostic(code: string, file: string, target?: string, fix?: string): Diagnostic {

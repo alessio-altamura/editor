@@ -1089,7 +1089,8 @@ non cambia la risoluzione né l'aspetto; il `formatter` lo conserva, e il
   (§6), la `directive` e gli `id reference` (§10) e il `runtime` (§11). La
   classe 1 aggiunge `text`, `image`, `scratch`, `chapter`, `article`,
   `stylesheet` e il `canvas file`. La bozza mette il `concept` nel primo
-  livello (§0.1). La classe 2 aggiunge la `collection` (§12).
+  livello (§0.1). La classe 2 aggiunge la `collection` (§12), la classe 3 il
+  `chart` (§13), la classe 4 la `formula` (§14).
 
 ## 2. Il documento
 
@@ -4238,6 +4239,566 @@ Le vendite per mese.
   per i `chart`. Il `formatter` mette le chiavi del `chart` dopo quelle della
   `collection`: `template`, `collection`, `x`, `y`, `series`, `filter`.
 
+## 14. La classe 4: le formule *(proposta)*
+
+Il primo passo della classe 4 porta la `formula`. Le decisioni [C: «Formule e
+script»]: un linguaggio solo, Python; le formule si costruiscono anche per via
+grafica, ma l'oggetto salva codice; i numeri scritti nel codice si leggono come
+decimali, con la stessa aritmetica delle righe di calcolo (§0.4); il codice si
+esegue con Pyodide, la cui versione il documento fissa; ogni formula è un
+oggetto con il suo `id`, in un file `.formula.md`, anche più oggetti per file;
+nel codice il trattino dei nomi diventa trattino basso; nessuna eccezione nelle
+colonne calcolate (`override`); solo la libreria standard. Il codice gira solo
+in un worker di Chromium dentro Electron, mai in Node (stessa voce, dopo le
+misure in `docs/ricerca/pyodide-misure.md`). Restano per i passi dopo le
+librerie esterne con i risultati salvati, le funzioni fra righe, gli script e
+il `formula builder` nell'`app`.
+
+### 14.1 Il file
+
+Una `formula` è un oggetto di `kind` `formula`, in un file
+`<nome>.formula.md`; un file può averne più d'una, con le `attribute line`
+del §0.18 (esempio 61). Oltre a `id` e `tags`:
+- **`inputs`**: la lista di ciò che il codice usa [C: «Formule e script»]. Ogni
+  voce è l'`id` di un'altra `formula`, l'`id` di una `collection`, oppure
+  `collection.field`; in una `attribute line` si scrive fra virgolette, con le
+  voci separate da spazi (`inputs="vendite-mesi.euro aliquota"`), come
+  `tags`.
+- **`recursion`** *(proposta)*: come per il `chapter` (§0.17), sotto.
+
+Nel corpo il codice, nel primo blocco ```` ```python ````; gli altri blocchi
+sono la sua descrizione e restano nel contenuto. Senza un blocco python la
+formula ha l'errore `formula-code-missing`.
+
+*(proposte)*
+- **La forma del codice.** Un blocco di istruzioni, la cui ultima riga è
+  un'espressione: il suo valore è quello della formula. Un'espressione sola è
+  il caso più semplice, ed è quello che scrive il `formula builder`; chi
+  scrive a mano può prima assegnare dei nomi. Si è scelto così, e non il corpo
+  di una funzione con `return`, perché l'espressione sola resta un codice
+  valido, è la stessa forma delle righe di calcolo, ed è la regola delle celle
+  dei notebook (Jupyter, marimo). Un codice che finisce con un'altra
+  istruzione ha `formula-syntax`.
+- **I nomi nel codice.** Ogni voce di `inputs` è un nome, con il trattino
+  basso al posto del trattino: `vendite-mesi` è `vendite_mesi`, `totale-q3` è
+  `totale_q3`. La corrispondenza è reversibile perché `id` e `field` non hanno
+  il trattino basso [C: «Formule e script»].
+- **Il controllo prima di eseguire.** Il `runtime` legge il codice con il
+  modulo `ast` di Python, senza eseguirlo. Il codice può usare solo i nomi
+  dichiarati in `inputs`, quelli che assegna da sé, le funzioni del
+  `formula builder` (§14.2) e alcune funzioni di base: `abs`, `all`, `any`,
+  `bool`, `dict`, `divmod`, `enumerate`, `filter`, `float`, `frozenset`,
+  `int`, `isinstance`, `len`, `list`, `map`, `max`, `min`, `next`, `pow`,
+  `range`, `reversed`, `round`, `set`, `sorted`, `str`, `sum`, `tuple`,
+  `zip` e le eccezioni comuni. Un altro nome è `formula-name-undeclared`, e
+  così sono anche i nomi fra doppi trattini bassi (`__import__`,
+  `__class__`). Le dipendenze di una formula sono quindi i suoi `inputs`, noti
+  senza eseguire il codice: il grafo delle dipendenze si legge dai file.
+- **I moduli.** Solo questi moduli della libreria standard: `bisect`,
+  `calendar`, `collections`, `datetime`, `decimal`, `fractions`,
+  `functools`, `heapq`, `itertools`, `json`, `math`, `operator`, `re`,
+  `statistics`, `string`, `textwrap`, `unicodedata`. Sono calcolo, testo e
+  date; restano fuori i file, i processi, la rete, l'orologio e il caso
+  (`os`, `sys`, `io`, `time`, `random` e simili), perché lo stesso documento
+  dia lo stesso risultato. Un altro `import` è `formula-import-forbidden`
+  (esempio 67). Resta da chiudere `datetime.now()`, che legge l'orologio.
+- **I numeri.** Ogni numero scritto nel codice si legge come decimale, con il
+  testo com'è scritto: `1.200` resta `1.200`. Il contesto è quello del §0.4:
+  34 cifre, arrotondamento al pari, Emax 6144, Emin −6143; la divisione per
+  zero, un'operazione non valida e l'overflow sono errori, l'underflow no.
+  Così `0.1 + 0.2` dà 0.3 e `3830 / 3` dà 1276.666666666666666666666666666667.
+  Un intero scritto vale anche come indice: `valori[0]`.
+- **La ricorsione** (§0.17). Una formula con `recursion` può avere sé stessa
+  fra gli `inputs`: il suo nome dà il valore del giro prima, nessuno al primo.
+  Con un limite n si fanno n giri; con `infinite` si continua finché due giri
+  danno lo stesso valore, che è la regola di uscita, al massimo 1000 giri,
+  oltre i quali resta l'ultimo valore con l'avviso `formula-recursion-limit`.
+  Senza `recursion`, la formula fra i suoi `inputs` è
+  `formula-input-unresolved`. Un ciclo fra più formule resta `formula-cycle`,
+  anche con `recursion`: per ora la ricorsione è di una formula sola.
+
+### 14.2 I valori nel codice
+
+*(proposte)* I valori dei `record` arrivano al codice con questi tipi:
+
+| `type` del `field` | In Python |
+|---|---|
+| `number`, `integer` | `Decimal` |
+| `string` | `str` |
+| `boolean` | `bool` |
+| `date` | `datetime.date` |
+| `datetime` | `datetime.datetime`, con il fuso se è scritto |
+| `time` | `datetime.time` |
+| `year` | `int` |
+| `yearmonth` | `str`, `AAAA-MM` |
+| valore mancante, o non del suo tipo | `None` |
+
+- **Una `collection`** fra gli `inputs` dà accesso ai `record` e alle colonne:
+  `vendite_mesi.euro` è la colonna, una sequenza dei valori nell'ordine del
+  file; `vendite_mesi.records` sono i `record`, ciascuno con i suoi `field`
+  per nome (`r.euro`); `len(vendite_mesi)` è il numero dei `record`. Con
+  `collection.field` fra gli `inputs` il codice vede la `collection` con i
+  soli `field` dichiarati. Le quattro operazioni su una colonna valgono
+  valore per valore, con un numero o con un'altra colonna lunga uguale; un
+  valore mancante resta mancante.
+- **Il `range`**: `vendite_mesi.range('mese', 'marzo', 'giugno')` è la
+  `collection` dei `record` il cui `mese` va da marzo a giugno, e
+  `.euro` la sua colonna (esempio 64). È il range di Alessio [C: «Sulla
+  bozza di specifica»]: un intervallo di valori di un campo, non di
+  indirizzi. Se il `field` ha `categories` vale il loro ordine, e restano i
+  `record` il cui valore sta fra i due; altrimenti vale l'ordine del file, dal
+  primo `record` con il primo valore all'ultimo con il secondo. Un estremo
+  che non c'è è un errore.
+- **Le funzioni del `formula builder`**: `total` (la somma), `mean` (la
+  media), `minimum`, `maximum` e `count` (quanti valori). Prendono una colonna,
+  una lista o più valori, e lasciano fuori i valori mancanti; lavorano in
+  decimale, e `mean` è `total` diviso `count`, quindi non passa dai numeri
+  binari. I nomi sono in inglese come il resto del codice; il menu dell'`app`
+  li mostra in italiano (somma, media, minimo, massimo, conteggio). Le quattro
+  operazioni sono quelle di Python, e la condizione è `a if c else b`.
+- **Il valore di una formula** è un numero, un testo, un booleano, una data o
+  nessuno; una colonna o una `collection` sono `formula-type`, con il
+  suggerimento di ridurle con una delle funzioni. Un numero binario, per
+  esempio da `math.sqrt`, diventa decimale dalla sua forma più breve.
+
+### 14.3 Dove si usano
+
+*(proposte)*
+- **Nelle righe di calcolo.** Una riga di calcolo che non segue la grammatica
+  del §0.4 e ha un nome è un'espressione Python: `` `= totale_q3 * 2` ``
+  (esempio 62). Un nome può essere l'`id` di una `formula` o di una
+  `collection`, con il trattino basso; sono i suoi ingressi, senza
+  dichiararli. Le righe del §0.4 restano quelle di prima, con gli stessi
+  valori: la loro grammatica non ha nomi, quindi nessuna cambia strada. Una
+  riga che prima era `math-line-invalid` e ha una lettera, per esempio
+  «`= 1200 euro`», ora è codice e ha `formula-syntax`: riempie ciò che la
+  classe 1 lasciava vuoto (§1).
+- **Le colonne calcolate.** Un `field` dello `schema` con `formula:
+  "[[iva]]"` è un `computed field`: il `runtime` esegue la formula una volta
+  per `record` (esempio 63). Le voci `collection.field` della stessa
+  `collection` sono i `field` del `record`, per nome (`euro * 0.22`); le altre
+  voci valgono come sopra. Il valore deve essere del `type` del `field`,
+  altrimenti `formula-type`. Un `record` a cui manca un valore dichiarato e
+  su cui la formula si ferma ha il valore mancante, senza errore. I valori
+  non si scrivono mai nel file dei dati: una colonna con quel nome nel file è
+  un'eccezione, che non è ammessa [C: «Formule e script»], e dà
+  `formula-override`. La `grid`, le tabelle e i grafici vedono la colonna
+  come le altre.
+- **Una formula come ingresso** di un'altra: il suo nome dà il suo valore.
+  Una formula che calcola un `field` non ha un valore solo, e fra gli
+  `inputs` di un'altra è `formula-input-unresolved`: si usa la colonna,
+  `collection.field`.
+
+### 14.4 L'esecuzione
+
+Il codice gira solo in un worker di Chromium dentro Electron, il motore della
+stampa (§11.5), mai in Node, nemmeno nei test: in Node il codice di Pyodide
+legge i file e lancia processi (`docs/ricerca/pyodide-misure.md`) [C: «Formule
+e script»]. Il worker è servito con la CSP `default-src 'none'; script-src
+'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'`, carica
+Pyodide con `jsglobals: {}` e poi toglie `fetch`, `XMLHttpRequest`,
+`importScripts`, `WebSocket`, `indexedDB`, `caches` ed `EventSource`.
+
+*(proposte)*
+- **La risoluzione resta sincrona.** I risultati del codice hanno una chiave,
+  l'hash del codice, dei valori in ingresso e della versione di Pyodide; la
+  risoluzione li legge per chiave e dà i calcoli pronti che mancano. Prima
+  della risoluzione il `runtime` li fa calcolare a Electron e risolve di
+  nuovo, finché non ne restano: una formula che usa un'altra formula costa
+  un giro in più. Con gli stessi file e gli stessi risultati l'albero è
+  sempre lo stesso.
+- **Quando si accende.** Un'istanza di Pyodide costa circa 3 s e 200-250 MB.
+  Il `runtime` acceso (`serve`, il language server, l'`app`) la accende in
+  sottofondo la prima volta che il documento ha codice da calcolare, e la
+  tiene finché resta acceso; la `cli` la accende solo per un documento con
+  codice. Un documento senza codice non avvia Electron.
+- **Il limite di tempo.** Ogni calcolo ha 5 s, l'avvio escluso: una formula
+  oggi ne prende qualche millisecondo, una somma di 100.000 decimali circa
+  20 ms. Oltre, il worker si ferma e riparte per il calcolo dopo, e la
+  formula ha `formula-timeout`.
+- **Senza worker.** Se Electron non c'è o non risponde, ogni formula ha
+  `formula-unavailable` e nessun valore; il resto del documento si risolve.
+- **L'`export` e la stampa** hanno i valori calcolati, già scritti: l'HTML
+  non contiene Pyodide.
+
+### 14.5 La versione di Pyodide
+
+*(proposta)* Il `document file` fissa la versione con l'attributo
+`pyodide`, una stringa: `pyodide: "314.0.7"`. Un `runtime` calcola il codice
+solo con la versione che ha: una versione diversa è `pyodide-unsupported`, e
+il codice resta senza valori. Un documento con codice e senza l'attributo ha
+l'avviso `pyodide-missing`, che propone la versione del `runtime`.
+
+### 14.6 I controlli
+
+I codici nuovi, che si aggiungono alla tabella del §11.2. Gli errori del
+codice stanno sul file della `formula`, o su quello della riga di calcolo,
+con il range (§11.7) alla riga e alla colonna del codice; il messaggio dice
+la riga, e per una colonna calcolata il `record`.
+
+| Codice | Gravità | Quando | `target` | Esempio |
+|---|---|---|---|---|
+| `formula-code-missing` | error | nessun blocco python | l'`id` | non coperto |
+| `formula-input-unresolved` | error | una voce di `inputs` che non nomina una formula con un valore, una `collection` o un suo `field` | la voce | non coperto |
+| `formula-cycle` | error | la formula è in un ciclo di `inputs` | l'`id` | 66 |
+| `formula-syntax` | error | il codice non è Python, o non finisce con un'espressione | l'`id` | non coperto |
+| `formula-name-undeclared` | error | un nome che non è fra gli `inputs` né assegnato dal codice | il nome | 65 |
+| `formula-import-forbidden` | error | un modulo fuori dalla lista | il modulo | 67 |
+| `formula-type` | error | un tipo sbagliato in un'operazione, o un valore che la formula non può dare | l'`id`, o `collection.field` | non coperto |
+| `formula-error` | error | un'altra eccezione: divisione per zero, overflow, un estremo del `range` che non c'è | l'`id`, o `collection.field` | non coperto |
+| `formula-timeout` | error | il calcolo supera 5 s | l'`id` | non coperto |
+| `formula-unavailable` | error | il worker non c'è o non risponde | l'`id` | non coperto |
+| `formula-recursion-limit` | warning | `infinite` cambia ancora dopo 1000 giri | l'`id` | non coperto |
+| `formula-override` | error | una colonna calcolata scritta nel file dei dati | il `field` | non coperto |
+| `pyodide-missing` | warning | un documento con codice senza `pyodide` | — | non coperto |
+| `pyodide-unsupported` | error | `pyodide` con una versione diversa da quella del `runtime` | la versione | non coperto |
+
+Per una riga di calcolo il `target` è il nome, o l'espressione. Una formula
+che dipende da una che non ha valore resta senza valore e senza un errore
+suo: l'errore sta sulla prima.
+
+### 14.7 Nel `resolved tree`
+
+*(proposte)*
+- Il nodo della `formula` ha i suoi attributi come scritti e, nel contenuto,
+  la descrizione e un elemento `formula` al posto del blocco python: come
+  attributi `lang` (`python`), `value` e `display`, come per una riga di
+  calcolo (§0.4), e come figlio il codice. Senza valore, solo `lang`. Una
+  formula che calcola un `field` non ha `value`.
+- Una riga di calcolo con un nome ha `value` e `display` come le altre; senza
+  valore è `["mathLine", {"invalid": true}, …]`. Un valore che non è un
+  numero si mostra com'è.
+- Nella tabella di una `collection` un `computed field` ha `formula`, l'`id`
+  della formula, fra i `fields`, e le sue celle come gli altri numeri.
+- La `formula` non si include con un `embed`: è `embed-kind`. Si mostra il
+  suo valore con una riga di calcolo.
+
+### 14.8 Gli esempi
+
+Una `formula` con i suoi `inputs`, due in un file, con la descrizione prima del codice; `mean` resta in decimale.
+
+```````````````````````````````` example 61 conf=4 status=proposal
+=== file doc.document.md
+---
+id: doc
+kind: document
+spec-version: "0.1"
+pyodide: "314.0.7"
+---
+=== file vendite-mesi.collection.md
+---
+id: vendite-mesi
+kind: collection
+asset: vendite-mesi.tsv
+fields:
+  - name: mese
+    type: string
+  - name: euro
+    type: number
+---
+Le vendite del terzo trimestre.
+=== file vendite-mesi.tsv
+mese	euro
+luglio	1200
+agosto	1350
+settembre	1280
+=== file trimestre.formula.md
+---
+kind: formula
+---
+{#totale-q3 inputs="vendite-mesi.euro"}
+
+```python
+total(vendite_mesi.euro)
+```
+
+{#media-q3 inputs="vendite-mesi.euro"}
+
+La media dei mesi, in decimali.
+
+```python
+mean(vendite_mesi.euro)
+```
+=== resolved
+{
+  "nodes": [
+    {"id": "media-q3", "kind": "formula", "file": "trimestre.formula.md", "attributes": {"inputs": ["vendite-mesi.euro"]}, "content": [["paragraph", "La media dei mesi, in decimali."], ["formula", {"lang": "python", "value": "1276.666666666666666666666666666667", "display": "1276.67"}, "mean(vendite_mesi.euro)"]]},
+    {"id": "totale-q3", "kind": "formula", "file": "trimestre.formula.md", "attributes": {"inputs": ["vendite-mesi.euro"]}, "content": [["formula", {"lang": "python", "value": "3830", "display": "3830"}, "total(vendite_mesi.euro)"]]},
+    {"id": "vendite-mesi", "kind": "collection", "file": "vendite-mesi.collection.md", "attributes": {"asset": "vendite-mesi.tsv", "fields": [{"name": "mese", "type": "string"}, {"name": "euro", "type": "number"}]}, "content": [["paragraph", "Le vendite del terzo trimestre."], ["table", {"fields": [{"name": "mese", "type": "string"}, {"name": "euro", "type": "number"}]}, ["tableRow", ["tableCell", "mese"], ["tableCell", "euro"]], ["tableRow", ["tableCell", {"value": "luglio"}, "luglio"], ["tableCell", {"value": "1200"}, "1200"]], ["tableRow", ["tableCell", {"value": "agosto"}, "agosto"], ["tableCell", {"value": "1350"}, "1350"]], ["tableRow", ["tableCell", {"value": "settembre"}, "settembre"], ["tableCell", {"value": "1280"}, "1280"]]]]}
+  ],
+  "document": {"id": "doc", "file": "doc.document.md", "attributes": {"specVersion": "0.1", "pyodide": "314.0.7"}}
+}
+````````````````````````````````
+
+Una riga di calcolo con un nome, accanto a una della classe 1, che dà lo stesso valore di prima.
+
+```````````````````````````````` example 62 conf=4 status=proposal
+=== file doc.document.md
+---
+id: doc
+kind: document
+spec-version: "0.1"
+pyodide: "314.0.7"
+---
+=== file vendite-mesi.collection.md
+---
+id: vendite-mesi
+kind: collection
+asset: vendite-mesi.tsv
+fields:
+  - name: mese
+    type: string
+  - name: euro
+    type: number
+---
+Le vendite del terzo trimestre.
+=== file vendite-mesi.tsv
+mese	euro
+luglio	1200
+agosto	1350
+settembre	1280
+=== file totale-q3.formula.md
+---
+id: totale-q3
+kind: formula
+inputs: [vendite-mesi.euro]
+---
+```python
+total(vendite_mesi.euro)
+```
+=== file sintesi.text.md
+---
+id: sintesi
+kind: text
+---
+Nel trimestre `= totale_q3` euro, il doppio `= totale_q3 * 2`; a mano `= 1200 + 1350 + 1280`.
+=== resolved
+{
+  "nodes": [
+    {"id": "sintesi", "kind": "text", "file": "sintesi.text.md", "content": [["paragraph", "Nel trimestre ", ["mathLine", {"value": "3830", "display": "3830"}, "totale_q3"], " euro, il doppio ", ["mathLine", {"value": "7660", "display": "7660"}, "totale_q3 * 2"], "; a mano ", ["mathLine", {"value": "3830", "display": "3830"}, "1200 + 1350 + 1280"], "."]]},
+    {"id": "totale-q3", "kind": "formula", "file": "totale-q3.formula.md", "attributes": {"inputs": ["vendite-mesi.euro"]}, "content": [["formula", {"lang": "python", "value": "3830", "display": "3830"}, "total(vendite_mesi.euro)"]]},
+    {"id": "vendite-mesi", "kind": "collection", "file": "vendite-mesi.collection.md", "attributes": {"asset": "vendite-mesi.tsv", "fields": [{"name": "mese", "type": "string"}, {"name": "euro", "type": "number"}]}, "content": [["paragraph", "Le vendite del terzo trimestre."], ["table", {"fields": [{"name": "mese", "type": "string"}, {"name": "euro", "type": "number"}]}, ["tableRow", ["tableCell", "mese"], ["tableCell", "euro"]], ["tableRow", ["tableCell", {"value": "luglio"}, "luglio"], ["tableCell", {"value": "1200"}, "1200"]], ["tableRow", ["tableCell", {"value": "agosto"}, "agosto"], ["tableCell", {"value": "1350"}, "1350"]], ["tableRow", ["tableCell", {"value": "settembre"}, "settembre"], ["tableCell", {"value": "1280"}, "1280"]]]]}
+  ],
+  "document": {"id": "doc", "file": "doc.document.md", "attributes": {"specVersion": "0.1", "pyodide": "314.0.7"}}
+}
+````````````````````````````````
+
+Una colonna calcolata: la formula una volta per `record`, con il `field` del `record` per nome; il file dei dati non ha la colonna.
+
+```````````````````````````````` example 63 conf=4 status=proposal
+=== file doc.document.md
+---
+id: doc
+kind: document
+spec-version: "0.1"
+pyodide: "314.0.7"
+---
+=== file vendite-mesi.collection.md
+---
+id: vendite-mesi
+kind: collection
+asset: vendite-mesi.tsv
+fields:
+  - name: mese
+    type: string
+  - name: euro
+    type: number
+  - name: iva
+    type: number
+    formula: "[[iva]]"
+---
+Le vendite del terzo trimestre, con l'IVA.
+=== file vendite-mesi.tsv
+mese	euro
+luglio	1200
+agosto	1350
+settembre	1280
+=== file iva.formula.md
+---
+id: iva
+kind: formula
+inputs: [vendite-mesi.euro]
+---
+```python
+euro * 0.22
+```
+=== resolved
+{
+  "nodes": [
+    {"id": "iva", "kind": "formula", "file": "iva.formula.md", "attributes": {"inputs": ["vendite-mesi.euro"]}, "content": [["formula", {"lang": "python"}, "euro * 0.22"]]},
+    {"id": "vendite-mesi", "kind": "collection", "file": "vendite-mesi.collection.md", "attributes": {"asset": "vendite-mesi.tsv", "fields": [{"name": "mese", "type": "string"}, {"name": "euro", "type": "number"}, {"name": "iva", "type": "number", "formula": "[[iva]]"}]}, "content": [["paragraph", "Le vendite del terzo trimestre, con l'IVA."], ["table", {"fields": [{"name": "mese", "type": "string"}, {"name": "euro", "type": "number"}, {"name": "iva", "type": "number", "formula": "iva"}]}, ["tableRow", ["tableCell", "mese"], ["tableCell", "euro"], ["tableCell", "iva"]], ["tableRow", ["tableCell", {"value": "luglio"}, "luglio"], ["tableCell", {"value": "1200"}, "1200"], ["tableCell", {"value": "264"}, "264.0"]], ["tableRow", ["tableCell", {"value": "agosto"}, "agosto"], ["tableCell", {"value": "1350"}, "1350"], ["tableCell", {"value": "297"}, "297.0"]], ["tableRow", ["tableCell", {"value": "settembre"}, "settembre"], ["tableCell", {"value": "1280"}, "1280"], ["tableCell", {"value": "281.6"}, "281.6"]]]]}
+  ],
+  "document": {"id": "doc", "file": "doc.document.md", "attributes": {"specVersion": "0.1", "pyodide": "314.0.7"}}
+}
+````````````````````````````````
+
+Un `range` nell'ordine delle `categories`, non in quello del file: da febbraio ad aprile restano aprile, marzo e febbraio.
+
+```````````````````````````````` example 64 conf=4 status=proposal
+=== file doc.document.md
+---
+id: doc
+kind: document
+spec-version: "0.1"
+pyodide: "314.0.7"
+---
+=== file vendite-mesi.collection.md
+---
+id: vendite-mesi
+kind: collection
+asset: vendite-mesi.tsv
+fields:
+  - name: mese
+    type: string
+    categories: [gennaio, febbraio, marzo, aprile]
+  - name: euro
+    type: number
+---
+Le vendite del primo quadrimestre.
+=== file vendite-mesi.tsv
+mese	euro
+aprile	1300
+gennaio	1000
+marzo	1200
+febbraio	1100
+=== file primavera.formula.md
+---
+id: primavera
+kind: formula
+inputs: [vendite-mesi]
+---
+```python
+total(vendite_mesi.range('mese', 'febbraio', 'aprile').euro)
+```
+=== resolved
+{
+  "nodes": [
+    {"id": "primavera", "kind": "formula", "file": "primavera.formula.md", "attributes": {"inputs": ["vendite-mesi"]}, "content": [["formula", {"lang": "python", "value": "3600", "display": "3600"}, "total(vendite_mesi.range('mese', 'febbraio', 'aprile').euro)"]]},
+    {"id": "vendite-mesi", "kind": "collection", "file": "vendite-mesi.collection.md", "attributes": {"asset": "vendite-mesi.tsv", "fields": [{"name": "mese", "type": "string", "categories": ["gennaio", "febbraio", "marzo", "aprile"]}, {"name": "euro", "type": "number"}]}, "content": [["paragraph", "Le vendite del primo quadrimestre."], ["table", {"fields": [{"name": "mese", "type": "string"}, {"name": "euro", "type": "number"}]}, ["tableRow", ["tableCell", "mese"], ["tableCell", "euro"]], ["tableRow", ["tableCell", {"value": "aprile"}, "aprile"], ["tableCell", {"value": "1300"}, "1300"]], ["tableRow", ["tableCell", {"value": "gennaio"}, "gennaio"], ["tableCell", {"value": "1000"}, "1000"]], ["tableRow", ["tableCell", {"value": "marzo"}, "marzo"], ["tableCell", {"value": "1200"}, "1200"]], ["tableRow", ["tableCell", {"value": "febbraio"}, "febbraio"], ["tableCell", {"value": "1100"}, "1100"]]]]}
+  ],
+  "document": {"id": "doc", "file": "doc.document.md", "attributes": {"specVersion": "0.1", "pyodide": "314.0.7"}}
+}
+````````````````````````````````
+
+Un nome non dichiarato: la formula non ha valore.
+
+```````````````````````````````` example 65 conf=4 status=proposal
+=== file doc.document.md
+---
+id: doc
+kind: document
+spec-version: "0.1"
+pyodide: "314.0.7"
+---
+=== file vendite-mesi.collection.md
+---
+id: vendite-mesi
+kind: collection
+asset: vendite-mesi.tsv
+fields:
+  - name: mese
+    type: string
+  - name: euro
+    type: number
+---
+Le vendite del terzo trimestre.
+=== file vendite-mesi.tsv
+mese	euro
+luglio	1200
+agosto	1350
+settembre	1280
+=== file con-iva.formula.md
+---
+id: con-iva
+kind: formula
+inputs: [vendite-mesi.euro]
+---
+```python
+total(vendite_mesi.euro) * (1 + aliquota)
+```
+=== resolved
+{
+  "nodes": [
+    {"id": "con-iva", "kind": "formula", "file": "con-iva.formula.md", "attributes": {"inputs": ["vendite-mesi.euro"]}, "content": [["formula", {"lang": "python"}, "total(vendite_mesi.euro) * (1 + aliquota)"]]},
+    {"id": "vendite-mesi", "kind": "collection", "file": "vendite-mesi.collection.md", "attributes": {"asset": "vendite-mesi.tsv", "fields": [{"name": "mese", "type": "string"}, {"name": "euro", "type": "number"}]}, "content": [["paragraph", "Le vendite del terzo trimestre."], ["table", {"fields": [{"name": "mese", "type": "string"}, {"name": "euro", "type": "number"}]}, ["tableRow", ["tableCell", "mese"], ["tableCell", "euro"]], ["tableRow", ["tableCell", {"value": "luglio"}, "luglio"], ["tableCell", {"value": "1200"}, "1200"]], ["tableRow", ["tableCell", {"value": "agosto"}, "agosto"], ["tableCell", {"value": "1350"}, "1350"]], ["tableRow", ["tableCell", {"value": "settembre"}, "settembre"], ["tableCell", {"value": "1280"}, "1280"]]]]}
+  ],
+  "diagnostics": [
+    {"severity": "error", "code": "formula-name-undeclared", "file": "con-iva.formula.md", "target": "aliquota", "fix": "aggiungi aliquota a inputs"}
+  ],
+  "document": {"id": "doc", "file": "doc.document.md", "attributes": {"specVersion": "0.1", "pyodide": "314.0.7"}}
+}
+````````````````````````````````
+
+Un ciclo fra due formule: ciascuna ha il suo errore, e nessuna si calcola.
+
+```````````````````````````````` example 66 conf=4 status=proposal
+=== file doc.document.md
+---
+id: doc
+kind: document
+spec-version: "0.1"
+pyodide: "314.0.7"
+---
+=== file calcoli.formula.md
+---
+kind: formula
+---
+{#lordo inputs="netto"}
+
+```python
+netto * 1.22
+```
+
+{#netto inputs="lordo"}
+
+```python
+lordo / 1.22
+```
+=== resolved
+{
+  "nodes": [
+    {"id": "lordo", "kind": "formula", "file": "calcoli.formula.md", "attributes": {"inputs": ["netto"]}, "content": [["formula", {"lang": "python"}, "netto * 1.22"]]},
+    {"id": "netto", "kind": "formula", "file": "calcoli.formula.md", "attributes": {"inputs": ["lordo"]}, "content": [["formula", {"lang": "python"}, "lordo / 1.22"]]}
+  ],
+  "diagnostics": [
+    {"severity": "error", "code": "formula-cycle", "file": "calcoli.formula.md", "target": "lordo", "fix": "togli un ingresso che chiude il ciclo"},
+    {"severity": "error", "code": "formula-cycle", "file": "calcoli.formula.md", "target": "netto", "fix": "togli un ingresso che chiude il ciclo"}
+  ],
+  "document": {"id": "doc", "file": "doc.document.md", "attributes": {"specVersion": "0.1", "pyodide": "314.0.7"}}
+}
+````````````````````````````````
+
+Un modulo vietato: il codice non si esegue.
+
+```````````````````````````````` example 67 conf=4 status=proposal
+=== file doc.document.md
+---
+id: doc
+kind: document
+spec-version: "0.1"
+pyodide: "314.0.7"
+---
+=== file cartella.formula.md
+---
+id: cartella
+kind: formula
+---
+```python
+import os
+os.getcwd()
+```
+=== resolved
+{
+  "nodes": [
+    {"id": "cartella", "kind": "formula", "file": "cartella.formula.md", "content": [["formula", {"lang": "python"}, "import os\nos.getcwd()"]]}
+  ],
+  "diagnostics": [
+    {"severity": "error", "code": "formula-import-forbidden", "file": "cartella.formula.md", "target": "os", "fix": "usa un modulo fra: bisect, calendar, collections, datetime, decimal, fractions, functools, heapq, itertools, json, math, operator, re, statistics, string, textwrap, unicodedata"}
+  ],
+  "document": {"id": "doc", "file": "doc.document.md", "attributes": {"specVersion": "0.1", "pyodide": "314.0.7"}}
+}
+````````````````````````````````
+
 ## Appendice A. Classi successive (non normativa)
 
 Dove si aggancerà ciascuna al `core`.
@@ -4256,18 +4817,22 @@ Dove si aggancerà ciascuna al `core`.
   `template` scritti da chi scrive, le somme e le medie (con le formule), una
   tavolozza nello `stylesheet` (`chart-palette`, proposta) e le dipendenze
   accanto alle `association` (domanda 3).
-- **Formule** (classe 4). Orientamento: file separati per tipo [C: «Formule e
-  connettori in file separati»]. *(proposta)* Estendono l'aritmetica delle
-  `math line` (§0.4); il linguaggio delle formule è aperto, e c'è il rischio
-  che non coincida con quell'aritmetica. Requisito di Alessio [C: «Sulla
-  bozza di specifica»]: deve essere possibile usare una funzione dichiarata
-  in un altro file, con argomenti numerici, elementi della stessa lista o
-  anche range. Un range è un intervallo di valori di un campo, per esempio da
-  marzo a giugno, oppure tutta la colonna; non un indirizzo, perché le celle
-  non hanno coordinate [C: «Le celle non hanno coordinate»]. Nota: con la
-  virgola decimale nell'`app`, in italiano la virgola non può separare gli
-  argomenti di una funzione mentre si scrive; nel file vale il punto, quindi
-  lì la virgola come separatore degli argomenti resta possibile.
+- **Formule** (classe 4). Il primo passo è nel §14: la `formula` in Python,
+  in un file `.formula.md`, con gli `inputs` dichiarati e il codice eseguito
+  da Pyodide in un worker di Electron; i nomi nelle righe di calcolo; le
+  colonne calcolate; il `range` [C: «Formule e script»]. Il range di Alessio
+  [C: «Sulla bozza di specifica»] è un intervallo di valori di un campo, per
+  esempio da marzo a giugno, oppure tutta la colonna, non un indirizzo [C:
+  «Le celle non hanno coordinate»]: nel §14.2 è `range`, e la colonna intera è
+  `collection.field`. Restano per i passi dopo: il `formula builder`
+  nell'`app`; le funzioni dichiarate in un altro file con argomenti
+  (requisito di Alessio, stessa voce), perché oggi una formula è un valore e
+  non prende argomenti; le librerie esterne con i risultati salvati e le
+  funzioni fra righe [C: «Formule e script»]; gli script; la ricorsione fra
+  più formule. Nota: con la virgola decimale nell'`app`, in italiano la
+  virgola non può separare gli argomenti di una funzione mentre si scrive;
+  nel file vale il punto, quindi lì la virgola come separatore degli
+  argomenti resta possibile.
 - **Connettori** (classe 5). Un file proprio, e un file per le posizioni
   sistemate a mano [C: «I connettori grafici sono un file a parte»].
   *(proposta)* Puntano gli `object` per `id`, nella forma generica del §10.
