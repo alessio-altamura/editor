@@ -297,10 +297,20 @@ try {
   const tsv = readFileSync(join(folder, 'vendite.tsv'), 'utf8');
   if (tsv !== 'mese\tvendite\tpezzi\tnote-del-mese\ngennaio\t1.5\t12\t\nfebbraio\t2.255\tmolti\t\naprile\t3.25\t9\t\nmaggio\t4\t10\t\n') problems.push(`the TSV saved: ${JSON.stringify(tsv)}`);
   if (!readFileSync(join(folder, 'vendite.collection.md'), 'utf8').includes('  - name: note-del-mese\n    type: string\n    title: Note del mese\n')) problems.push(`the descriptor: ${readFileSync(join(folder, 'vendite.collection.md'), 'utf8')}`);
-  // The table of the collection in the preview: a click on a record opens the TSV at its line.
-  await page.click('[data-node="vendite"] tbody tr:nth-child(2) td');
-  await main.waitForFunction(() => window.docAppState?.file === 'vendite.tsv' && window.docAppState.line === 2, undefined, { timeout: 5000 })
-    .catch(async () => problems.push(`the click on a record: ${JSON.stringify(await main.evaluate(() => ({ ...window.docAppState, text: undefined })))}`));
+  // The table of the collection in the preview: a click on a cell opens the grid of the collection,
+  // with that record and that field chosen.
+  const chosenCell = () => main.evaluate(() => {
+    const cell = document.querySelector<HTMLElement>('#grid .grid-cell.active');
+    const heading = cell ? document.querySelector(`#grid .grid-heading[aria-colindex="${Number(cell.dataset.column) + 1}"] span`)?.textContent : null;
+    return { file: window.docAppState?.file, mode: window.docAppState?.mode, row: cell?.dataset.row, heading };
+  });
+  const clickCell = async (preview: Page, where: string) => {
+    await preview.click('[data-node="vendite"] tbody tr:nth-child(2) td:nth-child(2)');
+    await main.waitForFunction(() => window.docAppState?.file === 'vendite.collection.md' && window.docAppState.mode === 'grid' && document.querySelector('#grid .grid-cell.active')?.getAttribute('data-row') === '1', undefined, { timeout: 5000 }).catch(() => undefined);
+    const chosen = await chosenCell();
+    if (chosen.file !== 'vendite.collection.md' || chosen.mode !== 'grid' || chosen.row !== '1' || chosen.heading !== 'vendite') problems.push(`the click on a cell ${where}: ${JSON.stringify(chosen)}`);
+  };
+  await clickCell(page, 'in the page');
   // «Trasforma in collection» from the editor, with the cursor in the table of a text.
   await main.click('#shelves button[data-id="prezzi"]');
   await main.waitForFunction(() => window.docAppState?.file === 'prezzi.text.md');
@@ -339,6 +349,10 @@ try {
   await apart.click('h2');
   await main.waitForFunction(() => window.docAppState?.file === 'cap.chapter.md' && window.docAppState.line === 4, undefined, { timeout: 5000 })
     .catch(async () => problems.push(`the click on the separate preview: ${JSON.stringify(await main.evaluate(() => ({ ...window.docAppState, text: undefined })))}`));
+  // A cell of the separate preview: the grid in the main window, at the cell.
+  const reportPreview = await preview();
+  await reportPreview.waitForSelector('[data-node="vendite"] tbody tr');
+  await clickCell(reportPreview, 'in the separate window');
   // Saved on changing file: the long line is still one line in the file.
   if (!readFileSync(join(folder, 'nota.text.md'), 'utf8').includes(long)) problems.push('the wrapping of the view reached the file');
   await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find((w) => w.webContents.getURL().includes('detached.html'))?.close());

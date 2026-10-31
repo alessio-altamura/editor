@@ -80,8 +80,13 @@ cartella: File → Apri cartella (Cmd-O). Si può anche dire da riga di comando:
   `runtime`. Il pulsante «Dati», sul `descriptor`, apre il file di dati, che si
   modifica come testo: senza Markdown, con le tabulazioni visibili, e Tab
   scrive una tabulazione; i `diagnostic` dei dati stanno al loro punto del
-  file. Un clic su una riga della tabella nell'anteprima apre il file di dati
-  a quella riga. Con il cursore in una tabella di un `text` o di uno
+  file. Un clic su una cella della tabella nell'anteprima, nella pagina o
+  nella finestra separata, apre la griglia della `collection` con quel
+  `record` e quel campo scelti (se è già aperta, sposta solo la scelta); un
+  clic sull'intestazione sceglie tutta la colonna del campo, come un clic
+  sull'intestazione della griglia. Se la griglia non si apre, per esempio
+  per un descrittore con errori, si apre il file di dati come testo, a quella
+  riga. Con il cursore in una tabella di un `text` o di uno
   `scratch` compare «Trasforma in collection» (`turn-into`); se la tabellina
   perde qualcosa (formattazione, allineamento) l'avviso compare nella barra.
   Una tabella grande si taglia: l'anteprima mostra i primi 1000 `record`,
@@ -169,7 +174,8 @@ cartella: File → Apri cartella (Cmd-O). Si può anche dire da riga di comando:
   della pagina e delle schede in Petrona, peso 470, 16,55 px (la sua «x» alta
   come quella di Figtree a 15 px), interlinea 1,55; la colonna di testo è larga al massimo circa 75 caratteri (532 px
   di testo), centrata con i numeri di riga accanto, e va a capo lì anche
-  in un editor più largo: un a capo della vista, il file non cambia; i file di dati e gli
+  in un editor più largo: un a capo della vista, il file non cambia (un clic ai lati della colonna
+  porta il cursore all'inizio o alla fine della riga più vicina); i file di dati e gli
   `stylesheet` restano in monospazio. I pulsanti comuni hanno un'icona di Lucide, con tooltip e
   `aria-label`. Font e icone sono in `assets/`, con versione e sha256
   (`assets/README.md`), incorporati senza CDN.
@@ -235,8 +241,9 @@ a destra e i decimali fissi. Poi, nella
 pagina, scrive nell'editor e aspetta il testo
 nell'anteprima, che non deve ricaricarsi, poi fa clic su un titolo e su un
 capoverso dell'anteprima e controlla file, riga e colonna del cursore; fa
-clic su una riga della tabella di una `collection` e controlla che si apra il
-TSV a quella riga, e fa «Trasforma in collection» su un `text` che è una
+clic su una cella della tabella di una `collection`, nell'anteprima della
+pagina e poi in quella staccata, e controlla che si apra la griglia con quel
+`record` e quel campo scelti, e fa «Trasforma in collection» su un `text` che è una
 tabella; nella griglia scrive «1,5» in un campo `number` e trova 1.5 nel TSV
 salvato con l'anteprima che segue, incolla un blocco di 2 `record` e 3 valori
 che ne aggiunge uno, aggiunge un campo e controlla che un valore sbagliato

@@ -24,6 +24,8 @@ const api = {
   tableAt: (file: string, text: string, line: number) => ipcRenderer.invoke('doc:table-at', file, text, line) as Promise<string | null>,
   turnInto: (file: string, text: string, line: number) => ipcRenderer.invoke('doc:turn-into', file, text, line) as Promise<Done>,
   dataFile: (file: string) => ipcRenderer.invoke('doc:data-file', file) as Promise<string | null>,
+  /** The descriptor of the collection of a data file; null if none. */
+  collectionOf: (file: string) => ipcRenderer.invoke('doc:collection-of', file) as Promise<string | null>,
   /** The grid of a collection: what it opens on, its buffer, its save. */
   gridSource: (file: string) => ipcRenderer.invoke('doc:grid-source', file) as Promise<GridSource | null>,
   gridEdit: (file: string, fields: Array<Record<string, unknown>>, data: string) => ipcRenderer.invoke('doc:grid-edit', file, fields, data),
@@ -72,8 +74,8 @@ const api = {
     ipcRenderer.on('doc:preview-detached', (_event, detached: boolean) => listener(detached));
   },
   /** A click on the preview: the file and the range where the element is written. */
-  onReveal: (listener: (file: string, line: number, character: number) => void) => {
-    ipcRenderer.on('doc:reveal', (_event, file: string, line: number, character: number) => listener(file, line, character));
+  onReveal: (listener: (file: string, line: number, character: number, column?: number) => void) => {
+    ipcRenderer.on('doc:reveal', (_event, file: string, line: number, character: number, column?: number) => listener(file, line, character, column));
   },
 };
 

@@ -422,6 +422,12 @@ export class Session {
     return this.file(join(dirname(node!.file), asset).split(sep).join('/'));
   }
 
+  /** The descriptor of the collection whose data file this is; null if none. */
+  collectionOf(path: string): string | null {
+    const file = this.safe(path);
+    return (this.live.tree.nodes ?? []).find((node) => node.kind === 'collection' && this.dataFile(node.file) === file)?.file ?? null;
+  }
+
   /** «Estrai in un oggetto» on a composition file, saved first; the files written, or why not. */
   extract(path: string, text: string): { written: string[]; error?: string } {
     const file = this.safe(path);
