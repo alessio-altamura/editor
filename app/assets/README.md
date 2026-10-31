@@ -4,18 +4,27 @@ Solo per l'aspetto dell'`app`: la resa del documento resta quella dei font
 del `runtime` (`runtime/fonts/`). Tutto è incorporato e servito dall'`app`,
 senza CDN, per la CSP della finestra.
 
-## Inter
+## Figtree e Petrona
 
-Inter 4.1 di Rasmus Andersson, licenza SIL Open Font License 1.1
-(`fonts/OFL-Inter.txt`, il `LICENSE.txt` del repository allo stesso tag).
-WOFF2 variabili nel peso (100-900) e nella grandezza ottica, tondo e
-corsivo. Presi con `git` dal repository ufficiale rsms/inter, tag `v4.1`,
-commit e3a3d4c57d5e, cartella `docs/font-files`.
+Figtree per l'interfaccia, Petrona per il testo scritto negli oggetti
+nell'editor (`docs/ricerca/caratteri-app.md`). Tutti e due con licenza SIL
+Open Font License 1.1 (`fonts/OFL-Figtree.txt`, `fonts/OFL-Petrona.txt`,
+gli `OFL.txt` delle loro cartelle). Presi con `git` da google/fonts,
+commit 6c1dbe27dcf7d817d4b62cec033ba77fa8e2a5ec, cartelle `ofl/figtree` e
+`ofl/petrona`, e convertiti in WOFF2 con fontTools senza altre modifiche:
+variabili nel peso (Figtree 300-900, Petrona 100-900).
+
+| Originale | Byte | sha256 |
+|---|---|---|
+| `ofl/figtree/Figtree[wght].ttf` | 62712 | 26ad3db9b31ff7dde67a91ff515d022d2f495cd506590699cf264f0bfe6fb714 |
+| `ofl/petrona/Petrona[wght].ttf` | 218572 | 0ede77fbf726541cf93ece7b721a7b069f004cb413ab205f74963560015ab075 |
+| `ofl/petrona/Petrona-Italic[wght].ttf` | 230176 | f4ad599093d29a668e2f945e027b47baee8476647d92bc8c23a89b0f86c08078 |
 
 | File | Byte | sha256 |
 |---|---|---|
-| `InterVariable-Italic.woff2` | 387976 | e564f652916db6c139570fefb9524a77c4d48f30c92928de9db19b6b5c7a262a |
-| `InterVariable.woff2` | 352240 | 693b77d4f32ee9b8bfc995589b5fad5e99adf2832738661f5402f9978429a8e3 |
+| `Figtree-wght.woff2` | 27644 | 857d19c9aa38187b1d8806b62f26d54118a9e9536e215b42ce93f0a0eee4f2f3 |
+| `Petrona-wght.woff2` | 86332 | 2e672a7dee027d0efb3a2150f925876b64cbf3eed4236cc98d086fe3a3fa18d3 |
+| `Petrona-Italic-wght.woff2` | 94572 | 2e28d94bdb101456b3df81e5dbf6930a5d4525a31b2272a1a27be5e00eee1b40 |
 
 ## Icone Lucide
 

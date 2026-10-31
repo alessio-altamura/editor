@@ -133,6 +133,8 @@ export function editorExtensions(api: DocApp, context: EditorContext): Extension
         return true;
       },
     }),
+    // A text file (.<kind>.md) is written in the font of prose; a data file or a stylesheet keeps the monospace.
+    EditorView.editorAttributes.of(() => (/\.[a-z-]+\.md$/i.test(context.file() ?? '') ? { class: 'cm-prose' } : null)),
     EditorView.updateListener.of((update) => context.changed(update)),
   ];
 }

@@ -54,12 +54,12 @@ try {
   main.on('console', (message) => message.type() === 'error' && problems.push(`console: ${message.text()}`));
   main.on('pageerror', (error) => problems.push(`page error: ${error.message}`));
   await main.waitForSelector('#shelves button[data-id="nota"]');
-  // The look of the app: Inter loaded, the icons of the buttons each with its label.
+  // The look of the app: Figtree loaded, the icons of the buttons each with its label.
   const look = await main.evaluate(async () => {
     await document.fonts.ready;
-    return { inter: document.fonts.check('13px "Inter App"'), icons: document.querySelectorAll('button[data-icon] svg').length, unlabelled: document.querySelectorAll('button[data-icon]:not([aria-label])').length };
+    return { figtree: document.fonts.check('475 13px "Figtree App"'), icons: document.querySelectorAll('button[data-icon] svg').length, unlabelled: document.querySelectorAll('button[data-icon]:not([aria-label])').length };
   });
-  if (!look.inter || look.icons < 5 || look.unlabelled > 0) problems.push(`the look: ${JSON.stringify(look)}`);
+  if (!look.figtree || look.icons < 5 || look.unlabelled > 0) problems.push(`the look: ${JSON.stringify(look)}`);
 
   // The canvas, at the opening: empty, the document has no canvas file yet.
   const box = (await main.locator('#viewport').boundingBox())!;
@@ -240,6 +240,13 @@ try {
   await page.waitForFunction(() => document.querySelector('[data-node="nota"]')?.textContent?.includes('Scritto adesso.'), undefined, { timeout: 5000 })
     .catch(() => problems.push('the preview did not change while typing'));
   if (reloads.length > 0) problems.push('the preview reloaded');
+  // The text of a text file is written in Petrona, loaded because it is used.
+  const prose = await main.evaluate(async () => {
+    await document.fonts.ready;
+    const content = document.querySelector('#editor .cm-editor.cm-prose .cm-content');
+    return { prose: content !== null && getComputedStyle(content).fontFamily.includes('Petrona App'), loaded: document.fonts.check('470 14.5px "Petrona App"') };
+  });
+  if (!prose.prose || !prose.loaded) problems.push(`the font of the text: ${JSON.stringify(prose)}`);
 
   // A click on the chapter title in the preview: the editor opens cap.chapter.md at its title line,
   // after asking about the changes of nota.text.md; the answer is «Salva».
