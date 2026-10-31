@@ -531,8 +531,21 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      della classe 3»; ricerca/grafici-vega.md): `<id>.chart.md` con
      `template`, `collection` e un `field` per ruolo; template di partenza
      barre, linee e punti; disegno con Vega-Lite e Vega in SVG; numerazione
-     condivisa con le immagini come figure. Primo passo affidato alla
-     sottosessione session_01ToMUkc2ntsAgupUkrNCYxV.
+     condivisa con le immagini come figure. Il primo passo c'è (unito il
+     2026-10-31): specifica §13 con gli esempi 56-60 (conf=3), codici
+     chart-*, disegno sincrono con Vega in due SVG (chiaro e scuro) scelti
+     da una regola @media, numeri con il display del §0.4 (docNumber),
+     colori dal selettore `chart` degli `stylesheet` (foglio di partenza
+     #1a4f8b, scuro #8ab4f8) e tavolozza fissa Okabe-Ito per le serie
+     successive (proprietà chart-palette proposta, non fatta), soglia di
+     2000 segni, `create chart`, «Crea grafico» nella `grid`, schede del
+     canvas. Limiti: il disegno usa due campi interni di Vega, da
+     ricontrollare a ogni aggiornamento; le date si mostrano come
+     categorie. Visto nella verifica: le etichette dell'asse x si
+     sovrappongono («gennaiofebbraio»), perché senza canvas Vega stima la
+     larghezza del testo; `create chart` senza ruoli propone x e y ma non la
+     serie, e su dati in forma lunga viene rifiutato. Correzione affidata
+     alla sottosessione.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
