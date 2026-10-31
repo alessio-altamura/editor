@@ -3895,9 +3895,12 @@ grafico per gli screen reader e la `static fallback` quando non si disegna.
 - **Un `record` senza valore** in un ruolo non si disegna.
 - **Un ruolo mancante.** Se `x` o `y` mancano, il `runtime` propone un
   abbinamento dai tipi: `x` il primo `field` che non è una quantità (o il
-  primo), `y` il primo `field` `number` o `integer` diverso da `x`. Lo dice
-  con l'avviso `chart-role-missing`, il cui suggerimento è l'abbinamento, e
-  disegna con quello. Gli avvisi hanno due gravità, `error` e `warning`
+  primo), `y` il primo `field` `number` o `integer` diverso da `x`; in `bar`
+  e `line`, se `x` si ripete e `series` non è scritta, `series` il primo
+  `field` di testo o di categorie (`string`, `boolean` o con `categories`),
+  nell'ordine dello `schema`, che insieme a `x` rende unici i `record`. Lo
+  dice con l'avviso `chart-role-missing`, il cui suggerimento è
+  l'abbinamento, e disegna con quello. Gli avvisi hanno due gravità, `error` e `warning`
   (§11.2): una terza, `hint`, sarebbe una modifica del `core`, quindi qui è
   un `warning`.
 
@@ -4138,8 +4141,15 @@ disegno, senza script.
 - **Accessibilità.** L'SVG ha `role="img"` e per `aria-label` il testo della
   descrizione; i ruoli interni di Vega sono spenti. La `static fallback` è la
   descrizione: `<figure data-kind="chart" data-chart-fallback>`.
-- **Limite.** Senza canvas la larghezza del testo è stimata, quindi il
-  taglio di un'etichetta troppo lunga è approssimato.
+- **La larghezza del testo.** Senza canvas Vega stimerebbe la larghezza del
+  testo, e il suo controllo delle sovrapposizioni non vedrebbe le etichette
+  che si toccano. Il `runtime` gli dà la larghezza vera, letta dai file dei
+  font di partenza (le tabelle `cmap` e `hmtx` del WOFF2, all'istanza di
+  partenza del font variabile, senza crenatura); un altro carattere resta
+  stimato. Le stesse tabelle danno sempre le stesse larghezze.
+- **Etichette che non stanno.** Sull'asse delle categorie, se l'etichetta
+  più larga non sta nella sua banda, le etichette ruotano di -45° invece di
+  sovrapporsi o sparire.
 
 ### 13.5 La numerazione
 
@@ -4216,7 +4226,8 @@ Le vendite per mese.
 
 - **`create chart --collection <id> [--template bar|line|point] [--x <field>]
   [--y <field>] [--series <field>]`**, con `--dry-run`. I ruoli che mancano
-  si propongono dai tipi come al §13.1. *(proposta)* Il `template`, se
+  si propongono dai tipi come al §13.1, `series` compresa quando `x` si
+  ripete; anche il pulsante «Crea grafico» dell'`app`. *(proposta)* Il `template`, se
   manca: `point` se `x` e `y` sono quantità, `line` se `x` è una data,
   altrimenti `bar`. L'`id`, se manca, viene dalle prime parole di «`y` per
   `x`», con i `title` dei `field` («vendite-per-mese»). Senza un posto

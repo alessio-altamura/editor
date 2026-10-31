@@ -745,7 +745,13 @@ async function main(): Promise<void> {
       for (const result of (await VALIDATOR.validateString(html)).results) for (const m of result.messages) problems.push(`html-validate ${m.ruleId}: ${m.message}`);
       const dark = runCli(['export', base, '--theme', 'dark']).stdout.toString('utf8');
       if ((dark.match(/<svg role="img"/g) ?? []).length !== 1 || dark.includes('data-chart-theme') || !dark.includes('fill="#8ab4f8"')) problems.push('--theme dark: not one dark drawing');
-      report('a chart: SVG in the two themes, no script, one theme with --theme', problems);
+      // Labels that do not fit turn: nine months on the x axis by -45° (measured with the base fonts), three stay level.
+      if (html.includes('rotate(315)')) problems.push('three months turned');
+      writeFileSync(join(base, 'vendite.tsv'), `mese\timporto\n${['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre'].map((month, i) => `${month}\t${(i + 1) * 1000}`).join('\n')}\n`);
+      const nine = runCli(['export', base, '--theme', 'light']).stdout.toString('utf8');
+      const turned = (nine.match(/rotate\(315\)/g) ?? []).length;
+      if (turned !== 9) problems.push(`nine months: ${turned} labels turned`);
+      report('a chart: SVG in the two themes, no script, one theme with --theme, labels turned when they do not fit', problems);
     }
   } finally {
     for (const base of temporary) rmSync(base, { recursive: true, force: true });

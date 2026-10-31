@@ -385,7 +385,12 @@ quantità su `x` è orizzontale), propone i ruoli che mancano dai tipi, tiene i
 `record` filtrati e traduce tutto in una specifica Vega-Lite. Vega la
 disegna in SVG senza canvas e in modo sincrono, con il renderer a stringa
 impostato come fa l'export SVG di Vega; lo stesso disegno si fa una volta
-sola finché il documento è aperto. I numeri degli assi passano da
+sola finché il documento è aperto. Vega misura il testo con
+`src/font-metrics.ts`, che legge le tabelle `cmap` e `hmtx` dei WOFF2 dei font
+di partenza, senza dipendenze; le etichette delle categorie che non stanno
+ruotano di -45°. Quando `x` si ripete in un `bar` o in una `line`, la
+proposta dei ruoli aggiunge una serie, il primo `field` di testo o di
+categorie che rende unici i `record`. I numeri degli assi passano da
 `docNumber`, una funzione di formato registrata in Vega, con le regole del
 `display` (§0.4).
 
@@ -568,7 +573,8 @@ il ricalcolo era di 12-13 s.
   `collection`; `src/collection-operations.ts`: `create collection` e
   `turn-into`.
 - `src/chart.ts`: i ruoli di un `chart`, la specifica Vega-Lite e il
-  disegno; `src/chart-operations.ts`: `create chart`.
+  disegno; `src/chart-operations.ts`: `create chart`; `src/font-metrics.ts`:
+  le larghezze del testo nei font di partenza.
 - `src/operations.ts`: le operazioni; `src/canvas.ts`: quelle del `canvas`;
   `src/canvas-layout.ts`: gruppi e fare spazio, solo geometria.
 - `src/standalone.ts`: un oggetto da solo, per `/object/<id>` e le schede.
