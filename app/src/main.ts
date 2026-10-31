@@ -5,6 +5,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { app, BrowserWindow, dialog, ipcMain, Menu, screen, shell, WebContentsView } from 'electron';
+import type { ChartState } from './chart-model.js';
 import { Session } from './session.js';
 import { placeWindow, type SavedWindow } from './window-place.js';
 
@@ -210,6 +211,22 @@ function attachPreview(): void {
   window.webContents.send('doc:preview-detached', false);
 }
 
+/** The state of the chart panel from the page, with its kinds checked. */
+function chartState(value: unknown): ChartState {
+  const state = (value ?? {}) as Record<string, unknown>;
+  const text = (key: string) => (typeof state[key] === 'string' ? (state[key] as string) : undefined);
+  const filter = state.filter !== null && typeof state.filter === 'object' && !Array.isArray(state.filter) ? (state.filter as Record<string, unknown>) : {};
+  return {
+    template: text('template') ?? 'bar',
+    collection: text('collection') ?? '',
+    ...(text('x') !== undefined ? { x: text('x')! } : {}),
+    ...(text('y') !== undefined ? { y: text('y')! } : {}),
+    ...(text('series') !== undefined ? { series: text('series')! } : {}),
+    filter: Object.fromEntries(Object.entries(filter).map(([name, values]) => [name, Array.isArray(values) ? values.filter((item): item is string => typeof item === 'string') : []])),
+    description: text('description') ?? '',
+  };
+}
+
 /** Every IPC call: the session must be open, and the arguments are checked by it. */
 function handle(channel: string, answer: (current: Session, ...args: never[]) => unknown): void {
   ipcMain.handle(channel, async (event, ...args: unknown[]) => {
@@ -252,6 +269,9 @@ handle('doc:table-at', (current, file: string, text: string, line: number) => cu
 handle('doc:turn-into', (current, file: string, text: string, line: number) => current.turnInto(file, String(text), Number(line)));
 handle('doc:data-file', (current, file: string) => current.dataFile(file));
 handle('doc:collection-of', (current, file: string) => current.collectionOf(file));
+handle('doc:chart-source', (current, file: string) => current.chartSource(String(file)));
+handle('doc:chart-edit', (current, file: string, state: unknown) => current.chartEdit(String(file), chartState(state)));
+handle('doc:chart-save', (current, file: string, state: unknown) => current.chartSave(String(file), chartState(state)));
 handle('doc:grid-source', (current, file: string) => current.gridSource(file));
 const fieldsOf = (value: unknown) => (Array.isArray(value) ? (value as Array<Record<string, unknown>>) : []);
 handle('doc:grid-edit', (current, file: string, fields: unknown, data: string) => current.gridEdit(file, fieldsOf(fields), String(data)));

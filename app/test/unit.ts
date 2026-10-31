@@ -2,6 +2,7 @@
 // and where the cursor goes after the formatter.
 import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { ChartModel } from '../src/chart-model.js';
 import { GridModel } from '../src/grid-model.js';
 import { mapOffset } from '../src/offset.js';
 import { Session } from '../src/session.js';
@@ -245,6 +246,58 @@ try {
     grid.setCell(0, 0, 'tab\tin un valore');
     if (grid.records[0]![0] !== 'tab\tin un valore' || !grid.dataText().includes('tab in un valore')) problems.push('a tab in a value is written as a space');
     check('the model of the grid: edit, paste, copy, records, fields, undo', problems);
+  }
+
+  {
+    // The model of the chart panel: a field put on a place, a wrong type refused, a place emptied, the filter, undo and redo.
+    const problems: string[] = [];
+    const chart = new ChartModel({
+      file: 'mesi.chart.md',
+      state: { template: 'line', collection: 'vendite', x: 'mese', filter: {}, description: 'Le vendite.' },
+      collections: [{ id: 'vendite', fields: [{ name: 'mese', type: 'string' }, { name: 'regione', type: 'string' }, { name: 'euro', type: 'number' }, { name: 'pezzi', type: 'integer' }], values: { regione: ['nord', 'sud'] } }],
+    });
+    let changes = 0;
+    chart.onChange = () => changes++;
+    if (chart.place('y', 'regione') || chart.state.y !== undefined) problems.push('a string on y of a line');
+    if (!chart.place('y', 'euro') || chart.state.y !== 'euro') problems.push('euro on y');
+    if (chart.accepts('series', 'euro') || !chart.accepts('series', 'pezzi')) problems.push('series takes categories, not a number');
+    chart.place('series', 'regione');
+    // A field has one role: on x it leaves series.
+    chart.place('x', 'regione');
+    if (chart.state.x !== 'regione' || chart.state.series !== undefined) problems.push(`one role a field: ${JSON.stringify(chart.state)}`);
+    chart.setTemplate('bar');
+    chart.place('x', 'euro');
+    if (!chart.accepts('y', 'mese')) problems.push('a bar lying down: categories on y');
+    chart.clear('x');
+    if (chart.state.x !== undefined) problems.push('x not emptied');
+    chart.setFilter('regione', ['nord']);
+    if (JSON.stringify(chart.state.filter) !== '{"regione":["nord"]}') problems.push(`filter ${JSON.stringify(chart.state.filter)}`);
+    chart.setFilter('regione', []);
+    if ('regione' in chart.state.filter) problems.push('an empty filter stays');
+    while (chart.undo()) { /* back to the start */ }
+    if (JSON.stringify(chart.state) !== '{"template":"line","collection":"vendite","x":"mese","filter":{},"description":"Le vendite."}' || chart.dirty) problems.push(`undo all: ${JSON.stringify(chart.state)}`);
+    chart.redo();
+    if (chart.state.y !== 'euro' || !chart.dirty || changes < 8) problems.push(`redo: ${JSON.stringify(chart.state)} ${changes}`);
+    check('the model of the chart panel: place, refuse a wrong type, empty, filter, undo and redo', problems);
+  }
+
+  {
+    // The panel writes the lines of the chart file, through the formatter, the other keys as written.
+    const problems: string[] = [];
+    const other = writeFixture({ collection: true });
+    writeFileSync(join(other, 'mesi.chart.md'), '---\nid: mesi\nkind: chart\ntags: [vendite]\ntemplate: bar\ncollection: "[[vendite]]"\nx: mese\ny: vendite\n---\nLe vendite per mese.\n');
+    const chartSession = await Session.open(other);
+    try {
+      const source = chartSession.chartSource('mesi.chart.md');
+      if (JSON.stringify(source?.state) !== '{"template":"bar","collection":"vendite","x":"mese","y":"vendite","filter":{},"description":"Le vendite per mese."}') problems.push(`source ${JSON.stringify(source?.state)}`);
+      if (JSON.stringify(source?.collections.find((each) => each.id === 'vendite')?.values.mese) !== '["gennaio","febbraio","marzo"]') problems.push(`values ${JSON.stringify(source?.collections)}`);
+      const text = chartSession.chartText('mesi.chart.md', { template: 'line', collection: 'vendite', x: 'mese', y: 'vendite', series: 'pezzi', filter: { mese: ['gennaio', 'marzo'] }, description: 'Due mesi.' });
+      if (text !== '---\nid: mesi\nkind: chart\ntags: [vendite]\ntemplate: line\ncollection: "[[vendite]]"\nx: mese\ny: vendite\nseries: pezzi\nfilter:\n  mese: [gennaio, marzo]\n---\nDue mesi.\n') problems.push(`text ${JSON.stringify(text)}`);
+    } finally {
+      await chartSession.close();
+      rmSync(other, { recursive: true, force: true });
+    }
+    check('the chart panel writes the lines of the file, the other keys as written', problems);
   }
 
   {

@@ -134,6 +134,25 @@ cartella: File → Apri cartella (Cmd-O). Si può anche dire da riga di comando:
   - Fuori da questo passo: ordinamento e filtri (sono viste), formule, pivot;
     e la griglia dentro una scheda del `canvas`, dove un clic apre ancora il
     sorgente.
+- **Il pannello del grafico**: aprendo un `chart` l'editor mostra un
+  pannello, con lo stesso interruttore «Testo» della griglia («Pannello»
+  torna). Le icone dei tre `template`, quello scelto evidenziato; il menu
+  delle `collection` del documento; i posti x, y e serie, ciascuno con il
+  campo e il suo tipo e una × per svuotarlo; accanto i campi della
+  `collection`, con il tipo.
+  - Un campo si trascina su un posto: mentre si trascina, i posti che non
+    prendono quel tipo si spengono e rifiutano il rilascio, con le regole di
+    `chart-role-type`. Con la tastiera, un clic (o Invio) sul campo e poi
+    sul posto; Canc svuota il posto. Un campo ha un ruolo solo: messo su un
+    altro posto lascia il primo.
+  - Il filtro: un campo e i suoi valori distinti da spuntare, solo
+    l'uguaglianza, come nel file. La descrizione in un campo di testo.
+  - Il pannello scrive le stesse righe del file, con il `formatter`, e
+    lascia com'erano le altre chiavi; come la griglia, il buffer vale subito
+    per l'anteprima, Cmd-Z e Cmd-Maiusc-Z annullano e ripetono, Cmd-S salva,
+    e cambiando file chiede di salvare. Gli errori del `chart` stanno sul
+    posto che li causa, gli altri nella barra.
+  - Nella scheda del `canvas` il pannello resta rimandato, come la griglia.
 - **La pagina** (Vista → Pagina, Cmd-2, o il pulsante «Pagina»):
 - **Il sorgente**, a sinistra nella pagina: CodeMirror 6 sul file aperto, con i servizi del
   language server, chiamati nel processo principale con le stesse funzioni
@@ -252,7 +271,9 @@ capoverso dell'anteprima e controlla file, riga e colonna del cursore; fa
 clic su una cella della tabella di una `collection`, nell'anteprima della
 pagina e poi in quella staccata, e controlla che si apra la griglia con quel
 `record` e quel campo scelti; dalla griglia fa «Crea grafico» e controlla il
-file del `chart`, il grafico nell'anteprima dell'oggetto e nella sua scheda, e fa «Trasforma in collection» su un `text` che è una
+file del `chart`; nel pannello del grafico sceglie le linee e trascina un
+campo sulla serie, salva e controlla il file, poi il grafico con la serie
+nell'anteprima dell'oggetto e nella sua scheda, e fa «Trasforma in collection» su un `text` che è una
 tabella; nella griglia scrive «1,5» in un campo `number` e trova 1.5 nel TSV
 salvato con l'anteprima che segue, incolla un blocco di 2 `record` e 3 valori
 che ne aggiunge uno, aggiunge un campo e controlla che un valore sbagliato
@@ -279,6 +300,8 @@ end che fallisce salva anche l'immagine della finestra.
 - `src/offset.ts`: dove va il cursore dopo il formatter.
 - `src/grid-model.ts`: il modello della griglia, senza DOM (valori, incolla,
   `record` e campi, annulla); `src/renderer/grid.ts`: la sua vista.
+- `src/chart-model.ts`: il modello del pannello del grafico, senza DOM;
+  `src/renderer/chart-panel.ts`: la sua vista.
 - `src/renderer/style.css`: i token e le regole dell'aspetto;
   `src/renderer/icons.ts`: le icone, dai file di `assets/icons`.
 
