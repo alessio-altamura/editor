@@ -1520,8 +1520,11 @@ export function resolveTree(folder: string, options: ResolveOptions = {}): Resol
     if (sink === null) return;
     const where = problem.line === undefined ? '' : `riga ${problem.line}: `;
     const record = problem.record === undefined ? '' : `record ${problem.record + 1}: `;
-    const diagnostic = makeDiagnostic(problem.code, file, problem.target ?? target, problemFix(problem, kind));
-    diagnostic.message = `${record}${where}${problem.message}`;
+    // A math line is a note: what fails in it is a warning, as in §0.4, never an error that stops the export.
+    const diagnostic = kind === 'line'
+      ? makeDiagnostic('math-line-invalid', file, target, problemFix(problem, kind))
+      : makeDiagnostic(problem.code, file, problem.target ?? target, problemFix(problem, kind));
+    diagnostic.message = `${record}${where}${kind === 'line' ? `${problem.code}: ` : ''}${problem.message}`;
     if (options.positions && problem.line !== undefined) {
       const lines = codeText.split('\n');
       const offsetOf = (line: number, column: number) => codeStart + lines.slice(0, line - 1).reduce((sum, each) => sum + each.length + 1, 0) + column;

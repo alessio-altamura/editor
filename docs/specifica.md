@@ -4370,9 +4370,13 @@ formula ha l'errore `formula-code-missing`.
   `collection`, con il trattino basso; sono i suoi ingressi, senza
   dichiararli. Le righe del §0.4 restano quelle di prima, con gli stessi
   valori: la loro grammatica non ha nomi, quindi nessuna cambia strada. Una
-  riga che prima era `math-line-invalid` e ha una lettera, per esempio
-  «`= 1200 euro`», ora è codice e ha `formula-syntax`: riempie ciò che la
-  classe 1 lasciava vuoto (§1).
+  riga di calcolo resta un appunto: se il codice non è Python, o si ferma
+  (un nome che non c'è, un'eccezione, il tempo scaduto, il worker che manca),
+  la riga non ha valore e ha l'avviso `math-line-invalid`, come nel §0.4, con
+  il range al punto del codice e il motivo nel messaggio; non un errore, che
+  fermerebbe l'`export` [C: «Sulla bozza di specifica»]. Così «`= 1200
+  euro`» resta un avviso (esempio 62). Gli errori del §14.6 valgono per gli
+  oggetti `formula` e per le colonne calcolate.
 - **Le colonne calcolate.** Un `field` dello `schema` con `formula:
   "[[iva]]"` è un `computed field`: il `runtime` esegue la formula una volta
   per `record` (esempio 63). Le voci `collection.field` della stessa
@@ -4453,7 +4457,8 @@ la riga, e per una colonna calcolata il `record`.
 | `pyodide-missing` | warning | un documento con codice senza `pyodide` | — | non coperto |
 | `pyodide-unsupported` | error | `pyodide` con una versione diversa da quella del `runtime` | la versione | non coperto |
 
-Per una riga di calcolo il `target` è il nome, o l'espressione. Una formula
+Una riga di calcolo con un nome non ha questi codici: ha l'avviso
+`math-line-invalid` (§14.3), con `target` l'espressione. Una formula
 che dipende da una che non ha valore resta senza valore e senza un errore
 suo: l'errore sta sulla prima.
 
@@ -4530,7 +4535,7 @@ mean(vendite_mesi.euro)
 }
 ````````````````````````````````
 
-Una riga di calcolo con un nome, accanto a una della classe 1, che dà lo stesso valore di prima.
+Una riga di calcolo con un nome, accanto a una della classe 1, che dà lo stesso valore di prima, e una che non è Python: un avviso, non un errore.
 
 ```````````````````````````````` example 62 conf=4 status=proposal
 === file doc.document.md
@@ -4571,13 +4576,16 @@ total(vendite_mesi.euro)
 id: sintesi
 kind: text
 ---
-Nel trimestre `= totale_q3` euro, il doppio `= totale_q3 * 2`; a mano `= 1200 + 1350 + 1280`.
+Nel trimestre `= totale_q3` euro, il doppio `= totale_q3 * 2`; a mano `= 1200 + 1350 + 1280`, per sbaglio `= 1200 euro`.
 === resolved
 {
   "nodes": [
-    {"id": "sintesi", "kind": "text", "file": "sintesi.text.md", "content": [["paragraph", "Nel trimestre ", ["mathLine", {"value": "3830", "display": "3830"}, "totale_q3"], " euro, il doppio ", ["mathLine", {"value": "7660", "display": "7660"}, "totale_q3 * 2"], "; a mano ", ["mathLine", {"value": "3830", "display": "3830"}, "1200 + 1350 + 1280"], "."]]},
+    {"id": "sintesi", "kind": "text", "file": "sintesi.text.md", "content": [["paragraph", "Nel trimestre ", ["mathLine", {"value": "3830", "display": "3830"}, "totale_q3"], " euro, il doppio ", ["mathLine", {"value": "7660", "display": "7660"}, "totale_q3 * 2"], "; a mano ", ["mathLine", {"value": "3830", "display": "3830"}, "1200 + 1350 + 1280"], ", per sbaglio ", ["mathLine", {"invalid": true}, "1200 euro"], "."]]},
     {"id": "totale-q3", "kind": "formula", "file": "totale-q3.formula.md", "attributes": {"inputs": ["vendite-mesi.euro"]}, "content": [["formula", {"lang": "python", "value": "3830", "display": "3830"}, "total(vendite_mesi.euro)"]]},
     {"id": "vendite-mesi", "kind": "collection", "file": "vendite-mesi.collection.md", "attributes": {"asset": "vendite-mesi.tsv", "fields": [{"name": "mese", "type": "string"}, {"name": "euro", "type": "number"}]}, "content": [["paragraph", "Le vendite del terzo trimestre."], ["table", {"fields": [{"name": "mese", "type": "string"}, {"name": "euro", "type": "number"}]}, ["tableRow", ["tableCell", "mese"], ["tableCell", "euro"]], ["tableRow", ["tableCell", {"value": "luglio"}, "luglio"], ["tableCell", {"value": "1200"}, "1200"]], ["tableRow", ["tableCell", {"value": "agosto"}, "agosto"], ["tableCell", {"value": "1350"}, "1350"]], ["tableRow", ["tableCell", {"value": "settembre"}, "settembre"], ["tableCell", {"value": "1280"}, "1280"]]]]}
+  ],
+  "diagnostics": [
+    {"severity": "warning", "code": "math-line-invalid", "file": "sintesi.text.md", "target": "1200 euro", "fix": "correggi il codice: invalid syntax"}
   ],
   "document": {"id": "doc", "file": "doc.document.md", "attributes": {"specVersion": "0.1", "pyodide": "314.0.7"}}
 }

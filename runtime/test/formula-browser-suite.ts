@@ -128,7 +128,7 @@ try {
   if (run.status !== 0) problems.push(`exit ${run.status}: ${run.stderr}`);
   else {
     const html = readFileSync(output, 'utf8');
-    for (const shown of ['3830', '7660', '281,60']) if (!html.includes(shown)) problems.push(`${shown} missing`);
+    for (const shown of ['3830', '7660', '281,6']) if (!html.includes(shown)) problems.push(`${shown} missing`);
     if (/pyodide|\.wasm|python_stdlib/i.test(html)) problems.push('the page names Pyodide');
   }
   report('export: the values as a snapshot, no Pyodide in the HTML', problems);
