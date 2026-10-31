@@ -324,13 +324,23 @@ try {
   const apart = await preview();
   await main.click('.cm-content');
   await main.keyboard.press('Control+End');
-  await main.keyboard.type(' Nella finestra.');
-  await apart.waitForFunction(() => document.querySelector('[data-node="nota"]')?.textContent?.includes('Nella finestra.'), undefined, { timeout: 5000 })
+  const long = ' Nella finestra, una frase lunga che supera di molto la colonna di testo dell\'editor e va a capo solo nella vista.';
+  await main.keyboard.type(long);
+  await apart.waitForFunction(() => document.querySelector('[data-node="nota"]')?.textContent?.includes('Nella finestra,'), undefined, { timeout: 5000 })
     .catch(() => problems.push('the separate preview did not follow the change'));
+  // The column of text: about 75 characters at most, though the editor is wider now; the long line wraps in the view.
+  const column = await main.evaluate(() => {
+    const content = document.querySelector<HTMLElement>('#editor .cm-content')!;
+    const line = [...document.querySelectorAll<HTMLElement>('#editor .cm-line')].find((each) => each.textContent?.includes('Nella finestra,'))!;
+    return { content: content.getBoundingClientRect().width, editor: document.getElementById('editor')!.getBoundingClientRect().width, lines: Math.round(line.getBoundingClientRect().height / parseFloat(getComputedStyle(line).lineHeight)) };
+  });
+  if (column.content > 545 || column.editor < 700 || column.lines < 2) problems.push(`the column of text: ${JSON.stringify(column)}`);
   await answerDialogs(0);
   await apart.click('h2');
   await main.waitForFunction(() => window.docAppState?.file === 'cap.chapter.md' && window.docAppState.line === 4, undefined, { timeout: 5000 })
     .catch(async () => problems.push(`the click on the separate preview: ${JSON.stringify(await main.evaluate(() => ({ ...window.docAppState, text: undefined })))}`));
+  // Saved on changing file: the long line is still one line in the file.
+  if (!readFileSync(join(folder, 'nota.text.md'), 'utf8').includes(long)) problems.push('the wrapping of the view reached the file');
   await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find((w) => w.webContents.getURL().includes('detached.html'))?.close());
   await main.waitForFunction(() => !document.body.classList.contains('preview-detached'), undefined, { timeout: 5000 })
     .catch(() => problems.push('closing the separate window did not bring the preview back'));

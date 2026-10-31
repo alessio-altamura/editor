@@ -18,6 +18,8 @@
   --weight: 475; --weight-medium: 575; --weight-strong: 675; --weight-bold: 775;
   /* The text written in the objects: Petrona at 470, 16.55 px, its x (0.453 em) as high as the x of Figtree at 15 px (Alessio, 2026-10-31). */
   --font-prose: "Petrona App", Georgia, serif; --prose-size: 16.55px; --prose-weight: 470; --prose-line: 1.55;
+  /* About 75 characters of Italian text in Petrona as above (7.08 px on average, 47.5 ch). */
+  --prose-measure: 532px;
   --font-code: ui-monospace, "SF Mono", Menlo, monospace; --font-size: 13px;
   --font-size-small: 11.5px; --space-1: 4px; --space-2: 8px; --space-3: 12px;
   --space-4: 16px; --radius-small: 6px; --radius-panel: 12px; --radius-card: 10px;
@@ -99,6 +101,10 @@ input:focus-visible, select:focus-visible { outline-offset: -1px; }
 /* A text file (.<kind>.md): Petrona; the data files and the stylesheets stay in monospace, for their columns and code. */
 .cm-editor.cm-prose .cm-content { font-family: var(--font-prose); font-size: var(--prose-size); font-weight: var(--prose-weight); letter-spacing: 0.01em; line-height: var(--prose-line); }
 .cm-editor.cm-prose .cm-gutters { line-height: var(--prose-line); }
+/* The column of text: at most about 75 characters, in the middle, the line numbers beside it; the
+   wrapping is of the view only (lineWrapping), the file keeps its lines. 12 px: the padding of the lines. */
+.cm-editor.cm-prose .cm-scroller { justify-content: center; }
+.cm-editor.cm-prose .cm-content { flex: 0 1 calc(var(--prose-measure) + 12px); max-width: calc(var(--prose-measure) + 12px); min-width: 0; }
 .cm-editor.cm-focused { outline: none; }
 .cm-tooltip { background: var(--surface) !important; color: var(--text) !important; border: 1px solid var(--field-border) !important; border-radius: var(--radius-small); box-shadow: var(--shadow-float); font-family: var(--font-ui); overflow: hidden; }
 .cm-tooltip-lint .cm-diagnostic { padding: var(--space-1) var(--space-2); }

@@ -167,7 +167,9 @@ cartella: File → Apri cartella (Cmd-O). Si può anche dire da riga di comando:
   unità. L'interfaccia è in Figtree, peso 475 (i pesi più forti 575, 675 e
   775), spaziatura +0,01 em; il testo dei file `.<kind>.md` nell'editor
   della pagina e delle schede in Petrona, peso 470, 16,55 px (la sua «x» alta
-  come quella di Figtree a 15 px), interlinea 1,55; i file di dati e gli
+  come quella di Figtree a 15 px), interlinea 1,55; la colonna di testo è larga al massimo circa 75 caratteri (532 px
+  di testo), centrata con i numeri di riga accanto, e va a capo lì anche
+  in un editor più largo: un a capo della vista, il file non cambia; i file di dati e gli
   `stylesheet` restano in monospazio. I pulsanti comuni hanno un'icona di Lucide, con tooltip e
   `aria-label`. Font e icone sono in `assets/`, con versione e sha256
   (`assets/README.md`), incorporati senza CDN.
