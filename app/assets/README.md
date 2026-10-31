@@ -36,6 +36,7 @@ incorpora nel suo script (`src/renderer/icons.ts`).
 
 | File | sha256 |
 |---|---|
+| `app-window.svg` | f4f2d016719ec3a094120e5a3a8deb28c5a3564bdf2226c764277086f4c262b8 |
 | `archive.svg` | f7242055f3e1c90e7c56f48994fc189bf9642b6bff0d38760f14f29abe207a08 |
 | `arrow-down.svg` | 1f8adf3fd72b04e8f3dbf75a5e8028f7c074ed6e18cd91ec022fd12596a2f25e |
 | `arrow-up.svg` | 130624b17353a284d3902d250ae5e06eeb94a03cb83b3bd7abc44993824f7891 |
@@ -47,6 +48,7 @@ incorpora nel suo script (`src/renderer/icons.ts`).
 | `layout-dashboard.svg` | a142b65b57f7b07befc153e1352ff6b5baad0746b962bb1fd176d9df006ba018 |
 | `list-ordered.svg` | e5c7bd4a48b38f520d5acdc63270bb91e6b00243e0a05e2a945e6627eb9f0b76 |
 | `list-plus.svg` | b5401d4631b79100b073a969802946f48f587925f426094c70126cfd8d124997 |
+| `panel-right.svg` | 4b2ac54ff674e8774c24f8e076f257634d496fbbc0a28484834316c02e65c68d |
 | `plus.svg` | 13b0e35b27b768f864a1b5d6128f77b289b3e190a964a4110e48791fb77e83c7 |
 | `redo-2.svg` | c8f08b9314f6a7de7d918cbc4b96175c5cf8ed98983581cedfb171a720ff2ab8 |
 | `scissors.svg` | d94ac0b5544de02bdc0e0b9310da058941c937eb552acf66c01fda178ebc58fd |

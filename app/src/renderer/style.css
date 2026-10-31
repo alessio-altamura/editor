@@ -16,8 +16,8 @@
   /* The weights of the interface: Figtree at 475 has the ink of the reference at 400 (docs/ricerca/caratteri-app.md);
      the stronger ones keep their distance from it, 100 and 200 above as before. */
   --weight: 475; --weight-medium: 575; --weight-strong: 675; --weight-bold: 775;
-  /* The text written in the objects: Petrona at 470, its x as high as the x of the interface (0.453 em against 0.500 em at 13 px). */
-  --font-prose: "Petrona App", Georgia, serif; --prose-size: 14.5px; --prose-weight: 470; --prose-line: 1.55;
+  /* The text written in the objects: Petrona at 470, 16.55 px, its x (0.453 em) as high as the x of Figtree at 15 px (Alessio, 2026-10-31). */
+  --font-prose: "Petrona App", Georgia, serif; --prose-size: 16.55px; --prose-weight: 470; --prose-line: 1.55;
   --font-code: ui-monospace, "SF Mono", Menlo, monospace; --font-size: 13px;
   --font-size-small: 11.5px; --space-1: 4px; --space-2: 8px; --space-3: 12px;
   --space-4: 16px; --radius-small: 6px; --radius-panel: 12px; --radius-card: 10px;
@@ -171,10 +171,15 @@ input:focus-visible, select:focus-visible { outline-offset: -1px; }
 
 body { padding: 8px; gap: 8px; }
 #navigator, #source > .bar, #editor, #grid,
-#board > .bar, #viewport { background-color: var(--panel); border-radius: var(--radius-panel); border: none; overflow: hidden; }
+#board > .bar, #viewport, body.detached > .bar { background-color: var(--panel); border-radius: var(--radius-panel); border: none; overflow: hidden; }
 #viewport { background-color: var(--plane); }
 #board, #source { gap: 8px; background: transparent; }
-#source > .bar, #board > .bar { border-bottom: none; padding: 5px 8px; }
+#source > .bar, #board > .bar, body.detached > .bar { border-bottom: none; padding: 5px 8px; }
+/* The preview in a window of its own: the editor takes its column; that window has only its bar. */
+body.preview-detached #preview, body.preview-detached #detach { display: none; }
+body.preview-detached #source { grid-column: 2 / 4; }
+body.detached { display: block; }
+body.detached > .bar { height: 44px; box-sizing: border-box; }
 /* The navigator: taller items; the current one, as every highlight, a rectangle with slightly rounded corners. */
 .shelf button { padding: 7px 10px; }
 .shelf button .id { display: none; }

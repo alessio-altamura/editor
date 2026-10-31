@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { GridModel } from '../src/grid-model.js';
 import { mapOffset } from '../src/offset.js';
 import { Session } from '../src/session.js';
+import { placeWindow } from '../src/window-place.js';
 import { PRICES, SALES, SALES_TSV, writeFixture } from './fixture.js';
 
 let failed = 0;
@@ -245,6 +246,22 @@ try {
     if (grid.records[0]![0] !== 'tab\tin un valore' || !grid.dataText().includes('tab in un valore')) problems.push('a tab in a value is written as a space');
     check('the model of the grid: edit, paste, copy, records, fields, undo', problems);
   }
+  // The separate window of the preview: where it was, on its screen; else on the primary screen, centred.
+  {
+    const problems: string[] = [];
+    const primary = { id: 1, workArea: { x: 0, y: 25, width: 1440, height: 875 } };
+    const second = { id: 2, workArea: { x: 1440, y: 0, width: 1920, height: 1080 } };
+    const saved = { bounds: { x: 1600, y: 100, width: 800, height: 900 }, display: 2 };
+    if (JSON.stringify(placeWindow(saved, [primary, second], primary)) !== JSON.stringify(saved.bounds)) problems.push('on its screen');
+    const gone = placeWindow(saved, [primary], primary);
+    if (JSON.stringify(gone) !== JSON.stringify({ x: 320, y: 25, width: 800, height: 875 })) problems.push(`its screen gone: ${JSON.stringify(gone)}`);
+    const off = placeWindow({ bounds: { x: 3330, y: 100, width: 800, height: 600 }, display: 2 }, [primary, second], primary);
+    if (off.x !== 320 || off.width !== 800) problems.push(`off its screen: ${JSON.stringify(off)}`);
+    const first = placeWindow(undefined, [primary], primary);
+    if (first.width !== 900 || first.height !== 875 || first.x !== 270) problems.push(`never placed: ${JSON.stringify(first)}`);
+    check('the separate preview: on its screen, or on the primary one when its screen is gone', problems);
+  }
+
   // The contrast of the tokens, light and dark: text at least 4.5:1 (WCAG AA).
   {
     const problems: string[] = [];

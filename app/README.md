@@ -142,7 +142,16 @@ cartella: File → Apri cartella (Cmd-O). Si può anche dire da riga di comando:
   stesso `runtime` acceso, in una vista sua senza preload: stessa CSP
   nell'intestazione, stesso codice d'accesso. Un clic su un elemento apre
   nell'editor il file del suo `data-source` e porta il cursore all'inizio
-  del range.
+  del range. Il pulsante «Stacca» della barra della pagina la mette in una
+  finestra sua, per esempio su un altro schermo: la pagina dà la sua colonna
+  all'editor; la finestra segue le modifiche come prima, anche sul
+  `canvas`, e un clic porta l'editor della finestra principale alla riga,
+  con il fuoco. «Riporta», nella finestra, o chiuderla la rimette nella
+  pagina; una sola alla volta. Se è staccata, posizione, dimensione e
+  schermo si ricordano nelle preferenze dell'app (`state.json` in
+  `userData`, non nel documento) e alla riapertura torna lì; se quello
+  schermo non c'è più, o la finestra non ci starebbe, si apre al centro
+  dello schermo principale (`src/window-place.ts`).
 - Il tema è quello del sistema, chiaro o scuro.
 - **L'aspetto**, solo dell'`app` (la resa del documento resta quella del suo
   stylesheet), la direzione «studio» con le evidenziazioni di «lavagna»: un
@@ -157,8 +166,8 @@ cartella: File → Apri cartella (Cmd-O). Si può anche dire da riga di comando:
   rispetta il contrasto WCAG AA (almeno 4,5:1), controllato dai test di
   unità. L'interfaccia è in Figtree, peso 475 (i pesi più forti 575, 675 e
   775), spaziatura +0,01 em; il testo dei file `.<kind>.md` nell'editor
-  della pagina e delle schede in Petrona, peso 470, 14,5 px (la sua «x» alta
-  come quella dell'interfaccia), interlinea 1,55; i file di dati e gli
+  della pagina e delle schede in Petrona, peso 470, 16,55 px (la sua «x» alta
+  come quella di Figtree a 15 px), interlinea 1,55; i file di dati e gli
   `stylesheet` restano in monospazio. I pulsanti comuni hanno un'icona di Lucide, con tooltip e
   `aria-label`. Font e icone sono in `assets/`, con versione e sha256
   (`assets/README.md`), incorporati senza CDN.
@@ -230,7 +239,11 @@ tabella; nella griglia scrive «1,5» in un campo `number` e trova 1.5 nel TSV
 salvato con l'anteprima che segue, incolla un blocco di 2 `record` e 3 valori
 che ne aggiunge uno, aggiunge un campo e controlla che un valore sbagliato
 sia segnato; controlla anche che cambiando file e chiudendo l'app chieda di salvare, e
-che il testo finisca sul disco. Con `E2E_SCREENSHOT=<file.png>` un end to
+che il testo finisca sul disco. Prima, stacca l'anteprima in una finestra sua,
+controlla che la pagina dia la colonna all'editor, che una modifica arrivi
+alla finestra e che un clic porti l'editor alla riga; la chiude e controlla
+che l'anteprima torni nella pagina; la stacca di nuovo e, riaperta l'app,
+controlla che sia ancora staccata. Con `E2E_SCREENSHOT=<file.png>` un end to
 end che fallisce salva anche l'immagine della finestra.
 
 ## Com'è fatta

@@ -4,11 +4,29 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { app, BrowserWindow, dialog, ipcMain, Menu, shell, WebContentsView } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, screen, shell, WebContentsView } from 'electron';
 import { Session } from './session.js';
+import { placeWindow, type SavedWindow } from './window-place.js';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
 const stateFile = () => join(app.getPath('userData'), 'state.json');
+
+/** The preferences of the app, in userData: the last folder, and where the preview is. */
+interface AppState {
+  folder?: string;
+  preview?: { detached: boolean; window?: SavedWindow };
+}
+const readState = (): AppState => {
+  try {
+    return JSON.parse(readFileSync(stateFile(), 'utf8')) as AppState;
+  } catch {
+    return {};
+  }
+};
+const writeState = (change: Partial<AppState>): void => {
+  mkdirSync(app.getPath('userData'), { recursive: true });
+  writeFileSync(stateFile(), JSON.stringify({ ...readState(), ...change }));
+};
 
 let session: Session | null = null;
 /** Resolved once the first folder is open: the window may ask before that. */
@@ -16,6 +34,10 @@ let opened: () => void = () => undefined;
 const ready = new Promise<void>((resolve) => (opened = resolve));
 let window: BrowserWindow | null = null;
 let preview: WebContentsView | null = null;
+/** The window of the preview when it is apart from the page: one at most. */
+let detached: BrowserWindow | null = null;
+/** The app is closing: a separate preview closed now stays separate for the next time. */
+let quitting = false;
 /** The file in the editor with changes not saved, as the page says. */
 let dirty: string | null = null;
 let closing = false;
@@ -39,7 +61,7 @@ async function chooseFolder(ask: boolean): Promise<string | null> {
   if (!ask && index > 0 && process.argv[index + 1]) return process.argv[index + 1]!;
   if (!ask) {
     try {
-      const last = (JSON.parse(readFileSync(stateFile(), 'utf8')) as { folder?: string }).folder;
+      const last = readState().folder;
       if (last && existsSync(last)) return last;
     } catch {
       // No last folder.
@@ -53,8 +75,7 @@ async function openFolder(folder: string): Promise<void> {
   await session?.close();
   session = await Session.open(folder, (line) => process.stderr.write(`doc-app: ${line}\n`));
   session.onUpdate(() => window?.webContents.send('doc:updated'));
-  mkdirSync(app.getPath('userData'), { recursive: true });
-  writeFileSync(stateFile(), JSON.stringify({ folder }));
+  writeState({ folder });
   window?.setTitle(`${folder} — doc`);
   window?.webContents.send('doc:updated');
   opened();
@@ -87,7 +108,14 @@ function createWindow(): void {
     const hash = new URL(url).hash;
     if (!hash.startsWith('#source=')) return;
     const match = /^(.*):(\d+):(\d+)-(\d+):(\d+)$/.exec(decodeURIComponent(hash.slice('#source='.length)));
-    if (match && session?.file(match[1]!) !== null) window?.webContents.send('doc:reveal', match[1], Number(match[2]), Number(match[3]));
+    if (match && session?.file(match[1]!) !== null) {
+      window?.webContents.send('doc:reveal', match[1], Number(match[2]), Number(match[3]));
+      // From the separate window: the editor of the main one takes the focus.
+      if (detached !== null) {
+        window?.focus();
+        window?.webContents.focus();
+      }
+    }
   });
   // Closing with changes not saved: ask first.
   window.on('close', (event) => {
@@ -104,7 +132,81 @@ function createWindow(): void {
       }
     });
   });
+  // Closing the main window closes the app, the separate preview with it.
+  window.on('closed', () => {
+    quitting = true;
+    detached?.close();
+  });
   void window.loadFile(join(here, 'renderer/index.html'));
+  if (readState().preview?.detached) window.webContents.once('did-finish-load', () => detachPreview());
+}
+
+/** Where the separate window is now, for the preferences. */
+function rememberDetached(): void {
+  if (detached === null || detached.isDestroyed()) return;
+  const bounds = detached.getBounds();
+  writeState({ preview: { detached: true, window: { bounds, display: screen.getDisplayMatching(bounds).id } } });
+}
+
+/** The preview in its own window, where it was the last time; the page gives its place to the editor. */
+function detachPreview(): void {
+  if (detached !== null || window === null || preview === null) return;
+  const displays = screen.getAllDisplays().map((display) => ({ id: display.id, workArea: display.workArea }));
+  const primary = screen.getPrimaryDisplay();
+  const bounds = placeWindow(readState().preview?.window, displays, { id: primary.id, workArea: primary.workArea });
+  detached = new BrowserWindow({
+    ...bounds,
+    title: 'Anteprima — doc',
+    webPreferences: { preload: join(here, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true },
+  });
+  window.contentView.removeChildView(preview);
+  detached.contentView.addChildView(preview);
+  preview.setVisible(true);
+  // The view under the bar of the window, with the margin and the corners of the frame.
+  const layout = () => {
+    if (detached === null || detached.isDestroyed()) return;
+    const [width = 0, height = 0] = detached.getContentSize();
+    preview?.setBounds({ x: 8, y: 60, width: Math.max(0, width - 16), height: Math.max(0, height - 68) });
+  };
+  layout();
+  detached.on('resize', layout);
+  let saving: ReturnType<typeof setTimeout> | undefined;
+  const later = () => {
+    clearTimeout(saving);
+    saving = setTimeout(rememberDetached, 300);
+  };
+  detached.on('move', later);
+  detached.on('resize', later);
+  detached.on('close', () => {
+    clearTimeout(saving);
+    rememberDetached();
+  });
+  // Closed by the user: the preview goes back to the page; closed with the app: it stays apart.
+  detached.on('closed', () => {
+    detached = null;
+    if (!quitting) attachPreview();
+  });
+  detached.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  detached.webContents.on('will-navigate', (event) => event.preventDefault());
+  void detached.loadFile(join(here, 'renderer/detached.html'));
+  rememberDetached();
+  window.webContents.send('doc:preview-detached', true);
+}
+
+/** The preview back in the page. */
+function attachPreview(): void {
+  if (window === null || preview === null) return;
+  const apart = detached;
+  detached = null;
+  if (apart !== null && !apart.isDestroyed()) {
+    apart.contentView.removeChildView(preview);
+    apart.removeAllListeners('closed');
+    apart.close();
+  }
+  if (!window.contentView.children.includes(preview)) window.contentView.addChildView(preview);
+  const saved = readState().preview?.window;
+  writeState({ preview: { detached: false, ...(saved ? { window: saved } : {}) } });
+  window.webContents.send('doc:preview-detached', false);
 }
 
 /** Every IPC call: the session must be open, and the arguments are checked by it. */
@@ -118,6 +220,14 @@ function handle(channel: string, answer: (current: Session, ...args: never[]) =>
 }
 
 handle('doc:state', (current) => ({ folder: current.folder }));
+ipcMain.handle('doc:detach-preview', (event) => {
+  if (event.sender === window?.webContents) detachPreview();
+});
+// From the page or from the separate window itself.
+ipcMain.handle('doc:attach-preview', (event) => {
+  if (event.sender === window?.webContents || (detached !== null && event.sender === detached.webContents)) attachPreview();
+});
+ipcMain.handle('doc:preview-detached', (event) => event.sender === window?.webContents && detached !== null);
 handle('doc:navigator', (current, query: string) => current.navigator(String(query ?? '')));
 handle('doc:read', (current, file: string) => current.read(file));
 handle('doc:edit', (current, file: string, text: string) => current.edit(file, String(text)));
@@ -178,7 +288,8 @@ ipcMain.handle('doc:open-folder', async () => {
   return folder;
 });
 ipcMain.on('doc:preview-bounds', (event, bounds: { x: number; y: number; width: number; height: number }) => {
-  if (event.sender !== window?.webContents) return;
+  // A separate preview has its own place.
+  if (event.sender !== window?.webContents || detached !== null) return;
   const round = (n: unknown) => Math.max(0, Math.round(Number(n) || 0));
   preview?.setBounds({ x: round(bounds.x), y: round(bounds.y), width: round(bounds.width), height: round(bounds.height) });
   // On the canvas the column of the preview is gone: so is the view.
@@ -216,6 +327,10 @@ app.whenReady().then(async () => {
   const folder = await chooseFolder(false);
   if (folder === null) return app.quit();
   await openFolder(folder);
+});
+
+app.on('before-quit', () => {
+  quitting = true;
 });
 
 app.on('window-all-closed', () => {
