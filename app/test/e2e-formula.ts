@@ -59,6 +59,16 @@ try {
   await page.click('#shelves button[data-id="totale-q1"]');
   await page.waitForSelector('#formula:not([hidden]) .formula-operation', { timeout: 10_000 }).catch(() => problems.push('the builder did not open'));
   if ((await page.inputValue('#formula .formula-operation')) !== 'total') problems.push('the operation read from the code');
+  // The range and the code stay inside the panel, with the preview in the page: they wrap.
+  const inside = await page.evaluate(() => {
+    // Their column: beside it the list of the fields, which they must not run under.
+    const panel = document.querySelector('#formula .formula-main')!.getBoundingClientRect();
+    return ['.formula-range-from', '.formula-range-to', '.formula-code'].map((selector) => {
+      const box = document.querySelector(selector)?.getBoundingClientRect();
+      return box !== undefined && box.right <= panel.right + 0.5 && box.width > 0 ? '' : `${selector} ${box?.right} > ${panel.right}`;
+    }).filter(Boolean);
+  });
+  if (inside.length > 0) problems.push(`out of the panel: ${inside.join(', ')}`);
   if ((await page.textContent('#formula .formula-code')) !== "total(vendite.range('mese', 'gennaio', 'febbraio').vendite)") problems.push(`the code shown: ${await page.textContent('#formula .formula-code')}`);
   if (code) {
     await page.waitForFunction(() => document.querySelector('#formula .formula-value')?.textContent === '1252,76', undefined, { timeout: 30_000 })

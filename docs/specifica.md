@@ -4478,7 +4478,32 @@ suo: l'errore sta sulla prima.
 - La `formula` non si include con un `embed`: è `embed-kind`. Si mostra il
   suo valore con una riga di calcolo.
 
-### 14.8 Gli esempi
+### 14.8 Le operazioni
+
+*(proposte)* `create formula`, come le altre operazioni del §11.9, con
+`--dry-run`:
+
+```
+create formula [--id <id>] [--inputs <voce>,<voce>…] [--code "…"] [--file <file>]
+```
+
+- **Il file.** Quello di `--file`, un `.formula.md` della cartella; altrimenti
+  il primo `multi-object file` di formule del documento, nell'ordine dei
+  percorsi; altrimenti uno nuovo, `formule.formula.md`, alla radice. La
+  formula si aggiunge in fondo, con la sua `attribute line`.
+- **L'`id`** è quello dato, o `formula`, `formula-2` e così via: il codice
+  non ha parole da cui ricavarlo. Un `id` preso o ritirato è rifiutato.
+- **Il codice** è quello dato, oppure `None`, la formula vuota: nessun valore,
+  e il `formula builder` la legge come vuota.
+- **La versione.** Se il `document file` non ha `pyodide`, la stessa
+  operazione lo scrive con la versione del `runtime` (§14.5), così la prima
+  formula non porta l'avviso `pyodide-missing`; con `--dry-run` è nel diff.
+
+Il campo calcolato dell'`app` fa due cose insieme: una formula vuota, con
+l'`id` dal nome del `field`, e il `field` nello `schema` con `formula:
+"[[id]]"`, di tipo `number`.
+
+### 14.9 Gli esempi
 
 Una `formula` con i suoi `inputs`, due in un file, con la descrizione prima del codice; `mean` resta in decimale.
 
