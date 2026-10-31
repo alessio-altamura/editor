@@ -1,0 +1,70 @@
+{
+  "python": "3.13.16 (main, Oct  1 2026, 15:40:24) [GCC 13.3.0]",
+  "checks": [
+    {
+      "source": "0.1 + 0.2",
+      "got": "0.3",
+      "expected": "0.3",
+      "ok": true
+    },
+    {
+      "source": "3830 / 3",
+      "got": "1276.666666666666666666666666666667",
+      "expected": "1276.666666666666666666666666666667",
+      "ok": true
+    },
+    {
+      "source": "1.200 * 2",
+      "got": "2.400",
+      "expected": "2.400",
+      "ok": true
+    },
+    {
+      "source": "9e6144 * 10",
+      "raised": "Overflow"
+    },
+    {
+      "source": "1e-6143 / 1e10",
+      "got": "1E-6153"
+    }
+  ],
+  "spec": [
+    {
+      "source": "1.5 + 0.9",
+      "got": "2.4",
+      "expected": "2.4",
+      "ok": true
+    },
+    {
+      "source": "1.200 * 2",
+      "got": "2.4",
+      "expected": "2.4",
+      "ok": true
+    },
+    {
+      "source": "10 / 3",
+      "got": "3.333333333333333333333333333333333",
+      "expected": "3.333333333333333333333333333333333",
+      "ok": true
+    },
+    {
+      "source": "1200 + 1350 + 1280",
+      "got": "3830",
+      "expected": "3830",
+      "ok": true
+    },
+    {
+      "source": "1 / 0",
+      "raised": "DivisionByZero",
+      "expected": null,
+      "ok": true
+    }
+  ],
+  "generated": {
+    "count": 1000,
+    "seed": 20261031,
+    "same": 1000,
+    "differ": 0,
+    "first_differences": []
+  }
+}
