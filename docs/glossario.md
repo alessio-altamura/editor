@@ -245,14 +245,14 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `target id` | id nel canvas | Chiave proposta per scrivere l'`id` in un nodo del `canvas file` (targetId), se JSON Canvas ammette una chiave in più e gli altri programmi la conservano | proposto | node ref, ref |
 | `computed style` | stile calcolato | Valori finali delle proprietà di un `node`, calcolati dal `runtime` e scritti nel `resolved tree` (deciso il 2026-10-21) | concetto deciso, nome proposto | style, styles |
 | `theme` | tema | Aspetto chiaro o scuro dell'HTML, light o dark: cambiano solo i colori. Un file HTML ha tutti e due e segue quello di chi lo apre; l'`export` può fissarne uno (deciso il 2026-10-22). Proposta: nel `resolved tree` i colori del tema scuro stanno in darkComputedStyle, l'opzione è --theme | concetto deciso, nome proposto | mode, appearance |
-| `template` | template | Forma riutilizzabile senza contenuto: `composition` o `stylesheet`; orientamento di Alessio: anche il modo di vedere una `collection`, che un `chart` applica a dati diversi; distribuibile come `extension` | proposto | theme, preset |
+| `template` | template | Forma riutilizzabile senza contenuto: `composition` o `stylesheet`; anche il modo di vedere una `collection`, con il tipo di grafico e i suoi `role`, che un `chart` applica a dati diversi (deciso il 2026-10-31); distribuibile come `extension` | proposto | theme, preset |
 | `slide template` | schema di slide | Disposizione predefinita di una `slide`, come titolo e contenuto | proposto | layout, master |
 | `placement` | posizioni | Posizioni sistemate a mano nel `wire diagram`; file a parte | concetto deciso, nome proposto | layout |
 | `auto arrange` | disposizione automatica | Disposizione automatica e stabile del `wire diagram` | concetto deciso, nome proposto | layout |
 | `page` | pagina | Pagina del PDF o della `paged preview` | proposto | sheet |
 | `running header` | intestazione di pagina | Testo ripetuto in cima alle pagine | proposto | header |
 | `footnote` | nota | Nota a piè di pagina | proposto | note |
-| `numbering` | numerazione | Numeri di capitoli e immagini, calcolati dal `runtime` e scritti nel `resolved tree` (deciso il 2026-10-21); anche delle `collection` in una `composition`, solo per i `cross-ref` (deciso il 2026-10-30) | concetto deciso, nome proposto | counter |
+| `numbering` | numerazione | Numeri di capitoli e immagini, calcolati dal `runtime` e scritti nel `resolved tree` (deciso il 2026-10-21); anche delle `collection` in una `composition`, solo per i `cross-ref` (deciso il 2026-10-30); i `chart` condividono la numerazione delle figure con le immagini (deciso il 2026-10-31) | concetto deciso, nome proposto | counter |
 | `cross-ref` | riferimento numerato | Collegamento a un `node` numerato che mostra il numero con il `number slot` nel suo testo (deciso il 2026-10-21) | concetto deciso, nome proposto | link |
 | `number slot` | segnaposto del numero | Segnaposto nel testo di un collegamento che il `runtime` sostituisce con il numero del `node` collegato (deciso il 2026-10-21); la forma «{n}» è proposta | concetto deciso, nome proposto | placeholder, field |
 | `recursion` | ricorsione | Attributo opzionale con cui un oggetto si può contenere, o una formula richiamare sé stessa: un limite, infinito o una regola di uscita; senza, non si può (deciso il 2026-10-21) | concetto deciso, nome proposto | loop, self-embed |
@@ -279,7 +279,10 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `view` | vista | Modo di mostrare una `collection`: `grid`, `board`, `calendar` | concetto deciso, nome proposto | layout, composition |
 | `grid` | griglia | `view` a righe e colonne per inserire e guardare i dati | concetto deciso, nome proposto | sheet, table, spreadsheet |
 | `pivot` | pivot | `grid` di una `collection` multidimensionale con le `dimension` su righe e colonne (deciso il 2026-10-30; arriva con i grafici) | concetto deciso, nome proposto | cross table |
-| `chart` | grafico | Oggetto che mostra graficamente una `collection`; il suo contenuto è una vista dei dati; orientamento: applica un `template` a una `collection`, con il campo per ogni ruolo | concetto deciso, nome proposto | graph, plot, view |
+| `chart` | grafico | Oggetto che mostra graficamente una `collection`: applica un `template` a una `collection`, con un `field` per ogni `role` (deciso il 2026-10-31); il `runtime` lo disegna in SVG | concetto deciso, nome proposto | graph, plot, view |
+| `role` | ruolo | Posto di un `template` di `chart` che riceve un `field`, con il `type` che accetta: asse x, asse y, `series` (deciso il 2026-10-31) | concetto deciso, nome proposto | channel, encoding, slot |
+| `series` | serie | `role` che divide i `record` in più linee, barre o punti dello stesso `chart`, uno per valore del suo `field` | concetto deciso, nome proposto | group, color |
+| `base template` | template di partenza | I `template` di `chart` forniti dal `runtime`, come il `base stylesheet` per l'aspetto (deciso il 2026-10-31); nomi proposti bar, line e point | concetto deciso, nome proposto | builtin, default chart |
 | `formula` | formula | Espressione con nome che calcola un `field` o un valore | concetto deciso, nome proposto | function, rule, calc |
 | `computed field` | colonna calcolata | `field` i cui valori vengono da una `formula` | concetto deciso, nome proposto | calculated column |
 | `override` | eccezione | Valore scritto a mano al posto del risultato di una `formula` di colonna, segnalato; ammissione da decidere | aperto | exception |

@@ -595,6 +595,33 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
        spazio; cambiando tipo cadono le chiavi che il tipo nuovo non ha;
        togliere un campo lo toglie dalla chiave. La `grid` dentro le schede
        del `canvas` resta rimandata.
+  - I grafici, primo passo della classe 3 (2026-10-31, Alessio, «1A 2A 3A
+    4A 5A», le raccomandazioni dell'orchestratore; verifica di Vega in
+    [ricerca/grafici-vega.md](ricerca/grafici-vega.md)):
+    1. Un `chart` è un file di testo, per esempio
+       `vendite-mensili.chart.md`: nell'intestazione il `template`, la
+       `collection` e un `field` per ogni ruolo (x, y, serie); nel corpo la
+       descrizione, come per immagini e tabelle. Nel primo passo i template
+       sono quelli forniti dal `runtime`, come il foglio di partenza; i
+       template scritti da chi scrive, come file, vengono dopo. Così il
+       grafico come template, che era un orientamento, è deciso.
+    2. Tipi del primo passo: barre, verticali e orizzontali, linee e punti.
+    3. Disegna Vega: il `runtime` traduce template, ruoli e dati in una
+       specifica Vega-Lite e Vega la disegna in SVG; nell'HTML e nel PDF va
+       solo l'SVG, senza codice. Il formato del documento resta nostro, e il
+       motore si può cambiare senza toccare i file.
+    4. Grafici e immagini condividono la numerazione delle figure («figura
+       1», «figura 2»).
+    5. Il primo passo consegna il `chart` reso nell'HTML, nei due temi, nel
+       PDF, nell'anteprima e nelle schede; i controlli sui tipi dei ruoli;
+       `create chart` con i ruoli proposti dai tipi; nella `grid` un
+       pulsante «Crea grafico». La serie c'è già; l'aggregatore (affiancati
+       e selettore) viene dopo, il selettore con l'HTML vivo.
+    Regole dell'orchestratore presentate senza domanda e non contestate: i
+    colori del grafico seguono lo `stylesheet`, tema scuro compreso; più
+    `record` con lo stesso valore sull'asse x senza una serie sono un
+    errore, con il suggerimento di aggiungere la serie o un filtro; somme e
+    medie arrivano con le formule.
   - Creazione degli oggetti e file (2026-10-23, Alessio, «1A, 2A, 3A, 4D»):
     1. Un capoverso scritto direttamente in una `composition` resta un
        errore, con una correzione automatica, «estrai in un oggetto», che crea

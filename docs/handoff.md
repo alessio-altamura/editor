@@ -527,6 +527,12 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      sceglie la colonna; se la `grid` non si apre resta il TSV alla riga.
      Limite: il record si ricava come «riga del file meno 1», che sbaglia
      con un CSV che ha un a capo dentro un valore fra virgolette.
+   - I grafici, classe 3 (2026-10-31, contesto.md, «I grafici, primo passo
+     della classe 3»; ricerca/grafici-vega.md): `<id>.chart.md` con
+     `template`, `collection` e un `field` per ruolo; template di partenza
+     barre, linee e punti; disegno con Vega-Lite e Vega in SVG; numerazione
+     condivisa con le immagini come figure. Primo passo affidato alla
+     sottosessione session_01ToMUkc2ntsAgupUkrNCYxV.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
