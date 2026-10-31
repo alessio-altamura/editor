@@ -622,6 +622,13 @@ Le proposte restano tali finché Alessio non le accetta o le scarta.
     `record` con lo stesso valore sull'asse x senza una serie sono un
     errore, con il suggerimento di aggiungere la serie o un filtro; somme e
     medie arrivano con le formule.
+    Poi (2026-10-31), sulla domanda se la composizione si faccia anche per
+    via grafica, Alessio: «ok al pannello del grafico». Proposte
+    dell'orchestratore, nello stesso messaggio: aprendo un `chart` l'`app`
+    mostra un pannello con le icone dei `template` e i posti dei ruoli (x,
+    y, serie), dove si trascinano i `field` della `collection`; il pannello
+    scrive le stesse righe del file e l'anteprima si aggiorna mentre si
+    trascina. È lo stesso gesto del dato trascinato nelle formule.
   - Creazione degli oggetti e file (2026-10-23, Alessio, «1A, 2A, 3A, 4D»):
     1. Un capoverso scritto direttamente in una `composition` resta un
        errore, con una correzione automatica, «estrai in un oggetto», che crea
