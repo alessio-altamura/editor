@@ -806,6 +806,13 @@ quando due rami lavorano in parallelo.
   Nota dell'orchestratore: le righe di calcolo di oggi sono già espressioni
   Python valide, quindi diventano espressioni con i nomi senza cambiare
   quelle scritte.
+  Dopo le misure di Pyodide ([ricerca/pyodide-misure.md](ricerca/pyodide-misure.md)),
+  Alessio (2026-10-31, «ok»): il codice gira solo nel Chromium di Electron,
+  in un worker con una CSP senza eval, anche quando lo chiede il `runtime`
+  dalla `cli`; in Node no, perché lì il codice Python esce (file, processi,
+  mountNodeFS). Il costo accettato: un comando della `cli` su un documento
+  con formule apre Electron e paga 3-4 s di avvio; nell'`app` Pyodide si
+  accende una volta, in sottofondo.
 
 - Selezionare nell'anteprima (2026-10-31): oggi un clic su un punto
   dell'anteprima apre l'oggetto nell'editor alla riga giusta; una selezione
