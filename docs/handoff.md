@@ -544,8 +544,13 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      categorie. Visto nella verifica: le etichette dell'asse x si
      sovrappongono («gennaiofebbraio»), perché senza canvas Vega stima la
      larghezza del testo; `create chart` senza ruoli propone x e y ma non la
-     serie, e su dati in forma lunga viene rifiutato. Correzione affidata
-     alla sottosessione.
+     serie, e su dati in forma lunga viene rifiutato. Tutti e due corretti
+     (unito il 2026-10-31): larghezze vere dai font di partenza
+     (src/font-metrics.ts, senza dipendenze nuove) e rotazione a −45° quando
+     le etichette non stanno; la serie proposta è il primo campo di testo o
+     di categorie che con x rende unici i record. Prossimi passi possibili
+     per i grafici: l'aggregatore (affiancati, selettore con l'HTML vivo),
+     i template scritti come file, la proprietà chart-palette.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
