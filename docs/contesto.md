@@ -726,6 +726,10 @@ quando due rami lavorano in parallelo.
   dell'orchestratore: si lega ai commenti, che oggi sono solo commenti HTML
   nel sorgente (specifica §0.13), e il nome va fissato nel glossario prima
   di usarlo.
+  Sul clic su un record di una tabella nell'anteprima, che oggi apre il
+  file TSV come testo, Alessio (2026-10-31): «sì» alla proposta
+  dell'orchestratore di aprire invece la `grid` della `collection` con quel
+  record e quella cella selezionati.
 
 - L'aspetto dell'`app` va svecchiato (2026-10-30): «sembra un'app anni 80».
   Da precisare la direzione visiva; proposta dell'orchestratore: tre

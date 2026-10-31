@@ -516,8 +516,12 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      posizione e schermo in userData/state.json, con il ritorno sullo
      schermo principale se quello salvato manca (placeWindow, soglia di
      120 × 80 px scelta dalla sottosessione). Non verificato dall'e2e: il
-     fuoco dato alla finestra principale dopo il clic. Visto: con
-     l'anteprima staccata le righe dell'editor diventano molto lunghe.
+     fuoco dato alla finestra principale dopo il clic. Le righe lunghe
+     dell'editor con l'anteprima staccata sono risolte (contesto.md,
+     «Larghezza del testo nell'editor»): per i file di testo una colonna
+     centrata di 532 px, circa 75 caratteri, solo CSS; limite: un clic ai
+     lati della colonna non sposta il cursore. In corso: il clic su un
+     record nell'anteprima apre la `grid` con quel record selezionato.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
