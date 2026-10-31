@@ -780,7 +780,10 @@ quando due rami lavorano in parallelo.
   punto porta l'editor alla riga; mostra la `composition` o l'oggetto
   aperto anche quando si è sul `canvas`; chiuderla la riporta nella pagina;
   posizione e schermo della finestra si ricordano nelle preferenze
-  dell'`app`, non nei file del documento.
+  dell'`app`, non nei file del documento. Alessio sulle proposte: «ok a
+  tutto»; valgono anche una sola finestra separata alla volta e, se lo
+  schermo salvato non c'è più, l'apertura sullo schermo principale, scritte
+  nello stesso mandato.
 
 
 - Estensibilità: estensioni e connettori distribuiti da un marketplace, per
