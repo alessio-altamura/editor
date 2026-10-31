@@ -569,9 +569,13 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      ricerca/misure/pyodide/. Avvio circa 3 s per istanza, decimali uguali
      al runtime 1000 su 1000, stessi bit in Node, Chromium ed Electron;
      isolamento solo in un worker di Chromium con la CSP senza eval, mentre
-     in Node il codice esce (file, processi, mountNodeFS). Da far decidere ad
-     Alessio prima del mandato: il codice gira solo in Electron, anche dalla
-     cli.
+     in Node il codice esce (file, processi, mountNodeFS). Deciso da Alessio
+     il 2026-10-31: il codice gira solo in Electron, anche dalla cli.
+     Mandato del primo passo in due parti: A (runtime, oggetti formula,
+     righe di calcolo con nomi, colonne calcolate, range, errori,
+     specifica) mandata alla sottosessione; B (costruttore grafico
+     nell'app, trascinamento dei field, colonne calcolate nella grid) dopo
+     la verifica di A.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
