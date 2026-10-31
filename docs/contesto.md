@@ -763,6 +763,26 @@ quando due rami lavorano in parallelo.
   senza eseguirlo, il punto debole del codice eseguito nella ricerca
   ([ricerca/linguaggio-formule.md](ricerca/linguaggio-formule.md)). Da
   progettare con le formule.
+  Poi (2026-10-31), sulle scelte per le formule, Alessio: «su excel ho
+  sempre odiato la doppia versione, quindi ti propongo formule per via
+  grafica che però diventano codice negli oggetti». Lettura
+  dell'orchestratore, confermata («si ok python»): un linguaggio solo, il
+  codice; le formule non hanno una lingua propria, si costruiscono per via
+  grafica (dati trascinati, operazioni scelte) e l'oggetto salva codice;
+  gli script scritti a mano sono nello stesso linguaggio. Il linguaggio è
+  Python. Applicato con prudenza, perché faceva parte della stessa proposta
+  confermata: i numeri scritti nel codice si leggono come decimali, con il
+  modulo `decimal` della libreria standard, che segue la stessa General
+  Decimal Arithmetic delle righe di calcolo (34 cifre, arrotondamento al
+  pari; verificato: `0.1 + 0.2` dà 0.3 e `3830 / 3` dà
+  1276.666666666666666666666666666667, come l'esempio della specifica); il
+  codice si esegue sempre con lo stesso interprete in WebAssembly
+  (Pyodide), nel `runtime` e nel browser, isolato e con la versione fissata
+  nel documento. Note dell'orchestratore: il codice generato dal costruttore
+  grafico è una parte ristretta di Python, da cui le dipendenze si leggono
+  senza eseguire; negli script a mano gli ingressi sono quelli trascinati.
+  Prima di fissarlo si misurano peso e avvio di Pyodide nell'`app` e nel
+  browser.
 
 - Selezionare nell'anteprima (2026-10-31): oggi un clic su un punto
   dell'anteprima apre l'oggetto nell'editor alla riga giusta; una selezione
@@ -969,7 +989,8 @@ quando due rami lavorano in parallelo.
 
 - Formule: Python era l'ipotesi più semplice, non un vincolo. Da capire quale
   linguaggio convenga, con la possibilità di richiamare codice esterno al
-  documento.
+  documento. Deciso il 2026-10-31: Python, come unico linguaggio del codice
+  (voce «Formule e script»).
 
 ## Punti aperti
 
