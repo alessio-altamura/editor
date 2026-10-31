@@ -3,7 +3,7 @@
 import type { RawValue } from './front-matter.js';
 
 /** Keys whose value is a list: written between quotes, items separated by spaces. */
-export const LIST_KEYS = new Set(['tags', 'class', 'associations']);
+export const LIST_KEYS = new Set(['tags', 'class', 'associations', 'inputs']);
 
 /** A paragraph that is only `{…}` on one line is an attribute line. */
 export function isAttributeLine(text: string): boolean {

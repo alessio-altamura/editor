@@ -409,6 +409,36 @@ il `template` dai tipi, l'`id` da «y per x», il file accanto alla
 `collection` se non ha un posto. `rename`, `move` e il `formatter` valgono
 anche per i `chart`.
 
+## Le formule (classe 4)
+
+Una `formula` (§14 della specifica) è un oggetto in un file
+`<nome>.formula.md`, anche più oggetti per file con le `attribute line`: un
+`id`, gli `inputs` (formule, `collection` o `collection.field`) e il codice
+Python in un blocco ```` ```python ````. Un `field` di una `collection` con
+`formula: "[[id]]"` nello `schema` è una colonna calcolata: la formula una
+volta per `record`, mai scritta nel file dei dati. Una riga di calcolo con un
+nome (`` `= totale_q3 * 2` ``) è un'espressione Python.
+
+Il codice gira solo in un worker di Chromium dentro Electron, mai in Node:
+`src/formula-engine.ts` lancia `src/formula-electron.ts` come processo
+figlio, come la stampa. Il processo serve da 127.0.0.1, sotto un percorso
+casuale, la pagina `web/formula-page.mjs`, il worker `web/formula-worker.mjs`,
+`python/formula_host.py` e i file di Pyodide, con la CSP `default-src 'none';
+script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'`;
+ogni altra richiesta è annullata. Il worker carica Pyodide con `jsglobals: {}`
+e poi toglie `fetch`, `XMLHttpRequest`, `importScripts`, `WebSocket`,
+`indexedDB`, `caches` ed `EventSource`. `formula_host.py` legge il codice con
+`ast` (solo gli ingressi dichiarati, i moduli ammessi, nessun nome `__x__`),
+trasforma i numeri in decimali e lo esegue. Un lavoro che supera 5 s ferma il
+worker, che riparte per il successivo.
+
+`resolveTree` resta sincrono: legge i risultati per chiave, l'hash del codice e
+dei valori in ingresso, e dà i lavori pronti che mancano;
+`resolveWithFormulas` li calcola e risolve di nuovo, finché non ne restano. La
+`cli` accende Electron solo se il documento ha codice da calcolare; `serve`,
+il language server e l'`app` lo accendono in sottofondo la prima volta che il
+documento ne ha, e lo tengono. L'HTML esportato e il PDF hanno solo i valori.
+
 ## Il language server
 
 `language-server` parla LSP su stdin e stdout (`src/language-server.ts`),
@@ -501,6 +531,26 @@ sparisce. `npm run test:browser` lancia anche `test/serve-browser-suite.ts`:
 nel browser la pagina si aggiorna senza ricaricarsi, e il capoverso che si
 legge resta al suo posto anche se il testo sopra cresce.
 
+Le formule (classe 4). `test/formula-suite.ts`, in `npm test`, usa al posto
+di Electron uno script che lascia solo un segno: un documento senza formule
+non lo avvia, con `resolve-tree` e con `export`; con le formule lo avvia, e
+senza un worker ogni formula ha `formula-unavailable`, nessun valore, e il
+resto si risolve. `test/formula_host_test.py`, sempre in `npm test`, prova il lato Python con
+il CPython del sistema, la stessa libreria standard di Pyodide: decimali,
+`collection` e `range`, funzioni, controlli con `ast`, ricorsione.
+`npm run test:code` è il solo comando che esegue Pyodide, nell'Electron del
+pacchetto: gli esempi della specifica con `conf=4` passando dalla `cli`, e
+`test/formula-browser-suite.ts`: le prove di
+isolamento di `ricerca/misure/pyodide/banco/iso-tests.py` (modulo `js` vuoto,
+`run_js` e il costruttore `Function` bloccati, niente file dell'host né del
+test, niente rete verso un server locale, un ciclo infinito fermato
+dall'esterno e il worker che riparte), con il processo lanciato con
+`--isolation-probes`, che solo i test usano e che fa eseguire Python senza i
+controlli di `formula_host.py`; il limite di tempo; i controlli del codice
+(import vietati, nomi non dichiarati, errori alla loro riga) e i decimali;
+l'`export`, che ha i valori e non nomina Pyodide. `npm test` lancia la `conformance-suite` con `CONFORMANCE_CLASSES=0,1,2,3`,
+`test:code` con `CONFORMANCE_CLASSES=4`.
+
 `test/format-suite.ts`, in `npm test`, formatta ogni esempio della specifica
 (in processo, per la velocità) e ogni cartella di `test/fixtures/export` (con
 la cli): l'albero resta uguale, un secondo passaggio non cambia niente,
@@ -578,6 +628,10 @@ il ricalcolo era di 12-13 s.
 - `src/operations.ts`: le operazioni; `src/canvas.ts`: quelle del `canvas`;
   `src/canvas-layout.ts`: gruppi e fare spazio, solo geometria.
 - `src/standalone.ts`: un oggetto da solo, per `/object/<id>` e le schede.
+- `src/formula.ts`: i lavori delle formule, le chiavi, i valori;
+  `src/formula-engine.ts` ed `src/formula-electron.ts`: Electron con
+  Pyodide; `web/` e `python/formula_host.py`: la pagina, il worker e il lato
+  Python.
 - `src/format.ts` e `src/diff.ts`: il formatter e le differenze;
   `src/attribute-line.ts`: la `attribute line` dei `multi-object file`.
 - `fonts/`: i font di partenza e le loro licenze.
@@ -589,7 +643,11 @@ CommonMark con le tabelle di GFM; `yaml` 2.9.1 (ISC); `decimal.js` 10.6.0
 `morphdom` 2.7.8 (MIT) per l'anteprima; `vscode-languageserver` 10.1.2 e
 `vscode-languageserver-textdocument` 1.0.15 (MIT) per il language server;
 `vega` 6.4.0 e `vega-lite` 6.5.0 (BSD-3-Clause) per i grafici, solo nel
-`runtime`: l'HTML e il PDF hanno solo l'SVG. Per lo sviluppo
+`runtime`: l'HTML e il PDF hanno solo l'SVG. `pyodide` 314.0.7 (MPL-2.0),
+Python 3.14.2 in WebAssembly, per le formule: il pacchetto npm ha sha256
+`66b7949e5a0cba2250b586d7e368bf12fb482800748d182c4618254b685ffaa0`
+(ricerca/pyodide-misure.md); si usano cinque suoi file, non modificati, solo
+nel worker di Electron. Per lo sviluppo
 `typescript` 5.9.3 (Apache-2.0) e `@types/node`, `@types/mdast`,
 `@types/ws`, `micromark-util-types` (MIT); per i test `playwright-core` 1.56.1 (Apache-2.0), che guida Electron, e per quelli dell'`export` `parse5` 8.0.1 (MIT) e
 `html-validate` 11.16.2 (MIT), con dipendenze MIT, ISC, BSD e Apache-2.0. Il parser del CSS è scritto qui: il sottoinsieme è

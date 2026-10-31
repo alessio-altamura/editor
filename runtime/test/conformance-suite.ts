@@ -121,7 +121,9 @@ function runExample(example: Example): string[] {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const examples = extractExamples(readFileSync(specPath, 'utf8'));
+  // CONFORMANCE_CLASSES=1,2,3 leaves out the others: class 4 runs the code in Electron with Pyodide.
+  const only = process.env.CONFORMANCE_CLASSES?.split(',');
+  const examples = extractExamples(readFileSync(specPath, 'utf8')).filter((example) => only === undefined || only.includes(example.conformanceClass));
   let failed = 0;
   for (const example of examples) {
     let problems: string[];

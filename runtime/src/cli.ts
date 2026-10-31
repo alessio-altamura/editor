@@ -8,7 +8,8 @@ import { BASE_FONTS } from './base-stylesheet.js';
 import { pageAssets, readAsset } from './assets.js';
 import { makeDiagnostic, sortDiagnostics } from './diagnostic.js';
 import { writeAll, writeJson } from './json-output.js';
-import { listDocumentFiles, resolveTree, SPEC_VERSION } from './resolve-tree.js';
+import { listDocumentFiles, resolveTree, SPEC_VERSION, type ResolveOptions } from './resolve-tree.js';
+import { PyodideEngine, resolveWithFormulas } from './formula-engine.js';
 import { ELECTRON_VERSION, printPdf } from './print.js';
 import { startLanguageServer } from './language-server.js';
 import { serve } from './serve.js';
@@ -157,10 +158,24 @@ function main(args: string[]): number | Promise<number> {
     return EXIT_USAGE;
   }
   if (!readableFolder(folder)) return EXIT_USAGE;
-  const tree = resolveTree(folder, { positions, drawings });
-  // In chunks: a large tree never becomes a single string.
-  writeJson(1, tree, pretty ? 2 : 0);
-  return tree.diagnostics?.some((d) => d.severity === 'error') ? EXIT_ERRORS : EXIT_OK;
+  return withFormulas(folder, { positions, drawings }).then((tree) => {
+    // In chunks: a large tree never becomes a single string.
+    writeJson(1, tree, pretty ? 2 : 0);
+    return tree.diagnostics?.some((d) => d.severity === 'error') ? EXIT_ERRORS : EXIT_OK;
+  });
+}
+
+/**
+ * The tree with the formulas computed (class 4): Electron with Pyodide starts only when the
+ * document has code to compute, and stops at the end; a document without code never starts it.
+ */
+async function withFormulas(folder: string, options: ResolveOptions): Promise<ResolvedTree> {
+  const engine = new PyodideEngine();
+  try {
+    return await resolveWithFormulas(folder, options, engine);
+  } finally {
+    engine.close();
+  }
 }
 
 function readableFolder(folder: string): boolean {
@@ -398,7 +413,7 @@ function readBaseFonts(): Map<string, Uint8Array> {
 }
 
 /** `export` writes the HTML; `print` prints the HTML of the light theme to PDF (§11.4, §11.5). */
-function exportCommand(args: string[], command: 'export' | 'print'): number | Promise<number> {
+async function exportCommand(args: string[], command: 'export' | 'print'): Promise<number> {
   const syntax = command === 'export'
     ? `uso: ${BINARY_NAME} export <cartella> [--root <id>] [-o <file>] [--allow-errors] [--theme light|dark]`
     : `uso: ${BINARY_NAME} print <cartella> [--root <id>] [-o <file>] [--allow-errors]`;
@@ -423,7 +438,7 @@ function exportCommand(args: string[], command: 'export' | 'print'): number | Pr
   if (folder === undefined) return usage(syntax);
   if (!readableFolder(folder)) return EXIT_USAGE;
 
-  const tree = resolveTree(folder, { drawings: true });
+  const tree = await withFormulas(folder, { drawings: true });
   const articles = (tree.nodes ?? []).filter((node) => node.kind === 'article' && node.directive !== true);
   const names = articles.map((node) => node.id ?? node.file).join(', ') || 'nessuno';
   const chosen = rootId === undefined ? articles : articles.filter((node) => node.id === rootId);

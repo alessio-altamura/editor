@@ -8,7 +8,7 @@ import { Decimal, langFormat, localize, plainString, readDecimal, roundHalfEven,
 export const SUPPORTED_TYPES = new Set(['string', 'number', 'integer', 'boolean', 'date', 'datetime', 'time', 'year', 'yearmonth']);
 const FRICTIONLESS_TYPES = new Set([...SUPPORTED_TYPES, 'object', 'array', 'list', 'duration', 'geopoint', 'geojson', 'any']);
 /** The keys of a field read in this step. */
-const FIELD_KEYS = new Set(['name', 'type', 'title', 'description', 'format', 'categories', 'decimalChar', 'groupChar', 'trueValues', 'falseValues']);
+const FIELD_KEYS = new Set(['name', 'type', 'title', 'description', 'format', 'categories', 'decimalChar', 'groupChar', 'trueValues', 'falseValues', 'formula']);
 /** The keys of the dialect read in this step; lineTerminator is read but any line end is accepted. */
 const DIALECT_KEYS = new Set(['delimiter', 'quoteChar', 'doubleQuote', 'skipInitialSpace', 'header', 'lineTerminator']);
 
@@ -27,6 +27,8 @@ export interface Field {
   falseValues: string[];
   /** A type of Frictionless not read in this step, or a format other than default: shown as written. */
   asWritten: boolean;
+  /** A computed field (class 4): the id of its formula, written "[[id]]"; never in the data file. */
+  formula?: string;
 }
 
 /** The data of a collection, read from its file: the fields of the schema and the values of each record. */
@@ -96,6 +98,10 @@ export function readSchema(attributes: { fields?: unknown; primaryKey?: unknown;
       if (key === 'title') {
         if (typeof value === 'string') field.title = value;
         else invalid(name, 'scrivi title come stringa');
+      } else if (key === 'formula') {
+        const reference = typeof value === 'string' ? /^\[\[([^[\]|]+)\]\]$/.exec(value) : null;
+        if (reference === null) invalid(name, 'scrivi formula come "[[id]]"');
+        else field.formula = reference[1]!;
       } else if (key === 'format') {
         if (value !== 'default') {
           unsupported(String(value), 'per ora solo format: default; i valori si mostrano come scritti');

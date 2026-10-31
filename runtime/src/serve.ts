@@ -181,7 +181,7 @@ export function serve(options: ServeOptions): Promise<{ url: string; close: () =
 
   /** The page of one object alone (§11.6): its own resolution, with the buffers of the runtime. */
   const renderObject = (id: string): string | null => {
-    const standalone = standaloneTree(folder, live.overlay, [id], true, PREVIEW_RECORDS);
+    const standalone = standaloneTree(folder, live.overlay, [id], true, PREVIEW_RECORDS, live.formulas.cache);
     return standalonePage(standalone, id, {
       assetUrl: (path: string) => withToken(`/asset/${path.split('/').map(encodeURIComponent).join('/')}`),
       fontUrl: (file: string) => withToken(`/font/${encodeURIComponent(file)}`),
