@@ -783,6 +783,29 @@ quando due rami lavorano in parallelo.
   senza eseguire; negli script a mano gli ingressi sono quelli trascinati.
   Prima di fissarlo si misurano peso e avvio di Pyodide nell'`app` e nel
   browser.
+  Le altre scelte (2026-10-31, Alessio, «2A 3A 4A 5A», le raccomandazioni
+  dell'orchestratore):
+  2. Nel codice il trattino dei nomi diventa trattino basso
+     (`vendite_mesi.vendite_in_euro`): la corrispondenza è sempre
+     reversibile, perché id e `field` non contengono il trattino basso;
+     l'`app` mostra i nomi originali.
+  3. Ogni formula o script è un oggetto con il suo `id`, in un file di testo
+     come gli altri, per esempio `calcoli.formula.md`, anche più oggetti per
+     file; il codice in un blocco python, gli ingressi trascinati e i loro
+     tipi negli attributi dell'oggetto.
+  4. Nessuna eccezione nelle colonne calcolate, come in Grist: per cambiare
+     un valore si cambiano i dati o la formula.
+  5. Il primo passo: gli oggetti formula in Python, generati o scritti a
+     mano, con la sola libreria standard; l'esecuzione isolata in Pyodide; i
+     nomi nelle righe di calcolo; le colonne calcolate nella `grid`; un
+     costruttore grafico di base (trascinare un `field`, scegliere
+     l'operazione da un menu: somma, media, minimo, massimo, conteggio, le
+     quattro operazioni, la condizione); gli errori al punto giusto. Al
+     passo dopo: le librerie esterne con i risultati salvati e le funzioni
+     fra righe. Il mandato parte dopo le misure di Pyodide.
+  Nota dell'orchestratore: le righe di calcolo di oggi sono già espressioni
+  Python valide, quindi diventano espressioni con i nomi senza cambiare
+  quelle scritte.
 
 - Selezionare nell'anteprima (2026-10-31): oggi un clic su un punto
   dell'anteprima apre l'oggetto nell'editor alla riga giusta; una selezione

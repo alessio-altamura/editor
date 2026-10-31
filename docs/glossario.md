@@ -283,9 +283,10 @@ colonne *codice* e *spec*, come in ID-Zero.
 | `role` | ruolo | Posto di un `template` di `chart` che riceve un `field`, con il `type` che accetta: asse x, asse y, `series` (deciso il 2026-10-31) | concetto deciso, nome proposto | channel, encoding, slot |
 | `series` | serie | `role` che divide i `record` in più linee, barre o punti dello stesso `chart`, uno per valore del suo `field` | concetto deciso, nome proposto | group, color |
 | `base template` | template di partenza | I `template` di `chart` forniti dal `runtime`, come il `base stylesheet` per l'aspetto (deciso il 2026-10-31); nomi proposti bar, line e point | concetto deciso, nome proposto | builtin, default chart |
-| `formula` | formula | Espressione con nome che calcola un `field` o un valore | concetto deciso, nome proposto | function, rule, calc |
+| `formula` | formula | Oggetto con un `id` e codice Python che calcola un `field` o un valore; si costruisce per via grafica o si scrive a mano, in un file con estensione .formula.md, anche più oggetti per file (deciso il 2026-10-31) | concetto deciso, nome proposto | function, rule, calc |
 | `computed field` | colonna calcolata | `field` i cui valori vengono da una `formula` | concetto deciso, nome proposto | calculated column |
-| `override` | eccezione | Valore scritto a mano al posto del risultato di una `formula` di colonna, segnalato; ammissione da decidere | aperto | exception |
+| `formula builder` | costruttore di formule | Parte dell'`app` che costruisce una `formula` per via grafica, con i `field` trascinati e le operazioni scelte da un menu, e scrive il codice (deciso il 2026-10-31) | concetto deciso, nome proposto | wizard, editor |
+| `override` | eccezione | Valore scritto a mano al posto del risultato di una `formula` di colonna; non ammesso (deciso il 2026-10-31) | concetto deciso, nome proposto | exception |
 | `expression` | espressione | Calcolo senza nome dentro una `formula`, uno `step` o una `math line` | proposto | formula |
 | `step` | passo | Trasformazione con nome da `collection` a `collection` | proposto | node, block |
 | `wire` | connettore, cavo | Collegamento fra oggetti e `step`; file proprio | concetto deciso, nome proposto | connector, link, edge |

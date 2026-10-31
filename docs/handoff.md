@@ -557,6 +557,16 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      spengono), filtro a spunta (primi 200 valori distinti), descrizione,
      annulla e ripeti; scrive le stesse righe del file con il formatter.
      Nella scheda del canvas resta rimandato.
+   - Formule e script (2026-10-31, contesto.md, «Formule e script»): un solo
+     linguaggio del codice, Python, con le formule costruite per via grafica
+     (`formula builder`) che diventano codice; numeri del codice letti come
+     decimali (decimal, 34 cifre, al pari); esecuzione isolata in Pyodide;
+     oggetti formula in file .formula.md; trattino dei nomi come trattino
+     basso nel codice; nessuna eccezione nelle colonne calcolate. In corso
+     nella sottosessione: le misure di Pyodide (peso, avvio, memoria,
+     decimali, determinismo, isolamento, dipendenze), in
+     ricerca/misure/pyodide/; poi la nota di ricerca e il mandato del primo
+     passo.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
