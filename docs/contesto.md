@@ -765,8 +765,10 @@ quando due rami lavorano in parallelo.
   Sul contrasto, misura dell'orchestratore (stessa nota): alla stessa
   altezza della «x», Figtree a peso 475 e Petrona a peso 470 hanno lo
   stesso inchiostro del riferimento a 400; Figtree a 475 ha anche la stessa
-  lunghezza di riga, Petrona è già più largo di circa il 10%. Peso e
-  spaziatura da confermare con Alessio sulle tavole.
+  lunghezza di riga, Petrona è già più largo di circa il 10%. Sulle tavole
+  Alessio: «ok 475 e 470 con spaziatura». Quindi Figtree a peso 475 e
+  Petrona a peso 470, tutti e due con una spaziatura fra le lettere di
+  +0,01 em.
 
 
 - Estensibilità: estensioni e connettori distribuiti da un marketplace, per
