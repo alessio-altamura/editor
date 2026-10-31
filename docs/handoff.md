@@ -550,7 +550,13 @@ ha chiesto di raccoglierle "in qualcosa di sensato". La sintesi è in
      le etichette non stanno; la serie proposta è il primo campo di testo o
      di categorie che con x rende unici i record. Prossimi passi possibili
      per i grafici: l'aggregatore (affiancati, selettore con l'HTML vivo),
-     i template scritti come file, la proprietà chart-palette.
+     i template scritti come file, la proprietà chart-palette. Il pannello
+     del grafico c'è (unito il 2026-10-31; contesto.md, voce dei grafici,
+     «Poi»): icone dei template, menu delle collection, posti x, y e serie
+     dove si trascinano i field (i posti che non accettano il tipo si
+     spengono), filtro a spunta (primi 200 valori distinti), descrizione,
+     annulla e ripeti; scrive le stesse righe del file con il formatter.
+     Nella scheda del canvas resta rimandato.
 5. **Misure da fare:**
    - qualità e limiti della paginazione HTML nel browser (note, intestazioni,
      numeri di pagina);
