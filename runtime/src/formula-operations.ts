@@ -7,6 +7,7 @@ import { fieldName } from './collection.js';
 import { formatText, writeAttributeLine, writeHeader } from './format.js';
 import type { RawValue } from './front-matter.js';
 import { idFromWords, nodeOf, OperationError, shape, splice, takenIds, type Plan, type Workspace } from './operations.js';
+import { PYODIDE_VERSION } from './formula.js';
 import { ID_FORM, type ResolvedTree } from './tree.js';
 
 /** The file of the formulas when the document has none: a multi-object file at its root. */
@@ -58,7 +59,24 @@ export function planCreateFormula(workspace: Workspace, tree: ResolvedTree, requ
   const file = formulasFile(workspace, tree, request.file);
   const plan: Plan = { operation: 'create', files: new Map(), copies: [], summary: { id, kind: 'formula', file } };
   addFormula(workspace, plan, file, id, inputs, code);
+  pinPyodide(workspace, plan);
   return plan;
+}
+
+/**
+ * The document file fixes the Pyodide of the code (§14.5): a document that gets a formula
+ * and does not say it gets `pyodide` in the same plan, so it has no `pyodide-missing`.
+ */
+function pinPyodide(workspace: Workspace, plan: Plan): void {
+  const documents = workspace.files().filter((file) => /\.document\.md$/.test(file));
+  if (documents.length !== 1) return;
+  const file = documents[0]!;
+  const text = plan.files.get(file) ?? workspace.read(file);
+  if (text === null) return;
+  const fileShape = shape(file, text);
+  if (fileShape.header === null || fileShape.header.some(([key]) => key === 'pyodide')) return;
+  const entries: Array<[string, RawValue]> = [...fileShape.header, ['pyodide', { type: 'string', value: PYODIDE_VERSION, plain: false }]];
+  plan.files.set(file, formatText(file, `---\n${writeHeader(entries)}\n---\n${fileShape.text.slice(fileShape.headerEnd)}`));
 }
 
 function addFormula(workspace: Workspace, plan: Plan, file: string, id: string, inputs: string[], code: string): void {
@@ -137,5 +155,6 @@ export function planComputedField(workspace: Workspace, tree: ResolvedTree, coll
   const file = formulasFile(workspace, tree);
   plan.summary.file = file;
   addFormula(workspace, plan, file, id, [], EMPTY_CODE);
+  pinPyodide(workspace, plan);
   return plan;
 }

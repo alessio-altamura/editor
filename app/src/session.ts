@@ -152,7 +152,8 @@ export class Session {
     for (const node of this.live.tree.nodes ?? []) {
       // The document file and the canvas file are not objects to place.
       if (node.id === undefined || node.kind === 'document' || node.kind === 'canvas-file') continue;
-      const title = describe(node);
+      // A formula by its title, or its id: its code is not a name; the value goes next to it.
+      const title = node.kind === 'formula' ? (typeof node.attributes?.title === 'string' && node.attributes.title !== '' ? node.attributes.title : node.id) : describe(node);
       if (wanted !== '' && !node.id.toLowerCase().includes(wanted) && !title.toLowerCase().includes(wanted)) continue;
       const value = node.kind === 'formula' ? formulaDisplay(node) : undefined;
       shelves.set(node.kind, [...(shelves.get(node.kind) ?? []), { id: node.id, title, file: node.file, onCanvas: onCanvas.has(node.id), ...(value !== undefined ? { value } : {}) }]);

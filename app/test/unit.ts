@@ -94,6 +94,8 @@ const until = async (test: () => boolean, ms = 3000) => {
     if (local.python() !== 'failed') problems.push(`python ${local.python()}`);
     const shelf = local.navigator().find((each) => each.kind === 'formula');
     if (shelf?.items.map((item) => item.id).join() !== 'a-mano,doppio,totale-q1') problems.push(`shelf ${JSON.stringify(shelf)}`);
+    // A formula is labelled by its id, not by its code.
+    if (shelf?.items.map((item) => item.title).join() !== 'a-mano,doppio,totale-q1') problems.push(`labels ${shelf?.items.map((item) => item.title).join()}`);
     const source = local.formulaSource('calcoli.formula.md');
     if (source?.id !== 'totale-q1' || source.ids.join() !== 'totale-q1,doppio,a-mano' || source.column !== null || source.inputs.join() !== 'vendite.mese,vendite.vendite') problems.push(`source ${JSON.stringify(source).slice(0, 300)}`);
     if (!source?.problems.some((problem) => problem.includes('formula-unavailable'))) problems.push(`without a worker, the problem: ${source?.problems.join()}`);

@@ -81,6 +81,9 @@ try {
     const plain = prepare('esempio-34', mkdtempSync(join(base, 'd-')));
     const fresh = runCli(['create', 'formula', '--folder', plain], { env });
     if (fresh.status !== 0 || readFileSync(join(plain, 'formule.formula.md'), 'utf8') !== '---\nkind: formula\n---\n{#formula}\n\n```python\nNone\n```\n') problems.push(`a new formula file: ${fresh.stderr}`);
+    // The first formula of a document without pyodide: the document file gets it, in the same plan.
+    if (!readFileSync(join(plain, 'doc.document.md'), 'utf8').includes('\npyodide: 314.0.7\n')) problems.push(`pyodide not added: ${readFileSync(join(plain, 'doc.document.md'), 'utf8')}`);
+    if (JSON.stringify(JSON.parse(run.stdout.toString('utf8')).written) !== '["calcoli.formula.md"]') problems.push(`a document with pyodide was written again: ${run.stdout}`);
     if (existsSync(mark)) rmSync(mark);
     // A computed field: the formula and the field of the schema that names it.
     const workspace = diskWorkspace(folder, () => [...listDocumentFiles(folder).keys()]);

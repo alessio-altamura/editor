@@ -184,10 +184,13 @@ input:focus-visible, select:focus-visible { outline-offset: -1px; }
 .formula-chips .chart-chip:not(.empty) { padding: 2px 4px 2px var(--space-2); border: 1px solid var(--line); border-radius: var(--radius-small); background: var(--surface); }
 .formula-inputs.over { border-style: solid; background: color-mix(in srgb, var(--accent) 14%, transparent); }
 .formula-args { display: flex; flex-direction: column; gap: var(--space-2); }
-.formula-args .chart-place { grid-template-columns: 70px repeat(5, auto); justify-content: start; }
+/* The range and the operands wrap when the panel is narrow. */
+.formula-args .chart-place { display: flex; flex-wrap: wrap; align-items: center; min-width: 0; }
+.formula-args .chart-place > .chart-role { flex: 0 0 70px; }
+.formula-args select { max-width: 100%; min-width: 0; }
 .formula-operand { display: inline-flex; gap: var(--space-1); }
 .formula-number { width: 90px; }
-.formula-code { grid-column: 2 / -1; margin: 0; padding: var(--space-1) var(--space-2); font-family: var(--font-code, monospace); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-small); white-space: pre-wrap; }
+.formula-code { grid-column: 2 / -1; min-width: 0; max-height: 160px; overflow: auto; overflow-wrap: anywhere; margin: 0; padding: var(--space-1) var(--space-2); font-family: var(--font-code, monospace); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-small); white-space: pre-wrap; }
 .formula-value { grid-column: 2 / -1; font-variant-numeric: tabular-nums; }
 .formula-value.error { color: var(--danger); }
 .shelf button .value { color: var(--muted); font-size: var(--font-size-small); font-variant-numeric: tabular-nums; }
