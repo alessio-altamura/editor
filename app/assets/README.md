@@ -41,6 +41,8 @@ incorpora nel suo script (`src/renderer/icons.ts`).
 | `arrow-down.svg` | 1f8adf3fd72b04e8f3dbf75a5e8028f7c074ed6e18cd91ec022fd12596a2f25e |
 | `arrow-up.svg` | 130624b17353a284d3902d250ae5e06eeb94a03cb83b3bd7abc44993824f7891 |
 | `chart-column.svg` | af4ee619bc9a99204bc1f5fcb8e1f513082f2b6ae2fe6c9e707ec0ca1050d34c |
+| `chart-line.svg` | e163889827cc20b7c211ab96b75d3d4950f9291651149151e04f785d444c6462 |
+| `chart-scatter.svg` | 5696df8125247bf4465d8f355918489f8169520b64e1700c542eb648c401575d |
 | `chevron-down.svg` | 21afe74b7ce0cbfcce3521bbfeeebca21eb8448c87c85954f0c054fda13c3993 |
 | `chevron-up.svg` | 3cd3475a93afe2ba93bb376cfd9d9aff3a0036758620b75012649060def8638d |
 | `file-code.svg` | ccd16fc79d95cfffc44450e40e180f883da6ca9b56deac15b8a335d2511e83a2 |
@@ -57,5 +59,6 @@ incorpora nel suo script (`src/renderer/icons.ts`).
 | `table.svg` | aff672ae047ff2a58a2c60a3c4b38c103e7c6c2e6f60bc6443e1313c4c7daeef |
 | `trash-2.svg` | 01f42022d441255477325bcfc5c8839f2ee0ce7f100b7e3df050ae1c70275bfc |
 | `undo-2.svg` | 0c448c128c77d8081df56f07161b8d130181aee027de47d00d9d906869155320 |
+| `x.svg` | 6745c1c93c65b8ecade72b87af0ee1a4c3640eaebe426e46c45ff773d6708f10 |
 
 Per controllare: `sha256sum fonts/*.woff2 icons/*.svg`.

@@ -299,6 +299,16 @@ try {
   const chartText = existsSync(join(folder, chartFile)) ? readFileSync(join(folder, chartFile), 'utf8') : '';
   if (!/template: bar\ncollection: "\[\[vendite\]\]"\nx: mese\ny: vendite\n/.test(chartText)) problems.push(`the chart written: ${JSON.stringify(chartText)}`);
   const chartId = /^id: (.+)$/m.exec(chartText)?.[1] ?? '';
+  // The chart opens in its panel: the template changed to lines, a field dragged onto the series, saved.
+  await main.waitForSelector('#chart:not([hidden]) .chart-field', { timeout: 10_000 }).catch(() => problems.push('the chart did not open in its panel'));
+  await main.click('#chart [data-template="line"]');
+  await main.dragAndDrop('#chart .chart-field[data-field="pezzi"]', '#chart .chart-place[data-role="series"]');
+  if (!(await main.textContent('#chart .chart-place[data-role="series"] .chart-chip'))?.startsWith('pezzi')) problems.push('pezzi was not put on the series');
+  await main.click('#chart .chart-place[data-role="series"]');
+  await main.keyboard.press('Control+S');
+  for (let i = 0; i < 50 && !readFileSync(join(folder, chartFile), 'utf8').includes('series: pezzi'); i++) await new Promise((r) => setTimeout(r, 100));
+  const panelText = readFileSync(join(folder, chartFile), 'utf8');
+  if (!/template: line\n/.test(panelText) || !/series: pezzi\n/.test(panelText)) problems.push(`the chart saved by the panel: ${JSON.stringify(panelText)}`);
   await main.evaluate((id) => (window as unknown as Api).docApp.showObject(id), chartId);
   let objectPreview: Page | undefined;
   for (let i = 0; i < 100 && objectPreview === undefined; i++) {
@@ -306,6 +316,8 @@ try {
     if (objectPreview === undefined) await new Promise((r) => setTimeout(r, 100));
   }
   if (!(await objectPreview?.waitForSelector('figure[data-kind="chart"] svg[role="img"]', { timeout: 10_000 }).then(() => true).catch(() => false))) problems.push('no chart in the preview');
+  // The preview follows the panel: the legend of the series.
+  if (!(await objectPreview?.waitForFunction(() => [...document.querySelectorAll('figure[data-kind="chart"] svg text')].some((text) => text.textContent === 'pezzi'), undefined, { timeout: 10_000 }).then(() => true).catch(() => false))) problems.push('the preview does not show the series');
   await main.evaluate((id) => (window as unknown as Api).docApp.recall(id), chartId);
   await main.click('[data-show="canvas"]');
   await main.waitForFunction((id) => document.querySelector(`.card[data-id="${id}"] .card-body`)?.shadowRoot?.querySelector('svg[role="img"]') != null, chartId, { timeout: 10_000 })

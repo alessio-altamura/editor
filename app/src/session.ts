@@ -8,6 +8,8 @@ import { CARD_SIZE, canvasCards, planArchive, planArrange, planCompose, planGath
 import { besidePlace } from 'doc-runtime/dist/src/canvas-layout.js';
 import { planTurnInto, tableAtLine } from 'doc-runtime/dist/src/collection-operations.js';
 import { formatText, writeHeader } from 'doc-runtime/dist/src/format.js';
+import { readRecords, readSchema } from 'doc-runtime/dist/src/collection.js';
+import type { ChartCollection, ChartSource, ChartState } from './chart-model.js';
 import { parseYamlMap, splitFrontMatter, type RawValue } from 'doc-runtime/dist/src/front-matter.js';
 import { completions, definitionOf, describe, hoverAt, referenceAt, type Completion, type Position, type Range } from 'doc-runtime/dist/src/language-services.js';
 import { CARD_RECORDS, LiveFolder } from 'doc-runtime/dist/src/live.js';
@@ -62,6 +64,9 @@ export interface EditorDiagnostic {
   severity: 'error' | 'warning';
   code: string;
   message: string;
+  /** What the diagnostic is about, and its suggestion: the chart panel shows them on the place of the role. */
+  target?: string;
+  fix?: string;
 }
 
 const normalize = (text: string) => text.replace(/^﻿/, '').replace(/\r\n?/g, '\n');
@@ -162,6 +167,8 @@ export class Session {
         severity: d.severity,
         code: d.code,
         message: `${d.code}${d.target === undefined ? '' : `: ${d.target}`}${d.fix === undefined ? '' : ` → ${d.fix}`}`,
+        ...(d.target !== undefined ? { target: d.target } : {}),
+        ...(d.fix !== undefined ? { fix: d.fix } : {}),
       }));
   }
 
@@ -359,6 +366,92 @@ export class Session {
     const table = tableAtLine(this.live.tree, file, this.read(file), line + 1);
     if (table === null) return { error: 'qui non c\'è una tabella di un text o di uno scratch' };
     return this.operate((workspace, tree) => planTurnInto(workspace, tree, table.id, { line: table.line }));
+  }
+
+  /**
+   * What the chart panel opens on: the state of the chart as written (the buffers hold),
+   * and the collections of the document, each with its fields and, for the filter, the
+   * distinct values of each field as written, the first 200. Null if the file does not read.
+   */
+  chartSource(path: string): ChartSource | null {
+    const file = this.safe(path);
+    const split = splitFrontMatter(this.read(file));
+    if ('error' in split || split.frontMatter === null) return null;
+    const map = parseYamlMap(split.frontMatter);
+    if ('error' in map) return null;
+    const raw = (key: string) => map.entries.find(([name]) => name === key)?.[1];
+    const string = (key: string) => {
+      const value = raw(key);
+      return value?.type === 'string' && value.value !== '' ? value.value : undefined;
+    };
+    if (string('kind') !== 'chart') return null;
+    const filterRaw = raw('filter');
+    const filter: Record<string, string[]> = {};
+    if (filterRaw?.type === 'structure' && filterRaw.value !== null && typeof filterRaw.value === 'object' && !Array.isArray(filterRaw.value)) {
+      for (const [name, values] of Object.entries(filterRaw.value as Record<string, unknown>)) {
+        const list = typeof values === 'string' ? [values] : Array.isArray(values) ? values.filter((value): value is string => typeof value === 'string') : [];
+        if (list.length > 0) filter[name] = list;
+      }
+    }
+    const state: ChartState = {
+      template: string('template') ?? 'bar',
+      collection: (string('collection') ?? '').replace(/^\[\[(.*)\]\]$/, '$1'),
+      ...(string('x') !== undefined ? { x: string('x')! } : {}),
+      ...(string('y') !== undefined ? { y: string('y')! } : {}),
+      ...(string('series') !== undefined ? { series: string('series')! } : {}),
+      filter,
+      description: split.body.trim(),
+    };
+    const collections: ChartCollection[] = [];
+    for (const node of this.live.tree.nodes ?? []) {
+      if (node.kind !== 'collection' || node.id === undefined) continue;
+      const fields = (Array.isArray(node.attributes?.fields) ? node.attributes.fields : []) as Array<Record<string, unknown>>;
+      const named = fields.filter((field) => typeof field.name === 'string').map((field) => ({ name: String(field.name), type: typeof field.type === 'string' ? field.type : 'string', ...(typeof field.title === 'string' ? { title: field.title } : {}) }));
+      const values: Record<string, string[]> = {};
+      const data = this.dataFile(node.file);
+      if (data !== null) {
+        const extension = /\.csv$/i.test(data) ? 'csv' : 'tsv';
+        const { schema } = readSchema({ fields, ...(node.attributes?.dialect !== undefined ? { dialect: node.attributes.dialect } : {}) }, extension);
+        const records = readRecords(this.read(data), schema).records;
+        const header = records.shift()?.cells.map((cell) => cell.text) ?? [];
+        for (const field of named) {
+          const at = header.indexOf(field.name);
+          values[field.name] = at < 0 ? [] : [...new Set(records.map((record) => record.cells[at]?.text ?? '').filter((text) => text !== ''))].slice(0, 200);
+        }
+      }
+      collections.push({ id: node.id, fields: named, values });
+    }
+    return { file, state, collections };
+  }
+
+  /** The text of a chart file with the state of the panel, the other keys as written, through the formatter. */
+  chartText(path: string, state: ChartState): string {
+    const file = this.safe(path);
+    const split = splitFrontMatter(this.read(file));
+    if ('error' in split || split.frontMatter === null) throw new Error(`${file}: il front matter non si legge`);
+    const map = parseYamlMap(split.frontMatter);
+    if ('error' in map) throw new Error(`${file}: il front matter non si legge`);
+    const own = new Set(['template', 'collection', 'x', 'y', 'series', 'filter']);
+    const plain = (value: string): RawValue => ({ type: 'string', value, plain: true });
+    const entries: Array<[string, RawValue]> = map.entries.filter(([key]) => !own.has(key));
+    entries.push(['template', plain(String(state.template))]);
+    if (state.collection !== '') entries.push(['collection', { type: 'string', value: `[[${state.collection}]]`, plain: false }]);
+    for (const role of ['x', 'y', 'series'] as const) if (typeof state[role] === 'string' && state[role] !== '') entries.push([role, plain(state[role]!)]);
+    const filter = Object.fromEntries(Object.entries(state.filter ?? {}).filter(([, values]) => Array.isArray(values) && values.length > 0).map(([name, values]) => [String(name), values.map(String)]));
+    if (Object.keys(filter).length > 0) entries.push(['filter', { type: 'structure', value: filter }]);
+    const description = String(state.description ?? '').trim();
+    return formatText(file, `---\n${writeHeader(entries)}\n---\n${description}${description === '' ? '' : '\n'}`);
+  }
+
+  /** The panel changed: its text holds for the tree and the preview, before it is saved. */
+  chartEdit(path: string, state: ChartState): string {
+    const text = this.chartText(path, state);
+    this.edit(path, text);
+    return text;
+  }
+
+  chartSave(path: string, state: ChartState): string {
+    return this.save(path, this.chartText(path, state));
   }
 
   /** What the grid opens on: the schema as written in the descriptor, the data file and its text (the buffers hold). */

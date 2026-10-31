@@ -8,6 +8,7 @@ import { EditorView } from '@codemirror/view';
 import { mapOffset } from '../offset.js';
 import type { DocApp } from '../preload.js';
 import { createBoard } from './board.js';
+import { createChartPanel } from './chart-panel.js';
 import { createGrid } from './grid.js';
 import { editorExtensions, offsetOf, position } from './editor.js';
 import { decorate, setIcon } from './icons.js';
@@ -16,7 +17,7 @@ declare global {
   interface Window {
     docApp: DocApp;
     /** For the end-to-end test: what the editor shows, and the view. */
-    docAppState: { file: string | null; line: number; character: number; text: string; view: 'canvas' | 'page'; mode: 'text' | 'grid' };
+    docAppState: { file: string | null; line: number; character: number; text: string; view: 'canvas' | 'page'; mode: 'text' | 'grid' | 'chart' };
   }
 }
 
@@ -28,8 +29,8 @@ let saved = '';
 let view: EditorView;
 let current: 'canvas' | 'page' = 'canvas';
 /** A collection opens in its grid; the switch brings the text of the descriptor, as before. */
-let mode: 'text' | 'grid' = 'text';
-const isDirty = () => file !== null && (mode === 'grid' ? grid.isDirty() : view.state.doc.toString() !== saved);
+let mode: 'text' | 'grid' | 'chart' = 'text';
+const isDirty = () => file !== null && (mode === 'grid' ? grid.isDirty() : mode === 'chart' ? chartPanel.isDirty() : view.state.doc.toString() !== saved);
 const tellDirty = () => api.setDirty(isDirty() ? file : board.dirtyFile());
 let pushing: ReturnType<typeof setTimeout> | undefined;
 
@@ -41,8 +42,8 @@ const updateState = () => {
 /** Saves through the formatter, and keeps the cursor as close as it can to where it was. */
 const save = async () => {
   if (file === null) return;
-  if (mode === 'grid') {
-    await grid.save();
+  if (mode === 'grid' || mode === 'chart') {
+    await (mode === 'grid' ? grid.save() : chartPanel.save());
     tellDirty();
     return;
   }
@@ -113,6 +114,10 @@ async function settlePage(): Promise<boolean> {
     if (data !== null) await api.discard(data);
     grid.close();
     await grid.open(file!);
+  } else if (mode === 'chart') {
+    await api.discard(file!);
+    chartPanel.close();
+    await chartPanel.open(file!);
   } else {
     await api.discard(file!);
     view.setState(pageState(saved));
@@ -137,12 +142,14 @@ async function open(target: string, line: number, character: number, alone?: str
     const data = /\.collection\.md$/.test(target) ? await api.dataFile(target) : null;
     $('data').hidden = data === null;
     $('data').dataset.file = data ?? '';
-    await showMode(data !== null && (await grid.open(target)) ? 'grid' : 'text');
+    // A collection opens in its grid, a chart in its panel.
+    await showMode(data !== null ? ((await grid.open(target)) ? 'grid' : 'text') : /\.chart\.md$/.test(target) && (await chartPanel.open(target)) ? 'chart' : 'text');
     if (alone === undefined) await api.showPreview(target);
     void renderNavigator();
   }
   if (alone !== undefined) await api.showObject(alone);
   if (mode === 'grid') grid.focus();
+  else if (mode === 'chart') chartPanel.focus();
   else {
     const offset = offsetOf(view.state, line, character);
     view.dispatch({ selection: EditorSelection.cursor(offset), effects: EditorView.scrollIntoView(offset, { y: 'center' }) });
@@ -179,14 +186,17 @@ async function revealInGrid(descriptor: string, line: number, column: number): P
 }
 
 /** The grid or the text of a collection; the switch shows only for a collection with its data. */
-async function showMode(next: 'text' | 'grid'): Promise<void> {
+async function showMode(next: 'text' | 'grid' | 'chart'): Promise<void> {
   mode = next;
-  if (next === 'text') grid.close();
-  $('editor').hidden = next === 'grid';
-  $('grid').hidden = next === 'text';
-  $('mode').hidden = !$('data').dataset.file;
-  $('mode').title = next === 'grid' ? 'Il descrittore come testo' : 'I dati in una griglia';
-  setIcon($('mode'), next === 'grid' ? 'file-code' : 'table', next === 'grid' ? 'Testo' : 'Griglia');
+  if (next !== 'grid') grid.close();
+  if (next !== 'chart') chartPanel.close();
+  const chart = /\.chart\.md$/.test(file ?? '');
+  $('editor').hidden = next !== 'text';
+  $('grid').hidden = next !== 'grid';
+  $('chart').hidden = next !== 'chart';
+  $('mode').hidden = !$('data').dataset.file && !chart;
+  $('mode').title = next !== 'text' ? 'Il file come testo' : chart ? 'Il grafico in un pannello' : 'I dati in una griglia';
+  setIcon($('mode'), next !== 'text' ? 'file-code' : chart ? 'chart-column' : 'table', next !== 'text' ? 'Testo' : chart ? 'Pannello' : 'Griglia');
   updateState();
 }
 
@@ -265,6 +275,8 @@ const board = createBoard(api, {
   changed: () => void renderNavigator(),
 });
 
+const chartPanel = createChartPanel(api, $('chart'), { changed: () => tellDirty() });
+
 const grid = createGrid(api, $('grid'), {
   changed: () => tellDirty(),
   // The chart reads the collection on disk: the grid is saved first.
@@ -317,12 +329,13 @@ async function start(): Promise<void> {
   $('mode').addEventListener('click', async () => {
     if (file === null || !(await settlePage())) return;
     const target = file;
-    if (mode === 'grid') {
-      // The text of the descriptor, as it is now on disk.
+    if (mode !== 'text') {
+      // The text of the file, as it is now on disk.
       saved = await api.read(target);
       view.setState(pageState(saved));
       await showMode('text');
-    } else await showMode((await grid.open(target)) ? 'grid' : 'text');
+    } else if (/\.chart\.md$/.test(target)) await showMode((await chartPanel.open(target)) ? 'chart' : 'text');
+    else await showMode((await grid.open(target)) ? 'grid' : 'text');
   });
   $('data').addEventListener('click', () => {
     if ($('data').dataset.file) void open($('data').dataset.file!, 0, 0);
@@ -337,6 +350,7 @@ async function start(): Promise<void> {
   });
   api.onUpdate(() => {
     void renderNavigator();
+    if (mode === 'chart') chartPanel.refresh();
     forceLinting(view);
     if (current === 'canvas') void board.refresh();
   });

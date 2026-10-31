@@ -6,6 +6,8 @@ import archive from '../../assets/icons/archive.svg';
 import arrowDown from '../../assets/icons/arrow-down.svg';
 import arrowUp from '../../assets/icons/arrow-up.svg';
 import chartColumn from '../../assets/icons/chart-column.svg';
+import chartLine from '../../assets/icons/chart-line.svg';
+import chartScatter from '../../assets/icons/chart-scatter.svg';
 import chevronDown from '../../assets/icons/chevron-down.svg';
 import chevronUp from '../../assets/icons/chevron-up.svg';
 import fileCode from '../../assets/icons/file-code.svg';
@@ -22,6 +24,7 @@ import tableProperties from '../../assets/icons/table-properties.svg';
 import table from '../../assets/icons/table.svg';
 import trash2 from '../../assets/icons/trash-2.svg';
 import undo2 from '../../assets/icons/undo-2.svg';
+import xIcon from '../../assets/icons/x.svg';
 
 const ICONS: Record<string, string> = {
   'app-window': appWindow,
@@ -29,6 +32,8 @@ const ICONS: Record<string, string> = {
   'arrow-down': arrowDown,
   'arrow-up': arrowUp,
   'chart-column': chartColumn,
+  'chart-line': chartLine,
+  'chart-scatter': chartScatter,
   'chevron-down': chevronDown,
   'chevron-up': chevronUp,
   'file-code': fileCode,
@@ -45,6 +50,7 @@ const ICONS: Record<string, string> = {
   'table': table,
   'trash-2': trash2,
   'undo-2': undo2,
+  'x': xIcon,
 };
 
 /** The SVG of an icon, without the license comment, hidden to screen readers. */

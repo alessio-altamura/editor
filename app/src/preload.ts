@@ -1,6 +1,7 @@
 // The preload of the window: a small API over IPC, nothing of Node reaches the page.
 import { contextBridge, ipcRenderer } from 'electron';
 import type { CanvasGroup } from 'doc-runtime/dist/src/canvas.js';
+import type { ChartSource, ChartState } from './chart-model.js';
 import type { GridSource } from './grid-model.js';
 import type { CardView, Done, ObjectSource } from './session.js';
 
@@ -26,6 +27,10 @@ const api = {
   dataFile: (file: string) => ipcRenderer.invoke('doc:data-file', file) as Promise<string | null>,
   /** The descriptor of the collection of a data file; null if none. */
   collectionOf: (file: string) => ipcRenderer.invoke('doc:collection-of', file) as Promise<string | null>,
+  /** The chart panel: what it opens on, its buffer, its save; the text written comes back. */
+  chartSource: (file: string) => ipcRenderer.invoke('doc:chart-source', file) as Promise<ChartSource | null>,
+  chartEdit: (file: string, state: ChartState) => ipcRenderer.invoke('doc:chart-edit', file, state) as Promise<string>,
+  chartSave: (file: string, state: ChartState) => ipcRenderer.invoke('doc:chart-save', file, state) as Promise<string>,
   /** The grid of a collection: what it opens on, its buffer, its save. */
   gridSource: (file: string) => ipcRenderer.invoke('doc:grid-source', file) as Promise<GridSource | null>,
   gridEdit: (file: string, fields: Array<Record<string, unknown>>, data: string) => ipcRenderer.invoke('doc:grid-edit', file, fields, data),
