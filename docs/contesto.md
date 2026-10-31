@@ -717,6 +717,16 @@ quando due rami lavorano in parallelo.
   posizioni nel file del `canvas`, quindi va ripresa la proposta del layout
   a vincoli invece delle coordinate assolute, per non sporcare i diff.
 
+- Selezionare nell'anteprima (2026-10-31): oggi un clic su un punto
+  dell'anteprima apre l'oggetto nell'editor alla riga giusta; una selezione
+  di testo non si riflette nell'editor. Sulla domanda se serva, Alessio:
+  «magari in una vista review». Quindi niente selezione riflessa nella
+  `preview` normale; da precisare una vista di revisione, in cui si legge
+  il documento reso e si seleziona un passo per lavorarci. Nota
+  dell'orchestratore: si lega ai commenti, che oggi sono solo commenti HTML
+  nel sorgente (specifica §0.13), e il nome va fissato nel glossario prima
+  di usarlo.
+
 - L'aspetto dell'`app` va svecchiato (2026-10-30): «sembra un'app anni 80».
   Da precisare la direzione visiva; proposta dell'orchestratore: tre
   direzioni applicate alla stessa `app` e mostrate in immagini, poi la
