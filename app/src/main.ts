@@ -283,6 +283,7 @@ handle('doc:gather', (current, id: string, which: unknown) => current.gather(Str
 handle('doc:arrange', (current, by: unknown) => current.arrange(by === 'tag' ? 'tag' : 'kind'));
 handle('doc:archive', (current, id: string, which: unknown) => current.archive(String(id), card(which)));
 handle('doc:create-text', (current, point: unknown, text: string) => current.createText(at(point)!, String(text)));
+handle('doc:create-chart', (current, file: string) => current.createChart(String(file)));
 handle('doc:compose', (current, ids: string[], title: string) => current.compose(Array.isArray(ids) ? ids.map(String) : [], String(title)));
 ipcMain.handle('doc:open-folder', async () => {
   const folder = await chooseFolder(true);

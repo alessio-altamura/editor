@@ -40,6 +40,7 @@ incorpora nel suo script (`src/renderer/icons.ts`).
 | `archive.svg` | f7242055f3e1c90e7c56f48994fc189bf9642b6bff0d38760f14f29abe207a08 |
 | `arrow-down.svg` | 1f8adf3fd72b04e8f3dbf75a5e8028f7c074ed6e18cd91ec022fd12596a2f25e |
 | `arrow-up.svg` | 130624b17353a284d3902d250ae5e06eeb94a03cb83b3bd7abc44993824f7891 |
+| `chart-column.svg` | af4ee619bc9a99204bc1f5fcb8e1f513082f2b6ae2fe6c9e707ec0ca1050d34c |
 | `chevron-down.svg` | 21afe74b7ce0cbfcce3521bbfeeebca21eb8448c87c85954f0c054fda13c3993 |
 | `chevron-up.svg` | 3cd3475a93afe2ba93bb376cfd9d9aff3a0036758620b75012649060def8638d |
 | `file-code.svg` | ccd16fc79d95cfffc44450e40e180f883da6ca9b56deac15b8a335d2511e83a2 |

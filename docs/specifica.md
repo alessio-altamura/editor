@@ -448,9 +448,11 @@ l'attributo HTML.
   blockquote    { margin-left: 24pt; }
   list          { margin-left: 18pt; margin-bottom: 6pt; }
   table, code, image, thematicBreak { margin-bottom: 6pt; }
+  chart         { color: #1a4f8b; }
   @media (prefers-color-scheme: dark) {
     root        { color: #e6e6e6; }
     hyperlink   { color: #8ab4f8; }
+    chart       { color: #8ab4f8; }
   }
   ```
 
@@ -548,8 +550,9 @@ l'attributo HTML.
   `emphasis`, `strong`, `inline-code` (nel `resolved tree` `inlineCode`).
   I titoli dei capitoli si colpiscono per grado con `title-1`, `title-2` e
   `title-3` (deciso [C: «Sulla bozza di specifica»], §0.16), il titolo
-  dell'`article` con `title-0` (*proposta*, §0.7). Per gli altri tipi, che hanno nomi provvisori (§11.3),
-  niente selettori.
+  dell'`article` con `title-0` (*proposta*, §0.7). *(proposta, classe 3)* Il
+  tipo `chart` dà il colore dei segni di un grafico (§13.4). Per gli altri
+  tipi, che hanno nomi provvisori (§11.3), niente selettori.
 - **Il sottoinsieme dei selettori.** *(proposta)* Selettori di `class`
   semplici e composti (`.a.b`), i quattro tipi in linea e i quattro gradi dei
   titoli, da soli e senza combinatori: `.nota strong` e `title-1.compatto`
@@ -884,7 +887,9 @@ nella `composition` radice, `article` o `deck` (§0.10).
   testo, senza avviso.
 - **L'avviso.** Un `{n}` verso un nodo di un `kind` che non si numera mai,
   né `chapter` né `image`, dà l'avviso `number-slot-kind`, con `target`
-  l'`id`.
+  l'`id`. *(proposta)* Nelle classi successive si numerano anche la
+  `collection` (§12) e il `chart`, che condivide la sequenza delle immagini
+  (§13.5).
 - Un `[[id]]` senza testo verso un'immagine, che non ha `title`, mostra
   l'`id` e dà `reference-text-missing` (§7.4).
 
@@ -3846,6 +3851,382 @@ collection`, `turn-into`, la `grid` dell'`app`) la forma è una sola:
   `decimalChar`, `groupChar`, `trueValues`, `falseValues`); togliere un campo
   lo toglie anche da `primaryKey`.
 
+## 13. La classe 3: i grafici *(proposta)*
+
+Il primo passo della classe 3 porta il `chart`: un `template` di partenza
+applicato a una `collection`, con un `field` per ogni `role` [C: «I grafici, primo passo della classe 3»]. Il
+`runtime` controlla i ruoli sui tipi dei `field`, traduce `template`, ruoli e
+`record` in una specifica Vega-Lite e la fa disegnare a Vega in SVG; il
+formato del documento resta nostro, e il motore si può cambiare senza
+toccare i file (verifica in `docs/ricerca/grafici-vega.md`). L'aggregatore
+(affiancati e selettore), i `template` scritti da chi scrive e le somme e le
+medie, che arrivano con le formule, sono per i passi dopo.
+
+### 13.1 Il file
+
+Un `chart` è un file `<id>.chart.md`, `kind` `chart`. Nell'intestazione, oltre
+a `id`, `kind` e `tags`:
+- **`template`**: uno dei `base template`, `bar`, `line` o `point` [C: «I grafici, primo passo della classe 3»];
+- **`collection`**: l'`id` della `collection`, scritto `"[[id]]"` come
+  `stylesheet` (§0.16), così `rename` lo aggiorna; *(proposta)* vale anche
+  l'`id` senza parentesi;
+- **i ruoli** `x`, `y` e `series` (facoltativo): ciascuno il `name` di un
+  `field` della `collection`;
+- **`filter`** *(proposta)*, facoltativo: una mappa `field: valore` o
+  `field: [valori]`; restano i `record` il cui valore, com'è scritto, è fra
+  quelli dati. Solo l'uguaglianza: somme, medie ed espressioni arrivano con
+  le formule.
+
+Nel corpo la descrizione, come per `image` e `collection`: è il nome del
+grafico per gli screen reader e la `static fallback` quando non si disegna.
+`class`, `lang` e `associations` valgono come per gli altri `object`.
+
+*(proposte)*
+- **Barre orizzontali, senza un attributo in più.** Un `bar` con la quantità
+  su `x` e le categorie su `y` è orizzontale, come in Vega-Lite; altrimenti è
+  verticale.
+- **Il ruolo della quantità** è `y`, o `x` nel `bar` orizzontale: vuole un
+  `field` `number` o `integer`. L'altro asse accetta ogni tipo: un numero è
+  una scala continua in `line` e `point`, un altro tipo una sequenza di
+  categorie nell'ordine dei `record`. Le date si mostrano come sono scritte.
+- **`series`** accetta un tipo di categorie: `string`, `integer`, `boolean`
+  o una data, non `number`. Nel `bar` le barre delle serie stanno
+  affiancate, non impilate: ogni barra è un valore della `collection`.
+- **Un `record` senza valore** in un ruolo non si disegna.
+- **Un ruolo mancante.** Se `x` o `y` mancano, il `runtime` propone un
+  abbinamento dai tipi: `x` il primo `field` che non è una quantità (o il
+  primo), `y` il primo `field` `number` o `integer` diverso da `x`. Lo dice
+  con l'avviso `chart-role-missing`, il cui suggerimento è l'abbinamento, e
+  disegna con quello. Gli avvisi hanno due gravità, `error` e `warning`
+  (§11.2): una terza, `hint`, sarebbe una modifica del `core`, quindi qui è
+  un `warning`.
+
+### 13.2 I controlli
+
+I codici nuovi, che si aggiungono alla tabella del §11.2; stanno sul file del
+`chart`, e il `target` è scritto come nel file, così il range (§11.7) cade
+sulla riga del ruolo:
+
+| Codice | Gravità | Quando | `target` | Esempio |
+|---|---|---|---|---|
+| `chart-template-unknown` | error | `template` assente o non fra i `base template` | il nome scritto | non coperto |
+| `chart-collection-unresolved` | error | `collection` assente, o un `id` che non è una `collection` | l'`id` | non coperto |
+| `chart-collection-invalid` | error | la `collection` ha errori, o non ha dati | l'`id` | non coperto |
+| `chart-field-unknown` | error | un ruolo o un `filter` con un `field` che non c'è | `ruolo: name` | non coperto |
+| `chart-role-type` | error | un `field` di un tipo che il ruolo non accetta | `ruolo: name` | 57 |
+| `chart-role-missing` | warning | `x` o `y` mancano; il suggerimento è l'abbinamento proposto | i ruoli mancanti | non coperto |
+| `chart-x-repeated` | error | in `bar` e `line`, più `record` con la stessa categoria (e la stessa serie): la quantità non ha un valore solo | `x: valore`, o `y: valore` nel `bar` orizzontale | 58 |
+| `chart-too-many-marks` | error | più di 2000 segni da disegnare | il numero | non coperto |
+
+*(proposte)* Un errore ferma il disegno: si vede la descrizione, come per
+un'immagine che non c'è. In `point` la stessa `x` può ripetersi, perché una
+nuvola di punti ha più punti sulla stessa ascissa: la regola «più `record`
+con lo stesso `x` senza serie» vale per `bar` e `line`, dove ogni categoria
+ha un valore. La soglia di 2000 segni tiene leggibile il grafico e piccolo
+l'SVG; oltre, un `filter`.
+
+### 13.3 Nel `resolved tree`
+
+Il nodo del `chart` ha i suoi attributi come scritti (`collection` con l'`id`
+risolto) e, nel contenuto, la descrizione e poi un elemento `chart`
+*(proposta)*:
+
+- `template`, `x`, `y`, `series` se c'è, `orientation` per il `bar`
+  (`vertical` o `horizontal`);
+- `values`: i `record` disegnati, nell'ordine del file, ciascuno come
+  `[x, y]` o `[x, y, series]` con i valori com'è scritto nel file di dati;
+- `drawing`: il disegno, `{"light": svg, "dark": svg}`, due stringhe SVG
+  nei due temi. I `renderer` lo mettono nella pagina senza ricalcolare
+  (§0.5). Come la `source position`, non sta nel `resolved tree` che
+  confrontano gli esempi: `resolve-tree --drawings` lo scrive, e l'`export`,
+  la stampa, l'anteprima e le schede lo chiedono sempre.
+
+Un `chart` che non si disegna non ha l'elemento `chart`: il suo contenuto è
+la sola descrizione.
+
+```````````````````````````````` example 56 conf=3 status=proposal
+=== file vendite.collection.md
+---
+id: vendite
+kind: collection
+asset: vendite.tsv
+fields:
+  - name: mese
+    type: string
+    title: Mese
+  - name: importo
+    type: number
+    title: Vendite in euro
+---
+Le vendite del primo trimestre.
+=== file vendite.tsv
+mese	importo
+gennaio	21300
+febbraio	9875.26
+marzo	12000
+=== file vendite-mensili.chart.md
+---
+id: vendite-mensili
+kind: chart
+template: bar
+collection: "[[vendite]]"
+x: mese
+y: importo
+---
+Le vendite per mese: gennaio è il mese migliore.
+=== resolved
+{
+  "nodes": [
+    {"id": "vendite", "kind": "collection", "file": "vendite.collection.md", "attributes": {"asset": "vendite.tsv", "fields": [{"name": "mese", "type": "string", "title": "Mese"}, {"name": "importo", "type": "number", "title": "Vendite in euro"}]}, "content": [["paragraph", "Le vendite del primo trimestre."], ["table", {"fields": [{"name": "mese", "type": "string", "title": "Mese"}, {"name": "importo", "type": "number", "title": "Vendite in euro"}]}, ["tableRow", ["tableCell", "Mese"], ["tableCell", "Vendite in euro"]], ["tableRow", ["tableCell", {"value": "gennaio"}, "gennaio"], ["tableCell", {"value": "21300"}, "21300.00"]], ["tableRow", ["tableCell", {"value": "febbraio"}, "febbraio"], ["tableCell", {"value": "9875.26"}, "9875.26"]], ["tableRow", ["tableCell", {"value": "marzo"}, "marzo"], ["tableCell", {"value": "12000"}, "12000.00"]]]]},
+    {"id": "vendite-mensili", "kind": "chart", "file": "vendite-mensili.chart.md", "attributes": {"template": "bar", "collection": "vendite", "x": "mese", "y": "importo"}, "content": [["paragraph", "Le vendite per mese: gennaio è il mese migliore."], ["chart", {"template": "bar", "x": "mese", "y": "importo", "orientation": "vertical", "values": [["gennaio", "21300"], ["febbraio", "9875.26"], ["marzo", "12000"]]}]]}
+  ]
+}
+````````````````````````````````
+
+```````````````````````````````` example 57 conf=3 status=proposal
+=== file vendite.collection.md
+---
+id: vendite
+kind: collection
+asset: vendite.tsv
+fields:
+  - name: mese
+    type: string
+  - name: importo
+    type: number
+---
+Le vendite.
+=== file vendite.tsv
+mese	importo
+gennaio	21300
+febbraio	9875.26
+=== file vendite-mensili.chart.md
+---
+id: vendite-mensili
+kind: chart
+template: line
+collection: "[[vendite]]"
+x: importo
+y: mese
+---
+Le vendite per mese.
+=== resolved
+{
+  "nodes": [
+    {"id": "vendite", "kind": "collection", "file": "vendite.collection.md", "attributes": {"asset": "vendite.tsv", "fields": [{"name": "mese", "type": "string"}, {"name": "importo", "type": "number"}]}, "content": [["paragraph", "Le vendite."], ["table", {"fields": [{"name": "mese", "type": "string"}, {"name": "importo", "type": "number"}]}, ["tableRow", ["tableCell", "mese"], ["tableCell", "importo"]], ["tableRow", ["tableCell", {"value": "gennaio"}, "gennaio"], ["tableCell", {"value": "21300"}, "21300.00"]], ["tableRow", ["tableCell", {"value": "febbraio"}, "febbraio"], ["tableCell", {"value": "9875.26"}, "9875.26"]]]]},
+    {"id": "vendite-mensili", "kind": "chart", "file": "vendite-mensili.chart.md", "attributes": {"template": "line", "collection": "vendite", "x": "importo", "y": "mese"}, "content": [["paragraph", "Le vendite per mese."]]}
+  ],
+  "diagnostics": [
+    {"severity": "error", "code": "chart-role-type", "file": "vendite-mensili.chart.md", "target": "y: mese", "fix": "scegli per y un field number o integer"}
+  ]
+}
+````````````````````````````````
+
+```````````````````````````````` example 58 conf=3 status=proposal
+=== file vendite.collection.md
+---
+id: vendite
+kind: collection
+asset: vendite.tsv
+fields:
+  - name: mese
+    type: string
+  - name: regione
+    type: string
+  - name: importo
+    type: number
+---
+Le vendite per mese e regione.
+=== file vendite.tsv
+mese	regione	importo
+gennaio	nord	21300
+gennaio	sud	9000
+febbraio	nord	9875.26
+=== file vendite-mensili.chart.md
+---
+id: vendite-mensili
+kind: chart
+template: bar
+collection: "[[vendite]]"
+x: mese
+y: importo
+---
+Le vendite per mese.
+=== resolved
+{
+  "nodes": [
+    {"id": "vendite", "kind": "collection", "file": "vendite.collection.md", "attributes": {"asset": "vendite.tsv", "fields": [{"name": "mese", "type": "string"}, {"name": "regione", "type": "string"}, {"name": "importo", "type": "number"}]}, "content": [["paragraph", "Le vendite per mese e regione."], ["table", {"fields": [{"name": "mese", "type": "string"}, {"name": "regione", "type": "string"}, {"name": "importo", "type": "number"}]}, ["tableRow", ["tableCell", "mese"], ["tableCell", "regione"], ["tableCell", "importo"]], ["tableRow", ["tableCell", {"value": "gennaio"}, "gennaio"], ["tableCell", {"value": "nord"}, "nord"], ["tableCell", {"value": "21300"}, "21300.00"]], ["tableRow", ["tableCell", {"value": "gennaio"}, "gennaio"], ["tableCell", {"value": "sud"}, "sud"], ["tableCell", {"value": "9000"}, "9000.00"]], ["tableRow", ["tableCell", {"value": "febbraio"}, "febbraio"], ["tableCell", {"value": "nord"}, "nord"], ["tableCell", {"value": "9875.26"}, "9875.26"]]]]},
+    {"id": "vendite-mensili", "kind": "chart", "file": "vendite-mensili.chart.md", "attributes": {"template": "bar", "collection": "vendite", "x": "mese", "y": "importo"}, "content": [["paragraph", "Le vendite per mese."]]}
+  ],
+  "diagnostics": [
+    {"severity": "error", "code": "chart-x-repeated", "file": "vendite-mensili.chart.md", "target": "x: gennaio", "fix": "aggiungi una series o un filter: la stessa categoria ha più record"}
+  ]
+}
+````````````````````````````````
+
+```````````````````````````````` example 59 conf=3 status=proposal
+=== file vendite.collection.md
+---
+id: vendite
+kind: collection
+asset: vendite.tsv
+fields:
+  - name: mese
+    type: string
+  - name: regione
+    type: string
+  - name: importo
+    type: number
+---
+Le vendite per mese e regione.
+=== file vendite.tsv
+mese	regione	importo
+gennaio	nord	21300
+gennaio	sud	9000
+febbraio	nord	9875.26
+=== file vendite-mensili.chart.md
+---
+id: vendite-mensili
+kind: chart
+template: bar
+collection: "[[vendite]]"
+x: mese
+y: importo
+series: regione
+---
+Le vendite per mese, una barra per regione.
+=== resolved
+{
+  "nodes": [
+    {"id": "vendite", "kind": "collection", "file": "vendite.collection.md", "attributes": {"asset": "vendite.tsv", "fields": [{"name": "mese", "type": "string"}, {"name": "regione", "type": "string"}, {"name": "importo", "type": "number"}]}, "content": [["paragraph", "Le vendite per mese e regione."], ["table", {"fields": [{"name": "mese", "type": "string"}, {"name": "regione", "type": "string"}, {"name": "importo", "type": "number"}]}, ["tableRow", ["tableCell", "mese"], ["tableCell", "regione"], ["tableCell", "importo"]], ["tableRow", ["tableCell", {"value": "gennaio"}, "gennaio"], ["tableCell", {"value": "nord"}, "nord"], ["tableCell", {"value": "21300"}, "21300.00"]], ["tableRow", ["tableCell", {"value": "gennaio"}, "gennaio"], ["tableCell", {"value": "sud"}, "sud"], ["tableCell", {"value": "9000"}, "9000.00"]], ["tableRow", ["tableCell", {"value": "febbraio"}, "febbraio"], ["tableCell", {"value": "nord"}, "nord"], ["tableCell", {"value": "9875.26"}, "9875.26"]]]]},
+    {"id": "vendite-mensili", "kind": "chart", "file": "vendite-mensili.chart.md", "attributes": {"template": "bar", "collection": "vendite", "x": "mese", "y": "importo", "series": "regione"}, "content": [["paragraph", "Le vendite per mese, una barra per regione."], ["chart", {"template": "bar", "x": "mese", "y": "importo", "series": "regione", "orientation": "vertical", "values": [["gennaio", "21300", "nord"], ["gennaio", "9000", "sud"], ["febbraio", "9875.26", "nord"]]}]]}
+  ]
+}
+````````````````````````````````
+
+### 13.4 La resa
+
+*(proposte)* Nell'`export`, nella stampa, nell'anteprima e nelle schede del
+`canvas` l'`embed` di un `chart` è un `<figure data-kind="chart">` con il
+disegno, senza script.
+- **Il disegno.** Vega 6.4.0 e Vega-Lite 6.5.0, nel `runtime`, senza canvas:
+  la specifica Vega-Lite viene compilata e Vega la disegna con il renderer
+  SVG a stringa, in modo sincrono, come fa il suo export SVG. Due esecuzioni
+  con lo stesso input danno lo stesso SVG.
+- **Due temi in un file.** Con i due temi l'HTML ha due SVG,
+  `<div data-chart-theme="light">` e `<div data-chart-theme="dark">`, e una
+  regola `@media (prefers-color-scheme: dark)` mostra quello del tema; con
+  `--theme`, e nel PDF, c'è solo quello del tema.
+- **La misura.** Il disegno è largo 600 px e alto 360, i 3/5; nella pagina è
+  largo quanto il testo, con l'altezza in proporzione.
+- **I caratteri** sono quelli dell'`embed` del grafico: per un `base
+  stylesheet` senza cambi, il carattere di partenza (§0.5), a 0,85 volte il
+  corpo del testo.
+- **I colori** vengono dallo `stylesheet`, tema scuro compreso. Il testo
+  degli assi e della legenda ha il `color` dell'`embed`; i segni hanno il
+  `color` del tipo `chart`, un selettore nuovo degli `stylesheet` (§0.5), che
+  il `base stylesheet` mette a `#1a4f8b`, e `#8ab4f8` nel tema scuro, come i
+  collegamenti. Le serie dopo la prima prendono una tavolozza fissa per
+  tema, di Okabe e Ito, leggibile anche con il daltonismo. Una tavolozza
+  scritta nello `stylesheet` vorrebbe una proprietà nuova del sottoinsieme:
+  nome proposto `chart-palette`, una lista di colori; non c'è ancora.
+- **I numeri** sugli assi seguono il `display` del §0.4: separatori della
+  lingua e raggruppamento come in CLDR (in italiano 8000, poi 10.000). Vega
+  formatta con d3-format, che non conosce il raggruppamento minimo di CLDR:
+  il `runtime` registra una funzione di formato sua, `docNumber`, che Vega
+  usa per le tacche delle quantità.
+- **Accessibilità.** L'SVG ha `role="img"` e per `aria-label` il testo della
+  descrizione; i ruoli interni di Vega sono spenti. La `static fallback` è la
+  descrizione: `<figure data-kind="chart" data-chart-fallback>`.
+- **Limite.** Senza canvas la larghezza del testo è stimata, quindi il
+  taglio di un'etichetta troppo lunga è approssimato.
+
+### 13.5 La numerazione
+
+Grafici e immagini condividono la sequenza delle figure [C: «I grafici, primo passo della classe 3»]: in una
+`composition` un `chart` incluso prende il `number` dopo l'ultima immagine o
+l'ultimo grafico, e `[[id|figura {n}]]` lo mostra (§0.14). `{n}` verso un
+`chart` non dà `number-slot-kind`.
+
+```````````````````````````````` example 60 conf=3 status=proposal
+=== file report.article.md
+---
+id: report
+kind: article
+title: Il trimestre
+---
+![[lavagna]]
+
+![[vendite-mensili]]
+
+![[commento]]
+=== file lavagna.image.md
+---
+id: lavagna
+kind: image
+asset: lavagna.jpg
+---
+La lavagna della riunione.
+=== asset lavagna.jpg
+=== file commento.text.md
+---
+id: commento
+kind: text
+---
+Il grafico è nella [[vendite-mensili|figura {n}]], dopo la [[lavagna|figura {n}]].
+=== file vendite.collection.md
+---
+id: vendite
+kind: collection
+asset: vendite.tsv
+fields:
+  - name: mese
+    type: string
+  - name: importo
+    type: number
+---
+Le vendite.
+=== file vendite.tsv
+mese	importo
+gennaio	21300
+febbraio	9875.26
+=== file vendite-mensili.chart.md
+---
+id: vendite-mensili
+kind: chart
+template: bar
+collection: "[[vendite]]"
+x: mese
+y: importo
+---
+Le vendite per mese.
+=== resolved
+{
+  "nodes": [
+    {"id": "commento", "kind": "text", "file": "commento.text.md", "content": [["paragraph", "Il grafico è nella ", ["hyperlink", {"ref": "vendite-mensili"}, "figura"], ", dopo la ", ["hyperlink", {"ref": "lavagna"}, "figura"], "."]]},
+    {"id": "lavagna", "kind": "image", "file": "lavagna.image.md", "attributes": {"asset": "lavagna.jpg"}, "content": [["paragraph", "La lavagna della riunione."]]},
+    {"id": "report", "kind": "article", "file": "report.article.md", "attributes": {"title": "Il trimestre"}, "content": [["title", "Il trimestre"], ["embed", {"id": "lavagna", "kind": "image", "asset": "lavagna.jpg", "number": "1"}, ["paragraph", "La lavagna della riunione."]], ["embed", {"id": "vendite-mensili", "kind": "chart", "number": "2"}, ["paragraph", "Le vendite per mese."], ["chart", {"template": "bar", "x": "mese", "y": "importo", "orientation": "vertical", "values": [["gennaio", "21300"], ["febbraio", "9875.26"]]}]], ["embed", {"id": "commento", "kind": "text"}, ["paragraph", "Il grafico è nella ", ["hyperlink", {"ref": "vendite-mensili"}, "figura 2"], ", dopo la ", ["hyperlink", {"ref": "lavagna"}, "figura 1"], "."]]]},
+    {"id": "vendite", "kind": "collection", "file": "vendite.collection.md", "attributes": {"asset": "vendite.tsv", "fields": [{"name": "mese", "type": "string"}, {"name": "importo", "type": "number"}]}, "content": [["paragraph", "Le vendite."], ["table", {"fields": [{"name": "mese", "type": "string"}, {"name": "importo", "type": "number"}]}, ["tableRow", ["tableCell", "mese"], ["tableCell", "importo"]], ["tableRow", ["tableCell", {"value": "gennaio"}, "gennaio"], ["tableCell", {"value": "21300"}, "21300.00"]], ["tableRow", ["tableCell", {"value": "febbraio"}, "febbraio"], ["tableCell", {"value": "9875.26"}, "9875.26"]]]]},
+    {"id": "vendite-mensili", "kind": "chart", "file": "vendite-mensili.chart.md", "attributes": {"template": "bar", "collection": "vendite", "x": "mese", "y": "importo"}, "content": [["paragraph", "Le vendite per mese."], ["chart", {"template": "bar", "x": "mese", "y": "importo", "orientation": "vertical", "values": [["gennaio", "21300"], ["febbraio", "9875.26"]]}]]}
+  ]
+}
+````````````````````````````````
+
+### 13.6 Le operazioni
+
+- **`create chart --collection <id> [--template bar|line|point] [--x <field>]
+  [--y <field>] [--series <field>]`**, con `--dry-run`. I ruoli che mancano
+  si propongono dai tipi come al §13.1. *(proposta)* Il `template`, se
+  manca: `point` se `x` e `y` sono quantità, `line` se `x` è una data,
+  altrimenti `bar`. L'`id`, se manca, viene dalle prime parole di «`y` per
+  `x`», con i `title` dei `field` («vendite-per-mese»). Senza un posto
+  (`--in`, `--at`, `--near`) il file va accanto alla `collection`; con un
+  posto, come gli altri `create`.
+- **`rename`** aggiorna `collection: "[[id]]"` nei `chart`, come ogni valore
+  `"[[id]]"` dell'intestazione; **`move`** e il **`formatter`** valgono anche
+  per i `chart`. Il `formatter` mette le chiavi del `chart` dopo quelle della
+  `collection`: `template`, `collection`, `x`, `y`, `series`, `filter`.
+
 ## Appendice A. Classi successive (non normativa)
 
 Dove si aggancerà ciascuna al `core`.
@@ -3856,10 +4237,14 @@ Dove si aggancerà ciascuna al `core`.
   ed `embed`. Restano per i passi dopo le `dimension` e il `pivot` (con i
   grafici), le `relation` e la colonna di ID corti dei `record` referenziati,
   e la `grid` modificabile nell'`app`.
-- **Grafici** (classe 3). *(proposta della bozza)* Il `chart` applica un
-  `template` a una `collection`, e un aggregatore lo ripete su più dati
-  (bozza-nodi.md §3). Porta le dipendenze accanto alle `association`
-  (domanda 3).
+- **Grafici** (classe 3). Il primo passo è nel §13: il `chart` applica un
+  `base template` (`bar`, `line`, `point`) a una `collection`, con un `field`
+  per ogni ruolo, e il `runtime` lo disegna in SVG con Vega [C: «I grafici,
+  primo passo della classe 3»]. Restano per i passi dopo l'aggregatore, che
+  lo ripete su più dati affiancati o con un selettore (bozza-nodi.md §3), i
+  `template` scritti da chi scrive, le somme e le medie (con le formule), una
+  tavolozza nello `stylesheet` (`chart-palette`, proposta) e le dipendenze
+  accanto alle `association` (domanda 3).
 - **Formule** (classe 4). Orientamento: file separati per tipo [C: «Formule e
   connettori in file separati»]. *(proposta)* Estendono l'aritmetica delle
   `math line` (§0.4); il linguaggio delle formule è aperto, e c'è il rischio

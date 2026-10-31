@@ -265,7 +265,19 @@ const board = createBoard(api, {
   changed: () => void renderNavigator(),
 });
 
-const grid = createGrid(api, $('grid'), { changed: () => tellDirty() });
+const grid = createGrid(api, $('grid'), {
+  changed: () => tellDirty(),
+  // The chart reads the collection on disk: the grid is saved first.
+  chart: async (descriptor) => {
+    if (grid.isDirty()) await save();
+    const done = await api.createChart(descriptor);
+    if (done.error) {
+      alert(`Non si può creare il grafico: ${done.error}`);
+      return;
+    }
+    await open(String(done.summary?.file), 0, 0);
+  },
+});
 
 async function start(): Promise<void> {
   document.body.dataset.view = current;

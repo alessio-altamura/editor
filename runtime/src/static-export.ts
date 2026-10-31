@@ -362,6 +362,12 @@ function diagnosticsList(diagnostics: Diagnostic[]): string {
   return `<section data-diagnostics><p>${summary}</p>${items === '' ? '' : `<ul>${items}</ul>`}</section>`;
 }
 
+/** The drawing of a chart takes the width of the text; with both themes, the one of the system shows (class 3). */
+function chartRules(options: ExportOptions): string {
+  return 'figure[data-kind="chart"] svg { display: block; width: 100%; height: auto; }\n' +
+    (options.theme !== undefined ? '' : '[data-chart-theme="dark"] { display: none; }\n@media (prefers-color-scheme: dark) { [data-chart-theme="light"] { display: none; } [data-chart-theme="dark"] { display: block; } }\n');
+}
+
 /** The fixed drawing of the diagnostics list, in the preview only. */
 const PREVIEW_RULES =
   '[data-diagnostics] { font-family: "Source Sans 3", sans-serif; font-size: 10pt; line-height: 1.4; margin-bottom: 18pt; padding: 6pt 9pt; border: 0.75pt solid #c9ccd1; border-radius: 4pt; color: #1f2328; background: #f6f7f9; }\n' +
@@ -418,7 +424,7 @@ function* pieces(
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
     `<title>${escapeHtml(pageTitle)}</title>` +
     (preview ? preview.scriptUrls.map((url) => `<script src="${escapeHtml(url)}" defer></script>`).join('') : '') +
-    `<style>\n${styleSheet(options)}${preview ? PREVIEW_RULES : ''}`;
+    `<style>\n${styleSheet(options)}${JSON.stringify(content).includes('["chart",') ? chartRules(options) : ''}${preview ? PREVIEW_RULES : ''}`;
   if (headFonts !== null) {
     yield head;
     yield* fontFaces(headFonts, options.fonts, encode, preview);
@@ -536,6 +542,21 @@ function* pieces(
           } else {
             const fallback = asset ? asset.fallback : 'none';
             open = `<figure data-kind="image" data-image-fallback="${fallback}"${common}>`;
+          }
+          close = '</figure>';
+        } else if (kind === 'chart') {
+          // The drawing of the runtime, without script: in the two themes, or in the one asked;
+          // the description is its name for screen readers, and the static fallback without it (class 3).
+          const chart = children.find((child) => Array.isArray(child) && child[0] === 'chart');
+          const drawing = Array.isArray(chart) && chart[1] !== null && typeof chart[1] === 'object' ? (chart[1] as { drawing?: { light: string; dark: string } }).drawing : undefined;
+          const description = children.filter((child) => child !== chart);
+          if (drawing !== undefined) {
+            const svg = (theme: Theme) => drawing[theme].replace('<svg ', `<svg role="img" aria-label="${escapeHtml(plainText(description))}" `);
+            open = `<figure data-kind="chart"${common}>` + (options.theme !== undefined ? svg(options.theme) : `<div data-chart-theme="light">${svg('light')}</div><div data-chart-theme="dark">${svg('dark')}</div>`);
+            children = [];
+          } else {
+            open = `<figure data-kind="chart" data-chart-fallback${common}>`;
+            children = description;
           }
           close = '</figure>';
         } else if (kind === 'collection') {

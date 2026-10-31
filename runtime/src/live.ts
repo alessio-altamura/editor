@@ -36,7 +36,7 @@ export class LiveFolder {
   recompute(): boolean {
     const start = performance.now();
     try {
-      this.tree = resolveTree(this.folder, { positions: true, overlay: this.overlay, records: PREVIEW_RECORDS });
+      this.tree = resolveTree(this.folder, { positions: true, overlay: this.overlay, records: PREVIEW_RECORDS, drawings: true });
       this.listed = listDocumentFiles(this.folder);
     } catch (error) {
       this.log(`errore interno nel ricalcolo: ${error instanceof Error ? error.message : String(error)}`);

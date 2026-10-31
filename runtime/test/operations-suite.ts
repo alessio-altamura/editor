@@ -1,7 +1,7 @@
 // The operations suite: create, extract, rename, move and those of the canvas through the cli, on a folder
 // written here. Each runs first with --dry-run, which must write nothing.
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -395,6 +395,35 @@ try {
     if (check.status !== 0) problems.push(`not canonical: ${check.stdout}`);
     rmSync(base, { recursive: true, force: true });
     report('collections: create, turn-into from a text and a scratch, refusal, rename and move', problems);
+  }
+
+  // create chart (class 3): the roles not given proposed from the types, next to the collection; with roles and a template; refused without a quantity.
+  {
+    const problems: string[] = [];
+    const base = mkdtempSync(join(tmpdir(), 'doc-chart-'));
+    writeFileSync(join(base, 'doc.document.md'), '---\nid: doc\nkind: document\ntags: []\nlang: it\nspec-version: "0.1"\n---\n');
+    mkdirSync(join(base, 'dati'));
+    writeFileSync(join(base, 'dati', 'vendite.collection.md'), front('vendite', 'collection', 'asset: vendite.tsv\nfields:\n  - name: mese\n    type: string\n    title: Mese\n  - name: regione\n    type: string\n  - name: importo\n    type: number\n') + 'Vendite.\n');
+    writeFileSync(join(base, 'dati', 'vendite.tsv'), 'mese\tregione\timporto\ngennaio\tnord\t10\ngennaio\tsud\t8\nfebbraio\tnord\t12\n');
+    writeFileSync(join(base, 'dati', 'nomi.collection.md'), front('nomi', 'collection', 'asset: nomi.tsv\nfields:\n  - name: nome\n    type: string\n') + 'Nomi.\n');
+    writeFileSync(join(base, 'dati', 'nomi.tsv'), 'nome\nAda\n');
+    const run = (...args: string[]) => spawnSync(process.execPath, [cliPath, ...args, '--folder', base], { encoding: 'utf8' });
+    // Without roles: x mese and y importo proposed; the same month twice without a series is refused.
+    const bare = run('create', 'chart', '--collection', 'vendite', '--dry-run');
+    if (bare.status !== 1 || !bare.stderr.includes('chart-x-repeated')) problems.push(`without roles: ${bare.status} ${bare.stderr.slice(0, 200)}`);
+    const proposed = run('create', 'chart', '--collection', 'vendite', '--series', 'regione');
+    const summary = proposed.status === 0 ? (JSON.parse(proposed.stdout) as Record<string, string>) : {};
+    if (summary.file !== 'dati/importo-per-mese.chart.md' || summary.template !== 'bar' || summary.x !== 'mese' || summary.y !== 'importo') problems.push(`proposed: ${proposed.stdout}${proposed.stderr}`);
+    else if (readFileSync(join(base, summary.file), 'utf8') !== '---\nid: importo-per-mese\nkind: chart\ntags: []\ntemplate: bar\ncollection: "[[vendite]]"\nx: mese\ny: importo\nseries: regione\n---\n') problems.push(`the file: ${readFileSync(join(base, summary.file), 'utf8')}`);
+    const given = run('create', 'chart', '--collection', 'vendite', '--template', 'line', '--x', 'mese', '--y', 'importo', '--series', 'regione', '--id', 'linee');
+    if (given.status !== 0 || !readFileSync(join(base, 'dati', 'linee.chart.md'), 'utf8').includes('template: line\n')) problems.push(`with roles: ${given.status} ${given.stderr}`);
+    const refused = run('create', 'chart', '--collection', 'nomi');
+    if (refused.status !== 2 || !refused.stderr.includes('number o integer')) problems.push(`no quantity: ${refused.status} ${refused.stderr}`);
+    const tree = JSON.parse(spawnSync(process.execPath, [cliPath, 'resolve-tree', base], { encoding: 'utf8' }).stdout) as Tree;
+    if ((tree.diagnostics ?? []).length !== 0) problems.push(`diagnostics: ${JSON.stringify(tree.diagnostics)}`);
+    if (spawnSync(process.execPath, [cliPath, 'format', base, '--check'], { encoding: 'utf8' }).status !== 0) problems.push('not canonical');
+    rmSync(base, { recursive: true, force: true });
+    report('create chart: roles proposed or given, next to the collection, refused without a quantity', problems);
   }
 
   // A big table: the preview keeps the first 1000 records, a card 20, each with a last row; the export has them all.

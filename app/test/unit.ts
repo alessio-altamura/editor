@@ -246,6 +246,19 @@ try {
     if (grid.records[0]![0] !== 'tab\tin un valore' || !grid.dataText().includes('tab in un valore')) problems.push('a tab in a value is written as a space');
     check('the model of the grid: edit, paste, copy, records, fields, undo', problems);
   }
+
+  {
+    // The record at a line of the data file: from where each record is written, also with a line end inside quotes in a CSV.
+    const problems: string[] = [];
+    const csv = new GridModel({
+      descriptor: 'note.collection.md', data: 'note.csv', extension: 'csv', lang: 'it',
+      fields: [{ name: 'giorno', type: 'string' }, { name: 'nota', type: 'string' }],
+      text: 'giorno,nota\nlunedì,"una nota\nsu due righe"\nmartedì,breve\n',
+    });
+    const found = [0, 1, 2, 3].map((line) => csv.recordAtLine(line));
+    if (JSON.stringify(found) !== '[-1,0,0,1]') problems.push(`lines 0-3: ${JSON.stringify(found)}`);
+    check('the record at a line of a CSV with a line end inside quotes', problems);
+  }
   // The separate window of the preview: where it was, on its screen; else on the primary screen, centred.
   {
     const problems: string[] = [];

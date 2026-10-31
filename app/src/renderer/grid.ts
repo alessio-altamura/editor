@@ -16,6 +16,8 @@ const TYPES = ['string', 'number', 'integer', 'boolean', 'date', 'datetime', 'ti
 export interface GridHooks {
   /** The grid changed, or was saved: the page tells the main process whether it has changes not saved. */
   changed: () => void;
+  /** «Crea grafico»: the page makes the chart of the collection, saved first, and opens it. */
+  chart: (descriptor: string) => void;
 }
 
 type Cell = { row: number; column: number };
@@ -35,6 +37,7 @@ export function createGrid(api: DocApp, root: HTMLElement, hooks: GridHooks) {
       <span class="grid-group"><span class="grid-label">Record</span><button data-do="append" data-icon="plus" aria-label="Aggiungi in fondo">+ in fondo</button><button data-do="insert" data-icon="list-plus" aria-label="Aggiungi dopo quello scelto">+ dopo</button><button data-do="remove" data-icon="trash-2" aria-label="Togli il record scelto">− togli</button><button data-do="up" data-icon="arrow-up" aria-label="Sposta su">↑</button><button data-do="down" data-icon="arrow-down" aria-label="Sposta giù">↓</button></span>
       <span class="grid-group"><span class="grid-label">Campo</span><input class="field-title" aria-label="Titolo del campo scelto"><select class="field-type" aria-label="Tipo del campo scelto">${TYPES.map((type) => `<option>${type}</option>`).join('')}</select><button data-do="remove-field" data-icon="trash-2" aria-label="Togli il campo scelto">− togli</button></span>
       <span class="grid-group"><span class="grid-label">Nuovo campo</span><input class="new-title" placeholder="Titolo" aria-label="Titolo del campo nuovo"><select class="new-type" aria-label="Tipo del campo nuovo">${TYPES.map((type) => `<option>${type}</option>`).join('')}</select><button data-do="add-field" data-icon="plus" aria-label="Aggiungi il campo">+ campo</button></span>
+      <span class="grid-group"><button data-do="chart" data-icon="chart-column" data-icon-text aria-label="Crea grafico" title="Un grafico di questa collection, con i campi proposti dai tipi">Crea grafico</button></span>
       <span class="grid-group"><button data-do="undo" data-icon="undo-2" aria-label="Annulla" title="Annulla (Cmd-Z)">↶</button><button data-do="redo" data-icon="redo-2" aria-label="Ripeti" title="Ripeti (Cmd-Maiusc-Z)">↷</button></span>
       <span class="grid-status" role="status"></span>
     </div>
@@ -325,6 +328,7 @@ export function createGrid(api: DocApp, root: HTMLElement, hooks: GridHooks) {
         move(active.row, columns() - 1);
         break;
       }
+      case 'chart': if (file !== null) hooks.chart(file); return;
       case 'undo': model.undo(); break;
       case 'redo': model.redo(); break;
     }
@@ -403,13 +407,13 @@ export function createGrid(api: DocApp, root: HTMLElement, hooks: GridHooks) {
       const name = (model.descriptorFields()[column] as { name?: unknown } | undefined)?.name;
       const at = model.columns.findIndex((each) => each.name === name);
       if (at < 0) return false;
-      // One record a line: the data file as the grid writes it, and as a TSV is.
-      if (line <= 0) {
+      const row = model.recordAtLine(line);
+      if (row < 0) {
         anchor = { row: 0, column: at };
         active = { row: Math.max(rows() - 1, 0), column: at };
         scroll.scrollTop = 0;
         paint();
-      } else move(line - 1, at);
+      } else move(row, at);
       table.focus();
       return true;
     },

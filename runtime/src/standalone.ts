@@ -25,7 +25,7 @@ export function standaloneTree(folder: string, overlay: ReadonlyMap<string, stri
   const wanted = [...new Set(ids.filter((id) => ID_FORM.test(id)))];
   const files = new Map(wanted.map((id, index) => [`${holder}-${index + 1}.article.md`, id]));
   const texts = [...files].map(([file, id], index) => [file, `---\nid: ${holder}-${index + 1}\nkind: article\n---\n![[${id}]]\n`] as [string, string]);
-  const tree = resolveTree(folder, { positions, overlay: new Map([...overlay, ...texts]), records });
+  const tree = resolveTree(folder, { positions, overlay: new Map([...overlay, ...texts]), records, drawings: true });
   const nodes: TreeNode[] = (tree.nodes ?? []).filter((node) => !files.has(node.file));
   const roots = new Map<string, string>();
   for (const article of tree.nodes ?? []) {

@@ -14,6 +14,7 @@ import { parseMarkdown, resolveTree } from './resolve-tree.js';
 import { ID_FORM, type Diagnostic, type ResolvedTree } from './tree.js';
 import { planCreateOnCanvas, retargetCanvas } from './canvas.js';
 import { collectionFiles } from './collection-operations.js';
+import { chartFile, chooseChart, planCreateChart, type ChartChoice } from './chart-operations.js';
 
 /** A problem with the request itself, not with the document: exit 2. */
 export class OperationError extends Error {}
@@ -204,6 +205,14 @@ export interface CreateRequest {
   id?: string;
   /** For an image: a file on disk, copied next to the composition. */
   asset?: string;
+  /** For a chart: its collection, its template and its roles; those not given are proposed (class 3). */
+  collection?: string;
+  template?: string;
+  x?: string;
+  y?: string;
+  series?: string;
+  /** Filled by planCreate: the template and the roles chosen for a chart. */
+  chartChoice?: ChartChoice;
 }
 
 /** The id of a new object: the one asked, or one from the first words. */
@@ -215,12 +224,17 @@ export function newId(workspace: Workspace, tree: ResolvedTree, request: CreateR
     if (taken.has(request.id)) throw new OperationError(`l'id ${request.id} c'è già, vivo o ritirato`);
     return request.id;
   }
+  // A chart: «vendite per mese» from the titles of its y and x (class 3).
+  if (request.chartChoice) return idFromWords(request.chartChoice.words, taken, 'grafico');
   const text = (request.text ?? '').trim();
   return idFromWords(text || (request.asset ? basename(request.asset).replace(/\.[^.]*$/, '') : ''), taken, request.kind);
 }
 
 /** `create`: the object, and its embed in the composition; with `at`, its card on the canvas. */
 export function planCreate(workspace: Workspace, tree: ResolvedTree, request: CreateRequest): Plan {
+  // A chart may have no place: it goes next to its collection.
+  if (request.kind === 'chart' && request.into === undefined && request.at === undefined && request.near === undefined) return planCreateChart(workspace, tree, request);
+  if (request.kind === 'chart') request = { ...request, chartChoice: chooseChart(tree, request) };
   if (request.at !== undefined || request.near !== undefined) return planCreateOnCanvas(workspace, tree, request);
   if (request.into === undefined) throw new OperationError('create vuole --in <id> o --at <x>,<y>');
   const composition = nodeOf(tree, request.into);
@@ -259,6 +273,9 @@ export function addObject(workspace: Workspace, plan: Plan, beside: string, requ
     const { descriptor, data } = collectionFiles(workspace, plan, at, id, request);
     plan.summary.file = descriptor;
     plan.summary.data = data;
+  } else if (request.kind === 'chart') {
+    if (request.chartChoice === undefined) throw new OperationError('create chart vuole --collection <id>');
+    chartFile(workspace, plan, at, id, request.chartChoice, text);
   } else if (request.kind === 'text') {
     const file = textsFileOf(beside);
     appendTexts(workspace, plan, file, [{ id, content: text }]);

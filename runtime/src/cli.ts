@@ -37,10 +37,11 @@ const MAX_EXPORT_BYTES = 256 * 1024 * 1024;
 const HELP = `${BINARY_NAME} — runtime del documento, spec-version ${SPEC_VERSION} (bozza)
 
 Uso:
-  ${BINARY_NAME} resolve-tree <cartella> [--pretty] [--positions]
+  ${BINARY_NAME} resolve-tree <cartella> [--pretty] [--positions] [--drawings]
                                          stampa il resolved tree in JSON su stdout,
                                          compatto; --pretty lo indenta; --positions
-                                         aggiunge a ogni elemento la sourcePosition
+                                         aggiunge a ogni elemento la sourcePosition;
+                                         --drawings il disegno SVG di ogni chart
   ${BINARY_NAME} export <cartella> [--root <id>] [-o <file>] [--allow-errors] [--theme light|dark]
                                          scrive l'HTML di un article su stdout, o nel
                                          file di -o; --root sceglie l'article quando
@@ -75,6 +76,8 @@ Uso:
   ${BINARY_NAME} arrange --by kind|tag
   ${BINARY_NAME} compose <id>… --title "…" [--id <id>]
   ${BINARY_NAME} create collection --field <nome>:<tipo>… (--in <id> | --at <x>,<y> | --near <id>)
+  ${BINARY_NAME} create chart --collection <id> [--template bar|line|point] [--x <campo>] [--y <campo>] [--series <campo>]
+                                         [--in <id> | --at <x>,<y> | --near <id>]
   ${BINARY_NAME} turn-into <id> [--line <riga>] [--type <campo>:<tipo>]… [--key <campo> | --no-key]
                                          le operazioni: scrivono i file, passati dal
                                          formatter, solo se non portano errori nuovi;
@@ -94,7 +97,10 @@ Uso:
                                          nell'ordine dato; create collection fa un
                                          descrittore e un TSV con l'intestazione;
                                          turn-into fa di una tabella di un text o di
-                                         uno scratch una collection
+                                         uno scratch una collection; create chart fa un
+                                         grafico di una collection, accanto a lei se
+                                         non ha un posto, con i ruoli che mancano
+                                         proposti dai tipi dei campi
   ${BINARY_NAME} --help                    questo aiuto
   ${BINARY_NAME} --version                 la spec-version che il runtime implementa
 
@@ -144,13 +150,14 @@ function main(args: string[]): number | Promise<number> {
   }
   const pretty = args.includes('--pretty');
   const positions = args.includes('--positions');
-  const [command, folder, ...rest] = args.filter((arg) => arg !== '--pretty' && arg !== '--positions');
+  const drawings = args.includes('--drawings');
+  const [command, folder, ...rest] = args.filter((arg) => arg !== '--pretty' && arg !== '--positions' && arg !== '--drawings');
   if (command !== 'resolve-tree' || folder === undefined || rest.length > 0) {
     process.stderr.write(`${BINARY_NAME}: uso: ${BINARY_NAME} resolve-tree <cartella> (vedi --help)\n`);
     return EXIT_USAGE;
   }
   if (!readableFolder(folder)) return EXIT_USAGE;
-  const tree = resolveTree(folder, { positions });
+  const tree = resolveTree(folder, { positions, drawings });
   // In chunks: a large tree never becomes a single string.
   writeJson(1, tree, pretty ? 2 : 0);
   return tree.diagnostics?.some((d) => d.severity === 'error') ? EXIT_ERRORS : EXIT_OK;
@@ -239,7 +246,7 @@ function operationCommand(command: string, args: string[]): number {
   let noKey = false;
   /** --field nome:tipo and --type campo:tipo may be repeated. */
   const repeated = new Map<string, string[]>([['--field', []], ['--type', []]]);
-  const valued = ['--in', '--after', '--before', '--text', '--id', '--asset', '--to', '--folder', '--at', '--title', '--card', '--near', '--size', '--by', '--line', '--key'];
+  const valued = ['--in', '--after', '--before', '--text', '--id', '--asset', '--to', '--folder', '--at', '--title', '--card', '--near', '--size', '--by', '--line', '--key', '--collection', '--template', '--x', '--y', '--series'];
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;
     if (arg === '--dry-run') dryRun = true;
@@ -279,7 +286,9 @@ function operationCommand(command: string, args: string[]): number {
   let plan: Plan;
   try {
     if (command === 'create') {
-      if ([options.has('--in'), at !== undefined, options.has('--near')].filter(Boolean).length !== 1) return usage(`uso: ${syntax.create}`);
+      // A chart may have no place: it goes next to its collection (class 3).
+      const places = [options.has('--in'), at !== undefined, options.has('--near')].filter(Boolean).length;
+      if (places > 1 || (places === 0 && positional[0] !== 'chart')) return usage(`uso: ${syntax.create}`);
       plan = planCreate(workspace, tree, {
         kind: positional[0]!,
         ...(options.has('--in') ? { into: options.get('--in')! } : {}),
@@ -291,6 +300,7 @@ function operationCommand(command: string, args: string[]): number {
         ...(options.has('--text') ? { text: options.get('--text')! } : {}),
         ...(options.has('--id') ? { id: options.get('--id')! } : {}),
         ...(options.has('--asset') ? { asset: options.get('--asset')! } : {}),
+        ...Object.fromEntries((['collection', 'template', 'x', 'y', 'series'] as const).filter((key) => options.has(`--${key}`)).map((key) => [key, options.get(`--${key}`)!])),
       });
     } else if (command === 'extract') {
       const file = relative(resolvePath(folder), resolvePath(positional[0]!)).split(sep).join('/');
@@ -413,7 +423,7 @@ function exportCommand(args: string[], command: 'export' | 'print'): number | Pr
   if (folder === undefined) return usage(syntax);
   if (!readableFolder(folder)) return EXIT_USAGE;
 
-  const tree = resolveTree(folder);
+  const tree = resolveTree(folder, { drawings: true });
   const articles = (tree.nodes ?? []).filter((node) => node.kind === 'article' && node.directive !== true);
   const names = articles.map((node) => node.id ?? node.file).join(', ') || 'nessuno';
   const chosen = rootId === undefined ? articles : articles.filter((node) => node.id === rootId);

@@ -369,6 +369,21 @@ export class GridModel {
   }
 
   /** The data file: the names, then the records, in the form of the runtime (§12). */
+  /**
+   * The record written at a line of the data file (from 0, the header 0): the record whose
+   * text starts on that line or before it, read from the text the preview shows, the file
+   * as opened or, after a change, as the grid writes it; -1 for the header. A value with a
+   * line end inside quotes, in a CSV, makes a record longer than a line.
+   */
+  recordAtLine(line: number): number {
+    const text = this.done === 0 && this.undoStack.length === 0 && this.redoStack.length === 0 ? this.source.text : this.dataText();
+    const starts = readRecords(text, this.schema).records.map((record) => text.slice(0, record.start).split('\n').length - 1);
+    let found = -1;
+    // The first is the header.
+    for (let i = 1; i < starts.length; i++) if (starts[i]! <= line) found = i - 1;
+    return found;
+  }
+
   dataText(): string {
     return writeRecords([this.columns.map((column) => column.name), ...this.records], this.schema.dialect);
   }
